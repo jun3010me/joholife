@@ -1,0 +1,431 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const topics = [
+    {
+        title: "アルゴリズム",
+        description: "効率的な問題解決のための手順とロジックを学びます",
+        icon: "🔄",
+        link: "/algorithms",
+        color: "from-blue-500 to-purple-600"
+    },
+    {
+        title: "プログラミング",
+        description: "Python, JavaScript等の実践的なコーディングスキル",
+        icon: "💻",
+        link: "/programming",
+        color: "from-green-500 to-teal-600"
+    },
+    {
+        title: "データ構造",
+        description: "配列、リスト、木構造などのデータ管理方法",
+        icon: "📊",
+        link: "/data-structures",
+        color: "from-orange-500 to-red-600"
+    },
+    {
+        title: "ネットワーク",
+        description: "インターネットの仕組みと情報通信技術",
+        icon: "🌐",
+        link: "/network",
+        color: "from-indigo-500 to-blue-600"
+    }
+];
+
+const stats = [
+    { number: "50+", label: "学習トピック" },
+    { number: "100+", label: "練習問題" },
+    { number: "24/7", label: "いつでもアクセス" }
+];
+---
+
+<Layout title="情報Ⅰ学習サイト - 高校生のためのプログラミング・アルゴリズム学習">
+    <div class="hero-section fade-in-up">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                情報Ⅰを
+                <span class="highlight">楽しく学ぼう</span>
+            </h1>
+            <p class="hero-description">
+                高校の情報Ⅰで学ぶプログラミング、アルゴリズム、データ構造を分かりやすく解説。
+                実際にコードを書きながら、情報技術の基礎をしっかりと身につけましょう。
+            </p>
+            <div class="hero-buttons">
+                <a href="/getting-started" class="btn btn-primary">
+                    🚀 学習を始める
+                </a>
+                <a href="/about" class="btn btn-secondary">
+                    📖 サイトについて
+                </a>
+            </div>
+        </div>
+        <div class="hero-stats">
+            {stats.map(stat => (
+                <div class="stat-item">
+                    <div class="stat-number">{stat.number}</div>
+                    <div class="stat-label">{stat.label}</div>
+                </div>
+            ))}
+        </div>
+    </div>
+
+    <section class="topics-section">
+        <div class="section-header">
+            <h2>学習コンテンツ</h2>
+            <p>情報Ⅰの主要なトピックをカバーしています</p>
+        </div>
+        
+        <div class="learning-grid">
+            {topics.map(topic => (
+                <a href={topic.link} class="topic-card-link">
+                    <div class={`topic-card bg-gradient-to-br ${topic.color}`}>
+                        <div class="topic-icon">{topic.icon}</div>
+                        <h3>{topic.title}</h3>
+                        <p>{topic.description}</p>
+                        <div class="topic-arrow">→</div>
+                    </div>
+                </a>
+            ))}
+        </div>
+    </section>
+
+    <section class="features-section">
+        <div class="section-header">
+            <h2>なぜこのサイト？</h2>
+            <p>効率的で楽しい学習体験を提供します</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💡</div>
+                <h3>分かりやすい解説</h3>
+                <p>複雑な概念も、図解と実例で理解しやすく説明します</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>実践的なコード</h3>
+                <p>実際に動くコードサンプルで、理論と実践を結びつけます</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>どこでも学習</h3>
+                <p>スマホ、タブレット、PCでいつでもアクセス可能です</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>今すぐ学習を始めましょう</h2>
+            <p>情報Ⅰの基礎から応用まで、ステップバイステップで学べます</p>
+            <a href="/getting-started" class="btn btn-primary btn-large">
+                🎯 学習スタート
+            </a>
+        </div>
+    </section>
+</Layout>
+
+<style>
+.hero-section {
+    text-align: center;
+    padding: 4rem 0 6rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 2rem;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+    animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+}
+
+.highlight {
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+}
+
+.hero-description {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}
+
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+.topics-section {
+    margin-bottom: 6rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+}
+
+.topic-card-link {
+    text-decoration: none;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.topic-card {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.topic-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.topic-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.topic-card h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.topic-card p {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1.5rem;
+}
+
+.topic-arrow {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.topic-card:hover .topic-arrow {
+    transform: translateX(0.5rem);
+    opacity: 1;
+}
+
+.features-section {
+    margin-bottom: 6rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    border-radius: 2rem;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    pointer-events: none;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.cta-section h2 {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.cta-section p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+}
+
+.cta-section .btn {
+    background: white;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.cta-section .btn:hover {
+    background: var(--surface);
+    transform: translateY(-2px);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-description {
+        font-size: 1.125rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-stats {
+        gap: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .topic-card {
+        padding: 2rem;
+    }
+    
+    .feature-card {
+        padding: 2rem;
+    }
+    
+    .cta-section {
+        padding: 3rem 1.5rem;
+    }
+    
+    .cta-section h2 {
+        font-size: 2rem;
+    }
+}
+</style>

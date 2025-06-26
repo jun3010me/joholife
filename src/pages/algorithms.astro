@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// 既存のHTMLからコンテンツを移植する場合
+const algorithms = [
+    { name: "ソート", description: "データを順序立てて並べる" },
+    { name: "探索", description: "データの中から目的の値を見つける" }
+];
+---
+
+<Layout title="アルゴリズム - 情報Ⅰ学習サイト">
+    <h1>アルゴリズム</h1>
+    
+    {algorithms.map(algo => (
+        <div class="algorithm-card">
+            <h2>{algo.name}</h2>
+            <p>{algo.description}</p>
+        </div>
+    ))}
+</Layout>
+
+<style>
+.algorithm-card {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+}
+</style>
