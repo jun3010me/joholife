@@ -4,8 +4,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="論理回路シミュレータ">
-    <link rel="stylesheet" type="text/css" href="/src/styles/simcir.css" />
-    <link rel="stylesheet" type="text/css" href="/src/styles/simcir-basicset.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/simcir.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/simcir-basicset.css" />
     
     <style>
         /* レスポンシブ対応のためのスタイル */
@@ -70,16 +70,16 @@ import Layout from '../layouts/Layout.astro';
         // スクリプトを順番に読み込み
         async function loadSimcirScripts() {
             try {
-                await loadScript('/src/scripts/simcir/jquery-2.1.1.min.js');
+                await loadScript('/scripts/simcir/jquery-2.1.1.min.js');
                 console.log('jQuery loaded');
                 
-                await loadScript('/src/scripts/simcir/simcir.js');
+                await loadScript('/scripts/simcir/simcir.js');
                 console.log('SimCir core loaded');
                 
-                await loadScript('/src/scripts/simcir/simcir-basicset.js');
+                await loadScript('/scripts/simcir/simcir-basicset.js');
                 console.log('SimCir basicset loaded');
                 
-                await loadScript('/src/scripts/simcir/simcir-library.js');
+                await loadScript('/scripts/simcir/simcir-library.js');
                 console.log('SimCir library loaded');
                 
                 console.log('All SimCir scripts loaded successfully');
