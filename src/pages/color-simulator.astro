@@ -1,0 +1,155 @@
+---
+// color-simulator.astro
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="24ビットフルカラーシミュレータ">
+    <link rel="stylesheet" href="/src/styles/color-simulator.css">
+    
+    <div class="color-simulator-container">
+        <div class="container">
+        <h1>24ビットフルカラーシミュレータ</h1>
+        
+        <div class="mode-toggle">
+            <button class="mode-button active" id="rgbModeButton">RGB</button>
+            <button class="mode-button" id="cmykModeButton">CMYK</button>
+        </div>
+        
+        <div class="control-panel">
+            <div class="color-controls">
+                <div class="rgb-sliders">
+                    <h3>RGB値調整</h3>
+                    
+                    <div class="slider-group">
+                        <label for="redSlider">赤 (R)</label>
+                        <div class="slider-container">
+                            <input type="range" id="redSlider" class="slider red-slider" min="0" max="255" value="255">
+                            <div class="value-display" id="redValue">255</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="greenSlider">緑 (G)</label>
+                        <div class="slider-container">
+                            <input type="range" id="greenSlider" class="slider green-slider" min="0" max="255" value="0">
+                            <div class="value-display" id="greenValue">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="blueSlider">青 (B)</label>
+                        <div class="slider-container">
+                            <input type="range" id="blueSlider" class="slider blue-slider" min="0" max="255" value="0">
+                            <div class="value-display" id="blueValue">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cmyk-sliders">
+                    <h3>CMYK値調整</h3>
+                    
+                    <div class="slider-group">
+                        <label for="cyanSlider">シアン (C)</label>
+                        <div class="slider-container">
+                            <input type="range" id="cyanSlider" class="slider cyan-slider" min="0" max="100" value="0">
+                            <div class="value-display" id="cyanValue">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="magentaSlider">マゼンタ (M)</label>
+                        <div class="slider-container">
+                            <input type="range" id="magentaSlider" class="slider magenta-slider" min="0" max="100" value="100">
+                            <div class="value-display" id="magentaValue">100%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="yellowSlider">イエロー (Y)</label>
+                        <div class="slider-container">
+                            <input type="range" id="yellowSlider" class="slider yellow-slider" min="0" max="100" value="100">
+                            <div class="value-display" id="yellowValue">100%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-group">
+                        <label for="keySlider">キー/黒 (K)</label>
+                        <div class="slider-container">
+                            <input type="range" id="keySlider" class="slider key-slider" min="0" max="100" value="0">
+                            <div class="value-display" id="keyValue">0%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slider-group">
+                    <label for="colorCodeInput">カラーコード入力</label>
+                    <div class="color-code-container">
+                        <input type="text" id="colorCodeInput" class="color-code-input" placeholder="#FF0000 または FF0000" maxlength="7">
+                        <button id="applyColorCode" class="apply-button">適用</button>
+                    </div>
+                    <div class="color-code-message" id="colorCodeMessage"></div>
+                </div>
+            </div>
+            
+            <div class="color-display">
+                <h3>色の表示</h3>
+                <div class="color-preview" id="colorPreview"></div>
+                
+                <div class="color-info">
+                    <div class="info-item">
+                        <div class="info-label">16進数</div>
+                        <div class="info-value" id="hexValue">#FF0000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">RGB値</div>
+                        <div class="info-value" id="rgbValue">rgb(255, 0, 0)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">2進数 (R)</div>
+                        <div class="info-value" id="binaryR">11111111</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">2進数 (G)</div>
+                        <div class="info-value" id="binaryG">00000000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">2進数 (B)</div>
+                        <div class="info-value" id="binaryB">00000000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">総ビット数</div>
+                        <div class="info-value" id="totalBits">24ビット</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bit-depth-controls">
+            <div class="bit-depth-title">ビット深度調整</div>
+            
+            <div class="slider-group">
+                <label for="bitDepthSlider">1色あたりのビット数 (1-8ビット)</label>
+                <div class="slider-container">
+                    <input type="range" id="bitDepthSlider" class="slider" min="1" max="8" value="8">
+                    <div class="value-display" id="bitDepthValue">8</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <div class="info-label">表現可能な色数: <span id="colorCount" style="font-weight: bold;">16,777,216色</span></div>
+                <div class="info-label">1色あたりの階調数: <span id="levelCount" style="font-weight: bold;">256段階</span></div>
+            </div>
+        </div>
+        
+        <div class="gradation-display">
+            <div class="gradation-title">色の階調表示</div>
+            
+            <div class="gradation-bar" id="gradationBar"></div>
+            <div class="gradation-info" id="gradationInfo">
+                赤の階調を256段階で表示しています
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="/src/scripts/color-simulator.js"></script>
+</Layout>

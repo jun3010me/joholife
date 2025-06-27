@@ -1,0 +1,987 @@
+/* リセット・基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* ヘッダー */
+header {
+    background: white;
+    color: #4a5568;
+    text-align: center;
+    padding: 2rem 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* メインナビゲーション */
+.main-nav {
+    background: white;
+    padding: 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    display: inline-block;
+    min-width: 140px;
+}
+
+.nav-btn:hover {
+    background-color: #f8f9fa;
+    border-bottom-color: #667eea;
+}
+
+.nav-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-bottom-color: #4a5fc1;
+}
+
+/* メインコンテンツ */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.content-section h2 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+/* セクションナビゲーション */
+.section-nav {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    margin-right: 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.section-btn:hover {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.section-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    font-weight: 600;
+}
+
+/* サブセクション */
+.subsection {
+    display: none;
+}
+
+.subsection.active {
+    display: block;
+}
+
+.subsection h3 {
+    color: #495057;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+/* グリッド表示 */
+.grid-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.grid-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.grid-controls button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.grid-controls button:hover {
+    background: #5a6fd8;
+}
+
+.grid-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+#pixel-grid, #practice-grid {
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    touch-action: none; /* タッチによるスクロール等を無効化 */
+    user-select: none; /* テキスト選択を防ぐ */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    display: block;
+    max-width: 100%;
+    height: auto;
+    /* アスペクト比を維持 */
+    aspect-ratio: 1;
+}
+
+.grid-legend {
+    display: flex;
+    gap: 2rem;
+    font-weight: 600;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.color-a, .color-b {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.color-a {
+    background-color: #e3f2fd;
+}
+
+.color-b {
+    background-color: #1976d2;
+}
+
+/* 符号化過程表示 */
+.encoding-process {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.encoding-process h4 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+#encoding-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.step-number {
+    background: #667eea;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-text {
+    font-size: 1rem;
+}
+
+.encoding-result {
+    border-top: 1px solid #e9ecef;
+    padding-top: 1rem;
+}
+
+.encoding-result h5 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.encoding-result > div {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.encoding-result label {
+    font-weight: 600;
+    color: #495057;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+#original-bits, #compressed-bits {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 1rem;
+    background: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+#compressed-size, #ratio-value {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+/* 出現頻度入力 */
+.frequency-input {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.frequency-input h4 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.frequency-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    align-items: center;
+}
+
+.freq-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.freq-item label {
+    font-weight: 600;
+    min-width: 20px;
+}
+
+.freq-item input {
+    width: 60px;
+    padding: 0.25rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.freq-total {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-weight: bold;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 2px solid #28a745;
+}
+
+#build-huffman-tree {
+    grid-column: 1 / -1;
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+#build-huffman-tree:hover {
+    background: #218838;
+}
+
+/* 符号表 */
+.code-table {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.code-table h4 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+#code-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+
+#code-table th,
+#code-table td {
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#code-table th {
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+}
+
+#code-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* ハフマン木表示 */
+.tree-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tree-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.tree-controls button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.tree-controls button:hover {
+    background: #5a6fd8;
+}
+
+.tree-display {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #fafafa;
+    max-height: 600px;
+}
+
+#huffman-tree {
+    border: none;
+    border-radius: 4px;
+    background: #fefefe;
+    display: block;
+    min-width: 300px;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.tree-explanation {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+/* 符号化練習 */
+.encode-practice {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.input-area {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.input-area label {
+    font-weight: 600;
+    color: #495057;
+}
+
+#text-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+#encode-text {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+#encode-text:hover {
+    background: #218838;
+}
+
+.encode-result {
+    display: grid;
+    gap: 1rem;
+}
+
+.result-section {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.result-section h5 {
+    color: #495057;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+#encoded-text, #decoded-text {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 1rem;
+    background: white;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 0.75rem;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.size-info {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.size-info span {
+    background: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    border: 1px solid #dee2e6;
+}
+
+/* 練習結果表示 */
+.practice-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.result-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.result-item label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.result-item span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* 比較ツール */
+.comparison-tool {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.comparison-input {
+    margin-bottom: 1.5rem;
+}
+
+.input-notes {
+    background: #e8f4f8;
+    border-left: 4px solid #17a2b8;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.input-notes p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.input-notes p:not(:last-child) {
+    margin-bottom: 0.5rem;
+}
+
+.calculation-info {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #495057;
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+#comparison-text {
+    width: 100%;
+    height: 100px;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+#compare-methods {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+#compare-methods:hover {
+    background: #5a6fd8;
+}
+
+.comparison-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.method-result {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid #667eea;
+}
+
+.method-result h4 {
+    color: #495057;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.result-data {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.result-data span {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* 進捗表示 */
+.progress-overview {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.progress-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.progress-item h4 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.progress-bar {
+    background: #e9ecef;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    background: linear-gradient(90deg, #28a745, #20c997);
+    height: 100%;
+    transition: width 0.6s ease;
+    border-radius: 10px;
+}
+
+.progress-text {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* 達成項目 */
+.achievement-list {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.achievement-list h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+#achievements {
+    list-style: none;
+}
+
+.achievement {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.achievement::before {
+    content: '🔒';
+    font-size: 1.2rem;
+}
+
+.achievement.unlocked {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.achievement.unlocked::before {
+    content: '✅';
+}
+
+.achievement.locked {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-left: 4px solid #dee2e6;
+}
+
+/* 問題表示 */
+.problem-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#generate-rl-problem,
+#generate-hf-problem {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    transition: background-color 0.3s ease;
+}
+
+#generate-rl-problem:hover,
+#generate-hf-problem:hover {
+    background: #5a6fd8;
+}
+
+/* フッター */
+footer {
+    background: #495057;
+    color: white;
+    text-align: center;
+    padding: 1rem;
+    margin-top: 3rem;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .main-nav {
+        padding: 0;
+    }
+
+    .nav-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-width: 120px;
+    }
+
+    main {
+        padding: 1rem 0.5rem;
+    }
+
+    .grid-controls {
+        justify-content: center;
+    }
+
+    .frequency-controls {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .input-area {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .comparison-results {
+        grid-template-columns: 1fr;
+    }
+
+    .size-info {
+        flex-direction: column;
+    }
+
+    /* ハフマン木のスマホ対応 */
+    .tree-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #huffman-tree {
+        min-width: 600px;
+        width: 600px;
+        height: 400px;
+        flex-shrink: 0;
+    }
+
+    .tree-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .tree-controls button {
+        margin: 0.25rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 1.5rem 0.5rem;
+    }
+
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    .content-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .subsection h3 {
+        font-size: 1.3rem;
+    }
+
+    .grid-controls {
+        flex-direction: column;
+    }
+
+    .frequency-controls {
+        grid-template-columns: 1fr;
+    }
+
+    #pixel-grid, #practice-grid {
+        width: 280px;
+        height: 280px;
+        /* Canvasの内部解像度は320x320のまま維持 */
+    }
+
+    /* 小さなスマホでのハフマン木対応 */
+    #huffman-tree {
+        min-width: 400px;
+        width: 400px;
+        height: 300px;
+        flex-shrink: 0;
+    }
+    
+    .tree-display {
+        padding: 0.25rem;
+    }
+
+    .tree-container {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .tree-display {
+        padding: 0.25rem;
+        max-height: 400px;
+    }
+
+    .tree-explanation {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-section.active {
+    animation: fadeIn 0.4s ease;
+}
+
+.subsection.active {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ユーティリティクラス */
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.hidden {
+    display: none;
+}
+
+.highlight {
+    background: #fff3cd;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}

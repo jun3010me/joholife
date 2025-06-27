@@ -1,0 +1,98 @@
+---
+// binary-simulator.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="2進数・10進数・16進数シミュレータ">
+    <link rel="stylesheet" href="/src/styles/binary-simulator.css">
+
+    <div class="binary-simulator-container">
+        <h1>2進数・10進数・16進数シミュレータ</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="bitSlider">ビット数</label>
+                <div class="slider-container">
+                    <input type="range" id="bitSlider" min="1" max="16" value="8">
+                    <div class="slider-value" id="bitValue">8 bits</div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="signedMode">
+                    <label for="signedMode">符号付き（負の値対応）</label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label for="valueSlider">数値設定</label>
+                <div class="slider-container">
+                    <input type="range" id="valueSlider" min="0" max="255" value="0">
+                    <div class="slider-value" id="valueSliderValue">0</div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>操作</label>
+                <div class="buttons">
+                    <button class="btn btn-primary" id="incrementBtn">+1</button>
+                    <button class="btn btn-danger" id="decrementBtn">-1</button>
+                    <button class="btn btn-secondary" id="resetBtn">リセット</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="display-area">
+            <div class="number-display binary">
+                <h3>2進数 (Binary)</h3>
+                <div class="number-value" id="binaryValue">00000000</div>
+            </div>
+            
+            <div class="number-display decimal">
+                <h3>10進数 (Decimal)</h3>
+                <div class="decimal-display">
+                    <div class="decimal-value" id="decimalValue">0</div>
+                    <div class="decimal-label">実際の値</div>
+                    <div class="decimal-value" id="complementValue" style="display: none;">0</div>
+                    <div class="decimal-label" id="complementLabel" style="display: none;">2の補数表現</div>
+                </div>
+            </div>
+            
+            <div class="number-display hexadecimal">
+                <h3>16進数 (Hexadecimal)</h3>
+                <div class="number-value" id="hexValue">0x00</div>
+            </div>
+        </div>
+
+        <div class="bit-display">
+            <h3>ビット表示</h3>
+            <div class="bits-container" id="bitsContainer"></div>
+        </div>
+
+        <div class="animation-controls">
+            <h3>自動アニメーション</h3>
+            <div class="animation-direction">
+                <div class="radio-group">
+                    <input type="radio" id="animationUp" name="animationDirection" value="up" checked>
+                    <label for="animationUp">増加</label>
+                </div>
+                <div class="radio-group">
+                    <input type="radio" id="animationDown" name="animationDirection" value="down">
+                    <label for="animationDown">減少</label>
+                </div>
+            </div>
+            <div class="speed-control">
+                <label>速度:</label>
+                <input type="range" id="speedSlider" min="100" max="2000" value="1000" step="100">
+                <div class="speed-display" id="speedValue">1.0秒</div>
+            </div>
+            <div class="buttons">
+                <button class="btn btn-success" id="startAnimationBtn">アニメーション開始</button>
+                <button class="btn btn-secondary" id="stopAnimationBtn">停止</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/src/scripts/binary-simulator.js"></script>
+</Layout>

@@ -1,0 +1,196 @@
+---
+// color-simulator.astro
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="論理式">
+    <link rel="stylesheet" href="/src/styles/logical-formula.css">
+    <div class="container">
+        <div class="header">
+            <h1>論理式学習サイト</h1>
+            <p>論理回路と論理式を楽しく学ぼう！</p>
+        </div>
+
+        <!-- 論理演算子ガイド -->
+        <div class="section">
+            <h2>📚 論理演算子ガイド</h2>
+            <div class="operator-guide">
+                <div class="operator-card">
+                    <h3>AND演算 (論理積)</h3>
+                    <p>記号: ・ (ドット)</p>
+                    <p>両方が1のときだけ1</p>
+                </div>
+                <div class="operator-card">
+                    <h3>OR演算 (論理和)</h3>
+                    <p>記号: + (プラス)</p>
+                    <p>どちらかが1なら1</p>
+                </div>
+                <div class="operator-card">
+                    <h3>NOT演算 (否定)</h3>
+                    <p>記号: ‾ (上線バー)</p>
+                    <p>0と1を反転</p>
+                </div>
+                <div class="operator-card">
+                    <h3>XOR演算 (排他的論理和)</h3>
+                    <p>記号: ⊕ (XOR)</p>
+                    <p>異なるときだけ1</p>
+                    <p><small>基本ゲート分解: A⊕B = (A・B‾) + (A‾・B)</small></p>
+                </div>
+            </div>
+            <div class="formula-examples">
+                <strong>入力例:</strong><br>
+                A・B (AとBのAND - 論理積)<br>
+                A+B (AとBのOR - 論理和)<br>
+                Ā   (AのNOT - 否定)<br>
+                A⊕B (AとBのXOR - 排他的論理和)<br>
+                (A・B)+C (カッコも使用可能)
+            </div>
+        </div>
+
+        <!-- 統合論理式解析システム -->
+        <div class="section">
+            <h2>⚡ 論理式解析・シミュレーションシステム</h2>
+            <div class="input-group">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="inputMode" value="single" checked onchange="toggleInputMode()">
+                        <span>単一出力モード</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="inputMode" value="multiple" onchange="toggleInputMode()">
+                        <span>複数出力モード（半加算回路など）</span>
+                    </label>
+                </div>
+
+                <!-- 単一出力モード -->
+                <div id="singleOutputMode">
+                    <label for="formula">論理式を入力してください：</label>
+                    <div class="input-display">
+                        <input type="text" id="formula" placeholder="例: A・B + C">
+                        <button class="input-btn clear" onclick="clearInput('formula')">クリア</button>
+                    </div>
+                </div>
+
+                <!-- 複数出力モード -->
+                <div id="multipleOutputMode" style="display: none;">
+                    <label>複数の出力式を入力してください：</label>
+                    <div id="outputFormulas">
+                        <div class="output-formula-group">
+                            <label for="output1">出力1（例：Sum）:</label>
+                            <div class="input-display">
+                                <input type="text" id="output1" placeholder="例: A⊕B">
+                                <button class="input-btn clear" onclick="clearInput('output1')">クリア</button>
+                            </div>
+                        </div>
+                        <div class="output-formula-group">
+                            <label for="output2">出力2（例：Carry）:</label>
+                            <div class="input-display">
+                                <input type="text" id="output2" placeholder="例: A・B">
+                                <button class="input-btn clear" onclick="clearInput('output2')">クリア</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="addOutputFormula()" style="background: #4299e1; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; margin: 10px 0;">+ 出力を追加</button>
+                    <div style="margin: 10px 0;">
+                        <strong>プリセット例：</strong>
+                        <button onclick="loadHalfAdder()" style="background: #38a169; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; margin: 0 5px;">半加算回路</button>
+                        <button onclick="loadFullAdder()" style="background: #38a169; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; margin: 0 5px;">全加算回路</button>
+                    </div>
+                </div>
+                
+                <div class="input-buttons" id="globalInputButtons">
+                    <div class="input-button-group">
+                        <strong>変数:</strong><br>
+                        <button class="input-btn variable" onclick="insertTextToActiveInput('A')">A</button>
+                        <button class="input-btn variable" onclick="insertTextToActiveInput('B')">B</button>
+                        <button class="input-btn variable" onclick="insertTextToActiveInput('C')">C</button>
+                        <button class="input-btn variable" onclick="insertTextToActiveInput('D')">D</button>
+                    </div>
+                    
+                    <div class="input-button-group">
+                        <strong>演算子:</strong><br>
+                        <button class="input-btn operator" onclick="insertTextToActiveInput('・')" title="AND（論理積）">・ (AND)</button>
+                        <button class="input-btn operator" onclick="insertTextToActiveInput('+')" title="OR（論理和）">+ (OR)</button>
+                        <button class="input-btn operator" onclick="insertVariableWithBarToActiveInput()" title="NOT（否定）">‾ (NOT)</button>
+                        <button class="input-btn operator" onclick="insertTextToActiveInput('⊕')" title="XOR（排他的論理和）">⊕ (XOR)</button>
+                    </div>
+                    
+                    <div>
+                        <strong>括弧:</strong><br>
+                        <button class="input-btn bracket" onclick="insertTextToActiveInput('(')">(</button>
+                        <button class="input-btn bracket" onclick="insertTextToActiveInput(')')">)</button>
+                        <button class="input-btn" onclick="deleteLastCharFromActiveInput()">削除</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="expandXORMode">
+                    <span>XORを基本ゲート（AND, OR, NOT）で分解表示</span>
+                </label>
+            </div>
+            
+            <button onclick="analyzeFormula()" style="background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 600; margin-bottom: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                🔍 論理式を解析
+            </button>
+
+            <!-- 回路図 -->
+            <div id="circuitDiagramSection" style="display: none;">
+                <h3>🔧 回路図</h3>
+                <div id="circuitDiagramResult" class="circuit-diagram">
+                    <div id="circuitSvg"></div>
+                </div>
+            </div>
+
+            <!-- 真理値表 -->
+            <div id="truthTableSection" style="display: none;">
+                <h3>📊 真理値表</h3>
+                <div id="truthTableResult" class="truth-table"></div>
+            </div>
+
+            <!-- インタラクティブシミュレーター -->
+            <div id="simulatorSection" style="display: none;">
+                <h3>⚡ インタラクティブシミュレーター</h3>
+                <div id="circuitInputs"></div>
+                <div class="circuit-container" id="circuitDisplay">
+                    入力値を切り替えて回路の動作を確認してください
+                </div>
+                <div id="circuitOutput"></div>
+            </div>
+
+            <!-- 複数出力専用セクション -->
+            <div id="multipleOutputResults" style="display: none;">
+                <h3>🔧 複数出力回路図</h3>
+                <div id="multipleOutputCircuits"></div>
+                
+                <h3>📊 複数出力真理値表</h3>
+                <div id="multipleOutputTruthTable" class="truth-table"></div>
+                
+                <h3>⚡ 複数出力シミュレーター</h3>
+                <div id="multipleOutputInputs"></div>
+                <div id="multipleOutputDisplay" class="circuit-container"></div>
+            </div>
+        </div>
+
+        <!-- 練習問題 -->
+        <div class="section">
+            <h2>📝 練習問題</h2>
+            <div id="quizContainer">
+                <button onclick="generateQuiz()">新しい問題を生成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScriptファイルを動的に読み込み
+        const script = document.createElement('script');
+        script.src = '/src/scripts/logical-formula.js';
+        script.onload = function() {
+            console.log('Logic learning site script loaded successfully');
+        };
+        script.onerror = function() {
+            console.error('Failed to load logic learning site script');
+        };
+        document.head.appendChild(script);
+    </script>
+</Layout>

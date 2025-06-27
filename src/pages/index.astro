@@ -3,32 +3,46 @@ import Layout from '../layouts/Layout.astro';
 
 const topics = [
     {
-        title: "アルゴリズム",
-        description: "効率的な問題解決のための手順とロジックを学びます",
-        icon: "🔄",
-        link: "/algorithms",
+        title: "2進数・10進数・16進数",
+        description: "2進数・10進数・16進数の変換と理解を深めるツール",
+        icon: "🔢",
+        link: "/binary-simulator",
         color: "from-blue-500 to-purple-600"
     },
     {
-        title: "プログラミング",
-        description: "Python, JavaScript等の実践的なコーディングスキル",
-        icon: "💻",
-        link: "/programming",
+        title: "24ビットフルカラー",
+        description: "24ビットフルカラーとRGB・CMYKの学習ツール",
+        icon: "🎨",
+        link: "/color-simulator",
         color: "from-green-500 to-teal-600"
     },
     {
-        title: "データ構造",
-        description: "配列、リスト、木構造などのデータ管理方法",
-        icon: "📊",
-        link: "/data-structures",
+        title: "論理式",
+        description: "論理式から論理回路や真理値表を作成します",
+        icon: "🔄",
+        link: "/logic-learning-site",
+        color: "from-purple-500 to-pink-600"
+    },
+    {
+        title: "論理回路シミュレータ",
+        description: "インタラクティブな論理回路の設計・シミュレーション",
+        icon: "⚡",
+        link: "/simcir",
+        color: "from-indigo-500 to-blue-600"
+    },
+    {
+        title: "データ圧縮",
+        description: "ランレングス符号化・ハフマン符号化を学習できます",
+        icon: "📦",
+        link: "/data-compression",
         color: "from-orange-500 to-red-600"
     },
     {
-        title: "ネットワーク",
-        description: "インターネットの仕組みと情報通信技術",
-        icon: "🌐",
-        link: "/network",
-        color: "from-indigo-500 to-blue-600"
+        title: "Python学習",
+        description: "ブラウザ上でPythonコードを実行して学習できます",
+        icon: "🐍",
+        link: "/python-playground",
+        color: "from-emerald-500 to-cyan-600"
     }
 ];
 
@@ -39,12 +53,12 @@ const stats = [
 ];
 ---
 
-<Layout title="情報Ⅰ学習サイト - 高校生のためのプログラミング・アルゴリズム学習">
+<Layout title="じょうほうらいふ - 高校生のための情報Ⅰ・Ⅱ学習支援サイト">
     <div class="hero-section fade-in-up">
         <div class="hero-content">
             <h1 class="hero-title">
-                情報Ⅰを
-                <span class="highlight">楽しく学ぼう</span>
+                たのしい
+                <span class="highlight">情報ライフ</span>
             </h1>
             <p class="hero-description">
                 高校の情報Ⅰで学ぶプログラミング、アルゴリズム、データ構造を分かりやすく解説。
@@ -296,6 +310,12 @@ const stats = [
 
 .features-section {
     margin-bottom: 6rem;
+}
+
+.learning-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
 }
 
 .features-grid {

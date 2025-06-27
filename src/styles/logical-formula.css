@@ -1,0 +1,617 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    font-size: 16px;
+    /* ベースフォントサイズ */
+    overflow-x: hidden;
+    /* 横スクロールを防止 */
+    width: 100%;
+    max-width: 100vw;
+    /* ビューポート幅を超えないように制限 */
+}
+
+/* レスポンシブデザイン用メディアクエリ */
+
+/* スマホ向け（320px〜767px） */
+@media screen and (max-width: 767px) {
+    body {
+        font-size: 14px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 1.8em !important;
+        line-height: 1.2;
+        word-wrap: break-word;
+        white-space: normal;
+        /* タイトルは改行を許可 */
+        text-align: center;
+    }
+
+    .section h2 {
+        font-size: 1.4em !important;
+        line-height: 1.3;
+        word-wrap: break-word;
+        white-space: normal;
+        /* セクションタイトルは改行を許可 */
+    }
+
+    .input-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .input-buttons>div {
+        margin-right: 0 !important;
+        margin-bottom: 10px;
+    }
+
+    /* メインボタンのスマホ調整 */
+    button[onclick="analyzeFormula()"] {
+        font-size: 16px !important;
+        padding: 12px 20px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+    }
+
+    /* 真理値表のスマホ調整 */
+    .truth-table {
+        font-size: 12px;
+    }
+
+    .truth-table table {
+        min-width: 100%;
+        table-layout: fixed;
+    }
+
+    .truth-table th,
+    .truth-table td {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+}
+
+/* タブレット向け（768px〜1023px） */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+    body {
+        font-size: 15px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    .header h1 {
+        font-size: 2.2em !important;
+    }
+
+    .section h2 {
+        font-size: 1.6em !important;
+    }
+}
+
+/* PC向け（1024px以上） */
+@media screen and (min-width: 1024px) {
+    body {
+        font-size: 16px;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+    }
+
+    .section h2 {
+        font-size: 1.8em;
+    }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    overflow-x: hidden;
+    /* コンテナも横スクロール防止 */
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #4a5568;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.section h2 {
+    color: #4a5568;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 10px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* iOS Safari用のズーム防止 */
+@media screen and (max-width: 767px) {
+    input[type="text"] {
+        font-size: 16px !important;
+        transform: scale(1) !important;
+    }
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+button {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s;
+    white-space: nowrap;
+    /* ボタンテキストの改行防止 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: fit-content;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+/* ボタンのレスポンシブ調整 */
+@media screen and (max-width: 767px) {
+    button {
+        font-size: 14px;
+        padding: 10px 15px;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+    button {
+        font-size: 15px;
+        padding: 11px 20px;
+    }
+}
+
+.truth-table {
+    margin-top: 20px;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 100%;
+    table-layout: fixed;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+}
+
+.circuit-container {
+    min-height: 300px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7fafc;
+    margin: 20px 0;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.gate {
+    display: inline-block;
+    margin: 10px;
+    padding: 15px 20px;
+    background: #4299e1;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.gate:hover {
+    background: #3182ce;
+    transform: scale(1.05);
+}
+
+.input-toggle {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 15px;
+    background: #e53e3e;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+    /* テキスト選択を無効化 */
+    -webkit-user-select: none;
+    /* Safari対応 */
+    -moz-user-select: none;
+    /* Firefox対応 */
+    -ms-user-select: none;
+    /* IE対応 */
+    -webkit-touch-callout: none;
+    /* iOS Safari対応 */
+    -webkit-tap-highlight-color: transparent;
+    /* タップハイライト無効化 */
+}
+
+.input-toggle.active {
+    background: #38a169;
+}
+
+.quiz-question {
+    background: #f7fafc;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.quiz-options {
+    margin: 15px 0;
+}
+
+.input-button-group {
+    margin-right: 20px;
+}
+
+/* スマホでのボタングループ調整 */
+@media screen and (max-width: 767px) {
+    .input-button-group {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+
+.quiz-options label {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    cursor: pointer;
+    white-space: nowrap;
+    /* 選択肢テキストの改行防止 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* クイズセクションのレスポンシブ調整 */
+@media screen and (max-width: 767px) {
+    .quiz-question {
+        padding: 15px;
+        margin: 10px 0;
+    }
+
+    .quiz-question h3 {
+        font-size: 1.1em;
+        line-height: 1.4;
+        word-wrap: break-word;
+        white-space: normal;
+        /* 問題文は改行を許可 */
+    }
+
+    .quiz-options label {
+        font-size: 0.9em;
+        margin: 8px 0;
+        white-space: normal;
+        /* 選択肢は改行を許可 */
+    }
+}
+
+.quiz-options input[type="radio"] {
+    margin-right: 10px;
+}
+
+.formula-examples {
+    background: #edf2f7;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-family: monospace;
+}
+
+.operator-guide {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+/* 演算子ガイドのレスポンシブ調整 */
+@media screen and (max-width: 767px) {
+    .operator-guide {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 15px 0;
+    }
+
+    .operator-card h3 {
+        font-size: 1.1em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .operator-card p {
+        font-size: 0.9em;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+    .operator-guide {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.operator-card {
+    background: #f7fafc;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.success {
+    background: #c6f6d5;
+    border: 1px solid #9ae6b4;
+    color: #2d3748;
+}
+
+.error {
+    background: #fed7d7;
+    border: 1px solid #fc8181;
+    color: #2d3748;
+}
+
+.input-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: center;
+}
+
+.input-btn {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    color: #4a5568;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    min-width: 40px;
+    white-space: nowrap;
+    /* ボタンテキストの改行防止 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    /* フレックスボックスで縮小しない */
+}
+
+/* 入力ボタンのレスポンシブ調整 */
+@media screen and (max-width: 767px) {
+    .input-btn {
+        font-size: 12px;
+        padding: 6px 8px;
+        min-width: 35px;
+        margin: 2px;
+    }
+
+    .input-buttons {
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .input-buttons>div {
+        text-align: center;
+        width: 100%;
+    }
+
+    .input-buttons>div>strong {
+        font-size: 14px;
+        display: block;
+        margin-bottom: 5px;
+    }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+    .input-btn {
+        font-size: 13px;
+        padding: 7px 10px;
+        min-width: 38px;
+    }
+}
+
+.input-btn:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+.input-btn.variable {
+    background: #e6fffa;
+    border-color: #4fd1c7;
+    color: #234e52;
+}
+
+.input-btn.operator {
+    background: #fef5e7;
+    border-color: #f6ad55;
+    color: #744210;
+}
+
+.input-btn.bracket {
+    background: #e9d8fd;
+    border-color: #b794f6;
+    color: #553c9a;
+}
+
+.input-btn.clear {
+    background: #fed7d7;
+    border-color: #fc8181;
+    color: #c53030;
+}
+
+.input-area {
+    position: relative;
+}
+
+.input-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* 入力表示エリアのレスポンシブ調整 */
+@media screen and (max-width: 767px) {
+    .input-display {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+    }
+
+    .input-display input[type="text"] {
+        width: 100%;
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .input-display .input-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+.circuit-diagram {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    overflow-x: auto;
+    min-height: 200px;
+}
+
+.circuit-svg {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+    max-width: 100%;
+}
+
+/* レスポンシブ改善 */
+@media screen and (max-width: 767px) {
+    .circuit-svg {
+        min-height: 150px;
+    }
+}
+
+.gate-label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    text-anchor: middle;
+    fill: #2d3748;
+}
+
+.wire {
+    stroke: #4a5568;
+    stroke-width: 2;
+    fill: none;
+}
+
+.input-label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-anchor: middle;
+    fill: #2d3748;
+}
+
+.output-label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-anchor: start;
+    fill: #2d3748;
+}

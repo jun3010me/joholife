@@ -1,0 +1,362 @@
+---
+// data-compression.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="データの圧縮">
+    <link rel="stylesheet" href="/src/styles/data-compression.css">
+    <header>
+        <h1>データ圧縮学習ツール</h1>
+        <p>高校情報Ⅰ - ランレングス符号化・ハフマン符号化を学ぼう</p>
+    </header>
+
+    <nav class="main-nav">
+        <button class="nav-btn active" data-section="run-length">ランレングス符号化</button>
+        <button class="nav-btn" data-section="huffman">ハフマン符号化</button>
+        <button class="nav-btn" data-section="comparison">比較・練習</button>
+        <button class="nav-btn" data-section="progress">学習記録</button>
+    </nav>
+
+    <main>
+        <!-- ランレングス符号化セクション -->
+        <section id="run-length" class="content-section active">
+            <h2>ランレングス符号化</h2>
+            
+            <div class="section-nav">
+                <button class="section-btn active" data-subsection="basic">基本概念</button>
+                <button class="section-btn" data-subsection="practice">練習</button>
+                <button class="section-btn" data-subsection="problems">問題</button>
+            </div>
+
+            <!-- 基本概念 -->
+            <div id="rl-basic" class="subsection active">
+                <h3>基本概念 - 8×8ピクセルグリッド</h3>
+                
+                <div class="grid-container">
+                    <div class="grid-controls">
+                        <button id="clear-grid">クリア</button>
+                        <button id="pattern-vertical">縦縞</button>
+                        <button id="pattern-horizontal">横縞</button>
+                        <button id="pattern-checker">チェック</button>
+                        <button id="pattern-random">ランダム</button>
+                    </div>
+                    
+                    <div class="grid-display">
+                        <canvas id="pixel-grid" width="320" height="320"></canvas>
+                        <div class="grid-legend">
+                            <span class="legend-item"><span class="color-a"></span>A (0)</span>
+                            <span class="legend-item"><span class="color-b"></span>B (1)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="encoding-process">
+                    <h4>符号化の過程</h4>
+                    <div id="encoding-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <span class="step-text">最初のビット（行ごと）: <span id="first-bit">-</span></span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <span class="step-text">次の3ビット：最初の文字が続く個数-1を表す</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <span class="step-text">文字が変わるたびに、続く個数-1を3ビットで表す</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">4</span>
+                            <span class="step-text">各行ごとに1〜3のルールで符号化</span>
+                        </div>
+                    </div>
+                    
+                    <div class="encoding-result">
+                        <h5>圧縮結果</h5>
+                        <div id="original-data">
+                            <label>元データ (64ビット):</label>
+                            <div id="original-bits"></div>
+                        </div>
+                        <div id="compressed-data">
+                            <label>圧縮データ:</label>
+                            <div id="compressed-bits"></div>
+                            <div id="compressed-size">0ビット</div>
+                        </div>
+                        <div id="compression-ratio">
+                            <label>削減率:</label>
+                            <span id="ratio-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 練習 -->
+            <div id="rl-practice" class="subsection">
+                <h3>インタラクティブ練習</h3>
+                <div class="practice-content">
+                    <p>様々なパターンを作成して圧縮効果を確認しよう</p>
+                    <div class="practice-grid">
+                        <canvas id="practice-grid" width="320" height="320"></canvas>
+                    </div>
+                    <div class="practice-results">
+                        <div class="result-item">
+                            <label>元データサイズ:</label>
+                            <span id="practice-original">64ビット</span>
+                        </div>
+                        <div class="result-item">
+                            <label>圧縮後サイズ:</label>
+                            <span id="practice-compressed">0ビット</span>
+                        </div>
+                        <div class="result-item">
+                            <label>削減率:</label>
+                            <span id="practice-ratio">0%</span>
+                        </div>
+                        <div class="result-item">
+                            <label>評価:</label>
+                            <span id="practice-evaluation">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 問題 -->
+            <div id="rl-problems" class="subsection">
+                <h3>練習問題</h3>
+                <div class="problem-container">
+                    <button id="generate-rl-problem">新しい問題を生成</button>
+                    <div id="rl-problem-display"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ハフマン符号化セクション -->
+        <section id="huffman" class="content-section">
+            <h2>ハフマン符号化</h2>
+            
+            <div class="section-nav">
+                <button class="section-btn active" data-subsection="basic">基本概念</button>
+                <button class="section-btn" data-subsection="tree">木構築</button>
+                <button class="section-btn" data-subsection="encode">符号化練習</button>
+                <button class="section-btn" data-subsection="problems">問題</button>
+            </div>
+
+            <!-- 基本概念 -->
+            <div id="hf-basic" class="subsection active">
+                <h3>出現頻度と符号表</h3>
+                
+                <div class="frequency-input">
+                    <h4>文字の出現頻度を入力してください (%)</h4>
+                    <div class="frequency-controls">
+                        <div class="freq-item">
+                            <label>A:</label>
+                            <input type="number" id="freq-a" min="0" max="100" value="30">%
+                        </div>
+                        <div class="freq-item">
+                            <label>B:</label>
+                            <input type="number" id="freq-b" min="0" max="100" value="25">%
+                        </div>
+                        <div class="freq-item">
+                            <label>C:</label>
+                            <input type="number" id="freq-c" min="0" max="100" value="20">%
+                        </div>
+                        <div class="freq-item">
+                            <label>D:</label>
+                            <input type="number" id="freq-d" min="0" max="100" value="15">%
+                        </div>
+                        <div class="freq-item">
+                            <label>E:</label>
+                            <input type="number" id="freq-e" min="0" max="100" value="10">%
+                        </div>
+                        <div class="freq-total">
+                            合計: <span id="freq-total">100</span>%
+                        </div>
+                        <button id="build-huffman-tree">ハフマン木を構築</button>
+                    </div>
+                </div>
+
+                <div class="huffman-result">
+                    <div class="code-table">
+                        <h4>生成された符号表</h4>
+                        <table id="code-table">
+                            <thead>
+                                <tr>
+                                    <th>文字</th>
+                                    <th>出現頻度</th>
+                                    <th>符号</th>
+                                    <th>符号長</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 木構築 -->
+            <div id="hf-tree" class="subsection">
+                <h3>ハフマン木構築過程</h3>
+                <div class="tree-container">
+                    <div class="tree-controls">
+                        <button id="tree-step-back">戻る</button>
+                        <button id="tree-step-forward">次へ</button>
+                        <button id="tree-auto-play">自動再生</button>
+                        <button id="tree-reset">リセット</button>
+                    </div>
+                    <div class="tree-display">
+                        <svg id="huffman-tree"></svg>
+                    </div>
+                    <div class="tree-explanation">
+                        <div id="tree-step-text">ハフマン木構築をステップ実行できます</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 符号化練習 -->
+            <div id="hf-encode" class="subsection">
+                <h3>符号化・復号化練習</h3>
+                <div class="encode-practice">
+                    <div class="input-area">
+                        <label for="text-input">文字列を入力:</label>
+                        <input type="text" id="text-input" placeholder="例：ABCDE">
+                        <button id="encode-text">符号化</button>
+                    </div>
+                    
+                    <div class="encode-result">
+                        <div class="result-section">
+                            <h5>符号化結果</h5>
+                            <div id="encoded-text"></div>
+                            <div class="size-info">
+                                <span>元サイズ: <span id="original-size">0</span>ビット</span>
+                                <span>符号化後: <span id="encoded-size">0</span>ビット</span>
+                                <span>削減率: <span id="encode-ratio">0</span>%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="result-section">
+                            <h5>復号化確認</h5>
+                            <div id="decoded-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 問題 -->
+            <div id="hf-problems" class="subsection">
+                <h3>練習問題</h3>
+                <div class="problem-container">
+                    <button id="generate-hf-problem">新しい問題を生成</button>
+                    <div id="hf-problem-display"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 比較・練習セクション -->
+        <section id="comparison" class="content-section">
+            <h2>圧縮方式比較・総合練習</h2>
+            
+            <div class="comparison-tool">
+                <h3>同一データでの比較</h3>
+                <div class="comparison-input">
+                    <div class="input-notes">
+                        <p><strong>注意:</strong> 半角英数字（A-Z, a-z, 0-9）のみ入力可能です。</p>
+                        <p>文字種数に応じて最適なビット数で計算します。</p>
+                    </div>
+                    <textarea id="comparison-text" placeholder="例: AAABBBCCC または ABC123"></textarea>
+                    <button id="compare-methods">比較実行</button>
+                </div>
+                
+                <div class="comparison-results">
+                    <div class="method-result">
+                        <h4>非圧縮</h4>
+                        <div class="result-data">
+                            <span>サイズ: <span id="uncompressed-size">0</span>ビット</span>
+                            <div id="bit-calculation" class="calculation-info"></div>
+                        </div>
+                    </div>
+                    <div class="method-result">
+                        <h4>ランレングス符号化</h4>
+                        <div class="result-data">
+                            <span>サイズ: <span id="rl-comp-size">0</span>ビット</span>
+                            <span>削減率: <span id="rl-comp-ratio">0</span>%</span>
+                        </div>
+                    </div>
+                    <div class="method-result">
+                        <h4>ハフマン符号化</h4>
+                        <div class="result-data">
+                            <span>サイズ: <span id="hf-comp-size">0</span>ビット</span>
+                            <span>削減率: <span id="hf-comp-ratio">0</span>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="practice-problems">
+                <h3>総合練習問題</h3>
+                <div id="mixed-problems"></div>
+            </div>
+        </section>
+
+        <!-- 学習記録セクション -->
+        <section id="progress" class="content-section">
+            <h2>学習記録</h2>
+            
+            <div class="progress-overview">
+                <div class="progress-item">
+                    <h4>ランレングス符号化</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-progress="0"></div>
+                    </div>
+                    <span class="progress-text">0% 完了</span>
+                </div>
+                
+                <div class="progress-item">
+                    <h4>ハフマン符号化</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-progress="0"></div>
+                    </div>
+                    <span class="progress-text">0% 完了</span>
+                </div>
+                
+                <div class="progress-item">
+                    <h4>総合問題</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-progress="0"></div>
+                    </div>
+                    <span class="progress-text">0% 完了</span>
+                </div>
+            </div>
+            
+            <div class="achievement-list">
+                <h3>達成項目</h3>
+                <ul id="achievements">
+                    <li class="achievement locked">ランレングス符号化の基本を理解</li>
+                    <li class="achievement locked">初回圧縮率計算成功</li>
+                    <li class="achievement locked">ハフマン木構築の理解</li>
+                    <li class="achievement locked">符号表作成成功</li>
+                    <li class="achievement locked">両方式の比較理解</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // JavaScriptファイルを動的に読み込み
+        const script = document.createElement('script');
+        script.src = '/src/scripts/data-compression.js';
+        script.onload = function() {
+            console.log('Data compression script loaded successfully');
+            // DataCompressionToolクラスが正しく読み込まれているか確認
+            if (typeof DataCompressionTool !== 'undefined') {
+                const tool = new DataCompressionTool();
+                console.log('DataCompressionTool initialized');
+            } else {
+                console.error('DataCompressionTool class not found');
+            }
+        };
+        script.onerror = function() {
+            console.error('Failed to load data compression script');
+        };
+        document.head.appendChild(script);
+    </script>
+
+</Layout>

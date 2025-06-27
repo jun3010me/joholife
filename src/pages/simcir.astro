@@ -1,0 +1,154 @@
+---
+// simcir.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="論理回路シミュレータ">
+    <link rel="stylesheet" type="text/css" href="/src/styles/simcir.css" />
+    <link rel="stylesheet" type="text/css" href="/src/styles/simcir-basicset.css" />
+    
+    <style>
+        /* レスポンシブ対応のためのスタイル */
+        .simcir {
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            background: white;
+        }
+        
+        /* モバイルデバイス用の調整 */
+        @media (max-width: 768px) {
+            .simcir {
+                margin: 10px;
+                border-radius: 4px;
+            }
+        }
+        
+        /* 全体のコンテナ調整 */
+        .main-content {
+            padding: 1rem;
+        }
+        
+        /* 著作権表示の調整 */
+        hr {
+            margin: 2rem 0 1rem 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* 著作権文字のスタイル調整 */
+        div[style*="text-align: right"] {
+            color: #64748b;
+            font-size: 0.875rem;
+            padding: 1rem 0;
+        }
+    </style>
+    
+    <div class="simcir" id="simcir-container">
+    <!-- paste here your circuit data -->
+    </div>
+
+    <hr/>
+    <div style="text-align: right;">
+    Contents Copyright &copy; Kazuhiko Arase
+    </div>
+
+    <script>
+        // JavaScriptファイルを順番に動的に読み込み
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // スクリプトを順番に読み込み
+        async function loadSimcirScripts() {
+            try {
+                await loadScript('/src/scripts/simcir/jquery-2.1.1.min.js');
+                console.log('jQuery loaded');
+                
+                await loadScript('/src/scripts/simcir/simcir.js');
+                console.log('SimCir core loaded');
+                
+                await loadScript('/src/scripts/simcir/simcir-basicset.js');
+                console.log('SimCir basicset loaded');
+                
+                await loadScript('/src/scripts/simcir/simcir-library.js');
+                console.log('SimCir library loaded');
+                
+                console.log('All SimCir scripts loaded successfully');
+            } catch (error) {
+                console.error('Failed to load SimCir scripts:', error);
+            }
+        }
+
+        // 画面サイズに最適化された寸法を計算
+        function getOptimalDimensions() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // ナビゲーションバー、マージン、フッターなどを考慮
+            const availableWidth = Math.max(800, viewportWidth - 100); // 最小800px
+            const availableHeight = Math.max(400, viewportHeight - 200); // 最小400px
+            
+            // アスペクト比を維持しつつ、画面に収まるサイズを計算
+            let optimalWidth = Math.min(availableWidth, 1400); // 最大1400px
+            let optimalHeight = Math.min(availableHeight, 900); // 最大900px
+            
+            // モバイルデバイス用の調整
+            if (viewportWidth <= 768) {
+                optimalWidth = Math.min(viewportWidth - 40, 800);
+                optimalHeight = Math.min(viewportHeight - 150, 600);
+            }
+            // タブレット用の調整
+            else if (viewportWidth <= 1024) {
+                optimalWidth = Math.min(viewportWidth - 60, 1000);
+                optimalHeight = Math.min(viewportHeight - 180, 700);
+            }
+            
+            return {
+                width: Math.floor(optimalWidth),
+                height: Math.floor(optimalHeight)
+            };
+        }
+
+        // SimCirを初期化または再初期化
+        function initializeSimCir() {
+            const container = document.getElementById('simcir-container');
+            if (container && typeof window.$ !== 'undefined') {
+                const dimensions = getOptimalDimensions();
+                
+                // コンテナにJSONデータを設定
+                container.innerHTML = JSON.stringify(dimensions);
+                
+                console.log(`SimCir initialized with dimensions: ${dimensions.width}x${dimensions.height}`);
+                
+                // SimCirの初期化を実行
+                if (window.simcir) {
+                    window.simcir.setup();
+                }
+            }
+        }
+
+        // ページ読み込み完了後にスクリプトを読み込み
+        loadSimcirScripts().then(() => {
+            initializeSimCir();
+            
+            // ウィンドウリサイズ時に再調整（デバウンス付き）
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    console.log('Window resized, reinitializing SimCir...');
+                    initializeSimCir();
+                }, 500); // 500ms後に実行
+            });
+        });
+    </script>
+</Layout>
