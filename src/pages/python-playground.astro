@@ -121,9 +121,21 @@ for i in range(3):
                 
                 // エディタのサイズを強制的に調整
                 setTimeout(() => {
+                    const isMobile = window.innerWidth <= 768;
+                    const height = isMobile ? 350 : 400;
+                    codeEditor.setSize(null, height);
                     codeEditor.refresh();
-                    codeEditor.setSize(null, "100%");
                 }, 100);
+                
+                // ウィンドウリサイズ時に高さを再調整
+                window.addEventListener('resize', () => {
+                    setTimeout(() => {
+                        const isMobile = window.innerWidth <= 768;
+                        const height = isMobile ? 350 : 400;
+                        codeEditor.setSize(null, height);
+                        codeEditor.refresh();
+                    }, 100);
+                });
                 
                 console.log('CodeMirror editor initialized');
                 
@@ -392,6 +404,8 @@ builtins.input = custom_input
             border-radius: 8px;
             overflow: hidden;
             transition: border-color 0.3s;
+            display: flex;
+            flex-direction: column;
         }
 
         #code-editor-container:focus-within {
@@ -400,15 +414,20 @@ builtins.input = custom_input
 
         /* CodeMirrorエディタのスタイル調整 */
         .CodeMirror {
-            height: 100% !important;
+            height: 400px !important;
             font-family: 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.5;
             border-radius: 6px;
+            flex: 1;
         }
 
         .CodeMirror-scroll {
-            height: 100% !important;
+            min-height: 400px !important;
+        }
+
+        .CodeMirror-lines {
+            padding: 4px 0;
         }
 
         .CodeMirror-focused .CodeMirror-cursor {
@@ -567,6 +586,14 @@ builtins.input = custom_input
             
             #code-editor-container {
                 height: 350px;
+            }
+            
+            .CodeMirror {
+                height: 350px !important;
+            }
+            
+            .CodeMirror-scroll {
+                min-height: 350px !important;
             }
             
             #output-area {
