@@ -24,12 +24,13 @@ const { title } = Astro.props;
                 <span class="brand-text">じょうほうらいふ</span>
             </a>
             <ul class="nav-links">
-                <li><a href="/binary-simulator" class="nav-link">2進数シミュレータ</a></li>
-                <li><a href="/color-simulator" class="nav-link">カラーシミュレータ</a></li>
+                <li><a href="/binary-simulator" class="nav-link">2進数</a></li>
+                <li><a href="/color-simulator" class="nav-link">カラー</a></li>
                 <li><a href="/logical-formula" class="nav-link">論理式</a></li>
-                <li><a href="/simcir" class="nav-link">論理回路シミュレータ</a></li>
+                <li><a href="/simcir" class="nav-link">論理回路</a></li>
                 <li><a href="/data-compression" class="nav-link">データ圧縮</a></li>
-                <li><a href="/python-playground" class="nav-link">Python学習</a></li>
+                <li><a href="/python-playground" class="nav-link">Python</a></li>
+                <li><a href="/network-simulator" class="nav-link">ネットワーク</a></li>
             </ul>
             <div class="nav-toggle">
                 <span></span>
@@ -48,6 +49,38 @@ const { title } = Astro.props;
             <p>&copy; 2025 情報Ⅰ学習サイト. すべての権利を保有します。</p>
         </div>
     </footer>
+
+    <script>
+        // ハンバーガーメニューの制御
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+
+            if (navToggle && navLinks) {
+                navToggle.addEventListener('click', function() {
+                    navLinks.classList.toggle('active');
+                    navToggle.classList.toggle('active');
+                });
+
+                // メニューリンクをクリックしたらメニューを閉じる
+                const links = navLinks.querySelectorAll('.nav-link');
+                links.forEach(link => {
+                    link.addEventListener('click', function() {
+                        navLinks.classList.remove('active');
+                        navToggle.classList.remove('active');
+                    });
+                });
+
+                // メニュー外をクリックしたらメニューを閉じる
+                document.addEventListener('click', function(e) {
+                    if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
+                        navLinks.classList.remove('active');
+                        navToggle.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 
@@ -109,9 +142,9 @@ body {
 }
 
 .nav-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -121,15 +154,16 @@ body {
 .nav-brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.3rem;
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--primary-color);
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .brand-icon {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
 }
 
 .brand-text {
@@ -142,8 +176,9 @@ body {
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 1.2rem;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
 .nav-link {
@@ -152,7 +187,9 @@ body {
     font-weight: 500;
     transition: all 0.3s ease;
     position: relative;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.4rem;
+    white-space: nowrap;
+    font-size: 0.875rem;
 }
 
 .nav-link:hover {
@@ -312,10 +349,38 @@ a:hover {
 @media (max-width: 768px) {
     .nav-links {
         display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 1rem;
+        gap: 0;
+        z-index: 1000;
+    }
+
+    .nav-links.active {
+        display: flex;
     }
     
     .nav-toggle {
         display: flex;
+    }
+
+    .navbar {
+        position: relative;
+    }
+
+    .nav-link {
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 1rem;
+    }
+
+    .nav-link:last-child {
+        border-bottom: none;
     }
     
     .main-content {
