@@ -416,10 +416,11 @@ builtins.input = custom_input
         .CodeMirror {
             height: 400px !important;
             font-family: 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 16px; /* モバイルでズームを防ぐため16px以上に */
             line-height: 1.5;
             border-radius: 6px;
             flex: 1;
+            -webkit-text-size-adjust: 100%; /* Webkit系でのテキストサイズ調整を防ぐ */
         }
 
         .CodeMirror-scroll {
@@ -452,9 +453,10 @@ builtins.input = custom_input
             border: none;
             outline: none;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-            font-size: 14px;
+            font-size: 16px; /* モバイルでズームを防ぐため16px以上に */
             line-height: 1.5;
             resize: vertical;
+            -webkit-text-size-adjust: 100%; /* Webkit系でのテキストサイズ調整を防ぐ */
         }
 
         #output-area {
