@@ -99,6 +99,7 @@ for i in range(3):
                     matchBrackets: true,
                     styleActiveLine: true,
                     lineWrapping: true,
+                    viewportMargin: Infinity,
                     extraKeys: {
                         "Ctrl-Enter": function(cm) {
                             runCode();
@@ -117,6 +118,12 @@ for i in range(3):
                         }
                     }
                 });
+                
+                // エディタのサイズを強制的に調整
+                setTimeout(() => {
+                    codeEditor.refresh();
+                    codeEditor.setSize(null, "100%");
+                }, 100);
                 
                 console.log('CodeMirror editor initialized');
                 
@@ -355,16 +362,22 @@ builtins.input = custom_input
             background: #f8fafc;
             border-radius: 8px;
             border-left: 4px solid #2563eb;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .section-header h3 {
             margin: 0;
             color: #1e293b;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            white-space: nowrap;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .status {
@@ -387,10 +400,15 @@ builtins.input = custom_input
 
         /* CodeMirrorエディタのスタイル調整 */
         .CodeMirror {
-            height: 100%;
+            height: 100% !important;
             font-family: 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
             font-size: 14px;
             line-height: 1.5;
+            border-radius: 6px;
+        }
+
+        .CodeMirror-scroll {
+            height: 100% !important;
         }
 
         .CodeMirror-focused .CodeMirror-cursor {
@@ -459,13 +477,15 @@ builtins.input = custom_input
         }
 
         .btn {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border: none;
             border-radius: 6px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 14px;
+            font-size: clamp(0.75rem, 1.8vw, 0.875rem);
+            white-space: nowrap;
+            min-width: fit-content;
         }
 
         .btn:disabled {
@@ -525,11 +545,43 @@ builtins.input = custom_input
             
             .section-header {
                 flex-direction: column;
-                gap: 10px;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .section-header h3 {
+                font-size: 1.1rem;
             }
             
             .controls {
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+                gap: 6px;
+                width: 100%;
+            }
+            
+            .btn {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+            
+            #code-editor-container {
+                height: 350px;
+            }
+            
+            #output-area {
+                height: 350px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .btn {
+                padding: 12px 6px;
+                font-size: 0.75rem;
             }
         }
     </style>
