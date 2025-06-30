@@ -1,0 +1,191 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="進数変換学習サイト">
+    <link rel="stylesheet" href="/styles/binary-converter.css">
+
+    <div class="binary-converter-container">
+        <h1>2進数・10進数相互変換学習サイト</h1>
+        
+        <div class="intro-section">
+            <p>2進数と10進数の相互変換を視覚的に学習できるサイトです。アニメーションで計算過程を確認しながら理解を深めましょう。</p>
+        </div>
+
+        <!-- 位取り表 -->
+        <div class="position-table card">
+            <h2>位取り表</h2>
+            <div class="position-display" id="positionTable">
+                <div class="position-cell">
+                    <div class="position-label">2^7</div>
+                    <div class="position-value">128</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^6</div>
+                    <div class="position-value">64</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^5</div>
+                    <div class="position-value">32</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^4</div>
+                    <div class="position-value">16</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^3</div>
+                    <div class="position-value">8</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^2</div>
+                    <div class="position-value">4</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^1</div>
+                    <div class="position-value">2</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">2^0</div>
+                    <div class="position-value">1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2進数→10進数変換セクション -->
+        <div class="conversion-section card">
+            <h2>2進数 → 10進数変換</h2>
+            <div class="input-group">
+                <label for="binaryInput">2進数を入力 (8桁以内):</label>
+                <input type="text" id="binaryInput" placeholder="例: 10101000" maxlength="8" pattern="[01]*">
+                <button class="btn btn-primary" id="convertBinaryBtn">変換開始</button>
+            </div>
+            
+            <div class="animation-controls">
+                <button class="btn btn-secondary" id="pauseBtn">一時停止</button>
+                <button class="btn btn-secondary" id="resumeBtn" style="display: none;">再生</button>
+                <button class="btn btn-secondary" id="resetAnimationBtn">リセット</button>
+                <div class="speed-control">
+                    <label for="animationSpeed">アニメーション速度:</label>
+                    <input type="range" id="animationSpeed" min="500" max="3000" value="1500" step="250">
+                    <span id="speedDisplay">1.5秒</span>
+                </div>
+            </div>
+
+            <div class="conversion-display" id="binaryToDecimalDisplay">
+                <div class="binary-breakdown" id="binaryBreakdown"></div>
+                <div class="calculation-steps" id="calculationSteps"></div>
+                <div class="final-result" id="finalResult"></div>
+            </div>
+        </div>
+
+        <!-- 10進数→2進数変換セクション -->
+        <div class="conversion-section card">
+            <h2>10進数 → 2進数変換</h2>
+            <div class="input-group">
+                <label for="decimalInput">10進数を入力 (0-255):</label>
+                <input type="number" id="decimalInput" placeholder="例: 168" min="0" max="255">
+                <button class="btn btn-primary" id="convertDecimalBtn">変換開始</button>
+            </div>
+
+            <div class="conversion-display" id="decimalToBinaryDisplay">
+                <div class="division-steps" id="divisionSteps"></div>
+                <div class="binary-construction" id="binaryConstruction"></div>
+                <div class="final-binary" id="finalBinary"></div>
+            </div>
+        </div>
+
+        <!-- インタラクティブ練習セクション -->
+        <div class="practice-section card">
+            <h2>練習問題</h2>
+            <div class="practice-controls">
+                <button class="btn btn-secondary" id="generateProblemBtn">新しい問題</button>
+                <div class="practice-mode">
+                    <label>問題タイプ:</label>
+                    <select id="practiceMode">
+                        <option value="binary-to-decimal">2進数→10進数</option>
+                        <option value="decimal-to-binary">10進数→2進数</option>
+                        <option value="mixed">ランダム</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="problem-display" id="problemDisplay" style="display: none;">
+                <div class="problem-question" id="problemQuestion"></div>
+                <div class="answer-input">
+                    <input type="text" id="userAnswer" placeholder="答えを入力してください">
+                    <button class="btn btn-primary" id="checkAnswerBtn">答え合わせ</button>
+                </div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-item">
+                    <span class="score-label">正解数:</span>
+                    <span class="score-value" id="correctCount">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">問題数:</span>
+                    <span class="score-value" id="totalCount">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">正答率:</span>
+                    <span class="score-value" id="accuracy">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- よく使われる数値の変換例集 -->
+        <div class="examples-section card">
+            <h2>よく使われる数値の変換例</h2>
+            <div class="examples-grid" id="examplesGrid">
+                <div class="example-item" data-decimal="1" data-binary="1">
+                    <div class="example-decimal">1</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">1</div>
+                </div>
+                <div class="example-item" data-decimal="2" data-binary="10">
+                    <div class="example-decimal">2</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">10</div>
+                </div>
+                <div class="example-item" data-decimal="4" data-binary="100">
+                    <div class="example-decimal">4</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">100</div>
+                </div>
+                <div class="example-item" data-decimal="8" data-binary="1000">
+                    <div class="example-decimal">8</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">1000</div>
+                </div>
+                <div class="example-item" data-decimal="16" data-binary="10000">
+                    <div class="example-decimal">16</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">10000</div>
+                </div>
+                <div class="example-item" data-decimal="32" data-binary="100000">
+                    <div class="example-decimal">32</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">100000</div>
+                </div>
+                <div class="example-item" data-decimal="64" data-binary="1000000">
+                    <div class="example-decimal">64</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">1000000</div>
+                </div>
+                <div class="example-item" data-decimal="128" data-binary="10000000">
+                    <div class="example-decimal">128</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">10000000</div>
+                </div>
+                <div class="example-item" data-decimal="255" data-binary="11111111">
+                    <div class="example-decimal">255</div>
+                    <div class="example-arrow">→</div>
+                    <div class="example-binary">11111111</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/binary-converter.js" is:inline></script>
+</Layout>

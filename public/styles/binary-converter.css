@@ -1,0 +1,778 @@
+/* Binary Converter Styles */
+:root {
+    --converter-primary: #3b82f6;
+    --converter-secondary: #10b981;
+    --converter-accent: #f59e0b;
+    --converter-danger: #ef4444;
+    --converter-success: #22c55e;
+    --converter-warning: #f97316;
+    --converter-info: #06b6d4;
+    
+    --binary-color: #8b5cf6;
+    --decimal-color: #10b981;
+    --step-color: #f59e0b;
+    --highlight-color: #ef4444;
+    
+    --animation-duration: 1.5s;
+    --transition-fast: 0.3s;
+    --transition-slow: 0.6s;
+}
+
+.binary-converter-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.intro-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--converter-primary), var(--converter-secondary));
+    color: white;
+    border-radius: var(--radius-xl);
+}
+
+.intro-section p {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+/* 位取り表 */
+.position-table {
+    margin-bottom: 3rem;
+}
+
+.position-display {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.position-cell {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    min-width: 80px;
+    transition: all var(--transition-fast) ease;
+}
+
+.position-cell:hover {
+    border-color: var(--converter-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.position-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.position-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--converter-primary);
+}
+
+/* 変換セクション */
+.conversion-section {
+    margin-bottom: 3rem;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.input-group label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.input-group input[type="text"],
+.input-group input[type="number"] {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color var(--transition-fast) ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--converter-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-group input:invalid {
+    border-color: var(--converter-danger);
+}
+
+/* アニメーション制御 */
+.animation-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+}
+
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.speed-control input[type="range"] {
+    width: 150px;
+}
+
+.speed-control span {
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 50px;
+}
+
+/* 変換表示エリア */
+.conversion-display {
+    background: var(--surface-2);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-top: 2rem;
+    min-height: 200px;
+}
+
+/* 2進数分解表示 */
+.binary-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.bit-cell {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    min-width: 80px;
+    transition: all var(--transition-fast) ease;
+    opacity: 0.3;
+}
+
+.bit-cell.active {
+    opacity: 1;
+    border-color: var(--binary-color);
+    background: rgba(139, 92, 246, 0.1);
+    transform: scale(1.05);
+}
+
+.bit-cell.highlighted {
+    border-color: var(--highlight-color);
+    background: rgba(239, 68, 68, 0.1);
+    animation: pulse 1s infinite;
+}
+
+.bit-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--binary-color);
+    margin-bottom: 0.5rem;
+}
+
+.bit-position {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.bit-weight {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--decimal-color);
+}
+
+/* 計算ステップ */
+.calculation-steps {
+    margin: 2rem 0;
+}
+
+.calculation-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--step-color);
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all var(--transition-slow) ease;
+}
+
+.calculation-step.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.step-bit {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--binary-color);
+}
+
+.step-operator {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+}
+
+.step-weight {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--decimal-color);
+}
+
+.step-result {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--converter-primary);
+}
+
+/* 最終結果 */
+.final-result {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--converter-success), var(--converter-info));
+    color: white;
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all var(--transition-slow) ease;
+}
+
+.final-result.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.final-result h3 {
+    color: white;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.result-equation {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-family: 'Fira Code', monospace;
+}
+
+.result-value {
+    font-size: 2rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 10進数→2進数変換 */
+.division-steps {
+    margin: 2rem 0;
+}
+
+.division-step {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all var(--transition-slow) ease;
+}
+
+.division-step.visible {
+    opacity: 1;
+    transform: translateX(0);
+    border-color: var(--converter-primary);
+}
+
+.division-equation {
+    font-size: 1.25rem;
+    font-family: 'Fira Code', monospace;
+    color: var(--text-primary);
+}
+
+.division-quotient {
+    font-weight: 600;
+    color: var(--decimal-color);
+}
+
+.division-remainder {
+    font-weight: 700;
+    color: var(--binary-color);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+/* 2進数構築 */
+.binary-construction {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.construction-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.binary-digits {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.binary-digit {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--binary-color);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all var(--transition-fast) ease;
+}
+
+.binary-digit.visible {
+    opacity: 1;
+    transform: translateY(0);
+    border-color: var(--binary-color);
+}
+
+.binary-digit.highlighted {
+    background: rgba(139, 92, 246, 0.2);
+    animation: bounce 0.6s ease;
+}
+
+.final-binary {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--binary-color), var(--converter-primary));
+    color: white;
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all var(--transition-slow) ease;
+}
+
+.final-binary.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.final-binary h3 {
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.binary-result {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'Fira Code', monospace;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 練習セクション */
+.practice-section {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(16, 185, 129, 0.05));
+    border: 2px solid var(--border);
+}
+
+.practice-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.practice-mode {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.practice-mode select {
+    padding: 0.5rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    background: white;
+}
+
+.problem-display {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 2px solid var(--border);
+}
+
+.problem-question {
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+.answer-input {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.answer-input input {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1.25rem;
+    text-align: center;
+    min-width: 200px;
+}
+
+.feedback {
+    text-align: center;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    margin-top: 1rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast) ease;
+}
+
+.feedback.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.feedback.correct {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--converter-success);
+    border: 2px solid var(--converter-success);
+}
+
+.feedback.incorrect {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--converter-danger);
+    border: 2px solid var(--converter-danger);
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.score-item {
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    min-width: 120px;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.score-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--converter-primary);
+}
+
+/* 変換例集 */
+.examples-section {
+    background: var(--surface);
+}
+
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.example-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+}
+
+.example-item:hover {
+    border-color: var(--converter-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.example-decimal {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--decimal-color);
+}
+
+.example-arrow {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.example-binary {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--binary-color);
+    font-family: 'Fira Code', monospace;
+}
+
+/* ボタンスタイル拡張 */
+.btn-success {
+    background: var(--converter-success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+    background: var(--converter-danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning {
+    background: var(--converter-warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #ea580c;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* アニメーション */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .binary-converter-container {
+        padding: 1rem;
+    }
+    
+    .position-display {
+        gap: 0.25rem;
+    }
+    
+    .position-cell {
+        min-width: 60px;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .position-value {
+        font-size: 1rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .input-group input {
+        min-width: auto;
+    }
+    
+    .animation-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .binary-breakdown {
+        gap: 0.5rem;
+    }
+    
+    .bit-cell {
+        min-width: 60px;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .calculation-step {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .division-step {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .score-display {
+        gap: 1rem;
+    }
+    
+    .examples-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .answer-input {
+        flex-direction: column;
+    }
+    
+    .answer-input input {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .position-display {
+        grid-template-columns: repeat(4, 1fr);
+        display: grid;
+    }
+    
+    .binary-breakdown {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .binary-digits {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .binary-digit {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
