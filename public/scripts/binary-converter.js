@@ -288,62 +288,117 @@ class BinaryConverter {
             }
         }
         
-        // 割り算ステップをアニメーション表示
+        // 縦の筆算形式でアニメーション表示
+        const longDivisionContainer = document.createElement('div');
+        longDivisionContainer.className = 'vertical-division-container';
+        longDivisionContainer.innerHTML = `
+            <div class="vertical-division" id="verticalDivision">
+                <div class="division-steps" id="divisionSteps"></div>
+                <div class="remainder-collection" id="remainderCollection"></div>
+            </div>
+        `;
+        divisionSteps.appendChild(longDivisionContainer);
+        
+        const verticalSteps = document.getElementById('divisionSteps');
+        const remainderCollection = document.getElementById('remainderCollection');
+        
+        // 最初のステップを表示（入力数値を適切に配置）
+        const firstStep = document.createElement('div');
+        firstStep.className = 'division-step first-step';
+        firstStep.style.opacity = '0';
+        const paddedValue = decimalValue.toString().padStart(3, ' ');
+        firstStep.innerHTML = `
+            <span class="division-number">2 ) ${paddedValue}</span>
+            <span class="remainder-placeholder"></span>
+        `;
+        verticalSteps.appendChild(firstStep);
+        
+        await this.sleep(200);
+        firstStep.style.opacity = '1';
+        await this.sleep(this.animationSpeed);
+        
+        // 各割り算ステップを縦に追加
         for (let i = 0; i < steps.length; i++) {
             if (this.isPaused) {
                 await this.waitForResume();
             }
             
             const step = steps[i];
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'division-step';
-            stepDiv.innerHTML = `
-                <div class="division-equation">
-                    ${step.dividend} ÷ 2 = <span class="division-quotient">${step.quotient}</span> 
-                    余り <span class="division-remainder">${step.remainder}</span>
-                </div>
-            `;
-            divisionSteps.appendChild(stepDiv);
+            
+            // 割り算の段を追加
+            const divisionStep = document.createElement('div');
+            divisionStep.className = 'division-step';
+            divisionStep.style.opacity = '0';
+            divisionStep.style.transform = 'translateY(-10px)';
+            
+            if (step.quotient === 0) {
+                // 最後のステップ（商が0の場合） - 数字を右揃えで配置し余りも表示
+                divisionStep.innerHTML = `
+                    <span class="division-number final-zero">      ${step.quotient}</span>
+                    <span class="remainder-value">${step.remainder}</span>
+                `;
+                divisionStep.classList.add('final-step');
+            } else {
+                // 通常のステップ - 数字を右揃えで配置
+                const paddedQuotient = step.quotient.toString().padStart(3, ' ');
+                divisionStep.innerHTML = `
+                    <span class="division-number">2 ) ${paddedQuotient}</span>
+                    <span class="remainder-value">${step.remainder}</span>
+                `;
+            }
+            
+            verticalSteps.appendChild(divisionStep);
             
             await this.sleep(200);
-            stepDiv.classList.add('visible');
+            divisionStep.style.transition = 'all 0.5s ease-out';
+            divisionStep.style.opacity = '1';
+            divisionStep.style.transform = 'translateY(0)';
+            
             await this.sleep(this.animationSpeed);
         }
         
-        // 2進数構築アニメーション
-        construction.innerHTML = `
-            <div class="construction-title">余りを下から上へ読み上げて2進数を構築</div>
-            <div class="binary-digits" id="binaryDigits"></div>
+        // 余りの収集をアニメーション
+        await this.sleep(500);
+        
+        // 余りをハイライト
+        const remainderElements = verticalSteps.querySelectorAll('.remainder-value');
+        for (let i = 0; i < remainderElements.length; i++) {
+            remainderElements[i].classList.add('highlighted');
+            await this.sleep(300);
+        }
+        
+        // 余りを下から上に読む説明
+        remainderCollection.innerHTML = `
+            <div class="remainder-instruction">
+                <span class="arrow">↑</span>
+                <span class="text">余りを下から上に読む</span>
+            </div>
+            <div class="binary-result-construction" id="binaryConstruction"></div>
         `;
         
-        const binaryDigits = document.getElementById('binaryDigits');
+        const binaryConstruction = document.getElementById('binaryConstruction');
         const binaryResult = remainders.reverse().join('');
         
-        // 各桁を順次表示
+        // 各桁を順次表示（下から上へ）
         for (let i = 0; i < binaryResult.length; i++) {
-            if (this.isPaused) {
-                await this.waitForResume();
-            }
-            
             const digit = binaryResult[i];
-            const digitDiv = document.createElement('div');
-            digitDiv.className = 'binary-digit';
-            digitDiv.textContent = digit;
-            binaryDigits.appendChild(digitDiv);
+            const digitSpan = document.createElement('span');
+            digitSpan.className = 'binary-digit-result';
+            digitSpan.textContent = digit;
+            digitSpan.style.opacity = '0';
+            binaryConstruction.appendChild(digitSpan);
             
             await this.sleep(200);
-            digitDiv.classList.add('visible');
-            
-            // ハイライト効果
-            digitDiv.classList.add('highlighted');
-            await this.sleep(this.animationSpeed / 2);
-            digitDiv.classList.remove('highlighted');
+            digitSpan.style.opacity = '1';
+            digitSpan.classList.add('pulse');
+            await this.sleep(400);
+            digitSpan.classList.remove('pulse');
         }
         
         // 最終結果を表示
         finalBinary.innerHTML = `
             <h3>変換結果</h3>
-            <div class="binary-result">${binaryResult}</div>
+            <div class="binary-result">${remainders.slice().reverse().join('')}</div>
         `;
         
         await this.sleep(300);
