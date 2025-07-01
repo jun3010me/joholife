@@ -1,0 +1,262 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="16進数学習サイト">
+    <link rel="stylesheet" href="/styles/hex-converter.css">
+
+    <div class="hex-converter-container">
+        <h1>16進数学習サイト</h1>
+        
+        <div class="intro-section">
+            <p>16進数と他の進数の相互変換を視覚的に学習できるサイトです。アニメーションで計算過程を確認しながら理解を深めましょう。</p>
+        </div>
+
+        <!-- 16進数の基本概念 -->
+        <div class="concept-section card">
+            <h2>16進数とは</h2>
+            <div class="hex-explanation">
+                <p>16進数は16を基数とする数表現で、0〜9とA〜Fの16個の記号を使います。</p>
+                <div class="hex-symbols">
+                    <div class="symbol-grid">
+                        <div class="symbol-item">0 = 0</div>
+                        <div class="symbol-item">1 = 1</div>
+                        <div class="symbol-item">2 = 2</div>
+                        <div class="symbol-item">3 = 3</div>
+                        <div class="symbol-item">4 = 4</div>
+                        <div class="symbol-item">5 = 5</div>
+                        <div class="symbol-item">6 = 6</div>
+                        <div class="symbol-item">7 = 7</div>
+                        <div class="symbol-item">8 = 8</div>
+                        <div class="symbol-item">9 = 9</div>
+                        <div class="symbol-item highlight">A = 10</div>
+                        <div class="symbol-item highlight">B = 11</div>
+                        <div class="symbol-item highlight">C = 12</div>
+                        <div class="symbol-item highlight">D = 13</div>
+                        <div class="symbol-item highlight">E = 14</div>
+                        <div class="symbol-item highlight">F = 15</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 16進数の位取り表 -->
+        <div class="position-table card">
+            <h2>16進数の位取り表</h2>
+            <div class="position-display" id="hexPositionTable">
+                <div class="position-cell">
+                    <div class="position-label">16^3</div>
+                    <div class="position-value">4096</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">16^2</div>
+                    <div class="position-value">256</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">16^1</div>
+                    <div class="position-value">16</div>
+                </div>
+                <div class="position-cell">
+                    <div class="position-label">16^0</div>
+                    <div class="position-value">1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2進数↔16進数変換セクション -->
+        <div class="conversion-section card">
+            <h2>2進数 ↔ 16進数変換</h2>
+            <div class="conversion-explanation">
+                <p>2進数と16進数は密接な関係があります。16進数の1桁は2進数の4桁(2^4=16)で表現できます。</p>
+            </div>
+            
+            <!-- 2進数→16進数 -->
+            <div class="conversion-type">
+                <h3>2進数 → 16進数</h3>
+                <div class="input-group">
+                    <label for="binaryToHexInput">2進数を入力 (16桁以内):</label>
+                    <input type="text" id="binaryToHexInput" placeholder="例: 11010110" maxlength="16" pattern="[01]*">
+                    <button class="btn btn-primary" id="convertBinaryToHexBtn">変換開始</button>
+                </div>
+                <div class="conversion-display" id="binaryToHexDisplay">
+                    <div class="grouping-display" id="binaryGrouping"></div>
+                    <div class="conversion-steps" id="binaryToHexSteps"></div>
+                    <div class="final-result" id="binaryToHexResult"></div>
+                </div>
+            </div>
+
+            <!-- 16進数→2進数 -->
+            <div class="conversion-type">
+                <h3>16進数 → 2進数</h3>
+                <div class="input-group">
+                    <label for="hexToBinaryInput">16進数を入力 (4桁以内):</label>
+                    <input type="text" id="hexToBinaryInput" placeholder="例: D6" maxlength="4" pattern="[0-9A-Fa-f]*">
+                    <button class="btn btn-primary" id="convertHexToBinaryBtn">変換開始</button>
+                </div>
+                <div class="conversion-display" id="hexToBinaryDisplay">
+                    <div class="digit-breakdown" id="hexDigitBreakdown"></div>
+                    <div class="conversion-steps" id="hexToBinarySteps"></div>
+                    <div class="final-result" id="hexToBinaryResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10進数↔16進数変換セクション（2進数経由） -->
+        <div class="conversion-section card">
+            <h2>10進数 ↔ 16進数変換（2進数経由）</h2>
+            <div class="conversion-explanation">
+                <p>10進数と16進数の変換は、一度2進数に変換してから目的の進数に変換する方法で理解しやすくなります。</p>
+            </div>
+
+            <!-- 10進数→16進数 -->
+            <div class="conversion-type">
+                <h3>10進数 → 16進数（2進数経由）</h3>
+                <div class="input-group">
+                    <label for="decimalToHexInput">10進数を入力 (0-65535):</label>
+                    <input type="number" id="decimalToHexInput" placeholder="例: 214" min="0" max="65535">
+                    <button class="btn btn-primary" id="convertDecimalToHexBtn">変換開始</button>
+                </div>
+                <div class="conversion-display" id="decimalToHexDisplay">
+                    <div class="step-1" id="decimalToBinaryStep">
+                        <h4>ステップ1: 10進数 → 2進数</h4>
+                        <div class="division-process" id="decimalToBinaryProcess"></div>
+                    </div>
+                    <div class="step-2" id="binaryToHexStep">
+                        <h4>ステップ2: 2進数 → 16進数</h4>
+                        <div class="grouping-process" id="binaryToHexProcess"></div>
+                    </div>
+                    <div class="final-result" id="decimalToHexResult"></div>
+                </div>
+            </div>
+
+            <!-- 16進数→10進数 -->
+            <div class="conversion-type">
+                <h3>16進数 → 10進数（2進数経由）</h3>
+                <div class="input-group">
+                    <label for="hexToDecimalInput">16進数を入力 (4桁以内):</label>
+                    <input type="text" id="hexToDecimalInput" placeholder="例: D6" maxlength="4" pattern="[0-9A-Fa-f]*">
+                    <button class="btn btn-primary" id="convertHexToDecimalBtn">変換開始</button>
+                </div>
+                <div class="conversion-display" id="hexToDecimalDisplay">
+                    <div class="step-1" id="hexToBinaryStepDecimal">
+                        <h4>ステップ1: 16進数 → 2進数</h4>
+                        <div class="expansion-process" id="hexToBinaryProcessDecimal"></div>
+                    </div>
+                    <div class="step-2" id="binaryToDecimalStep">
+                        <h4>ステップ2: 2進数 → 10進数</h4>
+                        <div class="calculation-process" id="binaryToDecimalProcess"></div>
+                    </div>
+                    <div class="final-result" id="hexToDecimalResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- アニメーション制御 -->
+        <div class="animation-controls card">
+            <h2>アニメーション制御</h2>
+            <div class="controls-grid">
+                <button class="btn btn-secondary" id="pauseAllBtn">一時停止</button>
+                <button class="btn btn-secondary" id="resumeAllBtn" style="display: none;">再生</button>
+                <button class="btn btn-secondary" id="resetAllBtn">リセット</button>
+                <div class="speed-control">
+                    <label for="globalAnimationSpeed">アニメーション速度:</label>
+                    <input type="range" id="globalAnimationSpeed" min="500" max="3000" value="1500" step="250">
+                    <span id="globalSpeedDisplay">1.5秒</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 練習問題セクション -->
+        <div class="practice-section card">
+            <h2>練習問題</h2>
+            <div class="practice-controls">
+                <button class="btn btn-secondary" id="generateHexProblemBtn">新しい問題</button>
+                <div class="practice-mode">
+                    <label>問題タイプ:</label>
+                    <select id="hexPracticeMode">
+                        <option value="binary-to-hex">2進数→16進数</option>
+                        <option value="hex-to-binary">16進数→2進数</option>
+                        <option value="decimal-to-hex">10進数→16進数</option>
+                        <option value="hex-to-decimal">16進数→10進数</option>
+                        <option value="mixed">ランダム</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="problem-display" id="hexProblemDisplay" style="display: none;">
+                <div class="problem-question" id="hexProblemQuestion"></div>
+                <div class="answer-input">
+                    <input type="text" id="hexUserAnswer" placeholder="答えを入力してください">
+                    <button class="btn btn-primary" id="checkHexAnswerBtn">答え合わせ</button>
+                </div>
+                <div class="feedback" id="hexFeedback"></div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-item">
+                    <span class="score-label">正解数:</span>
+                    <span class="score-value" id="hexCorrectCount">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">問題数:</span>
+                    <span class="score-value" id="hexTotalCount">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">正答率:</span>
+                    <span class="score-value" id="hexAccuracy">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- よく使われる16進数の変換例集 -->
+        <div class="examples-section card">
+            <h2>よく使われる16進数の変換例</h2>
+            <div class="examples-grid" id="hexExamplesGrid">
+                <div class="example-item" data-hex="1" data-decimal="1" data-binary="0001">
+                    <div class="example-hex">1</div>
+                    <div class="example-values">
+                        <div>10進数: 1</div>
+                        <div>2進数: 0001</div>
+                    </div>
+                </div>
+                <div class="example-item" data-hex="A" data-decimal="10" data-binary="1010">
+                    <div class="example-hex">A</div>
+                    <div class="example-values">
+                        <div>10進数: 10</div>
+                        <div>2進数: 1010</div>
+                    </div>
+                </div>
+                <div class="example-item" data-hex="F" data-decimal="15" data-binary="1111">
+                    <div class="example-hex">F</div>
+                    <div class="example-values">
+                        <div>10進数: 15</div>
+                        <div>2進数: 1111</div>
+                    </div>
+                </div>
+                <div class="example-item" data-hex="10" data-decimal="16" data-binary="00010000">
+                    <div class="example-hex">10</div>
+                    <div class="example-values">
+                        <div>10進数: 16</div>
+                        <div>2進数: 00010000</div>
+                    </div>
+                </div>
+                <div class="example-item" data-hex="FF" data-decimal="255" data-binary="11111111">
+                    <div class="example-hex">FF</div>
+                    <div class="example-values">
+                        <div>10進数: 255</div>
+                        <div>2進数: 11111111</div>
+                    </div>
+                </div>
+                <div class="example-item" data-hex="100" data-decimal="256" data-binary="100000000">
+                    <div class="example-hex">100</div>
+                    <div class="example-values">
+                        <div>10進数: 256</div>
+                        <div>2進数: 100000000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/hex-converter.js" is:inline></script>
+</Layout>
