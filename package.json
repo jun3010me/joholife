@@ -9,9 +9,19 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/react": "^4.3.0",
     "@tailwindcss/vite": "^4.1.11",
+    "@types/js-yaml": "^4.0.9",
+    "@types/katex": "^0.16.7",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "astro": "^5.10.1",
-    "tailwindcss": "^4.1.11"
+    "js-yaml": "^4.1.0",
+    "katex": "^0.16.22",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "yaml": "^2.8.0"
   },
   "devDependencies": {
     "prettier": "^3.6.1",

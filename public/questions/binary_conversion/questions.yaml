@@ -1,0 +1,122 @@
+id: binary_conversion
+title: 2進数変換
+description: 2進数と10進数の変換を学習する問題集
+icon: 🔢
+difficulty: easy
+estimatedTime: 15
+category: 進数変換
+tags:
+  - 2進数
+  - 10進数
+  - 変換
+  - 基礎
+questions:
+  - id: q1
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「1010」を10進数に変換してください。
+    options:
+      - id: a
+        text: "8"
+        isCorrect: false
+        explanation: 2進数1010は、1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 8 + 0 + 2 + 0 = 10です。
+      - id: b
+        text: "10"
+        isCorrect: true
+        explanation: 正解です！2進数1010は、1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 8 + 0 + 2 + 0 = 10です。
+      - id: c
+        text: "12"
+        isCorrect: false
+        explanation: 2進数1010は、1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 8 + 0 + 2 + 0 = 10です。
+      - id: d
+        text: "14"
+        isCorrect: false
+        explanation: 2進数1010は、1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 8 + 0 + 2 + 0 = 10です。
+    explanation: 2進数を10進数に変換するには、各桁の値に2の累乗を掛けて合計します。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 各桁の位置を考えて、2の累乗で計算してみましょう。
+
+  - id: q2
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「13」を2進数に変換してください。
+    options:
+      - id: a
+        text: "1011"
+        isCorrect: false
+        explanation: 10進数13を2進数に変換すると1101です。13÷2=6...1、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: b
+        text: "1101"
+        isCorrect: true
+        explanation: 正解です！10進数13を2進数に変換すると1101です。13÷2=6...1、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: c
+        text: "1110"
+        isCorrect: false
+        explanation: 10進数13を2進数に変換すると1101です。13÷2=6...1、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: d
+        text: "1111"
+        isCorrect: false
+        explanation: 10進数13を2進数に変換すると1101です。13÷2=6...1、6÷2=3...0、3÷2=1...1、1÷2=0...1
+    explanation: 10進数を2進数に変換するには、2で割り続けて余りを下から読みます。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 2で割り続けて、余りを下から読んでみましょう。
+
+  - id: q3
+    type: true-false
+    title: 2進数の理解
+    description: 2進数は0と1の2つの数字のみを使用します。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！2進数は0と1の2つの数字のみを使用する数値表現です。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: 2進数は0と1の2つの数字のみを使用する数値表現です。
+    explanation: 2進数は基数が2の数値表現で、0と1の2つの数字のみを使用します。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 基礎
+    points: 1
+
+  - id: q4
+    type: multiple-choice
+    title: 2進数の特徴
+    description: 2進数について正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "コンピュータの内部処理で使用される"
+        isCorrect: true
+        explanation: 2進数はコンピュータの内部処理で使用される基本的な数値表現です。
+      - id: b
+        text: "0から9までの数字を使用する"
+        isCorrect: false
+        explanation: 2進数は0と1の2つの数字のみを使用します。0から9までの数字を使用するのは10進数です。
+      - id: c
+        text: "位の値は2の累乗で表される"
+        isCorrect: true
+        explanation: 2進数では各桁の位の値は2の累乗（2⁰、2¹、2²、2³...）で表されます。
+      - id: d
+        text: "基数は10である"
+        isCorrect: false
+        explanation: 2進数の基数は2です。基数が10なのは10進数です。
+    explanation: 2進数は基数が2の数値表現で、コンピュータの内部処理で使用され、各桁の位の値は2の累乗で表されます。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 基礎
+      - コンピュータ
+    points: 2
+    hint: 2進数の基本的な性質について考えてみましょう。

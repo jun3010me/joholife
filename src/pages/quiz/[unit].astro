@@ -1,0 +1,687 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  return [
+    { params: { unit: 'binary_conversion' } },
+    { params: { unit: 'algorithms' } }
+  ];
+}
+
+const { unit } = Astro.params;
+---
+
+<Layout title={`問題演習 - ${unit} - じょうほうらいふ`}>
+  <div class="container mx-auto px-4 py-8">
+    <div id="quiz-app" class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-center py-12">
+        <div class="flex items-center space-x-2">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span class="text-gray-600">問題を読み込み中...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ unit }}>
+async function loadQuestionSet(setId) {
+  try {
+    const response = await fetch(`/questions/${setId}/questions.yaml`);
+    if (!response.ok) {
+      throw new Error(`Failed to load question set: ${response.status}`);
+    }
+    
+    const yamlContent = await response.text();
+    console.log('Loaded YAML for', setId, ':', yamlContent.substring(0, 200));
+    
+    // YAML parsing with proper indentation handling
+    const lines = yamlContent.split('\n');
+    const questionSet = {
+      id: setId,
+      title: '',
+      description: '',
+      icon: '📝',
+      difficulty: 'medium',
+      estimatedTime: 10,
+      questions: [],
+      tags: [],
+      category: 'general'
+    };
+    
+    let currentQuestion = null;
+    let currentOption = null;
+    let inQuestions = false;
+    let inTags = false;
+    let inOptions = false;
+    let inQuestionTags = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      const indent = line.length - line.trimStart().length;
+      
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      
+      // Root level properties
+      if (indent === 0 && trimmed.includes(':')) {
+        const [key, value] = trimmed.split(':').map(s => s.trim());
+        if (key === 'title') {
+          questionSet.title = value.replace(/['"]/g, '');
+        } else if (key === 'description') {
+          questionSet.description = value.replace(/['"]/g, '');
+        } else if (key === 'icon') {
+          questionSet.icon = value.replace(/['"]/g, '');
+        } else if (key === 'difficulty') {
+          questionSet.difficulty = value.replace(/['"]/g, '');
+        } else if (key === 'estimatedTime') {
+          questionSet.estimatedTime = parseInt(value) || 10;
+        } else if (key === 'category') {
+          questionSet.category = value.replace(/['"]/g, '');
+        } else if (key === 'questions') {
+          inQuestions = true;
+          inTags = false;
+        } else if (key === 'tags') {
+          inTags = true;
+          inQuestions = false;
+        }
+      }
+      // Tags section
+      else if (inTags && indent === 2 && trimmed.startsWith('- ')) {
+        questionSet.tags.push(trimmed.substring(2).trim().replace(/['"]/g, ''));
+      }
+      // Questions section
+      else if (inQuestions && indent === 2 && trimmed.startsWith('- id:')) {
+        currentQuestion = {
+          id: trimmed.substring(5).trim().replace(/['"]/g, ''),
+          type: 'single-choice',
+          title: '',
+          description: '',
+          options: [],
+          explanation: '',
+          difficulty: 'medium',
+          tags: [],
+          points: 1
+        };
+        questionSet.questions.push(currentQuestion);
+        inOptions = false;
+        inQuestionTags = false;
+      }
+      // Question properties
+      else if (currentQuestion && indent === 4 && trimmed.includes(':')) {
+        const [key, value] = trimmed.split(':').map(s => s.trim());
+        if (key === 'type') {
+          currentQuestion.type = value.replace(/['"]/g, '');
+        } else if (key === 'title') {
+          currentQuestion.title = value.replace(/['"]/g, '');
+        } else if (key === 'description') {
+          currentQuestion.description = value.replace(/['"]/g, '');
+        } else if (key === 'explanation') {
+          currentQuestion.explanation = value.replace(/['"]/g, '');
+        } else if (key === 'difficulty') {
+          currentQuestion.difficulty = value.replace(/['"]/g, '');
+        } else if (key === 'points') {
+          currentQuestion.points = parseInt(value) || 1;
+        } else if (key === 'hint') {
+          currentQuestion.hint = value.replace(/['"]/g, '');
+        } else if (key === 'options') {
+          inOptions = true;
+          inQuestionTags = false;
+        } else if (key === 'tags') {
+          inQuestionTags = true;
+          inOptions = false;
+        }
+      }
+      // Question tags
+      else if (inQuestionTags && indent === 6 && trimmed.startsWith('- ')) {
+        currentQuestion.tags.push(trimmed.substring(2).trim().replace(/['"]/g, ''));
+      }
+      // Options
+      else if (inOptions && indent === 6 && trimmed.startsWith('- id:')) {
+        currentOption = {
+          id: trimmed.substring(5).trim().replace(/['"]/g, ''),
+          text: '',
+          isCorrect: false,
+          explanation: ''
+        };
+        currentQuestion.options.push(currentOption);
+      }
+      // Option properties
+      else if (currentOption && indent === 8 && trimmed.includes(':')) {
+        const [key, value] = trimmed.split(':').map(s => s.trim());
+        if (key === 'text') {
+          currentOption.text = value.replace(/['"]/g, '');
+        } else if (key === 'isCorrect') {
+          currentOption.isCorrect = value.replace(/['"]/g, '') === 'true';
+        } else if (key === 'explanation') {
+          currentOption.explanation = value.replace(/['"]/g, '');
+        }
+      }
+    }
+    
+    console.log('Parsed question set:', questionSet);
+    return questionSet;
+  } catch (error) {
+    console.error(`Error loading question set ${setId}:`, error);
+    return null;
+  }
+}
+
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+class QuizSession {
+  constructor(unit) {
+    this.unit = unit;
+    this.questionSet = null;
+    this.questions = [];
+    this.currentQuestionIndex = 0;
+    this.answers = {};
+    this.score = 0;
+    this.startTime = new Date();
+    this.isCompleted = false;
+    this.init();
+  }
+
+  async init() {
+    try {
+      this.questionSet = await loadQuestionSet(this.unit);
+      if (!this.questionSet) {
+        throw new Error('Question set not found');
+      }
+      
+      this.questions = shuffleArray(this.questionSet.questions);
+      this.render();
+    } catch (error) {
+      console.error('Error loading question set:', error);
+      this.renderError();
+    }
+  }
+
+  render() {
+    const container = document.getElementById('quiz-app');
+    if (!container) return;
+
+    if (this.isCompleted) {
+      this.renderResult();
+      return;
+    }
+
+    const currentQuestion = this.questions[this.currentQuestionIndex];
+    const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
+    const correctAnswers = Object.keys(this.answers).filter(questionId => {
+      const question = this.questions.find(q => q.id === questionId);
+      return this.isAnswerCorrect(question, this.answers[questionId]);
+    }).length;
+
+    container.innerHTML = `
+      <div class="space-y-6">
+        <!-- Progress Bar -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary);">進捗</span>
+              <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                ${this.currentQuestionIndex + 1} / ${this.questions.length}
+              </span>
+            </div>
+            <div style="width: 100%; background: var(--border); border-radius: var(--radius-md); height: 8px;">
+              <div 
+                style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 8px; border-radius: var(--radius-md); transition: all 0.3s ease; width: ${((this.currentQuestionIndex + 1) / this.questions.length) * 100}%;"
+              ></div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${this.currentQuestionIndex + 1}</div>
+              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">解答済み</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color);">${correctAnswers}</div>
+              <div style="font-size: 0.75rem; color: var(--secondary-color); font-weight: 500;">正解</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">
+                ${this.currentQuestionIndex > 0 ? Math.round((correctAnswers / this.currentQuestionIndex) * 100) : 0}%
+              </div>
+              <div style="font-size: 0.75rem; color: var(--accent-color); font-weight: 500;">正解率</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                ${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">経過時間</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="card" style="overflow: hidden; margin-bottom: 2rem;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); padding: 2rem; color: white;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem; font-weight: 700;">問題 ${this.currentQuestionIndex + 1}</span>
+                <span style="opacity: 0.8;">/ ${this.questions.length}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; font-weight: 500;">
+                  ${this.getDifficultyText(currentQuestion.difficulty)}
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; font-weight: 500;">
+                  ${currentQuestion.points}点
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question Content -->
+          <div style="padding: 2rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+              ${currentQuestion.title}
+            </h3>
+            
+            <div style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+              ${currentQuestion.description}
+            </div>
+
+            <!-- Options -->
+            <div style="margin-bottom: 2rem;">
+              ${currentQuestion.options.map((option, index) => `
+                <button
+                  class="option-button"
+                  data-question-id="${currentQuestion.id}"
+                  data-option-id="${option.id}"
+                  style="
+                    width: 100%; 
+                    padding: 1rem; 
+                    margin-bottom: 0.75rem;
+                    border-radius: var(--radius-md); 
+                    border: 2px solid ${this.isOptionSelected(currentQuestion.id, option.id) ? 'var(--primary-color)' : 'var(--border)'}; 
+                    text-align: left; 
+                    transition: all 0.2s ease;
+                    background: ${this.isOptionSelected(currentQuestion.id, option.id) ? 'var(--surface)' : 'white'};
+                    color: ${this.isOptionSelected(currentQuestion.id, option.id) ? 'var(--primary-color)' : 'var(--text-primary)'};
+                    cursor: pointer;
+                  "
+                >
+                  <div style="display: flex; align-items: center;">
+                    <div style="margin-right: 0.75rem;">
+                      <div style="
+                        width: 20px; 
+                        height: 20px; 
+                        border-radius: ${currentQuestion.type === 'multiple-choice' ? 'var(--radius-sm)' : '50%'}; 
+                        border: 2px solid ${this.isOptionSelected(currentQuestion.id, option.id) ? 'var(--primary-color)' : 'var(--border)'};
+                        background: ${this.isOptionSelected(currentQuestion.id, option.id) ? 'var(--primary-color)' : 'white'};
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      ">
+                        ${this.isOptionSelected(currentQuestion.id, option.id) ? (
+                          currentQuestion.type === 'multiple-choice' 
+                            ? '<span style="color: white; font-size: 12px;">✓</span>'
+                            : '<div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>'
+                        ) : ''}
+                      </div>
+                    </div>
+                    <span style="flex: 1;">${option.text}</span>
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Hint -->
+            ${currentQuestion.hint ? `
+              <div style="margin-bottom: 2rem;">
+                <button
+                  id="hint-button"
+                  style="
+                    display: flex; 
+                    align-items: center; 
+                    color: var(--accent-color); 
+                    background: none; 
+                    border: none; 
+                    cursor: pointer; 
+                    transition: all 0.3s ease;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                  "
+                >
+                  <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                  ヒント
+                </button>
+                <div 
+                  id="hint-content"
+                  style="
+                    margin-top: 0.5rem; 
+                    background: #fef3c7; 
+                    border: 1px solid #f59e0b; 
+                    border-radius: var(--radius-md); 
+                    padding: 0.75rem;
+                    display: none;
+                  "
+                >
+                  <p style="color: #92400e; font-size: 0.875rem; margin: 0;">${currentQuestion.hint}</p>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Navigation -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <button
+                id="prev-button"
+                ${this.currentQuestionIndex === 0 ? 'disabled' : ''}
+                class="btn ${this.currentQuestionIndex === 0 ? 'btn-secondary' : 'btn-secondary'}"
+                style="display: flex; align-items: center; ${this.currentQuestionIndex === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
+              >
+                <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                前の問題
+              </button>
+
+              ${currentQuestion.type === 'multiple-choice' ? `
+                <div style="font-size: 0.875rem; color: var(--text-muted);">複数選択可能</div>
+              ` : ''}
+
+              <button
+                id="next-button"
+                ${!this.isQuestionAnswered(currentQuestion.id) ? 'disabled' : ''}
+                class="btn ${this.isQuestionAnswered(currentQuestion.id) ? 'btn-primary' : 'btn-secondary'}"
+                style="display: flex; align-items: center; ${!this.isQuestionAnswered(currentQuestion.id) ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
+              >
+                ${this.currentQuestionIndex === this.questions.length - 1 ? '結果を見る' : '次の問題'}
+                <svg style="width: 20px; height: 20px; margin-left: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Add event listeners after DOM is updated
+    setTimeout(() => {
+      // Option buttons
+      const optionButtons = document.querySelectorAll('.option-button');
+      optionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const questionId = button.getAttribute('data-question-id');
+          const optionId = button.getAttribute('data-option-id');
+          this.selectOption(questionId, optionId);
+        });
+      });
+      
+      // Hint button
+      const hintButton = document.getElementById('hint-button');
+      const hintContent = document.getElementById('hint-content');
+      
+      if (hintButton && hintContent) {
+        hintButton.addEventListener('click', () => {
+          if (hintContent.style.display === 'none') {
+            hintContent.style.display = 'block';
+          } else {
+            hintContent.style.display = 'none';
+          }
+        });
+        
+        // Add hover effects
+        hintButton.addEventListener('mouseenter', () => {
+          hintButton.style.opacity = '0.8';
+        });
+        
+        hintButton.addEventListener('mouseleave', () => {
+          hintButton.style.opacity = '1';
+        });
+      }
+      
+      // Navigation buttons
+      const prevButton = document.getElementById('prev-button');
+      const nextButton = document.getElementById('next-button');
+      
+      if (prevButton && !prevButton.disabled) {
+        prevButton.addEventListener('click', () => this.previousQuestion());
+      }
+      
+      if (nextButton && !nextButton.disabled) {
+        nextButton.addEventListener('click', () => this.nextQuestion());
+      }
+    }, 0);
+  }
+
+  renderResult() {
+    const container = document.getElementById('quiz-app');
+    if (!container) return;
+
+    const endTime = new Date();
+    const timeSpent = Math.floor((endTime - this.startTime) / 1000);
+    const correctAnswers = Object.keys(this.answers).filter(questionId => {
+      const question = this.questions.find(q => q.id === questionId);
+      return this.isAnswerCorrect(question, this.answers[questionId]);
+    }).length;
+    const percentage = Math.round((correctAnswers / this.questions.length) * 100);
+
+    container.innerHTML = `
+      <div style="max-width: 800px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">問題演習完了！</h2>
+          <p style="color: var(--text-secondary);">お疲れ様でした。結果を確認してください。</p>
+        </div>
+
+        <div class="card" style="overflow: hidden; margin-bottom: 2rem;">
+          <div style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); padding: 2rem; color: white;">
+            <div style="text-align: center;">
+              <div style="
+                font-size: 3rem; 
+                font-weight: 700; 
+                margin-bottom: 0.5rem; 
+                background: rgba(255,255,255,0.2); 
+                border-radius: 50%; 
+                width: 96px; 
+                height: 96px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                margin: 0 auto 1rem auto;
+              ">
+                <span style="color: white;">${this.getScoreGrade(percentage)}</span>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem;">${percentage}%</div>
+              <div style="opacity: 0.9;">${correctAnswers} / ${this.questions.length} 問正解</div>
+            </div>
+          </div>
+          
+          <div style="padding: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+              <p style="font-size: 1.125rem; color: var(--text-primary);">${this.getScoreMessage(percentage)}</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem; text-align: center;">
+              <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${this.questions.length}</div>
+                <div style="font-size: 0.875rem; color: var(--primary-color); font-weight: 500;">総問題数</div>
+              </div>
+              <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color);">${correctAnswers}</div>
+                <div style="font-size: 0.875rem; color: var(--secondary-color); font-weight: 500;">正解数</div>
+              </div>
+              <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">${this.questions.length - correctAnswers}</div>
+                <div style="font-size: 0.875rem; color: var(--accent-color); font-weight: 500;">不正解数</div>
+              </div>
+              <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                  ${Math.floor(timeSpent / 60)}:${(timeSpent % 60).toString().padStart(2, '0')}
+                </div>
+                <div style="font-size: 0.875rem; color: var(--primary-color); font-weight: 500;">所要時間</div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
+              <button
+                onclick="window.location.reload()"
+                class="btn btn-primary"
+                style="display: flex; align-items: center; margin-bottom: 0.5rem;"
+              >
+                <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                もう一度挑戦
+              </button>
+              <button
+                onclick="window.location.href='/quiz'"
+                class="btn btn-secondary"
+                style="display: flex; align-items: center;"
+              >
+                <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                メニューに戻る
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderError() {
+    const container = document.getElementById('quiz-app');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="text-center py-12">
+        <div class="text-red-400 text-6xl mb-4">⚠️</div>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">
+          問題データの読み込みに失敗しました
+        </h3>
+        <p class="text-gray-500 mb-4">
+          指定された問題セットが見つからませんでした。
+        </p>
+        <button 
+          onclick="window.location.href='/quiz'"
+          class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          問題一覧に戻る
+        </button>
+      </div>
+    `;
+  }
+
+  selectOption(questionId, optionId) {
+    const question = this.questions.find(q => q.id === questionId);
+    if (!question) return;
+
+    if (question.type === 'multiple-choice') {
+      const currentAnswers = this.answers[questionId] || [];
+      const newAnswers = currentAnswers.includes(optionId)
+        ? currentAnswers.filter(id => id !== optionId)
+        : [...currentAnswers, optionId];
+      this.answers[questionId] = newAnswers;
+    } else {
+      this.answers[questionId] = optionId;
+    }
+
+    this.render();
+  }
+
+  isOptionSelected(questionId, optionId) {
+    const answer = this.answers[questionId];
+    if (Array.isArray(answer)) {
+      return answer.includes(optionId);
+    }
+    return answer === optionId;
+  }
+
+  isQuestionAnswered(questionId) {
+    const answer = this.answers[questionId];
+    if (Array.isArray(answer)) {
+      return answer.length > 0;
+    }
+    return answer !== undefined;
+  }
+
+  isAnswerCorrect(question, answer) {
+    if (question.type === 'multiple-choice') {
+      const correctOptions = question.options.filter(opt => opt.isCorrect).map(opt => opt.id);
+      if (!Array.isArray(answer)) return false;
+      return correctOptions.length === answer.length && 
+             correctOptions.every(id => answer.includes(id));
+    } else {
+      const correctOption = question.options.find(opt => opt.isCorrect);
+      return correctOption && correctOption.id === answer;
+    }
+  }
+
+  nextQuestion() {
+    if (this.currentQuestionIndex < this.questions.length - 1) {
+      this.currentQuestionIndex++;
+      this.render();
+    } else {
+      this.isCompleted = true;
+      this.render();
+    }
+  }
+
+  previousQuestion() {
+    if (this.currentQuestionIndex > 0) {
+      this.currentQuestionIndex--;
+      this.render();
+    }
+  }
+
+  getDifficultyText(difficulty) {
+    switch (difficulty) {
+      case 'easy': return '初級';
+      case 'medium': return '中級';
+      case 'hard': return '上級';
+      default: return '中級';
+    }
+  }
+
+  getScoreGrade(percentage) {
+    if (percentage >= 90) return 'A';
+    if (percentage >= 80) return 'B';
+    if (percentage >= 70) return 'C';
+    if (percentage >= 60) return 'D';
+    return 'F';
+  }
+
+  getScoreMessage(percentage) {
+    if (percentage >= 90) return '素晴らしい！完璧に理解できています。';
+    if (percentage >= 70) return 'よくできました！もう少し復習すれば完璧です。';
+    if (percentage >= 50) return '合格ライン！間違えた問題を復習しましょう。';
+    return '復習が必要です。基礎からもう一度確認しましょう。';
+  }
+}
+
+// Global reference for button onclick handlers
+let quizSession;
+
+// Initialize the quiz session when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  quizSession = new QuizSession(unit);
+});
+</script>
+
+<style>
+.option-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.option-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+</style>

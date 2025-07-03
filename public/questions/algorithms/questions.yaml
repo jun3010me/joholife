@@ -1,0 +1,123 @@
+id: algorithms
+title: アルゴリズムの基礎
+description: アルゴリズムの基本概念と計算量について学習する問題集
+icon: 🧮
+difficulty: medium
+estimatedTime: 20
+category: アルゴリズム
+tags:
+  - アルゴリズム
+  - 計算量
+  - ソート
+  - 探索
+questions:
+  - id: q1
+    type: single-choice
+    title: 線形探索の計算量
+    description: 要素数nの配列から特定の要素を線形探索で見つける場合の最悪時間計算量はどれですか？
+    options:
+      - id: a
+        text: "O(1)"
+        isCorrect: false
+        explanation: O(1)は定数時間です。線形探索では最悪の場合、全ての要素を調べる必要があります。
+      - id: b
+        text: "O(log n)"
+        isCorrect: false
+        explanation: O(log n)は対数時間です。これは二分探索などの計算量です。
+      - id: c
+        text: "O(n)"
+        isCorrect: true
+        explanation: 正解です！線形探索では最悪の場合、全てのn個の要素を調べる必要があるため、O(n)です。
+      - id: d
+        text: "O(n²)"
+        isCorrect: false
+        explanation: O(n²)は二次時間です。線形探索は一重ループなのでO(n)です。
+    explanation: 線形探索では配列の要素を順番に調べるため、最悪の場合全ての要素を調べる必要があり、計算量はO(n)です。
+    difficulty: medium
+    tags:
+      - アルゴリズム
+      - 計算量
+      - 探索
+    points: 2
+    hint: 線形探索は配列の要素を順番に調べるアルゴリズムです。
+
+  - id: q2
+    type: single-choice
+    title: バブルソートの計算量
+    description: バブルソートの時間計算量はどれですか？
+    options:
+      - id: a
+        text: "O(n log n)"
+        isCorrect: false
+        explanation: O(n log n)はマージソートやクイックソートなどの効率的なソートアルゴリズムの計算量です。
+      - id: b
+        text: "O(n²)"
+        isCorrect: true
+        explanation: 正解です！バブルソートは二重ループ構造のため、時間計算量はO(n²)です。
+      - id: c
+        text: "O(n)"
+        isCorrect: false
+        explanation: O(n)は線形時間です。バブルソートは二重ループなのでO(n²)です。
+      - id: d
+        text: "O(1)"
+        isCorrect: false
+        explanation: O(1)は定数時間です。バブルソートは要素数に依存するため、O(n²)です。
+    explanation: バブルソートは隣接する要素を比較して交換を繰り返すアルゴリズムで、二重ループ構造のため時間計算量はO(n²)です。
+    difficulty: medium
+    tags:
+      - アルゴリズム
+      - 計算量
+      - ソート
+    points: 2
+    hint: バブルソートは二重ループ構造のアルゴリズムです。
+
+  - id: q3
+    type: true-false
+    title: 二分探索の条件
+    description: 二分探索を使用するためには、データがソートされている必要があります。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！二分探索は中央値と比較して検索範囲を半分に絞るため、データがソートされている必要があります。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: 二分探索は中央値と比較して検索範囲を半分に絞るため、データがソートされている必要があります。
+    explanation: 二分探索は中央値と比較して検索範囲を半分に絞るアルゴリズムのため、データがソートされている必要があります。
+    difficulty: easy
+    tags:
+      - アルゴリズム
+      - 探索
+      - 二分探索
+    points: 1
+
+  - id: q4
+    type: multiple-choice
+    title: ソートアルゴリズムの特徴
+    description: ソートアルゴリズムについて正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "クイックソートの平均計算量はO(n log n)"
+        isCorrect: true
+        explanation: クイックソートの平均時間計算量はO(n log n)です。
+      - id: b
+        text: "選択ソートの時間計算量はO(n²)"
+        isCorrect: true
+        explanation: 選択ソートは二重ループ構造のため、時間計算量はO(n²)です。
+      - id: c
+        text: "マージソートは安定ソートである"
+        isCorrect: true
+        explanation: マージソートは同じ値の要素の相対位置を保つ安定ソートです。
+      - id: d
+        text: "全てのソートアルゴリズムの計算量はO(n log n)"
+        isCorrect: false
+        explanation: バブルソートや選択ソートなど、O(n²)の計算量を持つソートアルゴリズムもあります。
+    explanation: ソートアルゴリズムには様々な種類があり、それぞれ異なる計算量や特徴を持っています。
+    difficulty: hard
+    tags:
+      - アルゴリズム
+      - ソート
+      - 計算量
+    points: 3
+    hint: それぞれのソートアルゴリズムの特徴を思い出してみましょう。
