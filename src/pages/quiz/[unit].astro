@@ -221,6 +221,9 @@ class QuizSession {
     this.startTime = new Date();
     this.isCompleted = false;
     this.showingExplanation = false;
+    this.userName = '';
+    this.showingNameInput = true;
+    this.showingCertificate = false;
     this.init();
   }
 
@@ -242,6 +245,16 @@ class QuizSession {
   render() {
     const container = document.getElementById('quiz-app');
     if (!container) return;
+
+    if (this.showingNameInput) {
+      this.renderNameInput();
+      return;
+    }
+
+    if (this.showingCertificate) {
+      this.renderCertificate();
+      return;
+    }
 
     if (this.isCompleted) {
       this.renderResult();
@@ -501,6 +514,114 @@ class QuizSession {
     }, 0);
   }
 
+  renderNameInput() {
+    const container = document.getElementById('quiz-app');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="card" style="padding: 3rem;">
+          <div style="margin-bottom: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+              ${this.questionSet?.icon || '📝'}
+            </div>
+            <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+              ${this.questionSet?.title || this.unit} 問題演習
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+              ${this.questionSet?.description || ''}
+            </p>
+            <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; font-size: 0.875rem; color: var(--text-muted);">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                約${this.questionSet?.estimatedTime || 0}分
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                全${this.questions?.length || 0}問
+              </div>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 2rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+              お名前を入力してください
+            </h3>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.875rem;">
+              100%の正答率で全問正解すると、修了証が発行されます
+            </p>
+            
+            <div style="margin-bottom: 2rem;">
+              <input 
+                type="text" 
+                id="user-name-input"
+                placeholder="山田太郎"
+                style="
+                  width: 100%; 
+                  max-width: 300px;
+                  padding: 0.75rem 1rem; 
+                  border: 2px solid var(--border); 
+                  border-radius: var(--radius-md); 
+                  font-size: 1rem;
+                  text-align: center;
+                  transition: border-color 0.2s ease;
+                "
+                maxlength="20"
+              />
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+              <button
+                id="start-quiz-button"
+                class="btn btn-primary"
+                style="padding: 0.75rem 2rem; font-size: 1rem;"
+                disabled
+              >
+                問題演習を開始
+              </button>
+              
+              <button
+                onclick="window.location.href='/quiz'"
+                class="btn btn-secondary"
+                style="font-size: 0.875rem;"
+              >
+                メニューに戻る
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Add event listeners
+    setTimeout(() => {
+      const nameInput = document.getElementById('user-name-input');
+      const startButton = document.getElementById('start-quiz-button');
+      
+      if (nameInput && startButton) {
+        const validateInput = () => {
+          const name = nameInput.value.trim();
+          startButton.disabled = name.length === 0;
+          startButton.style.opacity = name.length === 0 ? '0.5' : '1';
+        };
+        
+        nameInput.addEventListener('input', validateInput);
+        nameInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && nameInput.value.trim()) {
+            this.startQuiz();
+          }
+        });
+        
+        startButton.addEventListener('click', () => this.startQuiz());
+        nameInput.focus();
+      }
+    }, 0);
+  }
+
   renderExplanation() {
     const container = document.getElementById('quiz-app');
     if (!container) return;
@@ -698,6 +819,18 @@ class QuizSession {
     }, 0);
   }
 
+  startQuiz() {
+    const nameInput = document.getElementById('user-name-input');
+    if (nameInput) {
+      this.userName = nameInput.value.trim();
+      if (this.userName) {
+        this.showingNameInput = false;
+        this.startTime = new Date(); // Reset start time
+        this.render();
+      }
+    }
+  }
+
   renderResult() {
     const container = document.getElementById('quiz-app');
     if (!container) return;
@@ -710,6 +843,13 @@ class QuizSession {
       return this.isAnswerCorrect(question, this.answers[questionId]);
     }).length;
     const percentage = Math.round((correctAnswers / this.questions.length) * 100);
+
+    // 100%達成時は修了証画面に遷移
+    if (percentage === 100) {
+      this.showingCertificate = true;
+      this.render();
+      return;
+    }
 
     container.innerHTML = `
       <div style="max-width: 800px; margin: 0 auto;">
@@ -793,6 +933,195 @@ class QuizSession {
         </div>
       </div>
     `;
+  }
+
+  renderCertificate() {
+    const container = document.getElementById('quiz-app');
+    if (!container) return;
+
+    const endTime = new Date();
+    const timeSpent = Math.floor((endTime - this.startTime) / 1000);
+    const formattedDate = endTime.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    container.innerHTML = `
+      <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+        <div style="margin-bottom: 2rem;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+          <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+            おめでとうございます！
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 1.125rem;">
+            全問正解で修了証が発行されました
+          </p>
+        </div>
+
+        <!-- Certificate Preview -->
+        <div class="card" style="margin-bottom: 2rem; padding: 0; overflow: hidden; background: #f8fafb;">
+          <div style="padding: 1rem; background: var(--surface); border-bottom: 1px solid var(--border);">
+            <h3 style="margin: 0; color: var(--text-primary); font-weight: 600;">修了証プレビュー</h3>
+          </div>
+          <div style="padding: 2rem; background: white;">
+            <canvas 
+              id="certificate-canvas" 
+              width="800" 
+              height="600" 
+              style="max-width: 100%; height: auto; border: 1px solid #e5e7eb;"
+            ></canvas>
+          </div>
+        </div>
+
+        <!-- Download Button -->
+        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+          <button
+            id="download-certificate-button"
+            class="btn btn-primary"
+            style="padding: 0.75rem 2rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;"
+          >
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            修了証をダウンロード
+          </button>
+          
+          <div style="display: flex; gap: 1rem;">
+            <button
+              onclick="window.location.reload()"
+              class="btn btn-secondary"
+            >
+              もう一度挑戦
+            </button>
+            <button
+              onclick="window.location.href='/quiz'"
+              class="btn btn-secondary"
+            >
+              メニューに戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Generate certificate after DOM is ready
+    setTimeout(() => {
+      this.generateCertificate();
+      
+      const downloadButton = document.getElementById('download-certificate-button');
+      if (downloadButton) {
+        downloadButton.addEventListener('click', () => this.downloadCertificate());
+      }
+    }, 0);
+  }
+
+  generateCertificate() {
+    const canvas = document.getElementById('certificate-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#f8fafc');
+    gradient.addColorStop(1, '#e2e8f0');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    // Border
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, width - 40, height - 40);
+
+    // Inner border
+    ctx.strokeStyle = '#1d4ed8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, width - 80, height - 80);
+
+    // Title
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('修了証', width / 2, 120);
+
+    // Subtitle
+    ctx.font = '24px sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText('Certificate of Completion', width / 2, 160);
+
+    // User name
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.fillText(this.userName, width / 2, 240);
+
+    // Course info
+    ctx.font = '20px sans-serif';
+    ctx.fillStyle = '#374151';
+    ctx.fillText('上記の方は、以下の問題演習を', width / 2, 290);
+    ctx.fillText('100%の正答率で修了されました', width / 2, 320);
+
+    // Course title
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#1d4ed8';
+    ctx.fillText(`「${this.questionSet?.title || this.unit}」`, width / 2, 370);
+
+    // Date
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText(`発行日: ${dateStr}`, width / 2, 450);
+
+    // Site name
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillText('じょうほうらいふ', width / 2, 520);
+
+    // Decorative elements
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(150, 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(width - 150, 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.arc(150, height - 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(width - 150, height - 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+  downloadCertificate() {
+    const canvas = document.getElementById('certificate-canvas');
+    if (!canvas) return;
+
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `修了証_${this.questionSet?.title || this.unit}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   renderError() {
