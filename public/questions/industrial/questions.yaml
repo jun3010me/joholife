@@ -1,0 +1,212 @@
+id: industrial
+title: 産業財産権
+description: 産業財産権（特許権、実用新案権、意匠権、商標権）の基本概念と制度について学習する問題集
+icon: ⚙️
+difficulty: medium
+estimatedTime: 25
+category: 法律
+tags:
+  - 産業財産権
+  - 特許権
+  - 実用新案権
+  - 意匠権
+  - 商標権
+  - 知的財産
+questions:
+  - id: q1
+    type: single-choice
+    title: 産業財産権の範囲
+    description: 産業財産権に含まれる権利として、**正しくないもの**はどれか。
+    options:
+      - id: a
+        text: "特許権"
+        isCorrect: false
+        explanation: 特許権は産業財産権の一つです。
+      - id: b
+        text: "実用新案権"
+        isCorrect: false
+        explanation: 実用新案権は産業財産権の一つです。
+      - id: c
+        text: "意匠権"
+        isCorrect: false
+        explanation: 意匠権は産業財産権の一つです。
+      - id: d
+        text: "著作権"
+        isCorrect: true
+        explanation: 正解です！著作権は知的財産権の一種ですが、産業財産権には含まれません。
+    explanation: 産業財産権は、特許権、実用新案権、意匠権、商標権の4つです。著作権は知的財産権の一種ですが、産業財産権には含まれません。産業財産権は産業の発展を目的とした権利です。
+    difficulty: easy
+    tags:
+      - 産業財産権
+      - 基礎概念
+    points: 1
+
+  - id: q2
+    type: single-choice
+    title: 特許権の保護期間
+    description: 特許権の保護期間として、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "出願から10年間"
+        isCorrect: false
+        explanation: 10年間は実用新案権の保護期間です。
+      - id: b
+        text: "出願から15年間"
+        isCorrect: false
+        explanation: 特許権の保護期間は20年間です。
+      - id: c
+        text: "出願から20年間"
+        isCorrect: true
+        explanation: 正解です！特許権の保護期間は出願から20年間です。
+      - id: d
+        text: "出願から25年間"
+        isCorrect: false
+        explanation: 25年間は意匠権の保護期間です。
+    explanation: 特許権の保護期間は出願から20年間です。実用新案権は出願から10年間、意匠権は出願から25年間、商標権は登録から10年間（更新可能）です。
+    difficulty: easy
+    tags:
+      - 特許権
+      - 保護期間
+    points: 1
+
+  - id: q3
+    type: single-choice
+    title: 意匠権の保護対象
+    description: 次のうち、**意匠権**で保護される対象として最も適切なものはどれか。
+    options:
+      - id: a
+        text: "新しい化学反応を利用した製造方法"
+        isCorrect: false
+        explanation: 製造方法は特許権の対象です。
+      - id: b
+        text: "スマートフォンの操作方法"
+        isCorrect: false
+        explanation: 操作方法は特許権または実用新案権の対象です。
+      - id: c
+        text: "自動車の外観デザイン"
+        isCorrect: true
+        explanation: 正解です！意匠権は物品の形状、模様、色彩などの視覚的なデザインを保護します。
+      - id: d
+        text: "会社のロゴマーク"
+        isCorrect: false
+        explanation: ロゴマークは商標権の対象です。
+    explanation: 意匠権は、物品の形状、模様、色彩などの視覚的なデザインを保護します。製造方法は特許権、操作方法は特許権または実用新案権、ロゴマークは商標権の対象です。
+    difficulty: easy
+    tags:
+      - 意匠権
+      - 権利の対象
+    points: 1
+
+  - id: q4
+    type: single-choice
+    title: 商標権の特徴
+    description: 商標権について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "商標権の保護期間は出願から10年間で、更新はできない"
+        isCorrect: false
+        explanation: 商標権は更新により半永久的に保護を継続できます。
+      - id: b
+        text: "商標権は登録から10年間で、更新により半永久的に保護される"
+        isCorrect: true
+        explanation: 正解です！商標権は登録から10年間の保護期間ですが、更新により半永久的に保護を継続できます。
+      - id: c
+        text: "商標権は著作権と同様に、使用開始と同時に自動的に発生する"
+        isCorrect: false
+        explanation: 商標権は登録により発生する権利です。
+      - id: d
+        text: "商標権は特許庁ではなく、商標庁で管理されている"
+        isCorrect: false
+        explanation: 商標権は特許庁で管理されています。
+    explanation: 商標権は登録から10年間の保護期間ですが、更新により半永久的に保護を継続できます。商標権は登録により発生し、特許庁で管理されています。
+    difficulty: easy
+    tags:
+      - 商標権
+      - 保護期間
+    points: 1
+
+  - id: q5
+    type: single-choice
+    title: 実用新案権の侵害判定
+    description: 次の事例のうち、**実用新案権**の侵害に該当するものはどれか。
+    options:
+      - id: a
+        text: "有名ブランドの商品名を無断で自社製品に使用した"
+        isCorrect: false
+        explanation: 商品名の無断使用は商標権の侵害です。
+      - id: b
+        text: "他社が考案した新しい形状の掃除用具を無断で製造・販売した"
+        isCorrect: true
+        explanation: 正解です！実用新案権は物品の形状、構造、組み合わせに関する考案を保護します。
+      - id: c
+        text: "他社が発明した革新的な電池技術を無断で使用した"
+        isCorrect: false
+        explanation: 革新的技術は特許権の対象です。
+      - id: d
+        text: "他社がデザインした家具の外観を模倣して製造・販売した"
+        isCorrect: false
+        explanation: 外観デザインの模倣は意匠権の侵害です。
+    explanation: 実用新案権は、物品の形状、構造、組み合わせに関する考案を保護します。掃除用具の新しい形状は実用新案権の対象です。商品名は商標権、革新的技術は特許権、外観デザインは意匠権の対象です。
+    difficulty: medium
+    tags:
+      - 実用新案権
+      - 権利侵害の判定
+    points: 2
+
+  - id: q6
+    type: single-choice
+    title: 出願制度の原則
+    description: 産業財産権の出願について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "同じ発明でも、世界で最初に発明した者が権利を取得する（先発明主義）"
+        isCorrect: false
+        explanation: 日本では先願主義を採用しています。
+      - id: b
+        text: "同じ発明でも、最初に出願した者が権利を取得する（先願主義）"
+        isCorrect: true
+        explanation: 正解です！日本の産業財産権制度では先願主義を採用しており、最初に出願した者が権利を取得します。
+      - id: c
+        text: "発明は公表した時点で自動的に権利が発生する"
+        isCorrect: false
+        explanation: 権利は出願・審査・登録を経て発生します。
+      - id: d
+        text: "特許出願は発明者本人しか行うことができない"
+        isCorrect: false
+        explanation: 発明者以外も出願できます。
+    explanation: 日本の産業財産権制度では先願主義を採用しており、同じ発明でも最初に出願した者が権利を取得します。権利は出願・審査・登録を経て発生し、発明者以外も出願できます。
+    difficulty: medium
+    tags:
+      - 出願制度
+      - 先願主義
+    points: 2
+
+  - id: q7
+    type: single-choice
+    title: 複合的な産業財産権保護
+    description: 次の文章について、産業財産権の観点から**最も適切な説明**はどれか。<br><br>【事例】A社は新しいスマートフォンを開発した。この製品には、①革新的な充電技術、②独特な外観デザイン、③新しいブランド名「○○Phone」が含まれている。
+    options:
+      - id: a
+        text: "①②③すべて特許権で保護される"
+        isCorrect: false
+        explanation: 一つの権利ではすべてを保護できません。
+      - id: b
+        text: "①は特許権、②は意匠権、③は商標権で保護される"
+        isCorrect: true
+        explanation: 正解です！革新的技術は特許権、外観デザインは意匠権、ブランド名は商標権で保護されます。
+      - id: c
+        text: "①②は特許権、③は商標権で保護される"
+        isCorrect: false
+        explanation: 外観デザインは意匠権の対象です。
+      - id: d
+        text: "①は特許権、②③は意匠権で保護される"
+        isCorrect: false
+        explanation: ブランド名は商標権の対象です。
+    explanation: 革新的な充電技術は「発明」として特許権、独特な外観デザインは「意匠」として意匠権、ブランド名は「商標」として商標権で保護されます。一つの製品でも複数の産業財産権が複合的に保護することができます。
+    difficulty: hard
+    tags:
+      - 複合的保護
+      - 特許権
+      - 意匠権
+      - 商標権
+    points: 3
