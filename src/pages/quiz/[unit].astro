@@ -192,6 +192,24 @@ function shuffleArray(array) {
   return shuffled;
 }
 
+function parseMarkdown(text) {
+  if (!text) return '';
+  
+  return text
+    // 太字: **text** -> <strong>text</strong>
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // 斜体: *text* -> <em>text</em>
+    .replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
+    // コード: `code` -> <code>code</code>
+    .replace(/`([^`]+)`/g, '<code style="background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: monospace;">$1</code>')
+    // 改行: <br> -> <br>
+    .replace(/<br>/g, '<br>')
+    // 改行: \n -> <br> (必要に応じて)
+    .replace(/\n/g, '<br>')
+    // リンク: [text](url) -> <a href="url">text</a>
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: underline;">$1</a>');
+}
+
 class QuizSession {
   constructor(unit) {
     this.unit = unit;
@@ -301,11 +319,11 @@ class QuizSession {
           <!-- Question Content -->
           <div style="padding: 2rem;">
             <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
-              ${currentQuestion.title}
+              ${parseMarkdown(currentQuestion.title)}
             </h3>
             
             <div style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
-              ${currentQuestion.description}
+              ${parseMarkdown(currentQuestion.description)}
             </div>
 
             <!-- Options -->
@@ -347,7 +365,7 @@ class QuizSession {
                         ) : ''}
                       </div>
                     </div>
-                    <span style="flex: 1;">${option.text}</span>
+                    <span style="flex: 1;">${parseMarkdown(option.text)}</span>
                   </div>
                 </button>
               `).join('')}
@@ -386,7 +404,7 @@ class QuizSession {
                     display: none;
                   "
                 >
-                  <p style="color: #92400e; font-size: 0.875rem; margin: 0;">${currentQuestion.hint}</p>
+                  <p style="color: #92400e; font-size: 0.875rem; margin: 0;">${parseMarkdown(currentQuestion.hint)}</p>
                 </div>
               </div>
             ` : ''}
