@@ -1,300 +1,263 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import '../styles/image-digitization.css';
 ---
 
 <Layout title="画像デジタル化・ファイルサイズ学習ツール - じょうほうらいふ">
-  <div class="container mx-auto px-4 py-8">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-blue-600 mb-4">画像デジタル化・ファイルサイズ学習ツール</h1>
-      <p class="text-gray-600 text-lg">高校情報Ⅰ対応 - 画像のデジタル化とファイルサイズ計算を体験的に学習</p>
-    </header>
+  <header>
+    <h1>画像デジタル化・ファイルサイズ学習ツール</h1>
+    <p>高校情報Ⅰ対応 - 画像のデジタル化とファイルサイズ計算を体験的に学習</p>
+  </header>
 
-    <nav class="mb-8">
-      <div class="flex flex-wrap justify-center gap-2 md:gap-4">
-        <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors tab-button active" data-tab="resolution">解像度比較</button>
-        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="pixel">ピクセル表示</button>
-        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="calculator">サイズ計算</button>
-        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="color-depth">色深度比較</button>
-        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="practice">練習問題</button>
+  <nav>
+    <button class="tab-button active" data-tab="resolution">解像度比較</button>
+    <button class="tab-button" data-tab="pixel">ピクセル表示</button>
+    <button class="tab-button" data-tab="calculator">サイズ計算</button>
+    <button class="tab-button" data-tab="color-depth">色深度比較</button>
+    <button class="tab-button" data-tab="practice">練習問題</button>
+  </nav>
+
+  <main>
+    <!-- 解像度比較タブ -->
+    <section id="resolution-tab" class="tab-content active">
+      <h2>解像度視覚化</h2>
+      <div class="resolution-container">
+        <div class="resolution-display" id="resolution-display">
+          <div class="resolution-item" data-resolution="320x240">
+            <div class="resolution-rect" style="width: 120px; height: 90px;"></div>
+            <div class="resolution-info">
+              <span class="resolution-label">320×240</span>
+              <span class="pixel-count">76,800 ピクセル</span>
+              <span class="device-info">古い携帯電話画面</span>
+            </div>
+          </div>
+          <div class="resolution-item" data-resolution="640x480">
+            <div class="resolution-rect" style="width: 160px; height: 120px;"></div>
+            <div class="resolution-info">
+              <span class="resolution-label">640×480</span>
+              <span class="pixel-count">307,200 ピクセル</span>
+              <span class="device-info">VGA標準</span>
+            </div>
+          </div>
+          <div class="resolution-item" data-resolution="800x600">
+            <div class="resolution-rect" style="width: 200px; height: 150px;"></div>
+            <div class="resolution-info">
+              <span class="resolution-label">800×600</span>
+              <span class="pixel-count">480,000 ピクセル</span>
+              <span class="device-info">SVGA標準</span>
+            </div>
+          </div>
+          <div class="resolution-item" data-resolution="1024x768">
+            <div class="resolution-rect" style="width: 256px; height: 192px;"></div>
+            <div class="resolution-info">
+              <span class="resolution-label">1024×768</span>
+              <span class="pixel-count">786,432 ピクセル</span>
+              <span class="device-info">XGA標準・タブレット</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </nav>
+    </section>
 
-    <main>
-      <!-- 解像度比較タブ -->
-      <section id="resolution-tab" class="tab-content active">
-        <h2 class="text-2xl font-bold mb-6">解像度視覚化</h2>
-        <div class="resolution-container">
-          <div class="resolution-display grid grid-cols-1 md:grid-cols-2 gap-6" id="resolution-display">
-            <div class="resolution-item" data-resolution="320x240">
-              <div class="resolution-rect border-2 border-blue-400 mx-auto mb-4" style="width: 120px; height: 90px;"></div>
-              <div class="resolution-info text-center">
-                <span class="resolution-label block font-bold text-lg">320×240</span>
-                <span class="pixel-count block text-gray-600">76,800 ピクセル</span>
-                <span class="device-info block text-sm text-gray-500">古い携帯電話画面</span>
-              </div>
-            </div>
-            <div class="resolution-item" data-resolution="640x480">
-              <div class="resolution-rect border-2 border-green-400 mx-auto mb-4" style="width: 160px; height: 120px;"></div>
-              <div class="resolution-info text-center">
-                <span class="resolution-label block font-bold text-lg">640×480</span>
-                <span class="pixel-count block text-gray-600">307,200 ピクセル</span>
-                <span class="device-info block text-sm text-gray-500">VGA標準</span>
-              </div>
-            </div>
-            <div class="resolution-item" data-resolution="800x600">
-              <div class="resolution-rect border-2 border-orange-400 mx-auto mb-4" style="width: 200px; height: 150px;"></div>
-              <div class="resolution-info text-center">
-                <span class="resolution-label block font-bold text-lg">800×600</span>
-                <span class="pixel-count block text-gray-600">480,000 ピクセル</span>
-                <span class="device-info block text-sm text-gray-500">SVGA標準</span>
-              </div>
-            </div>
-            <div class="resolution-item" data-resolution="1024x768">
-              <div class="resolution-rect border-2 border-red-400 mx-auto mb-4" style="width: 256px; height: 192px;"></div>
-              <div class="resolution-info text-center">
-                <span class="resolution-label block font-bold text-lg">1024×768</span>
-                <span class="pixel-count block text-gray-600">786,432 ピクセル</span>
-                <span class="device-info block text-sm text-gray-500">XGA標準・タブレット</span>
-              </div>
-            </div>
-          </div>
+    <!-- ピクセル表示タブ -->
+    <section id="pixel-tab" class="tab-content">
+      <h2>ピクセル表示</h2>
+      <div class="pixel-controls">
+        <label>
+          画像サイズ:
+          <select id="pixel-size">
+            <option value="4">4×4 (16ピクセル)</option>
+            <option value="8" selected>8×8 (64ピクセル)</option>
+            <option value="16">16×16 (256ピクセル)</option>
+            <option value="32">32×32 (1,024ピクセル)</option>
+            <option value="64">64×64 (4,096ピクセル)</option>
+            <option value="128">128×128 (16,384ピクセル)</option>
+            <option value="256">256×256 (65,536ピクセル)</option>
+          </select>
+        </label>
+        <label>
+          ピクセルサイズ:
+          <input type="range" id="pixel-zoom" min="1" max="20" value="8">
+          <span id="pixel-zoom-value">8px</span>
+        </label>
+        <div class="pixel-info-display">
+          <span id="canvas-size-info">Canvas: 64×64px</span>
+          <span id="memory-usage">メモリ使用量: 0.01MB相当</span>
         </div>
-      </section>
+      </div>
+      <div class="pixel-display-container">
+        <div class="canvas-wrapper">
+          <canvas id="pixel-canvas" width="400" height="400"></canvas>
+        </div>
+        <div id="pixel-info" class="pixel-info-panel">
+          <h3>選択したピクセル</h3>
+          <div id="selected-pixel-info">ピクセルをクリックしてください</div>
+        </div>
+      </div>
+    </section>
 
-      <!-- ピクセル表示タブ -->
-      <section id="pixel-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6">ピクセル表示</h2>
-        <div class="pixel-controls mb-6 bg-gray-50 p-4 rounded-lg">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label class="block">
-              画像サイズ:
-              <select id="pixel-size" class="w-full mt-1 p-2 border rounded">
-                <option value="4">4×4 (16ピクセル)</option>
-                <option value="8" selected>8×8 (64ピクセル)</option>
-                <option value="16">16×16 (256ピクセル)</option>
-                <option value="32">32×32 (1,024ピクセル)</option>
-                <option value="64">64×64 (4,096ピクセル)</option>
-                <option value="128">128×128 (16,384ピクセル)</option>
-                <option value="256">256×256 (65,536ピクセル)</option>
-              </select>
+    <!-- サイズ計算タブ -->
+    <section id="calculator-tab" class="tab-content">
+      <h2>ファイルサイズ計算機</h2>
+      <div class="calculator-container">
+        <div class="input-section">
+          <h3>設定値</h3>
+          <div class="input-group">
+            <label>
+              幅 (ピクセル):
+              <input type="number" id="width-input" value="1024" min="1" max="10000">
             </label>
-            <label class="block">
-              ピクセルサイズ:
-              <input type="range" id="pixel-zoom" min="1" max="20" value="8" class="w-full mt-1">
-              <span id="pixel-zoom-value" class="block text-sm text-gray-600">8px</span>
+            <label>
+              高さ (ピクセル):
+              <input type="number" id="height-input" value="768" min="1" max="10000">
             </label>
-            <div class="pixel-info-display">
-              <span id="canvas-size-info" class="block text-sm">Canvas: 64×64px</span>
-              <span id="memory-usage" class="block text-sm text-gray-600">メモリ使用量: 0.01MB相当</span>
-            </div>
-          </div>
-        </div>
-        <div class="pixel-display-container flex flex-col lg:flex-row gap-6">
-          <div class="canvas-wrapper flex-1">
-            <canvas id="pixel-canvas" width="400" height="400" class="border border-gray-300"></canvas>
-          </div>
-          <div id="pixel-info" class="pixel-info-panel bg-gray-50 p-4 rounded-lg lg:w-64">
-            <h3 class="font-bold text-lg mb-2">選択したピクセル</h3>
-            <div id="selected-pixel-info">ピクセルをクリックしてください</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- サイズ計算タブ -->
-      <section id="calculator-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6">ファイルサイズ計算機</h2>
-        <div class="calculator-container grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="input-section bg-gray-50 p-6 rounded-lg">
-            <h3 class="font-bold text-lg mb-4">設定値</h3>
-            <div class="space-y-4">
-              <label class="block">
-                幅 (ピクセル):
-                <input type="number" id="width-input" value="1024" min="1" max="10000" class="w-full mt-1 p-2 border rounded">
-              </label>
-              <label class="block">
-                高さ (ピクセル):
-                <input type="number" id="height-input" value="768" min="1" max="10000" class="w-full mt-1 p-2 border rounded">
-              </label>
-              <label class="block">
-                色深度:
-                <select id="color-depth-input" class="w-full mt-1 p-2 border rounded">
-                  <option value="1">1ビット (白黒)</option>
-                  <option value="4">4ビット (16色)</option>
-                  <option value="8">8ビット (256色)</option>
-                  <option value="24" selected>24ビット (フルカラー)</option>
-                </select>
-              </label>
-            </div>
-          </div>
-          <div class="calculation-section bg-blue-50 p-6 rounded-lg">
-            <h3 class="font-bold text-lg mb-4">計算過程</h3>
-            <div id="calculation-steps" class="space-y-3">
-              <div class="border-l-4 border-blue-400 pl-4 py-2">
-                <span class="step-number font-bold">1.</span>
-                <span class="step-description block">総ピクセル数 = 幅 × 高さ</span>
-                <span class="step-result block text-blue-600 font-mono" id="pixel-total">1,024 × 768 = 786,432 ピクセル</span>
-              </div>
-              <div class="border-l-4 border-blue-400 pl-4 py-2">
-                <span class="step-number font-bold">2.</span>
-                <span class="step-description block">1ピクセルあたりのバイト数</span>
-                <span class="step-result block text-blue-600 font-mono" id="bytes-per-pixel">24ビット ÷ 8 = 3 バイト/ピクセル</span>
-              </div>
-              <div class="border-l-4 border-blue-400 pl-4 py-2">
-                <span class="step-number font-bold">3.</span>
-                <span class="step-description block">総バイト数 = 総ピクセル数 × バイト/ピクセル</span>
-                <span class="step-result block text-blue-600 font-mono" id="total-bytes">786,432 × 3 = 2,359,296 バイト</span>
-              </div>
-              <div class="border-l-4 border-blue-400 pl-4 py-2">
-                <span class="step-number font-bold">4.</span>
-                <span class="step-description block">MB変換 (÷ 1024 ÷ 1024)</span>
-                <span class="step-result block text-blue-600 font-mono" id="total-mb">2,359,296 ÷ 1,048,576 = 2.25 MB</span>
-              </div>
-            </div>
-          </div>
-          <div class="result-section bg-green-50 p-6 rounded-lg">
-            <h3 class="font-bold text-lg mb-4">結果</h3>
-            <div class="final-result">
-              <span class="result-value text-3xl font-bold text-green-600 block mb-4" id="final-result">2.25 MB</span>
-              <div class="comparison-info text-sm space-y-1" id="comparison-info">
-                <p>💾 フロッピーディスク: 約 1.5 枚分</p>
-                <p>📧 メール添付: 一般的な容量制限内</p>
-                <p>📱 iPhone写真: 標準的なサイズ</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 色深度比較タブ -->
-      <section id="color-depth-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6">色深度比較</h2>
-        <div class="color-depth-container">
-          <div class="sample-image-controls mb-6">
-            <label class="block">
-              サンプル画像:
-              <select id="sample-image" class="mt-1 p-2 border rounded">
-                <option value="gradient">グラデーション</option>
-                <option value="photo">写真風</option>
-                <option value="simple">シンプル図形</option>
+            <label>
+              色深度:
+              <select id="color-depth-input">
+                <option value="1">1ビット (白黒)</option>
+                <option value="4">4ビット (16色)</option>
+                <option value="8">8ビット (256色)</option>
+                <option value="24" selected>24ビット (フルカラー)</option>
               </select>
             </label>
           </div>
-          <div class="color-depth-comparison grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div class="depth-item text-center">
-              <canvas id="depth-1bit" width="200" height="150" class="border border-gray-300 mx-auto mb-2"></canvas>
-              <div class="depth-info">
-                <h4 class="font-bold">1ビット (2色)</h4>
-                <p>ファイルサイズ: <span id="size-1bit" class="font-mono">0.02 MB</span></p>
-              </div>
+        </div>
+        <div class="calculation-section">
+          <h3>計算過程</h3>
+          <div id="calculation-steps">
+            <div class="calculation-step">
+              <span class="step-number">1.</span>
+              <span class="step-description">総ピクセル数 = 幅 × 高さ</span>
+              <span class="step-result" id="pixel-total">1,024 × 768 = 786,432 ピクセル</span>
             </div>
-            <div class="depth-item text-center">
-              <canvas id="depth-4bit" width="200" height="150" class="border border-gray-300 mx-auto mb-2"></canvas>
-              <div class="depth-info">
-                <h4 class="font-bold">4ビット (16色)</h4>
-                <p>ファイルサイズ: <span id="size-4bit" class="font-mono">0.07 MB</span></p>
-              </div>
+            <div class="calculation-step">
+              <span class="step-number">2.</span>
+              <span class="step-description">1ピクセルあたりのバイト数</span>
+              <span class="step-result" id="bytes-per-pixel">24ビット ÷ 8 = 3 バイト/ピクセル</span>
             </div>
-            <div class="depth-item text-center">
-              <canvas id="depth-8bit" width="200" height="150" class="border border-gray-300 mx-auto mb-2"></canvas>
-              <div class="depth-info">
-                <h4 class="font-bold">8ビット (256色)</h4>
-                <p>ファイルサイズ: <span id="size-8bit" class="font-mono">0.15 MB</span></p>
-              </div>
+            <div class="calculation-step">
+              <span class="step-number">3.</span>
+              <span class="step-description">総バイト数 = 総ピクセル数 × バイト/ピクセル</span>
+              <span class="step-result" id="total-bytes">786,432 × 3 = 2,359,296 バイト</span>
             </div>
-            <div class="depth-item text-center">
-              <canvas id="depth-24bit" width="200" height="150" class="border border-gray-300 mx-auto mb-2"></canvas>
-              <div class="depth-info">
-                <h4 class="font-bold">24ビット (1677万色)</h4>
-                <p>ファイルサイズ: <span id="size-24bit" class="font-mono">0.45 MB</span></p>
-              </div>
+            <div class="calculation-step">
+              <span class="step-number">4.</span>
+              <span class="step-description">MB変換 (÷ 1024 ÷ 1024)</span>
+              <span class="step-result" id="total-mb">2,359,296 ÷ 1,048,576 = 2.25 MB</span>
             </div>
           </div>
         </div>
-      </section>
+        <div class="result-section">
+          <h3>結果</h3>
+          <div class="final-result">
+            <span class="result-value" id="final-result">2.25 MB</span>
+            <div class="comparison-info" id="comparison-info">
+              <p>💾 フロッピーディスク: 約 1.5 枚分</p>
+              <p>📧 メール添付: 一般的な容量制限内</p>
+              <p>📱 iPhone写真: 標準的なサイズ</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <!-- 練習問題タブ -->
-      <section id="practice-tab" class="tab-content hidden">
-        <h2 class="text-2xl font-bold mb-6">練習問題</h2>
-        <div class="practice-container">
-          <div class="level-selector mb-6">
-            <div class="flex flex-wrap gap-2">
-              <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors level-button active" data-level="1">Level 1: 基礎</button>
-              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="2">Level 2: 標準</button>
-              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="3">Level 3: 応用</button>
-              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="4">Level 4: 実践</button>
+    <!-- 色深度比較タブ -->
+    <section id="color-depth-tab" class="tab-content">
+      <h2>色深度比較</h2>
+      <div class="color-depth-container">
+        <div class="sample-image-controls">
+          <label>
+            サンプル画像:
+            <select id="sample-image">
+              <option value="gradient">グラデーション</option>
+              <option value="photo">写真風</option>
+              <option value="simple">シンプル図形</option>
+            </select>
+          </label>
+        </div>
+        <div class="color-depth-comparison">
+          <div class="depth-item">
+            <canvas id="depth-1bit" width="200" height="150"></canvas>
+            <div class="depth-info">
+              <h4>1ビット (2色)</h4>
+              <p>ファイルサイズ: <span id="size-1bit">0.02 MB</span></p>
             </div>
           </div>
-          <div class="problem-container bg-white p-6 rounded-lg border">
-            <div class="problem" id="current-problem">
-              <h3 class="text-xl font-bold mb-4">問題 1</h3>
-              <p class="mb-4">8×8ピクセル、24ビットカラーの画像のファイルサイズを計算してください。</p>
-              <div class="answer-input flex gap-2 mb-4">
-                <input type="number" id="answer-input" placeholder="答えを入力" class="flex-1 p-2 border rounded">
-                <select id="unit-select" class="p-2 border rounded">
-                  <option value="bytes">バイト</option>
-                  <option value="kb">KB</option>
-                  <option value="mb">MB</option>
-                </select>
-              </div>
-              <div class="problem-buttons flex flex-wrap gap-2 mb-4">
-                <button id="hint-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">ヒント</button>
-                <button id="check-answer" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">回答確認</button>
-                <button id="next-problem" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">次の問題</button>
-              </div>
-              <div id="feedback" class="feedback mb-4"></div>
-              <div id="hint-panel" class="hint-panel bg-yellow-50 p-4 rounded hidden"></div>
+          <div class="depth-item">
+            <canvas id="depth-4bit" width="200" height="150"></canvas>
+            <div class="depth-info">
+              <h4>4ビット (16色)</h4>
+              <p>ファイルサイズ: <span id="size-4bit">0.07 MB</span></p>
             </div>
           </div>
-          <div class="progress-info mt-6 text-center">
-            <div class="score text-lg">正解数: <span id="correct-count">0</span> / <span id="total-count">0</span></div>
-            <div class="completion-status" id="completion-status"></div>
+          <div class="depth-item">
+            <canvas id="depth-8bit" width="200" height="150"></canvas>
+            <div class="depth-info">
+              <h4>8ビット (256色)</h4>
+              <p>ファイルサイズ: <span id="size-8bit">0.15 MB</span></p>
+            </div>
+          </div>
+          <div class="depth-item">
+            <canvas id="depth-24bit" width="200" height="150"></canvas>
+            <div class="depth-info">
+              <h4>24ビット (1677万色)</h4>
+              <p>ファイルサイズ: <span id="size-24bit">0.45 MB</span></p>
+            </div>
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
 
-    <!-- 修了証モーダル -->
-    <div id="certificate-modal" class="certificate-modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-      <div class="certificate-container bg-white p-6 rounded-lg max-w-4xl max-h-screen overflow-auto">
-        <div class="certificate-close text-2xl cursor-pointer float-right" id="certificate-close">&times;</div>
-        <canvas id="certificate-canvas" width="800" height="600" class="mx-auto border"></canvas>
-        <div class="certificate-buttons flex justify-center gap-4 mt-4">
-          <button id="download-certificate" class="download-btn px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">📥 修了証をダウンロード</button>
-          <button id="close-certificate" class="close-btn px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">閉じる</button>
+    <!-- 練習問題タブ -->
+    <section id="practice-tab" class="tab-content">
+      <h2>練習問題</h2>
+      <div class="practice-container">
+        <div class="level-selector">
+          <button class="level-button active" data-level="1">Level 1: 基礎</button>
+          <button class="level-button" data-level="2">Level 2: 標準</button>
+          <button class="level-button" data-level="3">Level 3: 応用</button>
+          <button class="level-button" data-level="4">Level 4: 実践</button>
         </div>
+        <div class="problem-container">
+          <div class="problem" id="current-problem">
+            <h3>問題 1</h3>
+            <p>8×8ピクセル、24ビットカラーの画像のファイルサイズを計算してください。</p>
+            <div class="answer-input">
+              <input type="number" id="answer-input" placeholder="答えを入力 (バイト単位)">
+              <select id="unit-select">
+                <option value="bytes">バイト</option>
+                <option value="kb">KB</option>
+                <option value="mb">MB</option>
+              </select>
+            </div>
+            <div class="problem-buttons">
+              <button id="hint-button">ヒント</button>
+              <button id="check-answer">回答確認</button>
+              <button id="next-problem">次の問題</button>
+            </div>
+            <div id="feedback" class="feedback"></div>
+            <div id="hint-panel" class="hint-panel"></div>
+          </div>
+        </div>
+        <div class="progress-info">
+          <div class="score">正解数: <span id="correct-count">0</span> / <span id="total-count">0</span></div>
+          <div class="completion-status" id="completion-status"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 修了証モーダル -->
+  <div id="certificate-modal" class="certificate-modal">
+    <div class="certificate-container">
+      <div class="certificate-close" id="certificate-close">&times;</div>
+      <canvas id="certificate-canvas" width="800" height="600"></canvas>
+      <div class="certificate-buttons">
+        <button id="download-certificate" class="download-btn">📥 修了証をダウンロード</button>
+        <button id="close-certificate" class="close-btn">閉じる</button>
       </div>
     </div>
   </div>
+
+  <script src="/tools/script.js" is:inline></script>
 </Layout>
-
-<style>
-  .resolution-item:hover .resolution-rect {
-    border-width: 4px;
-    transform: scale(1.05);
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .feedback.correct {
-    color: #16a34a;
-    background-color: #f0fdf4;
-    padding: 1rem;
-    border-radius: 0.5rem;
-  }
-  
-  .feedback.incorrect {
-    color: #dc2626;
-    background-color: #fef2f2;
-    padding: 1rem;
-    border-radius: 0.5rem;
-  }
-  
-  .certificate-modal {
-    display: none;
-  }
-  
-  .certificate-modal.show {
-    display: flex;
-  }
-</style>
-
-<script src="/tools/script.js" is:inline></script>
