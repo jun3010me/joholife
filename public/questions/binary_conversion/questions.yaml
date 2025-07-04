@@ -3,7 +3,7 @@ title: 2進数変換
 description: 2進数と10進数の変換を学習する問題集
 icon: 🔢
 difficulty: easy
-estimatedTime: 15
+estimatedTime: 45
 category: 進数変換
 tags:
   - 2進数
@@ -120,3 +120,483 @@ questions:
       - コンピュータ
     points: 2
     hint: 2進数の基本的な性質について考えてみましょう。
+
+  - id: q5
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「1111」を10進数に変換してください。
+    options:
+      - id: a
+        text: "14"
+        isCorrect: false
+        explanation: 2進数1111は、1×2³ + 1×2² + 1×2¹ + 1×2⁰ = 8 + 4 + 2 + 1 = 15です。
+      - id: b
+        text: "15"
+        isCorrect: true
+        explanation: 正解です！2進数1111は、1×2³ + 1×2² + 1×2¹ + 1×2⁰ = 8 + 4 + 2 + 1 = 15です。
+      - id: c
+        text: "16"
+        isCorrect: false
+        explanation: 2進数1111は、1×2³ + 1×2² + 1×2¹ + 1×2⁰ = 8 + 4 + 2 + 1 = 15です。
+      - id: d
+        text: "17"
+        isCorrect: false
+        explanation: 2進数1111は、1×2³ + 1×2² + 1×2¹ + 1×2⁰ = 8 + 4 + 2 + 1 = 15です。
+    explanation: 2進数1111は全ての桁が1なので、各桁の2の累乗の合計になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 全ての桁が1の場合の計算を確認しましょう。
+
+  - id: q6
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「25」を2進数に変換してください。
+    options:
+      - id: a
+        text: "11001"
+        isCorrect: true
+        explanation: 正解です！10進数25を2進数に変換すると11001です。25÷2=12...1、12÷2=6...0、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: b
+        text: "10101"
+        isCorrect: false
+        explanation: 10進数25を2進数に変換すると11001です。25÷2=12...1、12÷2=6...0、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: c
+        text: "11010"
+        isCorrect: false
+        explanation: 10進数25を2進数に変換すると11001です。25÷2=12...1、12÷2=6...0、6÷2=3...0、3÷2=1...1、1÷2=0...1
+      - id: d
+        text: "11111"
+        isCorrect: false
+        explanation: 10進数25を2進数に変換すると11001です。25÷2=12...1、12÷2=6...0、6÷2=3...0、3÷2=1...1、1÷2=0...1
+    explanation: 10進数25を2進数に変換するには、2で割り続けて余りを下から読みます。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 大きな数でも同じ方法で変換できます。
+
+  - id: q7
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「101」を10進数に変換してください。
+    options:
+      - id: a
+        text: "4"
+        isCorrect: false
+        explanation: 2進数101は、1×2² + 0×2¹ + 1×2⁰ = 4 + 0 + 1 = 5です。
+      - id: b
+        text: "5"
+        isCorrect: true
+        explanation: 正解です！2進数101は、1×2² + 0×2¹ + 1×2⁰ = 4 + 0 + 1 = 5です。
+      - id: c
+        text: "6"
+        isCorrect: false
+        explanation: 2進数101は、1×2² + 0×2¹ + 1×2⁰ = 4 + 0 + 1 = 5です。
+      - id: d
+        text: "7"
+        isCorrect: false
+        explanation: 2進数101は、1×2² + 0×2¹ + 1×2⁰ = 4 + 0 + 1 = 5です。
+    explanation: 3桁の2進数では、右から2⁰、2¹、2²の位になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 3桁の2進数の各桁の位の値を確認しましょう。
+
+  - id: q8
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「7」を2進数に変換してください。
+    options:
+      - id: a
+        text: "110"
+        isCorrect: false
+        explanation: 10進数7を2進数に変換すると111です。7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: b
+        text: "111"
+        isCorrect: true
+        explanation: 正解です！10進数7を2進数に変換すると111です。7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: c
+        text: "101"
+        isCorrect: false
+        explanation: 10進数7を2進数に変換すると111です。7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: d
+        text: "100"
+        isCorrect: false
+        explanation: 10進数7を2進数に変換すると111です。7÷2=3...1、3÷2=1...1、1÷2=0...1
+    explanation: 10進数7は2³-1なので、3桁すべてが1の2進数111になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 7は2の累乗-1の特別な数です。
+
+  - id: q9
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「11010」を10進数に変換してください。
+    options:
+      - id: a
+        text: "24"
+        isCorrect: false
+        explanation: 2進数11010は、1×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 16 + 8 + 0 + 2 + 0 = 26です。
+      - id: b
+        text: "25"
+        isCorrect: false
+        explanation: 2進数11010は、1×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 16 + 8 + 0 + 2 + 0 = 26です。
+      - id: c
+        text: "26"
+        isCorrect: true
+        explanation: 正解です！2進数11010は、1×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 16 + 8 + 0 + 2 + 0 = 26です。
+      - id: d
+        text: "27"
+        isCorrect: false
+        explanation: 2進数11010は、1×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 16 + 8 + 0 + 2 + 0 = 26です。
+    explanation: 5桁の2進数では、右から2⁰、2¹、2²、2³、2⁴の位になります。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: 5桁の2進数なので、2⁴まで計算が必要です。
+
+  - id: q10
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「31」を2進数に変換してください。
+    options:
+      - id: a
+        text: "11110"
+        isCorrect: false
+        explanation: 10進数31を2進数に変換すると11111です。31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: b
+        text: "11111"
+        isCorrect: true
+        explanation: 正解です！10進数31を2進数に変換すると11111です。31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: c
+        text: "10111"
+        isCorrect: false
+        explanation: 10進数31を2進数に変換すると11111です。31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: d
+        text: "11011"
+        isCorrect: false
+        explanation: 10進数31を2進数に変換すると11111です。31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+    explanation: 10進数31は2⁵-1なので、5桁すべてが1の2進数11111になります。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: 31は2の累乗-1の特別な数です。
+
+  - id: q11
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「100」を10進数に変換してください。
+    options:
+      - id: a
+        text: "3"
+        isCorrect: false
+        explanation: 2進数100は、1×2² + 0×2¹ + 0×2⁰ = 4 + 0 + 0 = 4です。
+      - id: b
+        text: "4"
+        isCorrect: true
+        explanation: 正解です！2進数100は、1×2² + 0×2¹ + 0×2⁰ = 4 + 0 + 0 = 4です。
+      - id: c
+        text: "5"
+        isCorrect: false
+        explanation: 2進数100は、1×2² + 0×2¹ + 0×2⁰ = 4 + 0 + 0 = 4です。
+      - id: d
+        text: "6"
+        isCorrect: false
+        explanation: 2進数100は、1×2² + 0×2¹ + 0×2⁰ = 4 + 0 + 0 = 4です。
+    explanation: 2進数100は2²そのものなので、10進数では4になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 最高位だけが1の場合の計算を確認しましょう。
+
+  - id: q12
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「16」を2進数に変換してください。
+    options:
+      - id: a
+        text: "1000"
+        isCorrect: false
+        explanation: 10進数16を2進数に変換すると10000です。16÷2=8...0、8÷2=4...0、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: b
+        text: "10000"
+        isCorrect: true
+        explanation: 正解です！10進数16を2進数に変換すると10000です。16÷2=8...0、8÷2=4...0、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: c
+        text: "11000"
+        isCorrect: false
+        explanation: 10進数16を2進数に変換すると10000です。16÷2=8...0、8÷2=4...0、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: d
+        text: "10100"
+        isCorrect: false
+        explanation: 10進数16を2進数に変換すると10000です。16÷2=8...0、8÷2=4...0、4÷2=2...0、2÷2=1...0、1÷2=0...1
+    explanation: 10進数16は2⁴なので、5桁の2進数10000になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 16は2の累乗の特別な数です。
+
+  - id: q13
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「1100」を10進数に変換してください。
+    options:
+      - id: a
+        text: "11"
+        isCorrect: false
+        explanation: 2進数1100は、1×2³ + 1×2² + 0×2¹ + 0×2⁰ = 8 + 4 + 0 + 0 = 12です。
+      - id: b
+        text: "12"
+        isCorrect: true
+        explanation: 正解です！2進数1100は、1×2³ + 1×2² + 0×2¹ + 0×2⁰ = 8 + 4 + 0 + 0 = 12です。
+      - id: c
+        text: "13"
+        isCorrect: false
+        explanation: 2進数1100は、1×2³ + 1×2² + 0×2¹ + 0×2⁰ = 8 + 4 + 0 + 0 = 12です。
+      - id: d
+        text: "14"
+        isCorrect: false
+        explanation: 2進数1100は、1×2³ + 1×2² + 0×2¹ + 0×2⁰ = 8 + 4 + 0 + 0 = 12です。
+    explanation: 2進数1100は上位2桁が1なので、8+4=12になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 上位2桁だけが1の場合の計算を確認しましょう。
+
+  - id: q14
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「20」を2進数に変換してください。
+    options:
+      - id: a
+        text: "10100"
+        isCorrect: true
+        explanation: 正解です！10進数20を2進数に変換すると10100です。20÷2=10...0、10÷2=5...0、5÷2=2...1、2÷2=1...0、1÷2=0...1
+      - id: b
+        text: "10010"
+        isCorrect: false
+        explanation: 10進数20を2進数に変換すると10100です。20÷2=10...0、10÷2=5...0、5÷2=2...1、2÷2=1...0、1÷2=0...1
+      - id: c
+        text: "11000"
+        isCorrect: false
+        explanation: 10進数20を2進数に変換すると10100です。20÷2=10...0、10÷2=5...0、5÷2=2...1、2÷2=1...0、1÷2=0...1
+      - id: d
+        text: "10110"
+        isCorrect: false
+        explanation: 10進数20を2進数に変換すると10100です。20÷2=10...0、10÷2=5...0、5÷2=2...1、2÷2=1...0、1÷2=0...1
+    explanation: 10進数20を2進数に変換するには、2で割り続けて余りを下から読みます。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: 20は16+4なので、対応する桁を考えてみましょう。
+
+  - id: q15
+    type: single-choice
+    title: 2進数から10進数への変換
+    description: 2進数「110」を10進数に変換してください。
+    options:
+      - id: a
+        text: "5"
+        isCorrect: false
+        explanation: 2進数110は、1×2² + 1×2¹ + 0×2⁰ = 4 + 2 + 0 = 6です。
+      - id: b
+        text: "6"
+        isCorrect: true
+        explanation: 正解です！2進数110は、1×2² + 1×2¹ + 0×2⁰ = 4 + 2 + 0 = 6です。
+      - id: c
+        text: "7"
+        isCorrect: false
+        explanation: 2進数110は、1×2² + 1×2¹ + 0×2⁰ = 4 + 2 + 0 = 6です。
+      - id: d
+        text: "8"
+        isCorrect: false
+        explanation: 2進数110は、1×2² + 1×2¹ + 0×2⁰ = 4 + 2 + 0 = 6です。
+    explanation: 2進数110は上位2桁が1なので、4+2=6になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 上位2桁だけが1の場合の計算を確認しましょう。
+
+  - id: q16
+    type: single-choice
+    title: 10進数から2進数への変換
+    description: 10進数「9」を2進数に変換してください。
+    options:
+      - id: a
+        text: "1001"
+        isCorrect: true
+        explanation: 正解です！10進数9を2進数に変換すると1001です。9÷2=4...1、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: b
+        text: "1010"
+        isCorrect: false
+        explanation: 10進数9を2進数に変換すると1001です。9÷2=4...1、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: c
+        text: "1100"
+        isCorrect: false
+        explanation: 10進数9を2進数に変換すると1001です。9÷2=4...1、4÷2=2...0、2÷2=1...0、1÷2=0...1
+      - id: d
+        text: "1011"
+        isCorrect: false
+        explanation: 10進数9を2進数に変換すると1001です。9÷2=4...1、4÷2=2...0、2÷2=1...0、1÷2=0...1
+    explanation: 10進数9は8+1なので、2進数では1001になります。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 9は8+1なので、対応する桁を考えてみましょう。
+
+  - id: q17
+    type: single-choice
+    title: 2進数から10進数への変換（応用）
+    description: 2進数「101010」を10進数に変換してください。
+    options:
+      - id: a
+        text: "40"
+        isCorrect: false
+        explanation: 2進数101010は、1×2⁵ + 0×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 32 + 0 + 8 + 0 + 2 + 0 = 42です。
+      - id: b
+        text: "41"
+        isCorrect: false
+        explanation: 2進数101010は、1×2⁵ + 0×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 32 + 0 + 8 + 0 + 2 + 0 = 42です。
+      - id: c
+        text: "42"
+        isCorrect: true
+        explanation: 正解です！2進数101010は、1×2⁵ + 0×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 32 + 0 + 8 + 0 + 2 + 0 = 42です。
+      - id: d
+        text: "43"
+        isCorrect: false
+        explanation: 2進数101010は、1×2⁵ + 0×2⁴ + 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 32 + 0 + 8 + 0 + 2 + 0 = 42です。
+    explanation: 6桁の2進数では、右から2⁰、2¹、2²、2³、2⁴、2⁵の位になります。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: 6桁の2進数なので、2⁵まで計算が必要です。
+
+  - id: q18
+    type: single-choice
+    title: 10進数から2進数への変換（応用）
+    description: 10進数「63」を2進数に変換してください。
+    options:
+      - id: a
+        text: "111110"
+        isCorrect: false
+        explanation: 10進数63を2進数に変換すると111111です。63÷2=31...1、31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: b
+        text: "111111"
+        isCorrect: true
+        explanation: 正解です！10進数63を2進数に変換すると111111です。63÷2=31...1、31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: c
+        text: "111100"
+        isCorrect: false
+        explanation: 10進数63を2進数に変換すると111111です。63÷2=31...1、31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+      - id: d
+        text: "111101"
+        isCorrect: false
+        explanation: 10進数63を2進数に変換すると111111です。63÷2=31...1、31÷2=15...1、15÷2=7...1、7÷2=3...1、3÷2=1...1、1÷2=0...1
+    explanation: 10進数63は2⁶-1なので、6桁すべてが1の2進数111111になります。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: 63は2の累乗-1の特別な数です。
+
+  - id: q19
+    type: single-choice
+    title: 2進数の桁数と最大値
+    description: 4桁の2進数で表せる最大の10進数はいくつですか？
+    options:
+      - id: a
+        text: "14"
+        isCorrect: false
+        explanation: 4桁の2進数の最大値は1111で、これは10進数では15です。
+      - id: b
+        text: "15"
+        isCorrect: true
+        explanation: 正解です！4桁の2進数の最大値は1111で、これは10進数では15です。
+      - id: c
+        text: "16"
+        isCorrect: false
+        explanation: 4桁の2進数の最大値は1111で、これは10進数では15です。16は5桁の2進数10000になります。
+      - id: d
+        text: "31"
+        isCorrect: false
+        explanation: 4桁の2進数の最大値は1111で、これは10進数では15です。31は5桁の2進数11111になります。
+    explanation: n桁の2進数で表せる最大値は2ⁿ-1です。4桁の場合は2⁴-1=15です。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 最大値
+      - 桁数
+    points: 2
+    hint: n桁の2進数の最大値は2ⁿ-1です。
+
+  - id: q20
+    type: single-choice
+    title: 2進数の実用的な応用
+    description: コンピュータで8ビット（8桁の2進数）を使って表現できる数値の範囲について、**正しいもの**はどれか？
+    options:
+      - id: a
+        text: "0から127まで"
+        isCorrect: false
+        explanation: 8ビットで表現できる数値の範囲は0から255までです。
+      - id: b
+        text: "0から255まで"
+        isCorrect: true
+        explanation: 正解です！8ビット（8桁の2進数）で表現できる数値の範囲は0から255（2⁸-1）までです。
+      - id: c
+        text: "1から256まで"
+        isCorrect: false
+        explanation: 8ビットで表現できる数値の範囲は0から255までです。
+      - id: d
+        text: "0から128まで"
+        isCorrect: false
+        explanation: 8ビットで表現できる数値の範囲は0から255までです。
+    explanation: 8ビット（8桁の2進数）で表現できる数値の範囲は0から2⁸-1=255までです。これはコンピュータで1バイトの情報を表現する際の基本的な範囲です。
+    difficulty: medium
+    tags:
+      - 2進数
+      - コンピュータ
+      - ビット
+    points: 2
+    hint: 8ビットは1バイトに相当し、コンピュータの基本単位です。
