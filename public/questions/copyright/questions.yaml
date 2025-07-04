@@ -186,10 +186,10 @@ questions:
     options:
       - id: a
         text: "学校の授業で使用するため、市販の問題集の問題を必要な部分だけコピーして生徒に配布する"
-        isCorrect: true
-        explanation: 正解です！学校の授業で使用する場合、必要な限度内での複製は例外的に認められています。
+        isCorrect: false
+        explanation: 学校の授業で使用する場合であっても、限度を超えると例外規定から外れる。
       - id: b
-        text: "友人が見逃したテレビ番組を録画したDVDを、友人にプレゼントする"
+        text: "家族が見逃したテレビ番組を偶然録画していたので、DVDに書き込んで渡した。"
         isCorrect: false
         explanation: 友人へのDVDプレゼントは私的使用の範囲を超えるため許可が必要です。
       - id: c
