@@ -224,9 +224,13 @@ async function loadAvailableQuestionSets() {
       const trimmed = line.trim();
       if (trimmed.startsWith('- ')) {
         const setId = trimmed.substring(2).trim();
+        console.log(`Loading question set: ${setId}`);
         const questionSet = await loadQuestionSet(setId);
         if (questionSet) {
+          console.log(`Successfully loaded: ${setId}`, questionSet.title);
           questionSets.push(questionSet);
+        } else {
+          console.error(`Failed to load question set: ${setId}`);
         }
       }
     }
