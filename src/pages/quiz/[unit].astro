@@ -705,8 +705,7 @@ class QuizSession {
     const endTime = new Date();
     const timeSpent = Math.floor((endTime - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.answers).filter(questionId => {
-      // 現在の問題は正解率計算から除外（まだ確定していないため）
-      if (questionId === currentQuestion.id) return false;
+      // 結果画面では全ての問題が完了しているので、全て含めて計算
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.answers[questionId]);
     }).length;
