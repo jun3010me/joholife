@@ -1,0 +1,153 @@
+id: portrait
+title: 肖像権・パブリシティ権
+description: 個人の肖像を保護する肖像権と、有名人の経済的価値を保護するパブリシティ権について学習します。
+icon: 📷
+difficulty: medium
+estimatedTime: 15
+category: 法的権利
+tags:
+  - 肖像権
+  - パブリシティ権
+  - 人格権
+  - 財産権
+  - プライバシー
+questions:
+  - id: portrait_001
+    type: single-choice
+    title: 肖像権の基本概念
+    description: 肖像権について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: 肖像権は著作権法で保護される権利である
+        isCorrect: false
+        explanation: 肖像権は著作権法ではなく、人格権として保護されます。
+      - id: b
+        text: 肖像権は人格権の一種で、すべての人に認められる
+        isCorrect: true
+        explanation: 肖像権は人格権の一種で、有名人だけでなく一般の人にも認められる基本的な権利です。
+      - id: c
+        text: 肖像権は財産権の一種で、経済的価値がある場合のみ保護される
+        isCorrect: false
+        explanation: これはパブリシティ権の説明です。肖像権は人格権として、経済的価値に関係なく保護されます。
+      - id: d
+        text: 肖像権は特許法で保護される権利である
+        isCorrect: false
+        explanation: 肖像権は特許法の対象ではありません。
+    explanation: 肖像権は人格権の一種で、自分の肖像を勝手に使用されない権利です。有名人だけでなく、すべての人に認められる基本的な権利です。
+    difficulty: easy
+    tags:
+      - 基礎概念
+      - 人格権
+    points: 10
+
+  - id: portrait_002
+    type: single-choice
+    title: パブリシティ権の理解
+    description: パブリシティ権について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: パブリシティ権は一般人にも認められる権利である
+        isCorrect: false
+        explanation: パブリシティ権は顧客吸引力のある有名人に認められる権利です。
+      - id: b
+        text: パブリシティ権は人格権の一種である
+        isCorrect: false
+        explanation: パブリシティ権は財産権としての性質を持つ権利です。
+      - id: c
+        text: パブリシティ権は有名人の氏名・肖像の経済的価値を保護する権利である
+        isCorrect: true
+        explanation: パブリシティ権は有名人の氏名・肖像が持つ顧客吸引力という経済的価値を保護する権利です。
+      - id: d
+        text: パブリシティ権は著作権法で保護される権利である
+        isCorrect: false
+        explanation: パブリシティ権は著作権法ではなく、判例法で形成された権利です。
+    explanation: パブリシティ権は有名人の氏名・肖像が持つ顧客吸引力（経済的価値）を保護する権利で、財産権としての性質を持ちます。
+    difficulty: easy
+    tags:
+      - 基礎概念
+      - 財産権
+    points: 10
+
+  - id: portrait_003
+    type: single-choice
+    title: 肖像権侵害の判定
+    description: 次の行為のうち、**肖像権侵害に該当する可能性が最も高いもの**はどれか。
+    options:
+      - id: a
+        text: 友人と撮影した写真を、友人の許可を得てSNSに投稿した
+        isCorrect: false
+        explanation: 友人の許可を得ているので、肖像権侵害にはなりません。
+      - id: b
+        text: 人がほとんど写っていない風景写真をブログに掲載した
+        isCorrect: false
+        explanation: 人物が判別できない程度であれば、肖像権侵害にはなりません。
+      - id: c
+        text: 友人の了承を得ずに、2人で撮った写真をInstagramに投稿した
+        isCorrect: true
+        explanation: 友人の許可なく肖像を公開することは肖像権侵害に該当します。
+      - id: d
+        text: 著名人の公開イベントでの写真を個人的に保存した
+        isCorrect: false
+        explanation: 個人的な保存は公開していないため、肖像権侵害にはなりません。
+    explanation: 肖像権侵害は、本人の承諾なく肖像を公開することで成立します。友人の許可なく写真を投稿することは肖像権侵害に該当します。
+    difficulty: medium
+    tags:
+      - 権利侵害
+      - 事例判定
+    points: 15
+
+  - id: portrait_004
+    type: single-choice
+    title: 報道と肖像権
+    description: 報道機関が撮影・公開する場合の肖像権について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: 報道目的であれば、本人の承諾なく肖像を使用しても問題ない
+        isCorrect: false
+        explanation: 報道目的でも無制限に肖像を使用できるわけではありません。
+      - id: b
+        text: 公共の場所で撮影した写真は、本人の承諾がなくても自由に使用できる
+        isCorrect: false
+        explanation: 公共の場所での撮影でも、肖像権は考慮される必要があります。
+      - id: c
+        text: 報道の自由と肖像権は利益衡量により判断される
+        isCorrect: true
+        explanation: 報道の自由（表現の自由）と肖像権は、事案ごとに利益衡量により判断されます。
+      - id: d
+        text: 事件の容疑者の肖像は、常に報道で使用が認められる
+        isCorrect: false
+        explanation: 容疑者の肖像使用も、必要性や公共性などを考慮して判断されます。
+    explanation: 報道の自由と肖像権が対立する場合、報道の意義、必要性、相当性などを総合的に考慮して利益衡量により判断されます。
+    difficulty: medium
+    tags:
+      - 報道の自由
+      - 利益衡量
+    points: 15
+
+  - id: portrait_005
+    type: single-choice
+    title: 複合的権利侵害の事例
+    description: 次の事例について、**最も適切な説明**はどれか。<br><br>【事例】A社は人気俳優Bの写真を無断で使用して、自社の化粧品の広告を作成し、雑誌に掲載した。
+    options:
+      - id: a
+        text: 肖像権侵害のみが問題となる
+        isCorrect: false
+        explanation: 有名人の商業利用なので、パブリシティ権侵害も問題となります。
+      - id: b
+        text: パブリシティ権侵害のみが問題となる
+        isCorrect: false
+        explanation: 肖像権侵害も同時に問題となります。
+      - id: c
+        text: 肖像権侵害とパブリシティ権侵害の両方が問題となる
+        isCorrect: true
+        explanation: 無断で肖像を使用することで肖像権侵害、有名人の顧客吸引力を商業利用することでパブリシティ権侵害となります。
+      - id: d
+        text: 広告目的の使用なので、法的な問題はない
+        isCorrect: false
+        explanation: 広告目的の無断使用は、むしろ権利侵害の典型例です。
+    explanation: 有名人の肖像を無断で商業利用する行為は、肖像権侵害（人格権侵害）とパブリシティ権侵害（財産権侵害）の両方が問題となる複合的な権利侵害です。
+    difficulty: hard
+    tags:
+      - 複合的権利侵害
+      - 商業利用
+    points: 20
