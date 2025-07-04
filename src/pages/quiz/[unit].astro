@@ -1,12 +1,27 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import * as yaml from 'yaml';
+import fs from 'fs';
+import path from 'path';
 
 export async function getStaticPaths() {
-  return [
-    { params: { unit: 'binary_conversion' } },
-    { params: { unit: 'algorithms' } },
-    { params: { unit: 'copyright' } }
-  ];
+  try {
+    const indexPath = path.join(process.cwd(), 'public/questions/index.yaml');
+    const indexContent = fs.readFileSync(indexPath, 'utf-8');
+    const indexData = yaml.parse(indexContent);
+    
+    return indexData.questionSets.map((unit: string) => ({
+      params: { unit }
+    }));
+  } catch (error) {
+    console.error('Error loading question sets:', error);
+    // フォールバック用のハードコードされたリスト
+    return [
+      { params: { unit: 'binary_conversion' } },
+      { params: { unit: 'algorithms' } },
+      { params: { unit: 'copyright' } }
+    ];
+  }
 }
 
 const { unit } = Astro.params;
