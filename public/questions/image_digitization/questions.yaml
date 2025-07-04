@@ -1,0 +1,297 @@
+id: image_digitization
+title: 画像デジタル化・ファイルサイズ計算
+description: 画像の解像度、ピクセル数、色深度からファイルサイズを計算する問題集
+icon: 📸
+difficulty: medium
+estimatedTime: 35
+category: 情報のデジタル化
+tags:
+  - 画像
+  - ピクセル
+  - ファイルサイズ
+  - 解像度
+  - 色深度
+questions:
+  - id: q1
+    type: single-choice
+    title: 基本的なファイルサイズ計算 (1)
+    description: 8×8ピクセル、24ビットカラーの画像のファイルサイズを計算してください。
+    options:
+      - id: a
+        text: "128バイト"
+        isCorrect: false
+        explanation: 8×8=64ピクセル、24ビット÷8=3バイト/ピクセル、64×3=192バイトです。
+      - id: b
+        text: "192バイト"
+        isCorrect: true
+        explanation: 正解です！8×8=64ピクセル、24ビット÷8=3バイト/ピクセル、64×3=192バイトです。
+      - id: c
+        text: "256バイト"
+        isCorrect: false
+        explanation: 8×8=64ピクセル、24ビット÷8=3バイト/ピクセル、64×3=192バイトです。
+      - id: d
+        text: "384バイト"
+        isCorrect: false
+        explanation: 8×8=64ピクセル、24ビット÷8=3バイト/ピクセル、64×3=192バイトです。
+    explanation: ファイルサイズ計算の基本：①総ピクセル数（幅×高さ）②1ピクセルのバイト数（色深度÷8）③総バイト数（①×②）
+    difficulty: easy
+    tags:
+      - 基礎計算
+      - 24ビット
+    points: 1
+
+  - id: q2
+    type: single-choice
+    title: 基本的なファイルサイズ計算 (2)
+    description: 16×16ピクセル、8ビットカラーの画像のファイルサイズを計算してください。
+    options:
+      - id: a
+        text: "128バイト"
+        isCorrect: false
+        explanation: 16×16=256ピクセル、8ビット÷8=1バイト/ピクセル、256×1=256バイトです。
+      - id: b
+        text: "192バイト"
+        isCorrect: false
+        explanation: 16×16=256ピクセル、8ビット÷8=1バイト/ピクセル、256×1=256バイトです。
+      - id: c
+        text: "256バイト"
+        isCorrect: true
+        explanation: 正解です！16×16=256ピクセル、8ビット÷8=1バイト/ピクセル、256×1=256バイトです。
+      - id: d
+        text: "512バイト"
+        isCorrect: false
+        explanation: 16×16=256ピクセル、8ビット÷8=1バイト/ピクセル、256×1=256バイトです。
+    explanation: 8ビットカラーでは1ピクセル=1バイトとなるため、ピクセル数がそのままバイト数になります。
+    difficulty: easy
+    tags:
+      - 基礎計算
+      - 8ビット
+    points: 1
+
+  - id: q3
+    type: single-choice
+    title: KB単位の計算 (1)
+    description: 256×128ピクセル、24ビットカラーの画像のファイルサイズをKB単位で計算してください。
+    options:
+      - id: a
+        text: "48KB"
+        isCorrect: false
+        explanation: 256×128=32,768ピクセル、24÷8=3バイト/ピクセル、32,768×3=98,304バイト、98,304÷1024=96KBです。
+      - id: b
+        text: "64KB"
+        isCorrect: false
+        explanation: 256×128=32,768ピクセル、24÷8=3バイト/ピクセル、32,768×3=98,304バイト、98,304÷1024=96KBです。
+      - id: c
+        text: "96KB"
+        isCorrect: true
+        explanation: 正解です！256×128=32,768ピクセル、24÷8=3バイト/ピクセル、32,768×3=98,304バイト、98,304÷1024=96KBです。
+      - id: d
+        text: "128KB"
+        isCorrect: false
+        explanation: 256×128=32,768ピクセル、24÷8=3バイト/ピクセル、32,768×3=98,304バイト、98,304÷1024=96KBです。
+    explanation: バイトからKBへの変換は1024で割ります。1KB=1024バイトです。
+    difficulty: medium
+    tags:
+      - KB変換
+      - 24ビット
+    points: 2
+
+  - id: q4
+    type: single-choice
+    title: KB単位の計算 (2)
+    description: 512×256ピクセル、8ビットカラーの画像のファイルサイズをKB単位で計算してください。
+    options:
+      - id: a
+        text: "64KB"
+        isCorrect: false
+        explanation: 512×256=131,072ピクセル、8÷8=1バイト/ピクセル、131,072×1=131,072バイト、131,072÷1024=128KBです。
+      - id: b
+        text: "96KB"
+        isCorrect: false
+        explanation: 512×256=131,072ピクセル、8÷8=1バイト/ピクセル、131,072×1=131,072バイト、131,072÷1024=128KBです。
+      - id: c
+        text: "128KB"
+        isCorrect: true
+        explanation: 正解です！512×256=131,072ピクセル、8÷8=1バイト/ピクセル、131,072×1=131,072バイト、131,072÷1024=128KBです。
+      - id: d
+        text: "256KB"
+        isCorrect: false
+        explanation: 512×256=131,072ピクセル、8÷8=1バイト/ピクセル、131,072×1=131,072バイト、131,072÷1024=128KBです。
+    explanation: 8ビットカラーは1ピクセル=1バイトなので、計算が簡単になります。
+    difficulty: medium
+    tags:
+      - KB変換
+      - 8ビット
+    points: 2
+
+  - id: q5
+    type: single-choice
+    title: 大きな画像のファイルサイズ (1)
+    description: 512×512ピクセル、24ビットカラーの画像のファイルサイズをKB単位で計算してください。
+    options:
+      - id: a
+        text: "512KB"
+        isCorrect: false
+        explanation: 512×512=262,144ピクセル、24÷8=3バイト/ピクセル、262,144×3=786,432バイト、786,432÷1024=768KBです。
+      - id: b
+        text: "640KB"
+        isCorrect: false
+        explanation: 512×512=262,144ピクセル、24÷8=3バイト/ピクセル、262,144×3=786,432バイト、786,432÷1024=768KBです。
+      - id: c
+        text: "768KB"
+        isCorrect: true
+        explanation: 正解です！512×512=262,144ピクセル、24÷8=3バイト/ピクセル、262,144×3=786,432バイト、786,432÷1024=768KBです。
+      - id: d
+        text: "1024KB"
+        isCorrect: false
+        explanation: 512×512=262,144ピクセル、24÷8=3バイト/ピクセル、262,144×3=786,432バイト、786,432÷1024=768KBです。
+    explanation: 512×512は262,144ピクセルで、24ビットカラーでは×3バイトになります。
+    difficulty: medium
+    tags:
+      - 大画像
+      - 24ビット
+    points: 2
+
+  - id: q6
+    type: single-choice
+    title: MB単位の計算 (1)
+    description: 1024×1024ピクセル、8ビットカラーの画像のファイルサイズをMB単位で計算してください。
+    options:
+      - id: a
+        text: "0.5MB"
+        isCorrect: false
+        explanation: 1024×1024=1,048,576ピクセル、8÷8=1バイト/ピクセル、1,048,576×1=1,048,576バイト、1,048,576÷1024÷1024=1MBです。
+      - id: b
+        text: "1MB"
+        isCorrect: true
+        explanation: 正解です！1024×1024=1,048,576ピクセル、8÷8=1バイト/ピクセル、1,048,576×1=1,048,576バイト、1,048,576÷1024÷1024=1MBです。
+      - id: c
+        text: "2MB"
+        isCorrect: false
+        explanation: 1024×1024=1,048,576ピクセル、8÷8=1バイト/ピクセル、1,048,576×1=1,048,576バイト、1,048,576÷1024÷1024=1MBです。
+      - id: d
+        text: "3MB"
+        isCorrect: false
+        explanation: 1024×1024=1,048,576ピクセル、8÷8=1バイト/ピクセル、1,048,576×1=1,048,576バイト、1,048,576÷1024÷1024=1MBです。
+    explanation: 1024×1024=1,048,576ピクセルで、8ビットカラーなら1,048,576バイト=1MBちょうどになります。
+    difficulty: medium
+    tags:
+      - MB変換
+      - 8ビット
+    points: 2
+
+  - id: q7
+    type: single-choice
+    title: 実践的な計算 (1)
+    description: 1024×512ピクセル、24ビットカラーの画像のファイルサイズをMB単位で計算してください。
+    options:
+      - id: a
+        text: "1MB"
+        isCorrect: false
+        explanation: 1024×512=524,288ピクセル、24÷8=3バイト/ピクセル、524,288×3=1,572,864バイト、1,572,864÷1024÷1024=1.5MBです。
+      - id: b
+        text: "1.5MB"
+        isCorrect: true
+        explanation: 正解です！1024×512=524,288ピクセル、24÷8=3バイト/ピクセル、524,288×3=1,572,864バイト、1,572,864÷1024÷1024=1.5MBです。
+      - id: c
+        text: "2MB"
+        isCorrect: false
+        explanation: 1024×512=524,288ピクセル、24÷8=3バイト/ピクセル、524,288×3=1,572,864バイト、1,572,864÷1024÷1024=1.5MBです。
+      - id: d
+        text: "3MB"
+        isCorrect: false
+        explanation: 1024×512=524,288ピクセル、24÷8=3バイト/ピクセル、524,288×3=1,572,864バイト、1,572,864÷1024÷1024=1.5MBです。
+    explanation: 1024×512の24ビットカラー画像は1.5MBになります。デジカメ写真の縮小版サイズに相当します。
+    difficulty: hard
+    tags:
+      - MB変換
+      - 24ビット
+      - 実践
+    points: 3
+
+  - id: q8
+    type: single-choice
+    title: 実践的な計算 (2)
+    description: 2048×1024ピクセル、8ビットカラーの画像のファイルサイズをMB単位で計算してください。
+    options:
+      - id: a
+        text: "1MB"
+        isCorrect: false
+        explanation: 2048×1024=2,097,152ピクセル、8÷8=1バイト/ピクセル、2,097,152×1=2,097,152バイト、2,097,152÷1024÷1024=2MBです。
+      - id: b
+        text: "2MB"
+        isCorrect: true
+        explanation: 正解です！2048×1024=2,097,152ピクセル、8÷8=1バイト/ピクセル、2,097,152×1=2,097,152バイト、2,097,152÷1024÷1024=2MBです。
+      - id: c
+        text: "3MB"
+        isCorrect: false
+        explanation: 2048×1024=2,097,152ピクセル、8÷8=1バイト/ピクセル、2,097,152×1=2,097,152バイト、2,097,152÷1024÷1024=2MBです。
+      - id: d
+        text: "4MB"
+        isCorrect: false
+        explanation: 2048×1024=2,097,152ピクセル、8÷8=1バイト/ピクセル、2,097,152×1=2,097,152バイト、2,097,152÷1024÷1024=2MBです。
+    explanation: 2048×1024の8ビットカラー画像は2MBになります。高解像度のモノクロ画像に相当します。
+    difficulty: hard
+    tags:
+      - MB変換
+      - 8ビット
+      - 実践
+    points: 3
+
+  - id: q9
+    type: single-choice
+    title: 色深度とファイルサイズの関係
+    description: 同じ100×100ピクセルの画像で、1ビット（白黒）と24ビット（フルカラー）のファイルサイズの差はどのくらいですか？
+    options:
+      - id: a
+        text: "1ビット: 1.25KB、24ビット: 30KB、差: 28.75KB"
+        isCorrect: true
+        explanation: 正解です！1ビット: 100×100÷8=1,250バイト=1.25KB、24ビット: 100×100×3=30,000バイト=30KB、差は約24倍です。
+      - id: b
+        text: "1ビット: 2.5KB、24ビット: 60KB、差: 57.5KB"
+        isCorrect: false
+        explanation: 1ビット: 100×100÷8=1,250バイト=1.25KB、24ビット: 100×100×3=30,000バイト=30KB、差は約24倍です。
+      - id: c
+        text: "1ビット: 0.6KB、24ビット: 15KB、差: 14.4KB"
+        isCorrect: false
+        explanation: 1ビット: 100×100÷8=1,250バイト=1.25KB、24ビット: 100×100×3=30,000バイト=30KB、差は約24倍です。
+      - id: d
+        text: "1ビット: 5KB、24ビット: 120KB、差: 115KB"
+        isCorrect: false
+        explanation: 1ビット: 100×100÷8=1,250バイト=1.25KB、24ビット: 100×100×3=30,000バイト=30KB、差は約24倍です。
+    explanation: 色深度が大きくなるとファイルサイズは大幅に増加します。1ビットは8ピクセル=1バイト、24ビットは1ピクセル=3バイトです。
+    difficulty: hard
+    tags:
+      - 色深度比較
+      - 1ビット
+      - 24ビット
+    points: 3
+
+  - id: q10
+    type: single-choice
+    title: 実用的なファイルサイズ比較
+    description: デジタルカメラで撮影した3024×2016ピクセル、24ビットカラーの写真のファイルサイズ（非圧縮）は約どのくらいですか？
+    options:
+      - id: a
+        text: "約9MB"
+        isCorrect: false
+        explanation: 3024×2016=6,096,384ピクセル、24÷8=3バイト/ピクセル、6,096,384×3=18,289,152バイト≒17.4MBです。
+      - id: b
+        text: "約12MB"
+        isCorrect: false
+        explanation: 3024×2016=6,096,384ピクセル、24÷8=3バイト/ピクセル、6,096,384×3=18,289,152バイト≒17.4MBです。
+      - id: c
+        text: "約17MB"
+        isCorrect: true
+        explanation: 正解です！3024×2016=6,096,384ピクセル、24÷8=3バイト/ピクセル、6,096,384×3=18,289,152バイト≒17.4MBです。
+      - id: d
+        text: "約25MB"
+        isCorrect: false
+        explanation: 3024×2016=6,096,384ピクセル、24÷8=3バイト/ピクセル、6,096,384×3=18,289,152バイト≒17.4MBです。
+    explanation: 高解像度デジタルカメラの写真は非圧縮で10-20MB程度になります。実際のJPEGファイルは圧縮により2-5MB程度になります。
+    difficulty: hard
+    tags:
+      - 高解像度
+      - デジカメ写真
+      - 実践
+    points: 3
