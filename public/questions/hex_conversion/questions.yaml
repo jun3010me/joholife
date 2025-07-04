@@ -1,0 +1,492 @@
+id: hex_conversion
+title: 16進数変換
+description: 2進数、10進数、16進数の相互変換を学習する問題集
+icon: 🔤
+difficulty: medium
+estimatedTime: 40
+category: 進数変換
+tags:
+  - 16進数
+  - 2進数
+  - 10進数
+  - 変換
+  - 基礎
+questions:
+  - id: q1
+    type: single-choice
+    title: 16進数の基本概念
+    description: 16進数について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "0から9までの数字のみを使用する"
+        isCorrect: false
+        explanation: 16進数は0-9とA-Fの16個の文字を使用します。
+      - id: b
+        text: "0から9とA-Fの16個の文字を使用する"
+        isCorrect: true
+        explanation: 正解です！16進数は0-9の数字とA-Fのアルファベットを使用します。
+      - id: c
+        text: "0と1の2つの数字のみを使用する"
+        isCorrect: false
+        explanation: それは2進数の説明です。16進数は16個の文字を使用します。
+      - id: d
+        text: "基数は10である"
+        isCorrect: false
+        explanation: 16進数の基数は16です。基数が10なのは10進数です。
+    explanation: 16進数は基数が16の数値表現で、0-9の数字とA(10), B(11), C(12), D(13), E(14), F(15)のアルファベットを使用します。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 基礎
+    points: 1
+    hint: 16進数では10以上の値をアルファベットで表現します。
+
+  - id: q2
+    type: single-choice
+    title: 16進数から10進数への変換
+    description: 16進数「A」を10進数に変換してください。
+    options:
+      - id: a
+        text: "10"
+        isCorrect: true
+        explanation: 正解です！16進数のAは10進数の10を表します。
+      - id: b
+        text: "11"
+        isCorrect: false
+        explanation: 16進数のAは10進数の10を表します。11はBです。
+      - id: c
+        text: "12"
+        isCorrect: false
+        explanation: 16進数のAは10進数の10を表します。12はCです。
+      - id: d
+        text: "15"
+        isCorrect: false
+        explanation: 16進数のAは10進数の10を表します。15はFです。
+    explanation: 16進数では、A=10, B=11, C=12, D=13, E=14, F=15を表します。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 16進数のアルファベットと10進数の対応を覚えましょう。
+
+  - id: q3
+    type: single-choice
+    title: 10進数から16進数への変換
+    description: 10進数「15」を16進数に変換してください。
+    options:
+      - id: a
+        text: "E"
+        isCorrect: false
+        explanation: 10進数15を16進数に変換するとFです。EはE進数の14です。
+      - id: b
+        text: "F"
+        isCorrect: true
+        explanation: 正解です！10進数15を16進数に変換するとFです。
+      - id: c
+        text: "10"
+        isCorrect: false
+        explanation: 10進数15を16進数に変換するとFです。10は16進数の16です。
+      - id: d
+        text: "D"
+        isCorrect: false
+        explanation: 10進数15を16進数に変換するとFです。Dは10進数の13です。
+    explanation: 10進数15は16進数ではFで表現されます。16進数では0-15を1桁で表現できます。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 15は16進数で1桁で表現できる最大の数値です。
+
+  - id: q4
+    type: single-choice
+    title: 16進数から10進数への変換
+    description: 16進数「1A」を10進数に変換してください。
+    options:
+      - id: a
+        text: "24"
+        isCorrect: false
+        explanation: 16進数1Aは、1×16¹ + 10×16⁰ = 16 + 10 = 26です。
+      - id: b
+        text: "25"
+        isCorrect: false
+        explanation: 16進数1Aは、1×16¹ + 10×16⁰ = 16 + 10 = 26です。
+      - id: c
+        text: "26"
+        isCorrect: true
+        explanation: 正解です！16進数1Aは、1×16¹ + 10×16⁰ = 16 + 10 = 26です。
+      - id: d
+        text: "27"
+        isCorrect: false
+        explanation: 16進数1Aは、1×16¹ + 10×16⁰ = 16 + 10 = 26です。
+    explanation: 16進数を10進数に変換するには、各桁の値に16の累乗を掛けて合計します。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: Aは10なので、1×16 + 10×1で計算します。
+
+  - id: q5
+    type: single-choice
+    title: 10進数から16進数への変換
+    description: 10進数「255」を16進数に変換してください。
+    options:
+      - id: a
+        text: "FE"
+        isCorrect: false
+        explanation: 10進数255を16進数に変換するとFFです。255÷16=15...15、15÷16=0...15
+      - id: b
+        text: "FF"
+        isCorrect: true
+        explanation: 正解です！10進数255を16進数に変換するとFFです。255÷16=15...15、15÷16=0...15
+      - id: c
+        text: "EF"
+        isCorrect: false
+        explanation: 10進数255を16進数に変換するとFFです。255÷16=15...15、15÷16=0...15
+      - id: d
+        text: "100"
+        isCorrect: false
+        explanation: 10進数255を16進数に変換するとFFです。255÷16=15...15、15÷16=0...15
+    explanation: 10進数255は16進数ではFFで表現されます。これは1バイト（8ビット）の最大値です。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 10進数
+      - 変換
+    points: 1
+    hint: 255は1バイトの最大値で、16進数では特別な意味を持ちます。
+
+  - id: q6
+    type: single-choice
+    title: 2進数から16進数への変換
+    description: 2進数「1111」を16進数に変換してください。
+    options:
+      - id: a
+        text: "E"
+        isCorrect: false
+        explanation: 2進数1111は10進数の15で、16進数ではFです。
+      - id: b
+        text: "F"
+        isCorrect: true
+        explanation: 正解です！2進数1111は10進数の15で、16進数ではFです。
+      - id: c
+        text: "10"
+        isCorrect: false
+        explanation: 2進数1111は10進数の15で、16進数ではFです。
+      - id: d
+        text: "11"
+        isCorrect: false
+        explanation: 2進数1111は10進数の15で、16進数ではFです。
+    explanation: 2進数4桁は16進数1桁に対応します。1111(2) = 15(10) = F(16)です。
+    difficulty: easy
+    tags:
+      - 2進数
+      - 16進数
+      - 変換
+    points: 1
+    hint: 2進数4桁は16進数1桁に対応する重要な関係があります。
+
+  - id: q7
+    type: single-choice
+    title: 16進数から2進数への変換
+    description: 16進数「C」を2進数に変換してください。
+    options:
+      - id: a
+        text: "1011"
+        isCorrect: false
+        explanation: 16進数Cは10進数の12で、2進数では1100です。
+      - id: b
+        text: "1100"
+        isCorrect: true
+        explanation: 正解です！16進数Cは10進数の12で、2進数では1100です。
+      - id: c
+        text: "1101"
+        isCorrect: false
+        explanation: 16進数Cは10進数の12で、2進数では1100です。
+      - id: d
+        text: "1110"
+        isCorrect: false
+        explanation: 16進数Cは10進数の12で、2進数では1100です。
+    explanation: 16進数1桁は2進数4桁に対応します。C(16) = 12(10) = 1100(2)です。
+    difficulty: easy
+    tags:
+      - 16進数
+      - 2進数
+      - 変換
+    points: 1
+    hint: 16進数1桁は必ず2進数4桁になります。
+
+  - id: q8
+    type: single-choice
+    title: 2進数から16進数への変換（複数桁）
+    description: 2進数「11010110」を16進数に変換してください。
+    options:
+      - id: a
+        text: "D5"
+        isCorrect: false
+        explanation: 2進数11010110を4桁ずつ区切ると1101|0110で、D6になります。
+      - id: b
+        text: "D6"
+        isCorrect: true
+        explanation: 正解です！2進数11010110を4桁ずつ区切ると1101|0110で、1101=D、0110=6なのでD6です。
+      - id: c
+        text: "DA"
+        isCorrect: false
+        explanation: 2進数11010110を4桁ずつ区切ると1101|0110で、D6になります。
+      - id: d
+        text: "C6"
+        isCorrect: false
+        explanation: 2進数11010110を4桁ずつ区切ると1101|0110で、D6になります。
+    explanation: 2進数を16進数に変換するには、右から4桁ずつ区切って変換します。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 16進数
+      - 変換
+    points: 2
+    hint: 2進数を右から4桁ずつ区切って、それぞれを16進数に変換します。
+
+  - id: q9
+    type: single-choice
+    title: 16進数から2進数への変換（複数桁）
+    description: 16進数「3F」を2進数に変換してください。
+    options:
+      - id: a
+        text: "00111110"
+        isCorrect: false
+        explanation: 16進数3Fは、3=0011、F=1111なので00111111です。
+      - id: b
+        text: "00111111"
+        isCorrect: true
+        explanation: 正解です！16進数3Fは、3=0011、F=1111なので00111111です。
+      - id: c
+        text: "01111111"
+        isCorrect: false
+        explanation: 16進数3Fは、3=0011、F=1111なので00111111です。
+      - id: d
+        text: "11111111"
+        isCorrect: false
+        explanation: 16進数3Fは、3=0011、F=1111なので00111111です。
+    explanation: 16進数を2進数に変換するには、各桁を4桁の2進数に変換します。
+    difficulty: medium
+    tags:
+      - 16進数
+      - 2進数
+      - 変換
+    points: 2
+    hint: 16進数の各桁を4桁の2進数に変換して連結します。
+
+  - id: q10
+    type: single-choice
+    title: 10進数から16進数への変換（大きな数）
+    description: 10進数「256」を16進数に変換してください。
+    options:
+      - id: a
+        text: "FF"
+        isCorrect: false
+        explanation: 10進数256を16進数に変換すると100です。256÷16=16...0、16÷16=1...0、1÷16=0...1
+      - id: b
+        text: "100"
+        isCorrect: true
+        explanation: 正解です！10進数256を16進数に変換すると100です。256÷16=16...0、16÷16=1...0、1÷16=0...1
+      - id: c
+        text: "200"
+        isCorrect: false
+        explanation: 10進数256を16進数に変換すると100です。256÷16=16...0、16÷16=1...0、1÷16=0...1
+      - id: d
+        text: "10"
+        isCorrect: false
+        explanation: 10進数256を16進数に変換すると100です。256÷16=16...0、16÷16=1...0、1÷16=0...1
+    explanation: 10進数256は16²なので、16進数では100になります。
+    difficulty: medium
+    tags:
+      - 10進数
+      - 16進数
+      - 変換
+    points: 2
+    hint: 256は16の2乗なので、16進数では特別な意味を持ちます。
+
+  - id: q11
+    type: single-choice
+    title: 16進数から10進数への変換（複数桁）
+    description: 16進数「2B」を10進数に変換してください。
+    options:
+      - id: a
+        text: "42"
+        isCorrect: false
+        explanation: 16進数2Bは、2×16¹ + 11×16⁰ = 32 + 11 = 43です。
+      - id: b
+        text: "43"
+        isCorrect: true
+        explanation: 正解です！16進数2Bは、2×16¹ + 11×16⁰ = 32 + 11 = 43です。
+      - id: c
+        text: "44"
+        isCorrect: false
+        explanation: 16進数2Bは、2×16¹ + 11×16⁰ = 32 + 11 = 43です。
+      - id: d
+        text: "45"
+        isCorrect: false
+        explanation: 16進数2Bは、2×16¹ + 11×16⁰ = 32 + 11 = 43です。
+    explanation: 16進数2Bの変換では、Bは11を表すことに注意が必要です。
+    difficulty: medium
+    tags:
+      - 16進数
+      - 10進数
+      - 変換
+    points: 2
+    hint: Bは11なので、2×16 + 11で計算します。
+
+  - id: q12
+    type: single-choice
+    title: 2進数から16進数への変換（桁調整）
+    description: 2進数「101011」を16進数に変換してください。
+    options:
+      - id: a
+        text: "2A"
+        isCorrect: false
+        explanation: 2進数101011は右から4桁ずつ区切ると10|1011で、2Bになります。
+      - id: b
+        text: "2B"
+        isCorrect: true
+        explanation: 正解です！2進数101011は右から4桁ずつ区切ると0010|1011で、2Bになります。
+      - id: c
+        text: "2C"
+        isCorrect: false
+        explanation: 2進数101011は右から4桁ずつ区切ると10|1011で、2Bになります。
+      - id: d
+        text: "35"
+        isCorrect: false
+        explanation: 2進数101011は右から4桁ずつ区切ると10|1011で、2Bになります。
+    explanation: 2進数の桁数が4の倍数でない場合は、左側を0で埋めて4桁にします。
+    difficulty: medium
+    tags:
+      - 2進数
+      - 16進数
+      - 変換
+    points: 2
+    hint: 4桁に満たない場合は左側に0を補います。
+
+  - id: q13
+    type: single-choice
+    title: 16進数の実用的な応用
+    description: コンピュータでRGBカラーコード「#FF0000」が表す色について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "青色"
+        isCorrect: false
+        explanation: FF0000は赤=255、緑=0、青=0なので純粋な赤色です。
+      - id: b
+        text: "緑色"
+        isCorrect: false
+        explanation: FF0000は赤=255、緑=0、青=0なので純粋な赤色です。
+      - id: c
+        text: "赤色"
+        isCorrect: true
+        explanation: 正解です！FF0000は赤=255、緑=0、青=0なので純粋な赤色です。
+      - id: d
+        text: "白色"
+        isCorrect: false
+        explanation: FF0000は赤=255、緑=0、青=0なので純粋な赤色です。白色はFFFFFFです。
+    explanation: RGBカラーコードでは、FFは255（最大値）を表し、FF0000は赤成分が最大で他が0の純粋な赤色です。
+    difficulty: medium
+    tags:
+      - 16進数
+      - 実用応用
+      - RGBカラー
+    points: 2
+    hint: RGBカラーコードでは6桁の16進数で色を表現します。
+
+  - id: q14
+    type: single-choice
+    title: 16進数のメモリアドレス
+    description: コンピュータのメモリアドレス「0x1000」を10進数に変換してください。
+    options:
+      - id: a
+        text: "4095"
+        isCorrect: false
+        explanation: 16進数1000は、1×16³ + 0×16² + 0×16¹ + 0×16⁰ = 4096です。
+      - id: b
+        text: "4096"
+        isCorrect: true
+        explanation: 正解です！16進数1000は、1×16³ + 0×16² + 0×16¹ + 0×16⁰ = 4096です。
+      - id: c
+        text: "4097"
+        isCorrect: false
+        explanation: 16進数1000は、1×16³ + 0×16² + 0×16¹ + 0×16⁰ = 4096です。
+      - id: d
+        text: "1000"
+        isCorrect: false
+        explanation: これは10進数の値です。16進数1000は4096です。
+    explanation: 0xは16進数を表す接頭辞で、プログラミングでよく使用されます。1000(16) = 4096(10)です。
+    difficulty: medium
+    tags:
+      - 16進数
+      - メモリアドレス
+      - プログラミング
+    points: 2
+    hint: 0xは16進数を表す記法です。1000は16³の値です。
+
+  - id: q15
+    type: single-choice
+    title: 16進数と2進数の関係性
+    description: 16進数1桁で表現できる2進数の範囲について、**正しいもの**はどれか。
+    options:
+      - id: a
+        text: "2桁の2進数（00-11）"
+        isCorrect: false
+        explanation: 16進数1桁は4桁の2進数（0000-1111）に対応します。
+      - id: b
+        text: "3桁の2進数（000-111）"
+        isCorrect: false
+        explanation: 16進数1桁は4桁の2進数（0000-1111）に対応します。
+      - id: c
+        text: "4桁の2進数（0000-1111）"
+        isCorrect: true
+        explanation: 正解です！16進数1桁は4桁の2進数（0000-1111）に対応します。
+      - id: d
+        text: "8桁の2進数（00000000-11111111）"
+        isCorrect: false
+        explanation: 16進数1桁は4桁の2進数（0000-1111）に対応します。8桁は16進数2桁です。
+    explanation: 16進数と2進数の重要な関係：16進数1桁 = 2進数4桁です。これによりコンピュータでの数値表現が効率的になります。
+    difficulty: medium
+    tags:
+      - 16進数
+      - 2進数
+      - 対応関係
+    points: 2
+    hint: 16 = 2⁴なので、16進数1桁は2進数4桁に対応します。
+
+  - id: q16
+    type: single-choice
+    title: 複合的な進数変換
+    description: 次の変換過程で**間違っているもの**はどれか。<br><br>A: 2進数 1010 → 10進数 10<br>B: 10進数 10 → 16進数 A<br>C: 16進数 A → 2進数 1010<br>D: 2進数 1010 → 16進数 A
+    options:
+      - id: a
+        text: "Aの変換が間違っている"
+        isCorrect: false
+        explanation: A: 2進数1010 = 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 10は正しいです。
+      - id: b
+        text: "Bの変換が間違っている"
+        isCorrect: true
+        explanation: 正解です！B: 10進数10は16進数ではAではなく、10のままです。16進数のAは10進数の10を表しますが、10進数10は16進数では0Aまたは単にAと書きます。
+      - id: c
+        text: "Cの変換が間違っている"
+        isCorrect: false
+        explanation: C: 16進数A = 10進数10 = 2進数1010は正しいです。
+      - id: d
+        text: "Dの変換が間違っている"
+        isCorrect: false
+        explanation: D: 2進数1010 = 16進数Aは正しいです。
+    explanation: 正しい変換：10進数10 → 16進数A、16進数A → 10進数10です。各進数間の対応関係を正確に理解することが重要です。
+    difficulty: hard
+    tags:
+      - 複合変換
+      - 進数変換
+      - 概念理解
+    points: 3
+    hint: 各進数の値の対応関係を慎重に確認しましょう。
