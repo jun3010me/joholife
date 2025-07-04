@@ -256,6 +256,8 @@ class QuizSession {
     const currentQuestion = this.questions[this.currentQuestionIndex];
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.answers).filter(questionId => {
+      // 現在の問題は正解率計算から除外（まだ確定していないため）
+      if (questionId === currentQuestion.id) return false;
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.answers[questionId]);
     }).length;
@@ -508,6 +510,7 @@ class QuizSession {
     const isCorrect = this.isAnswerCorrect(currentQuestion, userAnswer);
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.answers).filter(questionId => {
+      // 解説画面では現在の問題も含めて計算（確定した答えとして扱う）
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.answers[questionId]);
     }).length;
@@ -541,7 +544,7 @@ class QuizSession {
             </div>
             <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
               <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">
-                ${this.currentQuestionIndex > 0 ? Math.round((correctAnswers / this.currentQuestionIndex) * 100) : 0}%
+                ${Math.round((correctAnswers / (this.currentQuestionIndex + 1)) * 100)}%
               </div>
               <div style="font-size: 0.75rem; color: var(--accent-color); font-weight: 500;">正解率</div>
             </div>
@@ -702,6 +705,8 @@ class QuizSession {
     const endTime = new Date();
     const timeSpent = Math.floor((endTime - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.answers).filter(questionId => {
+      // 現在の問題は正解率計算から除外（まだ確定していないため）
+      if (questionId === currentQuestion.id) return false;
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.answers[questionId]);
     }).length;
