@@ -11,11 +11,11 @@ import Layout from '../layouts/Layout.astro';
 
     <nav class="mb-8">
       <div class="flex flex-wrap justify-center gap-2 md:gap-4">
-        <button class="tab-button active" data-tab="resolution">解像度比較</button>
-        <button class="tab-button" data-tab="pixel">ピクセル表示</button>
-        <button class="tab-button" data-tab="calculator">サイズ計算</button>
-        <button class="tab-button" data-tab="color-depth">色深度比較</button>
-        <button class="tab-button" data-tab="practice">練習問題</button>
+        <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors tab-button active" data-tab="resolution">解像度比較</button>
+        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="pixel">ピクセル表示</button>
+        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="calculator">サイズ計算</button>
+        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="color-depth">色深度比較</button>
+        <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors tab-button" data-tab="practice">練習問題</button>
       </div>
     </nav>
 
@@ -129,22 +129,22 @@ import Layout from '../layouts/Layout.astro';
           <div class="calculation-section bg-blue-50 p-6 rounded-lg">
             <h3 class="font-bold text-lg mb-4">計算過程</h3>
             <div id="calculation-steps" class="space-y-3">
-              <div class="calculation-step">
+              <div class="border-l-4 border-blue-400 pl-4 py-2">
                 <span class="step-number font-bold">1.</span>
                 <span class="step-description block">総ピクセル数 = 幅 × 高さ</span>
                 <span class="step-result block text-blue-600 font-mono" id="pixel-total">1,024 × 768 = 786,432 ピクセル</span>
               </div>
-              <div class="calculation-step">
+              <div class="border-l-4 border-blue-400 pl-4 py-2">
                 <span class="step-number font-bold">2.</span>
                 <span class="step-description block">1ピクセルあたりのバイト数</span>
                 <span class="step-result block text-blue-600 font-mono" id="bytes-per-pixel">24ビット ÷ 8 = 3 バイト/ピクセル</span>
               </div>
-              <div class="calculation-step">
+              <div class="border-l-4 border-blue-400 pl-4 py-2">
                 <span class="step-number font-bold">3.</span>
                 <span class="step-description block">総バイト数 = 総ピクセル数 × バイト/ピクセル</span>
                 <span class="step-result block text-blue-600 font-mono" id="total-bytes">786,432 × 3 = 2,359,296 バイト</span>
               </div>
-              <div class="calculation-step">
+              <div class="border-l-4 border-blue-400 pl-4 py-2">
                 <span class="step-number font-bold">4.</span>
                 <span class="step-description block">MB変換 (÷ 1024 ÷ 1024)</span>
                 <span class="step-result block text-blue-600 font-mono" id="total-mb">2,359,296 ÷ 1,048,576 = 2.25 MB</span>
@@ -218,10 +218,10 @@ import Layout from '../layouts/Layout.astro';
         <div class="practice-container">
           <div class="level-selector mb-6">
             <div class="flex flex-wrap gap-2">
-              <button class="level-button active" data-level="1">Level 1: 基礎</button>
-              <button class="level-button" data-level="2">Level 2: 標準</button>
-              <button class="level-button" data-level="3">Level 3: 応用</button>
-              <button class="level-button" data-level="4">Level 4: 実践</button>
+              <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors level-button active" data-level="1">Level 1: 基礎</button>
+              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="2">Level 2: 標準</button>
+              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="3">Level 3: 応用</button>
+              <button class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors level-button" data-level="4">Level 4: 実践</button>
             </div>
           </div>
           <div class="problem-container bg-white p-6 rounded-lg border">
@@ -268,44 +268,32 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <style>
-  .tab-button {
-    @apply px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors;
-  }
-  
-  .tab-button.active {
-    @apply bg-blue-500 text-white;
-  }
-  
-  .tab-content {
-    @apply block;
-  }
-  
-  .tab-content.hidden {
-    @apply hidden;
-  }
-  
-  .level-button {
-    @apply px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors;
-  }
-  
-  .level-button.active {
-    @apply bg-green-500 text-white;
-  }
-  
   .resolution-item:hover .resolution-rect {
-    @apply border-4 transform scale-105 transition-transform;
-  }
-  
-  .calculation-step {
-    @apply border-l-4 border-blue-400 pl-4 py-2;
+    border-width: 4px;
+    transform: scale(1.05);
+    transition: transform 0.2s ease-in-out;
   }
   
   .feedback.correct {
-    @apply text-green-600 bg-green-50 p-4 rounded;
+    color: #16a34a;
+    background-color: #f0fdf4;
+    padding: 1rem;
+    border-radius: 0.5rem;
   }
   
   .feedback.incorrect {
-    @apply text-red-600 bg-red-50 p-4 rounded;
+    color: #dc2626;
+    background-color: #fef2f2;
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  .certificate-modal {
+    display: none;
+  }
+  
+  .certificate-modal.show {
+    display: flex;
   }
 </style>
 
