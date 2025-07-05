@@ -525,8 +525,10 @@ class QuizSession {
             <div style="font-size: 3rem; margin-bottom: 1rem;">
               ${this.questionSet?.icon || '📝'}
             </div>
-            <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
-              ${this.questionSet?.title || this.unit} 問題演習
+            <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.2; hyphens: auto; word-break: break-word;">
+              <span style="display: inline-block; max-width: 100%; font-size: clamp(1.25rem, 4vw, 1.75rem);">
+                ${this.questionSet?.title || this.unit} 問題演習
+              </span>
             </h2>
             <p style="color: var(--text-secondary); margin-bottom: 2rem;">
               ${this.questionSet?.description || ''}
