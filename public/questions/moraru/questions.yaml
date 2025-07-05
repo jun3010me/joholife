@@ -1,0 +1,1421 @@
+id: information_ethics_comprehensive
+title: 情報モラル総合
+description: SNS、インターネット利用、デジタル社会での適切な行動について、高校生が身につけるべき情報モラルを総合的に学習します。
+icon: 🛡️
+difficulty: medium
+estimatedTime: 90
+category: 情報モラル
+tags:
+  - SNS
+  - ネットいじめ
+  - プライバシー
+  - 著作権
+  - 肖像権
+  - デジタル市民権
+  - サイバーセキュリティ
+  - ネット依存
+questions:
+  # SNS・コミュニケーション関連（15問）
+  - id: ethics_001
+    type: single-choice
+    title: SNSでの誹謗中傷
+    description: クラスメイトがSNSで他の生徒の悪口を書いているのを見つけた。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: 面白いので「いいね」を押す
+        isCorrect: false
+        explanation: 誹謗中傷に加担する行為で、問題を悪化させます。
+      - id: b
+        text: 見なかったことにして無視する
+        isCorrect: false
+        explanation: 傍観者でいることも問題の解決にはなりません。
+      - id: c
+        text: その生徒に注意し、必要に応じて先生に相談する
+        isCorrect: true
+        explanation: 誹謗中傷は止めるべき行為です。当事者に注意し、解決しない場合は大人に相談することが適切です。
+      - id: d
+        text: 自分も一緒に悪口を書き込む
+        isCorrect: false
+        explanation: 誹謗中傷に加担し、問題をさらに深刻化させる最悪の対応です。
+    explanation: SNSでの誹謗中傷は重大な問題です。傍観せず、適切に対処し、必要に応じて大人の助けを求めることが重要です。
+    difficulty: easy
+    tags:
+      - SNS
+      - いじめ対策
+    points: 15
+
+  - id: ethics_002
+    type: single-choice
+    title: 個人情報の投稿
+    description: SNSのプロフィールに載せるべき**でない**情報はどれか。
+    options:
+      - id: a
+        text: 好きな音楽のジャンル
+        isCorrect: false
+        explanation: 個人の趣味は一般的に問題ありません。
+      - id: b
+        text: 住所と電話番号
+        isCorrect: true
+        explanation: 住所や電話番号は個人を特定できる重要な個人情報で、悪用される危険があります。
+      - id: c
+        text: ペットの写真
+        isCorrect: false
+        explanation: ペットの写真は一般的に問題ありません。
+      - id: d
+        text: 趣味の読書について
+        isCorrect: false
+        explanation: 趣味に関する情報は一般的に問題ありません。
+    explanation: 住所、電話番号、学校名、家族構成など、個人を特定できる情報や悪用される可能性のある情報は公開すべきではありません。
+    difficulty: easy
+    tags:
+      - 個人情報保護
+      - プライバシー
+    points: 10
+
+  - id: ethics_003
+    type: single-choice
+    title: 友人の写真投稿
+    description: 友人と撮った写真をSNSに投稿する前に**最も重要なこと**はどれか。
+    options:
+      - id: a
+        text: 写真を加工して美しくする
+        isCorrect: false
+        explanation: 見た目の改善よりも重要なことがあります。
+      - id: b
+        text: 友人の許可を得る
+        isCorrect: true
+        explanation: 他人の肖像権を尊重し、許可を得ることが最も重要です。
+      - id: c
+        text: たくさんの「いいね」がもらえそうかチェックする
+        isCorrect: false
+        explanation: 承認欲求よりも他人の権利を尊重することが重要です。
+      - id: d
+        text: 投稿時間を考える
+        isCorrect: false
+        explanation: タイミングより許可を得ることが重要です。
+    explanation: 他人が写っている写真を投稿する際は、必ずその人の許可を得ることが肖像権の観点からも、友人関係の観点からも重要です。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - 友人関係
+    points: 10
+
+  - id: ethics_004
+    type: single-choice
+    title: ネット上での匿名性
+    description: インターネット上の匿名性について、**正しい理解**はどれか。
+    options:
+      - id: a
+        text: 匿名なので何を書いても責任を問われない
+        isCorrect: false
+        explanation: 匿名でも違法行為や誹謗中傷は責任を問われます。
+      - id: b
+        text: 完全に匿名なので身元がバレることは絶対にない
+        isCorrect: false
+        explanation: 技術的手段により身元が特定される可能性があります。
+      - id: c
+        text: 匿名でも法的責任や道徳的責任は変わらない
+        isCorrect: true
+        explanation: 匿名であっても、行為の責任は変わりません。適切な行動を心がけるべきです。
+      - id: d
+        text: 匿名の方が正しい意見を言いやすいので積極的に使うべき
+        isCorrect: false
+        explanation: 匿名性の利点はありますが、責任ある発言が前提です。
+    explanation: インターネット上の匿名性は完全ではなく、また匿名であっても発言や行動の責任は変わりません。
+    difficulty: medium
+    tags:
+      - 匿名性
+      - 責任
+    points: 15
+
+  - id: ethics_005
+    type: single-choice
+    title: SNSでの情報拡散
+    description: SNSで見かけた「○○高校で事件発生」という投稿を見た。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: すぐにシェア・リツイートして拡散する
+        isCorrect: false
+        explanation: 真偽不明の情報を拡散することは危険です。
+      - id: b
+        text: 情報の真偽を確認してから行動を決める
+        isCorrect: true
+        explanation: デマや誤情報の可能性があるため、まず真偽を確認することが重要です。
+      - id: c
+        text: 面白いので友達にLINEで送る
+        isCorrect: false
+        explanation: 未確認情報の拡散は問題を悪化させる可能性があります。
+      - id: d
+        text: 詳細を知りたいのでその高校に電話で問い合わせる
+        isCorrect: false
+        explanation: 無関係な第三者が問い合わせることは適切ではありません。
+    explanation: SNS上の未確認情報は、デマや誤情報の可能性があります。拡散する前に必ず真偽を確認することが重要です。
+    difficulty: medium
+    tags:
+      - 情報拡散
+      - デマ対策
+    points: 15
+
+  - id: ethics_006
+    type: single-choice
+    title: オンラインゲームでのトラブル
+    description: オンラインゲームで他のプレイヤーから暴言を受けた。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: 同じように暴言で言い返す
+        isCorrect: false
+        explanation: 暴言の応酬は問題を悪化させるだけです。
+      - id: b
+        text: そのプレイヤーをブロック・報告する
+        isCorrect: true
+        explanation: 適切な機能を使用して問題行動に対処することが最も効果的です。
+      - id: c
+        text: 我慢して何もしない
+        isCorrect: false
+        explanation: 問題行動を放置すると、被害が拡大する可能性があります。
+      - id: d
+        text: 他のプレイヤーを巻き込んで反撃する
+        isCorrect: false
+        explanation: 問題を拡大させ、無関係な人を巻き込むべきではありません。
+    explanation: オンラインゲームでの迷惑行為には、ゲーム内の報告機能やブロック機能を活用することが最も効果的で建設的な対応です。
+    difficulty: medium
+    tags:
+      - オンラインゲーム
+      - トラブル対応
+    points: 15
+
+  - id: ethics_007
+    type: single-choice
+    title: グループチャットでの配慮
+    description: クラスのグループチャットで**避けるべき行動**はどれか。
+    options:
+      - id: a
+        text: 宿題について質問する
+        isCorrect: false
+        explanation: 学習に関する質問は適切な利用です。
+      - id: b
+        text: 学校行事について情報共有する
+        isCorrect: false
+        explanation: 必要な情報の共有は適切です。
+      - id: c
+        text: 特定の人の悪口や陰口を書く
+        isCorrect: true
+        explanation: グループチャットでの誹謗中傷は、関係性を悪化させ、いじめにつながる危険があります。
+      - id: d
+        text: 明日のテストについて確認する
+        isCorrect: false
+        explanation: 学習に関する確認は適切です。
+    explanation: グループチャットは多くの人が参加する場です。個人攻撃や陰口は避け、建設的なコミュニケーションを心がけましょう。
+    difficulty: easy
+    tags:
+      - グループチャット
+      - コミュニケーション
+    points: 10
+
+  - id: ethics_008
+    type: single-choice
+    title: 炎上への対応
+    description: 自分の投稿が炎上してしまった。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: 反論してさらに投稿を続ける
+        isCorrect: false
+        explanation: 感情的な反論は炎上を悪化させる可能性があります。
+      - id: b
+        text: 投稿を削除し、必要に応じて謝罪する
+        isCorrect: true
+        explanation: 問題のある投稿は削除し、必要に応じて真摯に謝罪することが適切です。
+      - id: c
+        text: アカウントを削除して逃げる
+        isCorrect: false
+        explanation: 責任逃れは問題の根本的解決にはなりません。
+      - id: d
+        text: 批判している人たちを批判し返す
+        isCorrect: false
+        explanation: 対立を深めるだけで解決にはなりません。
+    explanation: 炎上が起きたら、冷静に状況を分析し、問題があれば素直に認めて適切に対処することが重要です。
+    difficulty: medium
+    tags:
+      - 炎上対応
+      - 責任
+    points: 15
+
+  - id: ethics_009
+    type: single-choice
+    title: プライベートな情報の取り扱い
+    description: 友人から聞いた他の人のプライベートな話をSNSに投稿することについて、**正しい判断**はどれか。
+    options:
+      - id: a
+        text: 面白い話なので多くの人に知ってもらいたい
+        isCorrect: false
+        explanation: 他人のプライバシーを軽視した危険な考えです。
+      - id: b
+        text: 名前を出さなければ投稿しても大丈夫
+        isCorrect: false
+        explanation: 名前を出さなくても特定される可能性があり、プライバシー侵害になります。
+      - id: c
+        text: 他人のプライベートな情報は投稿すべきではない
+        isCorrect: true
+        explanation: 他人のプライバシーを尊重し、勝手に公開することは避けるべきです。
+      - id: d
+        text: 本人の許可があれば何でも投稿できる
+        isCorrect: false
+        explanation: 許可があっても、投稿内容によっては配慮が必要です。
+    explanation: 他人のプライベートな情報は、たとえ興味深い内容でも勝手に公開すべきではありません。プライバシーの尊重が重要です。
+    difficulty: easy
+    tags:
+      - プライバシー保護
+      - 配慮
+    points: 10
+
+  - id: ethics_010
+    type: single-choice
+    title: SNSでの政治的発言
+    description: 高校生がSNSで政治的な意見を投稿する際に**最も注意すべきこと**はどれか。
+    options:
+      - id: a
+        text: 多くの「いいね」をもらえる内容にする
+        isCorrect: false
+        explanation: 承認欲求よりも責任ある発言が重要です。
+      - id: b
+        text: 感情的にならず、事実に基づいて建設的に発言する
+        isCorrect: true
+        explanation: 政治的発言は特に影響が大きいため、事実確認と建設的な議論を心がけることが重要です。
+      - id: c
+        text: 反対意見の人を徹底的に論破する
+        isCorrect: false
+        explanation: 攻撃的な態度は建設的な議論を妨げます。
+      - id: d
+        text: 学校名を明記して発言する
+        isCorrect: false
+        explanation: 個人の意見が学校の立場と誤解される可能性があります。
+    explanation: 政治的発言は社会的影響が大きいため、事実に基づき、建設的で責任ある発言を心がけることが重要です。
+    difficulty: medium
+    tags:
+      - 政治的発言
+      - 責任ある発言
+    points: 15
+
+  - id: ethics_011
+    type: single-choice
+    title: ネットでの出会い
+    description: SNSで知り合った人から「実際に会おう」と誘われた。**最も安全な対応**はどれか。
+    options:
+      - id: a
+        text: すぐに2人だけで会う約束をする
+        isCorrect: false
+        explanation: ネット上での出会いは危険が伴う可能性があります。
+      - id: b
+        text: 保護者に相談し、必要に応じて同伴してもらう
+        isCorrect: true
+        explanation: 未成年者のネット上での出会いは、必ず保護者に相談し、安全を確保することが重要です。
+      - id: c
+        text: 人気のない場所で会う
+        isCorrect: false
+        explanation: 人気のない場所での面会は非常に危険です。
+      - id: d
+        text: 夜間に会う約束をする
+        isCorrect: false
+        explanation: 夜間の面会は危険度が高まります。
+    explanation: ネット上で知り合った人との面会は慎重に行い、特に未成年者は必ず保護者に相談し、安全を最優先に考えるべきです。
+    difficulty: easy
+    tags:
+      - ネット上の出会い
+      - 安全対策
+    points: 15
+
+  - id: ethics_012
+    type: single-choice
+    title: デジタルタトゥー
+    description: 「デジタルタトゥー」について、**正しい理解**はどれか。
+    options:
+      - id: a
+        text: インターネット上のアバターに付けるタトゥーのこと
+        isCorrect: false
+        explanation: デジタルタトゥーは仮想的な装飾ではありません。
+      - id: b
+        text: 一度ネット上に投稿した情報は永続的に残り続ける可能性があること
+        isCorrect: true
+        explanation: インターネット上の情報は削除しても完全に消去されず、将来にわたって影響を与える可能性があります。
+      - id: c
+        text: 暗号化された安全な投稿のこと
+        isCorrect: false
+        explanation: セキュリティ技術の話ではありません。
+      - id: d
+        text: 有名人だけに関係する問題
+        isCorrect: false
+        explanation: 一般の人にも関係する重要な概念です。
+    explanation: デジタルタトゥーとは、ネット上の投稿が永続的に残り続ける現象を指します。将来への影響を考えて投稿することが重要です。
+    difficulty: medium
+    tags:
+      - デジタルタトゥー
+      - 将来への影響
+    points: 15
+
+  - id: ethics_013
+    type: single-choice
+    title: ハッシュタグの使用
+    description: SNSでハッシュタグを使用する際に**避けるべき行為**はどれか。
+    options:
+      - id: a
+        text: 投稿内容に関連するハッシュタグを使用する
+        isCorrect: false
+        explanation: 関連性のあるハッシュタグの使用は適切です。
+      - id: b
+        text: 話題のハッシュタグを投稿内容と無関係に乱用する
+        isCorrect: true
+        explanation: 無関係なハッシュタグの乱用は、他のユーザーの迷惑になり、スパム行為と見なされます。
+      - id: c
+        text: 自分の趣味に関するハッシュタグを使用する
+        isCorrect: false
+        explanation: 趣味に関連するハッシュタグの使用は適切です。
+      - id: d
+        text: 場所を示すハッシュタグを使用する
+        isCorrect: false
+        explanation: 適切な範囲での場所の表示は問題ありません。
+    explanation: ハッシュタグは投稿内容と関連のあるものを使用し、注目を集めるためだけの無関係なタグの乱用は避けるべきです。
+    difficulty: easy
+    tags:
+      - ハッシュタグ
+      - 適切な使用
+    points: 10
+
+  - id: ethics_014
+    type: single-choice
+    title: ネット上での暴言
+    description: ネット上で他人に暴言を書き込むことの**最も深刻な問題**はどれか。
+    options:
+      - id: a
+        text: アカウントが凍結される可能性がある
+        isCorrect: false
+        explanation: アカウント凍結より深刻な問題があります。
+      - id: b
+        text: 相手の心を深く傷つけ、時には生命に関わる問題となる
+        isCorrect: true
+        explanation: ネット上の暴言は相手を深く傷つけ、最悪の場合、自殺などの深刻な結果を招く可能性があります。
+      - id: c
+        text: 炎上して注目される
+        isCorrect: false
+        explanation: 注目されることより、人への害が深刻な問題です。
+      - id: d
+        text: 友達に嫌われる
+        isCorrect: false
+        explanation: 人間関係より、相手への深刻な害が最も重要な問題です。
+    explanation: ネット上の暴言は、相手の心を深く傷つけ、うつ病や自殺などの深刻な結果を招く可能性があるため、絶対に避けるべきです。
+    difficulty: medium
+    tags:
+      - 暴言
+      - 心の傷
+    points: 20
+
+  - id: ethics_015
+    type: single-choice
+    title: 適切なコミュニケーション
+    description: オンラインでのコミュニケーションで**最も重要な心構え**はどれか。
+    options:
+      - id: a
+        text: 自分の意見を強く主張する
+        isCorrect: false
+        explanation: 一方的な主張よりも相互理解が重要です。
+      - id: b
+        text: 相手も同じ人間であることを忘れずに接する
+        isCorrect: true
+        explanation: 画面の向こうにいるのは自分と同じ感情を持つ人間であることを常に意識することが最も重要です。
+      - id: c
+        text: 匿名だから自由に発言できる
+        isCorrect: false
+        explanation: 匿名でも相手への配慮は必要です。
+      - id: d
+        text: 早くレスポンスを返す
+        isCorrect: false
+        explanation: 速度よりも内容の質と相手への配慮が重要です。
+    explanation: オンラインコミュニケーションでも、相手が自分と同じ感情を持つ人間であることを忘れず、敬意を持って接することが最も重要です。
+    difficulty: easy
+    tags:
+      - コミュニケーション
+      - 人間性
+    points: 15
+
+  # 著作権・知的財産権関連（10問）
+  - id: ethics_016
+    type: single-choice
+    title: 音楽の違法ダウンロード
+    description: 人気アーティストの新曲を無料でダウンロードできるサイトを見つけた。**正しい判断**はどれか。
+    options:
+      - id: a
+        text: 無料なのでダウンロードしても問題ない
+        isCorrect: false
+        explanation: 著作権侵害にあたる違法行為です。
+      - id: b
+        text: 自分だけが楽しむなら大丈夫
+        isCorrect: false
+        explanation: 私的使用でも違法ダウンロードは犯罪です。
+      - id: c
+        text: 著作権侵害にあたるので利用しない
+        isCorrect: true
+        explanation: 正規の購入・配信サービス以外での音楽取得は著作権侵害となります。
+      - id: d
+        text: みんなやっているから問題ない
+        isCorrect: false
+        explanation: 多くの人が行っていても違法行為は違法です。
+    explanation: 著作権で保護された音楽の無断ダウンロードは、個人利用でも違法行為です。正規のサービスを利用しましょう。
+    difficulty: easy
+    tags:
+      - 著作権
+      - 違法ダウンロード
+    points: 15
+
+  - id: ethics_017
+    type: single-choice
+    title: 画像の無断使用
+    description: レポートに使用する画像をインターネットで見つけた。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: 気に入った画像をそのまま使用する
+        isCorrect: false
+        explanation: 著作権の確認が必要です。
+      - id: b
+        text: 画像の著作権を確認し、必要に応じて許可を得る
+        isCorrect: true
+        explanation: 他人の著作物を使用する際は、著作権の確認と適切な手続きが必要です。
+      - id: c
+        text: 少し加工すれば使用しても大丈夫
+        isCorrect: false
+        explanation: 加工しても元の著作権は残ります。
+      - id: d
+        text: 学校の課題なので自由に使える
+        isCorrect: false
+        explanation: 教育目的でも著作権の制限があります。
+    explanation: インターネット上の画像にも著作権があります。使用前に利用条件を確認し、必要に応じて許可を得ることが重要です。
+    difficulty: medium
+    tags:
+      - 著作権
+      - 画像利用
+    points: 15
+
+  - id: ethics_018
+    type: single-choice
+    title: 動画の引用
+    description: YouTubeの動画をレポートで引用する際の**適切な方法**はどれか。
+    options:
+      - id: a
+        text: 動画をダウンロードして自分の動画に組み込む
+        isCorrect: false
+        explanation: 動画のダウンロードや組み込みは著作権侵害の可能性があります。
+      - id: b
+        text: 動画のURLを記載し、参考にした部分を明記する
+        isCorrect: true
+        explanation: 適切な引用では、出典を明記し、参考にした部分を特定することが重要です。
+      - id: c
+        text: 動画の内容を自分の言葉で書くだけで十分
+        isCorrect: false
+        explanation: 参考にした場合は出典を明記する必要があります。
+      - id: d
+        text: 動画のタイトルだけ書けば良い
+        isCorrect: false
+        explanation: タイトルだけでは不十分です。
+    explanation: 動画を引用する際は、URL、タイトル、参考にした部分を明記し、適切な引用のルールに従うことが重要です。
+    difficulty: medium
+    tags:
+      - 引用
+      - 動画利用
+    points: 15
+
+  - id: ethics_019
+    type: single-choice
+    title: ソフトウェアの不正使用
+    description: 友人が有料ソフトを無料でインストールできる方法を教えてくれた。**正しい判断**はどれか。
+    options:
+      - id: a
+        text: お金がかからないので利用する
+        isCorrect: false
+        explanation: 有料ソフトの不正インストールは違法行為です。
+      - id: b
+        text: 学生なので特別に許される
+        isCorrect: false
+        explanation: 学生であっても不正使用は違法です。
+      - id: c
+        text: 著作権侵害にあたるので利用しない
+        isCorrect: true
+        explanation: ソフトウェアの不正コピーや不正インストールは著作権侵害であり犯罪です。
+      - id: d
+        text: バレなければ問題ない
+        isCorrect: false
+        explanation: 発覚の有無に関わらず違法行為です。
+    explanation: ソフトウェアの不正コピーや不正インストールは著作権侵害であり、刑事罰の対象となる犯罪行為です。
+    difficulty: easy
+    tags:
+      - ソフトウェア
+      - 不正使用
+    points: 15
+
+  - id: ethics_020
+    type: single-choice
+    title: レポートでの引用
+    description: レポートで他人の文章を引用する際の**最も重要なルール**はどれか。
+    options:
+      - id: a
+        text: 文章を少し変更すれば引用符は不要
+        isCorrect: false
+        explanation: わずかな変更でも元の著作物の引用には適切な表示が必要です。
+      - id: b
+        text: 引用部分を明確にし、出典を正確に記載する
+        isCorrect: true
+        explanation: 引用では、引用部分の明確化と正確な出典表示が最も重要です。
+      - id: c
+        text: 有名な文章なら出典を書かなくても良い
+        isCorrect: false
+        explanation: 有名な文章でも出典の明記は必要です。
+      - id: d
+        text: インターネットの情報は自由に使える
+        isCorrect: false
+        explanation: インターネット上の情報にも著作権があります。
+    explanation: 適切な引用では、引用部分を明確に示し（引用符や字下げなど）、正確な出典を記載することが最も重要です。
+    difficulty: medium
+    tags:
+      - 引用ルール
+      - レポート作成
+    points: 15
+
+  - id: ethics_021
+    type: single-choice
+    title: 写真の著作権
+    description: 友人が撮影した写真を自分のSNSで使いたい。**最も適切な行動**はどれか。
+    options:
+      - id: a
+        text: 友人の許可を得て、撮影者として友人をクレジットする
+        isCorrect: true
+        explanation: 写真の著作権は撮影者にあるため、許可を得て適切にクレジットすることが重要です。
+      - id: b
+        text: 友人の写真なので自由に使える
+        isCorrect: false
+        explanation: 友人の写真でも著作権は撮影者にあります。
+      - id: c
+        text: 少し加工すれば自分の作品になる
+        isCorrect: false
+        explanation: 加工しても元の著作権は残ります。
+      - id: d
+        text: 撮影者の名前を消して使用する
+        isCorrect: false
+        explanation: 著作者の表示を消すことは著作者人格権の侵害です。
+    explanation: 写真の著作権は撮影者にあります。使用する際は許可を得て、適切にクレジットを表示することが必要です。
+    difficulty: easy
+    tags:
+      - 写真著作権
+      - クレジット表示
+    points: 10
+
+  - id: ethics_022
+    type: single-choice
+    title: 映画の違法視聴
+    description: 映画を無料で視聴できる違法サイトについて、**正しい理解**はどれか。
+    options:
+      - id: a
+        text: 視聴するだけなら法的な問題はない
+        isCorrect: false
+        explanation: 違法にアップロードされたコンテンツの視聴も法的問題があります。
+      - id: b
+        text: 海外のサイトなら日本の法律は適用されない
+        isCorrect: false
+        explanation: 日本からアクセスすれば日本の法律が適用されます。
+      - id: c
+        text: 著作権侵害に加担する行為で利用すべきではない
+        isCorrect: true
+        explanation: 違法サイトの利用は著作権侵害に加担し、コンテンツ産業全体に害を与えます。
+      - id: d
+        text: お金を払わないので被害はない
+        isCorrect: false
+        explanation: 正規の売上減少により創作者や業界に経済的被害をもたらします。
+    explanation: 違法サイトでの映画視聴は著作権侵害に加担する行為であり、創作者や業界に大きな被害をもたらします。
+    difficulty: medium
+    tags:
+      - 違法視聴
+      - 著作権保護
+    points: 15
+
+  - id: ethics_023
+    type: single-choice
+    title: 自作発言
+    description: 他人が作った作品を自分が作ったように発表することの**最も深刻な問題**はどれか。
+    options:
+      - id: a
+        text: 友達に嘘をついたことになる
+        isCorrect: false
+        explanation: より深刻な法的・道徳的問題があります。
+      - id: b
+        text: 著作権侵害と詐欺行為の両方にあたる
+        isCorrect: true
+        explanation: 他人の著作物を自作と偽ることは著作権侵害であり、かつ詐欺的行為でもあります。
+      - id: c
+        text: 成績が良くなりすぎる
+        isCorrect: false
+        explanation: 成績よりも法的・倫理的問題が深刻です。
+      - id: d
+        text: 先生に怒られる
+        isCorrect: false
+        explanation: 学校の処分よりも法的責任が重大です。
+    explanation: 他人の作品を自作と偽ることは著作権侵害であり、同時に詐欺的行為でもある重大な問題です。
+    difficulty: medium
+    tags:
+      - 盗作
+      - 詐欺行為
+    points: 20
+
+  - id: ethics_024
+    type: single-choice
+    title: 教材の複製
+    description: 教科書の一部をクラス全員にコピーして配ることについて、**正しい理解**はどれか。
+    options:
+      - id: a
+        text: 教育目的なので自由にコピーできる
+        isCorrect: false
+        explanation: 教育目的でも制限があります。
+      - id: b
+        text: 必要最小限の範囲であれば教育目的の例外が適用される
+        isCorrect: true
+        explanation: 著作権法では、授業で必要な最小限の範囲であれば複製が認められています。
+      - id: c
+        text: 学校なので著作権は適用されない
+        isCorrect: false
+        explanation: 学校でも著作権法は適用されます。
+      - id: d
+        text: 生徒が個人的に使うなら問題ない
+        isCorrect: false
+        explanation: クラス全員への配布は個人的使用の範囲を超えます。
+    explanation: 教育目的の著作権例外規定により、授業で必要な最小限の範囲であれば複製が認められていますが、範囲には制限があります。
+    difficulty: medium
+    tags:
+      - 教育目的利用
+      - 著作権例外
+    points: 15
+
+  - id: ethics_025
+    type: single-choice
+    title: フリー素材の利用
+    description: 「フリー素材」を利用する際に**注意すべきこと**はどれか。
+    options:
+      - id: a
+        text: フリーなので何にでも自由に使える
+        isCorrect: false
+        explanation: フリー素材にも利用条件があります。
+      - id: b
+        text: 利用条件やライセンスを確認してから使用する
+        isCorrect: true
+        explanation: フリー素材でも利用条件（商用利用の可否、クレジット表示の要否など）を確認することが重要です。
+      - id: c
+        text: 加工すれば自分の作品になる
+        isCorrect: false
+        explanation: 加工しても元の利用条件は適用されます。
+      - id: d
+        text: 出典を明記する必要はない
+        isCorrect: false
+        explanation: フリー素材でも出典表示が求められる場合があります。
+    explanation: フリー素材でも利用条件があります。商用利用の可否、クレジット表示の要否などを確認してから使用しましょう。
+    difficulty: easy
+    tags:
+      - フリー素材
+      - ライセンス確認
+    points: 10
+
+  # セキュリティ・プライバシー関連（10問）
+  - id: ethics_026
+    type: single-choice
+    title: パスワードの管理
+    description: 安全なパスワード管理について、**最も適切な方法**はどれか。
+    options:
+      - id: a
+        text: 覚えやすいように全てのサービスで同じパスワードを使う
+        isCorrect: false
+        explanation: 同一パスワードの使い回しは非常に危険です。
+      - id: b
+        text: 各サービスで異なる複雑なパスワードを使い、安全に管理する
+        isCorrect: true
+        explanation: サービスごとに異なる強固なパスワードを設定し、パスワード管理ツールなどで安全に管理することが重要です。
+      - id: c
+        text: 誕生日や名前を使った覚えやすいパスワードにする
+        isCorrect: false
+        explanation: 推測されやすいパスワードは危険です。
+      - id: d
+        text: パスワードをメモ帳に保存する
+        isCorrect: false
+        explanation: 平文でのパスワード保存は危険です。
+    explanation: セキュリティを確保するには、各サービスで異なる複雑なパスワードを使用し、パスワード管理ツールなどで安全に管理することが重要です。
+    difficulty: easy
+    tags:
+      - パスワード管理
+      - セキュリティ
+    points: 15
+
+  - id: ethics_027
+    type: single-choice
+    title: 公共Wi-Fiの利用
+    description: 公共Wi-Fiを利用する際に**最も注意すべきこと**はどれか。
+    options:
+      - id: a
+        text: 通信速度が遅いこと
+        isCorrect: false
+        explanation: 速度よりもセキュリティが重要な問題です。
+      - id: b
+        text: 重要な個人情報の送受信は避ける
+        isCorrect: true
+        explanation: 公共Wi-Fiは暗号化されていない場合が多く、通信内容が盗聴される危険があります。
+      - id: c
+        text: 長時間使用できないこと
+        isCorrect: false
+        explanation: 利用時間よりもセキュリティリスクが重要です。
+      - id: d
+        text: 料金がかかること
+        isCorrect: false
+        explanation: 料金よりもセキュリティが重要な懸念事項です。
+    explanation: 公共Wi-Fiは暗号化が不十分な場合が多く、パスワードやクレジットカード情報などの重要な情報の送受信は避けるべきです。
+    difficulty: medium
+    tags:
+      - 公共Wi-Fi
+      - 情報セキュリティ
+    points: 15
+
+  - id: ethics_028
+    type: single-choice
+    title: フィッシング詐欺
+    description: 銀行を名乗るメールで「緊急にパスワードを確認してください」と書かれていた。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: メール内のリンクをクリックしてパスワードを入力する
+        isCorrect: false
+        explanation: フィッシング詐欺の可能性が高く、非常に危険です。
+      - id: b
+        text: 銀行の公式サイトから直接ログインして確認する
+        isCorrect: true
+        explanation: 疑わしいメールのリンクは使わず、公式サイトから直接アクセスすることが安全です。
+      - id: c
+        text: メールに返信してパスワードを送る
+        isCorrect: false
+        explanation: メールでパスワードを送信することは絶対に避けるべきです。
+      - id: d
+        text: 電話でパスワードを伝える
+        isCorrect: false
+        explanation: 正規の銀行がパスワードを電話で聞くことはありません。
+    explanation: フィッシング詐欺の可能性があるメールのリンクは絶対にクリックせず、公式サイトから直接アクセスして確認しましょう。
+    difficulty: medium
+    tags:
+      - フィッシング詐欺
+      - 詐欺対策
+    points: 15
+
+  - id: ethics_029
+    type: single-choice
+    title: 個人情報の取り扱い
+    description: 友人の住所や電話番号を他の人に教えることについて、**正しい判断**はどれか。
+    options:
+      - id: a
+        text: 友人同士なので自由に教えて良い
+        isCorrect: false
+        explanation: 他人の個人情報を勝手に教えることは不適切です。
+      - id: b
+        text: 本人の許可を得てから教える
+        isCorrect: true
+        explanation: 個人情報は本人の同意なく第三者に教えてはいけません。
+      - id: c
+        text: 緊急時なら許可なく教えても良い
+        isCorrect: false
+        explanation: 真の緊急時以外は本人の許可が必要です。
+      - id: d
+        text: 身内なら教えても問題ない
+        isCorrect: false
+        explanation: 家族でも本人の許可が原則必要です。
+    explanation: 他人の個人情報は、本人の明確な許可なく第三者に教えてはいけません。プライバシーの保護が重要です。
+    difficulty: easy
+    tags:
+      - 個人情報保護
+      - プライバシー
+    points: 10
+
+  - id: ethics_030
+    type: single-choice
+    title: スマートフォンのセキュリティ
+    description: スマートフォンのセキュリティ対策として**最も重要なこと**はどれか。
+    options:
+      - id: a
+        text: 最新のケースを付ける
+        isCorrect: false
+        explanation: 物理的保護よりもデジタルセキュリティが重要です。
+      - id: b
+        text: 画面ロック機能を設定し、OSやアプリを最新版に保つ
+        isCorrect: true
+        explanation: 画面ロック、OS・アプリの更新は基本的なセキュリティ対策として重要です。
+      - id: c
+        text: 高性能なカメラを使う
+        isCorrect: false
+        explanation: カメラ性能はセキュリティとは関係ありません。
+      - id: d
+        text: 多くのアプリをインストールする
+        isCorrect: false
+        explanation: 不要なアプリは逆にセキュリティリスクを高めます。
+    explanation: スマートフォンのセキュリティには、画面ロック機能の設定、OSやアプリの定期的な更新が基本的で重要な対策です。
+    difficulty: easy
+    tags:
+      - スマートフォンセキュリティ
+      - 基本対策
+    points: 10
+
+  - id: ethics_031
+    type: single-choice
+    title: 不審なアプリのダウンロード
+    description: 人気ゲームの「無料版」を非公式サイトで見つけた。**最も安全な判断**はどれか。
+    options:
+      - id: a
+        text: 無料なのでダウンロードする
+        isCorrect: false
+        explanation: 非公式サイトのアプリは危険な可能性があります。
+      - id: b
+        text: ウイルス対策ソフトがあるからダウンロードする
+        isCorrect: false
+        explanation: ウイルス対策ソフトでも完全には防げません。
+      - id: c
+        text: 公式ストアからのみアプリをダウンロードする
+        isCorrect: true
+        explanation: 公式ストア（App Store、Google Playなど）からのダウンロードが最も安全です。
+      - id: d
+        text: 友達が使っているから安全
+        isCorrect: false
+        explanation: 友達の利用状況だけでは安全性は判断できません。
+    explanation: アプリは必ず公式ストアからダウンロードしましょう。非公式サイトのアプリはマルウェアが仕込まれている危険があります。
+    difficulty: easy
+    tags:
+      - アプリセキュリティ
+      - 公式ストア
+    points: 10
+
+  - id: ethics_032
+    type: single-choice
+    title: 位置情報の共有
+    description: SNSで位置情報を共有する際に**最も注意すべきこと**はどれか。
+    options:
+      - id: a
+        text: バッテリーの消費が激しくなること
+        isCorrect: false
+        explanation: バッテリー消費よりも安全性が重要な問題です。
+      - id: b
+        text: ストーカーや犯罪に悪用される危険性
+        isCorrect: true
+        explanation: 位置情報の公開は、ストーカーや犯罪者に悪用される危険があり、特に注意が必要です。
+      - id: c
+        text: 通信料金が高くなること
+        isCorrect: false
+        explanation: 料金よりも安全性が重要な懸念事項です。
+      - id: d
+        text: 友達に居場所がバレること
+        isCorrect: false
+        explanation: 友達よりも悪意のある第三者への情報漏洩が問題です。
+    explanation: 位置情報の共有は、ストーカーや犯罪者に悪用される可能性があるため、慎重に設定し、不必要な公開は避けるべきです。
+    difficulty: medium
+    tags:
+      - 位置情報
+      - プライバシー保護
+    points: 15
+
+  - id: ethics_033
+    type: single-choice
+    title: 怪しいリンク
+    description: 「あなたに1億円当選！今すぐクリック」というメッセージが届いた。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: 興味があるのでリンクをクリックする
+        isCorrect: false
+        explanation: 典型的な詐欺手法なので非常に危険です。
+      - id: b
+        text: 詐欺の可能性が高いので無視・削除する
+        isCorrect: true
+        explanation: 不自然に良い条件の宣伝は詐欺の可能性が高く、無視することが最も安全です。
+      - id: c
+        text: 友達にも教えてあげる
+        isCorrect: false
+        explanation: 詐欺の拡散に協力することになります。
+      - id: d
+        text: とりあえず個人情報を入力してみる
+        isCorrect: false
+        explanation: 個人情報が悪用される危険があります。
+    explanation: 「簡単に大金が得られる」などの不自然な宣伝は詐欺の典型的な手法です。無視して削除することが最も安全です。
+    difficulty: easy
+    tags:
+      - 詐欺対策
+      - 怪しいリンク
+    points: 10
+
+  - id: ethics_034
+    type: single-choice
+    title: プライバシー設定
+    description: SNSアカウントのプライバシー設定について、**最も適切な方針**はどれか。
+    options:
+      - id: a
+        text: 多くの人に見てもらいたいので全て公開設定にする
+        isCorrect: false
+        explanation: 全公開は様々なリスクを伴います。
+      - id: b
+        text: 投稿内容に応じて適切に公開範囲を設定する
+        isCorrect: true
+        explanation: 投稿内容の性質に応じて、適切な公開範囲を設定することが重要です。
+      - id: c
+        text: 設定が面倒なのでデフォルトのまま使う
+        isCorrect: false
+        explanation: デフォルト設定は必ずしも安全ではありません。
+      - id: d
+        text: 友達だけに公開すれば何でも投稿できる
+        isCorrect: false
+        explanation: 友達限定でも投稿内容には注意が必要です。
+    explanation: プライバシー設定は投稿内容に応じて適切に調整し、不必要な情報の公開は避けることが重要です。
+    difficulty: medium
+    tags:
+      - プライバシー設定
+      - 情報管理
+    points: 15
+
+  - id: ethics_035
+    type: single-choice
+    title: 二段階認証
+    description: 重要なアカウントのセキュリティ向上のため、**最も効果的な方法**はどれか。
+    options:
+      - id: a
+        text: パスワードを長くする
+        isCorrect: false
+        explanation: パスワードの強化も重要ですが、より効果的な方法があります。
+      - id: b
+        text: 二段階認証を設定する
+        isCorrect: true
+        explanation: 二段階認証は、パスワードに加えて別の認証要素を使用するため、セキュリティが大幅に向上します。
+      - id: c
+        text: パスワードを定期的に変更する
+        isCorrect: false
+        explanation: 定期変更も有効ですが、二段階認証の方が効果的です。
+      - id: d
+        text: 複雑な秘密の質問を設定する
+        isCorrect: false
+        explanation: 秘密の質問よりも二段階認証の方が安全です。
+    explanation: 二段階認証は、パスワードだけでは防げない不正アクセスを防ぐ最も効果的なセキュリティ対策の一つです。
+    difficulty: medium
+    tags:
+      - 二段階認証
+      - アカウントセキュリティ
+    points: 15
+
+  # ネット依存・健康関連（8問）
+  - id: ethics_036
+    type: single-choice
+    title: スマートフォン依存
+    description: スマートフォンの使いすぎが心配になった。**最も効果的な対策**はどれか。
+    options:
+      - id: a
+        text: 気にせずに好きなだけ使う
+        isCorrect: false
+        explanation: 依存の問題を放置することは健康に良くありません。
+      - id: b
+        text: 使用時間を記録し、意識的に制限する
+        isCorrect: true
+        explanation: 使用状況を客観視し、意識的にコントロールすることが依存対策の基本です。
+      - id: c
+        text: スマートフォンを完全に使わない
+        isCorrect: false
+        explanation: 現代社会では現実的ではなく、適切な使用が重要です。
+      - id: d
+        text: 新しい機種に変える
+        isCorrect: false
+        explanation: 機種変更は根本的な解決になりません。
+    explanation: スマートフォン依存の対策には、使用時間の記録と意識的な制限が効果的です。自分の使用パターンを把握することから始めましょう。
+    difficulty: medium
+    tags:
+      - スマートフォン依存
+      - 自己管理
+    points: 15
+
+  - id: ethics_037
+    type: single-choice
+    title: ゲーム依存
+    description: オンラインゲームにのめり込んで学業に支障が出ている。**最も適切な対応**はどれか。
+    options:
+      - id: a
+        text: ゲームをやめる必要はない
+        isCorrect: false
+        explanation: 学業に支障が出ている状況は改善が必要です。
+      - id: b
+        text: プレイ時間を決めて自己管理し、必要に応じて周囲に相談する
+        isCorrect: true
+        explanation: 適切な時間管理と、必要に応じた周囲のサポートを求めることが重要です。
+      - id: c
+        text: より面白いゲームを探す
+        isCorrect: false
+        explanation: 問題の根本的解決にはなりません。
+      - id: d
+        text: 夜中にプレイすれば学校に影響しない
+        isCorrect: false
+        explanation: 夜中のプレイは睡眠不足など別の問題を引き起こします。
+    explanation: ゲーム依存で生活に支障が出ている場合は、時間管理を徹底し、必要に応じて家族や専門家に相談することが重要です。
+    difficulty: medium
+    tags:
+      - ゲーム依存
+      - 生活管理
+    points: 15
+
+  - id: ethics_038
+    type: single-choice
+    title: 睡眠とデジタル機器
+    description: 良質な睡眠のために、**就寝前に避けるべき行動**はどれか。
+    options:
+      - id: a
+        text: 読書をする
+        isCorrect: false
+        explanation: 適度な読書は睡眠に悪影響を与えません。
+      - id: b
+        text: スマートフォンやタブレットを長時間使用する
+        isCorrect: true
+        explanation: ブルーライトの影響で睡眠の質が低下するため、就寝前のデジタル機器使用は避けるべきです。
+      - id: c
+        text: 軽いストレッチをする
+        isCorrect: false
+        explanation: 軽い運動は睡眠に良い影響を与えます。
+      - id: d
+        text: 部屋を暗くする
+        isCorrect: false
+        explanation: 部屋を暗くすることは良い睡眠につながります。
+    explanation: スマートフォンやタブレットから出るブルーライトは、睡眠ホルモンの分泌を妨げるため、就寝前の使用は避けるべきです。
+    difficulty: easy
+    tags:
+      - 睡眠の質
+      - ブルーライト
+    points: 10
+
+  - id: ethics_039
+    type: single-choice
+    title: デジタルデトックス
+    description: 「デジタルデトックス」について、**最も適切な説明**はどれか。
+    options:
+      - id: a
+        text: デジタル機器を完全に使わない生活を送ること
+        isCorrect: false
+        explanation: 完全な排除ではなく、適度な距離を置くことです。
+      - id: b
+        text: 意識的にデジタル機器から離れる時間を作ること
+        isCorrect: true
+        explanation: デジタルデトックスは、意識的にデジタル機器から距離を置き、精神的・身体的健康を回復することです。
+      - id: c
+        text: 最新のデジタル機器に買い替えること
+        isCorrect: false
+        explanation: 機器の更新とは関係ありません。
+      - id: d
+        text: デジタル機器の掃除をすること
+        isCorrect: false
+        explanation: 物理的な掃除とは異なります。
+    explanation: デジタルデトックスは、デジタル機器との適切な距離を保ち、心身の健康を維持するための重要な取り組みです。
+    difficulty: easy
+    tags:
+      - デジタルデトックス
+      - 健康管理
+    points: 10
+
+  - id: ethics_040
+    type: single-choice
+    title: 目の健康
+    description: 長時間のスマートフォン使用による目への影響を軽減するために**最も効果的な方法**はどれか。
+    options:
+      - id: a
+        text: 画面を明るくして見やすくする
+        isCorrect: false
+        explanation: 画面を明るくしすぎると目に負担をかけます。
+      - id: b
+        text: 20-20-20ルール（20分ごとに20秒間、20フィート先を見る）を実践する
+        isCorrect: true
+        explanation: 定期的に目を休めることで、眼精疲労を軽減できます。
+      - id: c
+        text: より小さい画面の機器を使う
+        isCorrect: false
+        explanation: 小さい画面は逆に目に負担をかけます。
+      - id: d
+        text: 暗い場所で使用する
+        isCorrect: false
+        explanation: 暗い場所での使用は目に大きな負担をかけます。
+    explanation: 20-20-20ルールは眼精疲労の予防に効果的です。20分ごとに20秒間、20フィート（約6メートル）先を見ることで目の筋肉をリラックスさせます。
+    difficulty: medium
+    tags:
+      - 目の健康
+      - 眼精疲労対策
+    points: 15
+
+  - id: ethics_041
+    type: single-choice
+    title: 姿勢とデジタル機器
+    description: スマートフォンの長時間使用による「ストレートネック」を予防するために**最も重要なこと**はどれか。
+    options:
+      - id: a
+        text: より軽いスマートフォンを使う
+        isCorrect: false
+        explanation: 重量よりも使用姿勢が重要です。
+      - id: b
+        text: 正しい姿勢を意識し、適度に休憩を取る
+        isCorrect: true
+        explanation: 画面を見下ろす姿勢を避け、適切な高さで使用し、定期的に首や肩を動かすことが重要です。
+      - id: c
+        text: 使用時間を気にせず好きなだけ使う
+        isCorrect: false
+        explanation: 長時間の使用は姿勢の問題を悪化させます。
+      - id: d
+        text: 横になって使用する
+        isCorrect: false
+        explanation: 横になっての使用も首に負担をかけます。
+    explanation: ストレートネックの予防には、正しい姿勢での使用と定期的な休憩が最も重要です。画面の高さを調整し、首を前に突き出す姿勢を避けましょう。
+    difficulty: medium
+    tags:
+      - 姿勢
+      - ストレートネック予防
+    points: 15
+
+  - id: ethics_042
+    type: single-choice
+    title: SNS疲れ
+    description: SNSを見ているとなんとなく気分が落ち込む。**最も適切な対処法**はどれか。
+    options:
+      - id: a
+        text: より多くの投稿をして注目を集める
+        isCorrect: false
+        explanation: 承認欲求に駆られた行動は問題を悪化させる可能性があります。
+      - id: b
+        text: SNSから一時的に距離を置き、リアルな活動に時間を使う
+        isCorrect: true
+        explanation: SNS疲れには、一時的にSNSから離れて現実の活動に集中することが効果的です。
+      - id: c
+        text: 他の人の投稿にもっと「いいね」をする
+        isCorrect: false
+        explanation: 受動的な行動では根本的な解決にはなりません。
+      - id: d
+        text: より多くの人をフォローする
+        isCorrect: false
+        explanation: 情報量を増やすことは疲れを悪化させる可能性があります。
+    explanation: SNS疲れを感じたら、一時的にSNSから距離を置き、運動や読書、友人との直接的な交流など、リアルな活動に時間を使うことが効果的です。
+    difficulty: medium
+    tags:
+      - SNS疲れ
+      - メンタルヘルス
+    points: 15
+
+  - id: ethics_043
+    type: single-choice
+    title: 適切な利用時間
+    description: 高校生にとって、平日のスマートフォン利用時間として**最も適切な目安**はどれか。
+    options:
+      - id: a
+        text: 制限なく自由に使用
+        isCorrect: false
+        explanation: 無制限の使用は学習や健康に悪影響を与えます。
+      - id: b
+        text: 学習時間や睡眠時間を確保した上で、1-3時間程度
+        isCorrect: true
+        explanation: 学習、睡眠、運動などの基本的な生活を確保した上で、適度にデジタル機器を利用することが健康的です。
+      - id: c
+        text: 1日30分以内
+        isCorrect: false
+        explanation: 現代の高校生には現実的でなく、適切な範囲での利用が重要です。
+      - id: d
+        text: 6時間以上
+        isCorrect: false
+        explanation: 長時間の使用は依存や健康問題のリスクが高まります。
+    explanation: 高校生は学習時間、睡眠時間、運動時間、家族や友人との時間を確保した上で、適度にデジタル機器を利用することが重要です。
+    difficulty: medium
+    tags:
+      - 利用時間管理
+      - 生活バランス
+    points: 15
+
+  # 情報の信頼性・メディアリテラシー関連（10問）
+  - id: ethics_044
+    type: single-choice
+    title: 情報の信頼性
+    description: インターネット上の情報の信頼性を判断する際に**最も重要な観点**はどれか。
+    options:
+      - id: a
+        text: 情報が面白いかどうか
+        isCorrect: false
+        explanation: 面白さと信頼性は関係ありません。
+      - id: b
+        text: 情報源が明確で、複数の信頼できるソースで確認できるか
+        isCorrect: true
+        explanation: 情報の信頼性を判断するには、情報源の明確性と複数の信頼できるソースでの確認が最も重要です。
+      - id: c
+        text: 多くの人がシェアしているかどうか
+        isCorrect: false
+        explanation: 拡散の多さは信頼性の保証にはなりません。
+      - id: d
+        text: 新しい情報かどうか
+        isCorrect: false
+        explanation: 新しさだけでは信頼性は判断できません。
+    explanation: 情報の信頼性を判断するには、情報源の明確性、複数の信頼できるソースでの裏付け、専門性などを総合的に検討することが重要です。
+    difficulty: medium
+    tags:
+      - 情報の信頼性
+      - メディアリテラシー
+    points: 15
+
+  - id: ethics_045
+    type: single-choice
+    title: フェイクニュース
+    description: フェイクニュースを見分けるために**最も有効な方法**はどれか。
+    options:
+      - id: a
+        text: 記事のタイトルが興味深いかで判断する
+        isCorrect: false
+        explanation: 興味深いタイトルはむしろ注意が必要な場合があります。
+      - id: b
+        text: 複数の信頼できるメディアで同じ内容が報道されているか確認する
+        isCorrect: true
+        explanation: フェイクニュースの判別には、複数の信頼できるメディアでの確認が最も効果的です。
+      - id: c
+        text: SNSでの拡散状況を確認する
+        isCorrect: false
+        explanation: SNSでの拡散はフェイクニュースの判別基準にはなりません。
+      - id: d
+        text: 記事の文字数が多いかで判断する
+        isCorrect: false
+        explanation: 文字数は信頼性の指標にはなりません。
+    explanation: フェイクニュースを見分けるには、複数の信頼できるメディアソースで同じ情報が報道されているかを確認することが最も重要です。
+    difficulty: medium
+    tags:
+      - フェイクニュース
+      - 情報検証
+    points: 15
+
+  - id: ethics_046
+    type: single-choice
+    title: 情報の偏り
+    description: インターネットで情報収集する際に**避けるべき行動**はどれか。
+    options:
+      - id: a
+        text: 複数のサイトから情報を集める
+        isCorrect: false
+        explanation: 複数のソースからの情報収集は適切です。
+      - id: b
+        text: 自分の意見と同じ情報ばかりを集める
+        isCorrect: true
+        explanation: 確証バイアスに陥り、偏った理解しかできなくなる危険があります。
+      - id: c
+        text: 情報の日付を確認する
+        isCorrect: false
+        explanation: 情報の新しさの確認は重要です。
+      - id: d
+        text: 著者や運営者を確認する
+        isCorrect: false
+        explanation: 情報源の確認は重要な行動です。
+    explanation: 自分の既存の考えに合う情報ばかりを集めると、偏った理解しかできなくなります。異なる視点の情報も収集することが重要です。
+    difficulty: medium
+    tags:
+      - 確証バイアス
+      - 情報収集
+    points: 15
+
+  - id: ethics_047
+    type: single-choice
+    title: 専門情報の理解
+    description: 医療や科学などの専門分野の情報をネットで調べる際に**最も注意すべきこと**はどれか。
+    options:
+      - id: a
+        text: 最新の情報を探す
+        isCorrect: false
+        explanation: 新しさも重要ですが、より重要な観点があります。
+      - id: b
+        text: 専門家や信頼できる機関の情報を優先する
+        isCorrect: true
+        explanation: 専門分野では、資格を持つ専門家や信頼できる学術機関の情報を優先することが重要です。
+      - id: c
+        text: 多くの人が推薦している情報を選ぶ
+        isCorrect: false
+        explanation: 人気と専門性は必ずしも一致しません。
+      - id: d
+        text: 分かりやすく書かれた情報を選ぶ
+        isCorrect: false
+        explanation: 分かりやすさよりも専門性や正確性が重要です。
+    explanation: 医療や科学などの専門分野では、一般人の意見より、資格を持つ専門家や信頼できる学術機関の情報を優先すべきです。
+    difficulty: medium
+    tags:
+      - 専門情報
+      - 権威性
+    points: 15
+
+  - id: ethics_048
+    type: single-choice
+    title: 統計情報の解釈
+    description: ネット上で「○○の効果が90%向上！」という統計を見た。**最初に確認すべきこと**はどれか。
+    options:
+      - id: a
+        text: その商品を購入できるかどうか
+        isCorrect: false
+        explanation: 購入前に情報の信頼性を確認することが重要です。
+      - id: b
+        text: 調査方法、サンプル数、比較対象などの詳細
+        isCorrect: true
+        explanation: 統計の信頼性を判断するには、調査方法、サンプル数、比較対象などの詳細な情報が必要です。
+      - id: c
+        text: 他の人の感想やレビュー
+        isCorrect: false
+        explanation: 個人の感想より客観的なデータの検証が重要です。
+      - id: d
+        text: 価格が適切かどうか
+        isCorrect: false
+        explanation: 価格より統計の妥当性が重要です。
+    explanation: 統計情報は調査方法、サンプル数、比較対象、調査機関などの詳細を確認しないと、その信頼性を判断できません。
+    difficulty: medium
+    tags:
+      - 統計リテラシー
+      - データの解釈
+    points: 15
+
+  - id: ethics_049
+    type: single-choice
+    title: 情報の拡散責任
+    description: 災害時の緊急情報をSNSで見つけた。**最も責任ある行動**はどれか。
+    options:
+      - id: a
+        text: すぐに拡散して多くの人に知らせる
+        isCorrect: false
+        explanation: 未確認情報の拡散は混乱を招く可能性があります。
+      - id: b
+        text: 情報の真偽を確認してから適切に共有する
+        isCorrect: true
+        explanation: 災害時こそ正確な情報が重要です。公式機関で確認してから共有することが責任ある行動です。
+      - id: c
+        text: 面白そうなので友達だけに教える
+        isCorrect: false
+        explanation: 災害情報を娯楽として扱うべきではありません。
+      - id: d
+        text: 自分だけ知っていれば十分
+        isCorrect: false
+        explanation: 確認済みの重要な情報は適切に共有すべきです。
+    explanation: 災害時の情報拡散では、デマや誤情報による混乱を避けるため、公式機関での確認後に適切に共有することが重要です。
+    difficulty: medium
+    tags:
+      - 災害時情報
+      - 責任ある拡散
+    points: 20
+
+  - id: ethics_050
+    type: single-choice
+    title: 情報モラルの総合判断
+    description: 情報社会で最も重要な基本的態度として、**最も適切なもの**はどれか。
+    options:
+      - id: a
+        text: 最新の技術を常に使いこなすこと
+        isCorrect: false
+        explanation: 技術の習得よりも倫理的な態度が重要です。
+      - id: b
+        text: 自分と他人の権利を尊重し、責任を持って行動すること
+        isCorrect: true
+        explanation: 情報社会では、自分と他人の権利の尊重、そして自分の行動に責任を持つことが最も基本的で重要な態度です。
+      - id: c
+        text: できるだけ多くの情報を発信すること
+        isCorrect: false
+        explanation: 量よりも質と責任が重要です。
+      - id: d
+        text: 人気のあるサービスを使うこと
+        isCorrect: false
+        explanation: 人気よりも適切な利用が重要です。
+    explanation: 情報モラルの基本は、自分と他人の権利（プライバシー、著作権、人格権など）を尊重し、自分の行動が社会に与える影響を考えて責任を持って行動することです。これがすべての情報活動の基礎となります。
+    difficulty: easy
+    tags:
+      - 情報モラル総合
+      - 基本的態度
+    points: 20
