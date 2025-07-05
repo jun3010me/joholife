@@ -1,7 +1,6 @@
 questionSets:
   - binary_conversion
   - hex_conversion
-  - algorithms
   - image_digitization
   - copyright
   - industrial
