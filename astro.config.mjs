@@ -8,6 +8,9 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://jun3010me.github.io',
   integrations: [react()],
+  devToolbar: {
+    enabled: false
+  },
   vite: {
     plugins: [tailwindcss()]
   }

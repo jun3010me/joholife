@@ -49,7 +49,26 @@ const { title } = Astro.props;
 
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2025 情報Ⅰ学習サイト. すべての権利を保有します。</p>
+            <div class="footer-main">
+                <p>&copy; 2025 じょうほうらいふ by 魚住惇</p>
+                <div class="footer-links">
+                    <a href="https://github.com/jun3010me/joholife" target="_blank" rel="noopener noreferrer" class="footer-link">
+                        <span>📁</span> GitHub
+                    </a>
+                    <span class="footer-separator">|</span>
+                    <a href="mailto:uozumi5010あっとaichi-c.ed.jp" class="footer-link">
+                        <span>✉️</span> お問い合わせ
+                    </a>
+                </div>
+            </div>
+            <div class="footer-license">
+                <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer" class="license-link">
+                    <img alt="クリエイティブ・コモンズ・ライセンス" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" />
+                </a>
+                <p class="license-text">
+                    この作品は <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a> の下に提供されています
+                </p>
+            </div>
         </div>
     </footer>
 
@@ -254,6 +273,71 @@ body {
     font-size: 0.875rem;
 }
 
+.footer-main {
+    margin-bottom: 1.5rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.footer-link:hover {
+    color: var(--primary-color);
+}
+
+.footer-separator {
+    color: var(--border);
+    margin: 0 0.25rem;
+}
+
+.footer-license {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.license-link {
+    display: inline-block;
+    transition: opacity 0.3s ease;
+}
+
+.license-link:hover {
+    opacity: 0.8;
+}
+
+.license-text {
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.license-text a {
+    color: var(--text-muted);
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.license-text a:hover {
+    color: var(--primary-color);
+}
+
 /* グローバルスタイル */
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
@@ -400,6 +484,19 @@ a:hover {
     
     .card {
         padding: 1.5rem;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .footer-separator {
+        display: none;
+    }
+    
+    .footer-license {
+        gap: 1rem;
     }
 }
 
