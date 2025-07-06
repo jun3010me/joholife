@@ -1,0 +1,444 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="データベース設計体験ツール">
+    <link rel="stylesheet" href="/styles/database-design-tool.css">
+
+    <div class="container">
+        <div class="header">
+            <h1>🗃️ データベース設計体験ツール</h1>
+            <p>テーブルを作成して、データベースの設計を体験してみよう！</p>
+            <div class="mode-selector" style="margin-top: 15px;">
+                <button class="btn mode-btn active" onclick="switchMode('design')" id="designModeBtn">
+                    🏗️ 設計モード
+                </button>
+                <button class="btn mode-btn" onclick="switchMode('learning')" id="learningModeBtn">
+                    📚 学習モード
+                </button>
+                <button class="btn mode-btn" onclick="switchMode('quiz')" id="quizModeBtn">
+                    📝 テストモード
+                </button>
+                <button class="btn mode-btn" onclick="switchMode('sql')" id="sqlModeBtn">
+                    💻 SQL実行モード
+                </button>
+            </div>
+        </div>
+
+        <!-- 設計モード用プリセット -->
+        <div id="designPresets" class="preset-buttons">
+            <div class="preset-btn" onclick="loadPreset('school')">
+                <h3>🏫 学校管理システム</h3>
+                <p>生徒、クラス、科目の管理</p>
+            </div>
+            <div class="preset-btn" onclick="loadPreset('library')">
+                <h3>📚 図書館システム</h3>
+                <p>本、利用者、貸出の管理</p>
+            </div>
+            <div class="preset-btn" onclick="loadPreset('ecommerce')">
+                <h3>🛒 ECサイト</h3>
+                <p>商品、顧客、注文の管理</p>
+            </div>
+            <div class="preset-btn" onclick="loadPreset('club')">
+                <h3>🏆 部活動管理</h3>
+                <p>部員、部活、大会の管理</p>
+            </div>
+        </div>
+
+        <!-- 学習モードコンテンツ -->
+        <div id="learningContent" class="learning-content">
+            <div class="lesson-progress">
+                <h3>📊 学習進捗</h3>
+                <div class="progress-bar">
+                    <div id="overallProgress" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p style="margin-top: 5px; font-size: 14px;">完了: <span id="progressText">0/8</span> レッスン</p>
+            </div>
+            
+            <div class="preset-buttons">
+                <div class="preset-btn" onclick="startLesson('basics')">
+                    <h3>📖 第1章：データベース基礎</h3>
+                    <p>データベースとは何か、基本概念を学ぶ</p>
+                    <div id="lesson-basics-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('tables')">
+                    <h3>🗃️ 第2章：テーブル設計</h3>
+                    <p>テーブル、フィールド、データ型について</p>
+                    <div id="lesson-tables-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('keys')">
+                    <h3>🔑 第3章：主キー・外部キー</h3>
+                    <p>キーの概念とリレーションシップ</p>
+                    <div id="lesson-keys-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('normalization')">
+                    <h3>⚡ 第4章：正規化</h3>
+                    <p>データの重複を避ける正規化技法</p>
+                    <div id="lesson-normalization-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('er-diagram')">
+                    <h3>🔗 第5章：ER図</h3>
+                    <p>エンティティ関係図の読み方・書き方</p>
+                    <div id="lesson-er-diagram-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('sql-basics')">
+                    <h3>💾 第6章：SQL基礎</h3>
+                    <p>CREATE TABLE、INSERT文の理解</p>
+                    <div id="lesson-sql-basics-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('practical')">
+                    <h3>🛠️ 第7章：実践演習</h3>
+                    <p>実際にデータベースを設計してみよう</p>
+                    <div id="lesson-practical-status" class="lesson-status">未学習</div>
+                </div>
+                <div class="preset-btn" onclick="startLesson('review')">
+                    <h3>📋 第8章：総復習</h3>
+                    <p>学んだ内容の振り返りと応用</p>
+                    <div id="lesson-review-status" class="lesson-status">未学習</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- テストモードコンテンツ -->
+        <div id="quizContent" class="learning-content">
+            <div class="lesson-progress">
+                <h3>📝 テスト成績</h3>
+                <div class="progress-bar">
+                    <div id="quizProgress" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p style="margin-top: 5px; font-size: 14px;">平均点: <span id="averageScore">0</span>% | 完了テスト: <span id="completedQuizzes">0/6</span></p>
+            </div>
+            
+            <div class="preset-buttons">
+                <div class="preset-btn" onclick="startQuiz('basic-concepts')">
+                    <h3>📚 基礎概念テスト</h3>
+                    <p>データベースの基本用語と概念（10問）</p>
+                    <div id="quiz-basic-concepts-score" class="lesson-status">未受験</div>
+                </div>
+                <div class="preset-btn" onclick="startQuiz('table-design')">
+                    <h3>🏗️ テーブル設計テスト</h3>
+                    <p>テーブル構造とデータ型（10問）</p>
+                    <div id="quiz-table-design-score" class="lesson-status">未受験</div>
+                </div>
+                <div class="preset-btn" onclick="startQuiz('relationships')">
+                    <h3>🔗 リレーションシップテスト</h3>
+                    <p>主キー、外部キー、関係性（10問）</p>
+                    <div id="quiz-relationships-score" class="lesson-status">未受験</div>
+                </div>
+                <div class="preset-btn" onclick="startQuiz('normalization')">
+                    <h3>⚡ 正規化テスト</h3>
+                    <p>第1～第3正規形（8問）</p>
+                    <div id="quiz-normalization-score" class="lesson-status">未受験</div>
+                </div>
+                <div class="preset-btn" onclick="startQuiz('er-diagrams')">
+                    <h3>📊 ER図読解テスト</h3>
+                    <p>ER図の解釈と作成（8問）</p>
+                    <div id="quiz-er-diagrams-score" class="lesson-status">未受験</div>
+                </div>
+                <div class="preset-btn" onclick="startQuiz('comprehensive')">
+                    <h3>🎯 総合テスト</h3>
+                    <p>全範囲から出題（15問）</p>
+                    <div id="quiz-comprehensive-score" class="lesson-status">未受験</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL実行モードコンテンツ -->
+        <div id="sqlContent" class="learning-content">
+            <div class="lesson-card">
+                <h3>💻 SQL SELECT文を実行してみよう</h3>
+                <p>設計したテーブルのサンプルデータに対してSELECT文を実行できます。いろいろな検索条件を試してみましょう！</p>
+            </div>
+            
+            <div class="preset-buttons">
+                <div class="preset-btn" onclick="loadSQLPreset('school')">
+                    <h3>🏫 学校管理システム</h3>
+                    <p>生徒、クラス、科目のデータでSQL練習</p>
+                </div>
+                <div class="preset-btn" onclick="loadSQLPreset('library')">
+                    <h3>📚 図書館システム</h3>
+                    <p>本、利用者、貸出のデータでSQL練習</p>
+                </div>
+                <div class="preset-btn" onclick="loadSQLPreset('ecommerce')">
+                    <h3>🛒 ECサイト</h3>
+                    <p>商品、顧客、注文のデータでSQL練習</p>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 20px;">
+                <h2>🔍 SQL実行エリア</h2>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">SELECT文を入力してください：</label>
+                    <textarea id="sqlInput" style="width: 100%; height: 150px; border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; font-family: 'Courier New', monospace; font-size: 14px;" placeholder="例: SELECT * FROM students WHERE grade = '1年';"></textarea>
+                </div>
+                <div class="toolbar">
+                    <button class="btn" onclick="executeSQLQuery()">▶️ 実行</button>
+                    <button class="btn btn-secondary" onclick="clearSQLInput()">🗑️ クリア</button>
+                    <button class="btn btn-preset" onclick="showSQLExamples()">📝 例文を見る</button>
+                </div>
+                
+                <div id="sqlResultArea" style="margin-top: 20px;">
+                    <h3>📊 実行結果</h3>
+                    <div id="sqlResults" style="background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px; padding: 15px; min-height: 100px;">
+                        <p style="text-align: center; color: #718096;">SQL文を実行すると、ここに結果が表示されます</p>
+                    </div>
+                </div>
+
+                <div id="tableDataPreview" style="margin-top: 20px;">
+                    <h3>📋 テーブルデータ一覧</h3>
+                    <div id="previewTables" style="background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px; padding: 15px;">
+                        <p style="text-align: center; color: #718096;">プリセットを選択すると、テーブルデータが表示されます</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="designContent" class="main-content">
+            <div class="design-grid">
+                <div class="panel">
+                    <h2>📋 テーブル設計</h2>
+                    <div class="toolbar">
+                        <button class="btn" onclick="showNewTableModal()">
+                            ➕ 新しいテーブル
+                        </button>
+                        <button class="btn btn-secondary" onclick="addSampleData()">
+                            📊 サンプルデータ
+                        </button>
+                        <button class="btn btn-preset" onclick="exportDesign()">
+                            💾 設計保存
+                        </button>
+                        <button class="btn btn-preset" onclick="importDesign()">
+                            📁 設計読込
+                        </button>
+                        <button class="btn btn-danger" onclick="clearAll()">
+                            🗑️ 全て削除
+                        </button>
+                    </div>
+                    <div class="table-designer">
+                        <div id="tableList" class="table-list">
+                            <p style="text-align: center; color: #718096; margin-top: 50px;">
+                                まずはテーブルを作成してみましょう！<br>
+                                上の「新しいテーブル」ボタンをクリックしてください。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🔗 ER図</h2>
+                    <div class="toolbar">
+                        <button class="btn" onclick="generateERDiagram()">
+                            🔄 図を更新
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportDiagram()">
+                            💾 図を保存
+                        </button>
+                    </div>
+                    <div id="erDiagram" class="er-diagram">
+                        <p style="text-align: center; color: #718096; margin-top: 180px;">
+                            テーブルを作成すると、ここにER図が表示されます
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('sql')">SQL生成</div>
+                <div class="tab" onclick="showTab('data')">データ入力</div>
+                <div class="tab" onclick="showTab('validation')">設計チェック</div>
+            </div>
+            
+            <div id="sqlTab" class="tab-content active">
+                <div class="toolbar">
+                    <button class="btn" onclick="generateSQL()">🔧 SQL生成</button>
+                    <button class="btn btn-secondary" onclick="copySQL()">📋 コピー</button>
+                </div>
+                <div id="sqlOutput" class="sql-output">
+-- ここに生成されたSQLが表示されます
+-- 「SQL生成」ボタンをクリックしてください</div>
+            </div>
+            
+            <div id="dataTab" class="tab-content">
+                <div class="toolbar">
+                    <button class="btn" onclick="showDataEntryModal()">➕ データ追加</button>
+                    <button class="btn btn-secondary" onclick="importCSV()">📁 CSV読込</button>
+                </div>
+                <div id="dataDisplay">
+                    <p style="text-align: center; color: #718096; margin: 20px 0;">
+                        テーブルにデータを追加してみましょう
+                    </p>
+                </div>
+            </div>
+            
+            <div id="validationTab" class="tab-content">
+                <div class="toolbar">
+                    <button class="btn" onclick="validateDesign()">✅ 設計をチェック</button>
+                    <button class="btn btn-preset" onclick="showSaveManagementModal()">📂 保存管理</button>
+                </div>
+                <div id="validationResults">
+                    <p style="text-align: center; color: #718096; margin: 20px 0;">
+                        「設計をチェック」ボタンでデータベース設計を検証できます
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- テーブル作成/編集モーダル -->
+    <div id="tableModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新しいテーブル</h2>
+                <span class="close" onclick="closeModal('tableModal')">&times;</span>
+            </div>
+            <form id="tableForm">
+                <div class="form-group">
+                    <label for="tableName">テーブル名</label>
+                    <input type="text" id="tableName" placeholder="例：students（生徒）" required>
+                </div>
+                <div class="form-group">
+                    <label>フィールド（列）</label>
+                    <div id="fieldsList">
+                        <!-- フィールドがここに動的に追加されます -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addField()">
+                        ➕ フィールド追加
+                    </button>
+                </div>
+                <div class="toolbar">
+                    <button type="submit" class="btn">💾 保存</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('tableModal')">
+                        キャンセル
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- データ入力モーダル -->
+    <div id="dataModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>データ入力</h2>
+                <span class="close" onclick="closeModal('dataModal')">&times;</span>
+            </div>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label for="selectTable">テーブル選択</label>
+                    <select id="selectTable" onchange="updateDataForm()">
+                        <option value="">テーブルを選択してください</option>
+                    </select>
+                </div>
+                <div id="dataFields">
+                    <!-- データ入力フィールドがここに動的に追加されます -->
+                </div>
+                <div class="toolbar">
+                    <button type="submit" class="btn">💾 データ追加</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('dataModal')">
+                        キャンセル
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 保存管理モーダル -->
+    <div id="saveManagementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📂 設計の保存管理</h2>
+                <span class="close" onclick="closeModal('saveManagementModal')">&times;</span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>💾 現在の設計を保存</h3>
+                <div class="form-group">
+                    <label for="saveName">保存名</label>
+                    <input type="text" id="saveName" placeholder="例：学校管理システム_v1" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="saveDescription">説明（任意）</label>
+                    <textarea id="saveDescription" placeholder="設計の概要や特徴を記述してください" rows="3" style="width: 100%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; resize: vertical;"></textarea>
+                </div>
+                <div class="toolbar">
+                    <button type="button" class="btn" onclick="saveCurrentDesign()">💾 保存実行</button>
+                    <button type="button" class="btn btn-secondary" onclick="exportToFile()">📤 ファイル出力</button>
+                </div>
+            </div>
+
+            <div style="border-top: 2px solid #e2e8f0; padding-top: 20px;">
+                <h3>📁 保存済み設計一覧</h3>
+                <div class="toolbar" style="margin-bottom: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="importFromFile()">📥 ファイル読込</button>
+                    <button type="button" class="btn btn-danger" onclick="clearAllSaves()">🗑️ 全て削除</button>
+                </div>
+                <div id="savedDesignsList" style="max-height: 300px; overflow-y: auto;">
+                    <!-- 保存済み設計がここに表示されます -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学習レッスンモーダル -->
+    <div id="lessonModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="lessonTitle">レッスン</h2>
+                <span class="close" onclick="closeModal('lessonModal')">&times;</span>
+            </div>
+            <div id="lessonContent" style="max-height: 70vh; overflow-y: auto;">
+                <!-- レッスン内容がここに動的に追加されます -->
+            </div>
+            <div class="toolbar">
+                <button id="prevLessonBtn" class="btn btn-secondary" onclick="previousLessonStep()" style="display: none;">← 前へ</button>
+                <button id="nextLessonBtn" class="btn" onclick="nextLessonStep()">次へ →</button>
+                <button id="completeLessonBtn" class="btn btn-preset" onclick="completeLesson()" style="display: none;">✅ 完了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- テストモーダル -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="quizTitle">テスト</h2>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="quizProgress">問題 1/10</span>
+                    <span class="close" onclick="closeModal('quizModal')">&times;</span>
+                </div>
+            </div>
+            <div id="quizQuestionContainer">
+                <!-- テスト問題がここに動的に追加されます -->
+            </div>
+            <div class="toolbar">
+                <button id="prevQuizBtn" class="btn btn-secondary" onclick="previousQuestion()" style="display: none;">← 前の問題</button>
+                <button id="nextQuizBtn" class="btn" onclick="nextQuestion()">次の問題 →</button>
+                <button id="submitQuizBtn" class="btn btn-preset" onclick="submitQuiz()" style="display: none;">📝 採点</button>
+                <button id="retryQuizBtn" class="btn btn-secondary" onclick="retryQuiz()" style="display: none;">🔄 再挑戦</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 正規化デモモーダル -->
+    <div id="normalizationModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>⚡ 正規化デモンストレーション</h2>
+                <span class="close" onclick="closeModal('normalizationModal')">&times;</span>
+            </div>
+            <div id="normalizationContent">
+                <!-- 正規化デモ内容がここに表示されます -->
+            </div>
+            <div class="toolbar">
+                <button class="btn btn-secondary" onclick="showNormalizationStep('unnormalized')">非正規化</button>
+                <button class="btn" onclick="showNormalizationStep('1nf')">第1正規形</button>
+                <button class="btn" onclick="showNormalizationStep('2nf')">第2正規形</button>
+                <button class="btn" onclick="showNormalizationStep('3nf')">第3正規形</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/scripts/database-design-tool.js" is:inline></script>
+</Layout>
