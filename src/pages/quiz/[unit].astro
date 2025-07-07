@@ -1167,12 +1167,9 @@ class QuizSession {
     }
 
     // 最初の解答を記録（まだ解答していない場合のみ）
-    if (!this.firstAnswers[questionId]) {
-      if (question.type === 'multiple-choice') {
-        this.firstAnswers[questionId] = [...this.answers[questionId]];
-      } else {
-        this.firstAnswers[questionId] = this.answers[questionId];
-      }
+    // 複数選択問題の場合は、解答を確定した時点で記録する
+    if (!this.firstAnswers[questionId] && question.type !== 'multiple-choice') {
+      this.firstAnswers[questionId] = this.answers[questionId];
     }
 
     this.render();
@@ -1214,6 +1211,11 @@ class QuizSession {
     const currentQuestion = this.questions[this.currentQuestionIndex];
     if (!this.isQuestionAnswered(currentQuestion.id)) {
       return; // Don't proceed if not answered
+    }
+    
+    // Record first answer for multiple-choice questions when user confirms answer
+    if (!this.firstAnswers[currentQuestion.id] && currentQuestion.type === 'multiple-choice') {
+      this.firstAnswers[currentQuestion.id] = [...this.answers[currentQuestion.id]];
     }
     
     // Show explanation first
