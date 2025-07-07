@@ -1155,19 +1155,6 @@ class QuizSession {
     const question = this.questions.find(q => q.id === questionId);
     if (!question) return;
 
-    // 最初の解答を記録（まだ解答していない場合のみ）
-    if (!this.firstAnswers[questionId]) {
-      if (question.type === 'multiple-choice') {
-        const currentAnswers = this.answers[questionId] || [];
-        const newAnswers = currentAnswers.includes(optionId)
-          ? currentAnswers.filter(id => id !== optionId)
-          : [...currentAnswers, optionId];
-        this.firstAnswers[questionId] = [...newAnswers];
-      } else {
-        this.firstAnswers[questionId] = optionId;
-      }
-    }
-
     // 現在の解答を更新（表示用）
     if (question.type === 'multiple-choice') {
       const currentAnswers = this.answers[questionId] || [];
@@ -1177,6 +1164,15 @@ class QuizSession {
       this.answers[questionId] = newAnswers;
     } else {
       this.answers[questionId] = optionId;
+    }
+
+    // 最初の解答を記録（まだ解答していない場合のみ）
+    if (!this.firstAnswers[questionId]) {
+      if (question.type === 'multiple-choice') {
+        this.firstAnswers[questionId] = [...this.answers[questionId]];
+      } else {
+        this.firstAnswers[questionId] = this.answers[questionId];
+      }
     }
 
     this.render();
@@ -1202,8 +1198,11 @@ class QuizSession {
     if (question.type === 'multiple-choice') {
       const correctOptions = question.options.filter(opt => opt.isCorrect).map(opt => opt.id);
       if (!Array.isArray(answer)) return false;
+      
+      // For multiple choice: must select exactly the correct options, no more, no less
       return correctOptions.length === answer.length && 
-             correctOptions.every(id => answer.includes(id));
+             correctOptions.every(id => answer.includes(id)) &&
+             answer.every(id => correctOptions.includes(id));
     } else {
       const correctOption = question.options.find(opt => opt.isCorrect);
       return correctOption && correctOption.id === answer;
