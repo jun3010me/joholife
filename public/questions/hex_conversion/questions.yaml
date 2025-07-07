@@ -79,7 +79,7 @@ questions:
       - id: a
         text: "E"
         isCorrect: false
-        explanation: 10進数15を16進数に変換するとFです。EはE進数の14です。
+        explanation: 10進数15を16進数に変換するとFです。Eは16進数の14です。
       - id: b
         text: "F"
         isCorrect: true
@@ -473,7 +473,7 @@ questions:
       - id: b
         text: "Bの変換が間違っている"
         isCorrect: true
-        explanation: 正解です！B: 10進数10は16進数ではAではなく、10のままです。16進数のAは10進数の10を表しますが、10進数10は16進数では0Aまたは単にAと書きます。
+        explanation: 正解です！B: 10進数10は16進数ではAです。16進数のAは10進数の10を表します。
       - id: c
         text: "Cの変換が間違っている"
         isCorrect: false
