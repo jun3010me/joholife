@@ -272,6 +272,10 @@ class QuizApp {
       isLoading: false
     };
 
+    setTimeout(() => {
+      this.showAlert('バグ修正に伴い、修了証のデザインを変更しました。提出箱をリセットしたので、新デザインの修了証で提出し直してください。', 'warning');
+    }, 500);
+
     // Render UnitSelector component
     // Note: In a real implementation, you'd use React's render method
     // For now, we'll handle the navigation in a simpler way
@@ -281,6 +285,7 @@ class QuizApp {
           <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
             問題演習を始めましょう
           </h2>
+          <div id="alert-container" style="margin-bottom: 1rem;"></div>
           <p style="color: var(--text-secondary);">
             学習したい単元を選択してください
           </p>
@@ -365,11 +370,92 @@ class QuizApp {
         return '中級';
     }
   }
+
+  showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alert-container');
+    if (!alertContainer) return;
+
+    const alertTypes = {
+      info: {
+        backgroundColor: '#dbeafe',
+        borderColor: '#93c5fd',
+        textColor: '#1e40af',
+        icon: 'ℹ️'
+      },
+      success: {
+        backgroundColor: '#dcfce7',
+        borderColor: '#86efac',
+        textColor: '#166534',
+        icon: '✅'
+      },
+      warning: {
+        backgroundColor: '#fef3c7',
+        borderColor: '#fbbf24',
+        textColor: '#92400e',
+        icon: '⚠️'
+      },
+      error: {
+        backgroundColor: '#fecaca',
+        borderColor: '#f87171',
+        textColor: '#991b1b',
+        icon: '❌'
+      }
+    };
+
+    const alertStyle = alertTypes[type] || alertTypes.info;
+
+    alertContainer.innerHTML = `
+      <div style="
+        background-color: ${alertStyle.backgroundColor};
+        border: 1px solid ${alertStyle.borderColor};
+        color: ${alertStyle.textColor};
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      ">
+        <span style="font-size: 1.2rem;">${alertStyle.icon}</span>
+        <span style="flex: 1;">${message}</span>
+        <button onclick="this.parentElement.style.display='none'" 
+                style="
+                  background: none;
+                  border: none;
+                  font-size: 1.5rem;
+                  cursor: pointer;
+                  color: ${alertStyle.textColor};
+                  padding: 0;
+                  margin-left: 0.5rem;
+                  width: 24px;
+                  height: 24px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  border-radius: 50%;
+                  transition: background-color 0.2s;
+                "
+                onmouseover="this.style.backgroundColor='rgba(0,0,0,0.1)'"
+                onmouseout="this.style.backgroundColor='transparent'">
+          ×
+        </button>
+      </div>
+    `;
+  }
+
+  hideAlert() {
+    const alertContainer = document.getElementById('alert-container');
+    if (!alertContainer) return;
+    alertContainer.innerHTML = '';
+  }
 }
 
 // Initialize the app when DOM is loaded
+let quizApp;
 document.addEventListener('DOMContentLoaded', () => {
-  new QuizApp();
+  quizApp = new QuizApp();
+  window.quizApp = quizApp; // Make it globally accessible
 });
 </script>
 
