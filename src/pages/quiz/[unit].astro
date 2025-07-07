@@ -1039,12 +1039,12 @@ class QuizSession {
     ctx.fillRect(0, 0, width, height);
 
     // Border
-    ctx.strokeStyle = '#3b82f6';
+    ctx.strokeStyle = '#059669';
     ctx.lineWidth = 8;
     ctx.strokeRect(20, 20, width - 40, height - 40);
 
     // Inner border
-    ctx.strokeStyle = '#1d4ed8';
+    ctx.strokeStyle = '#047857';
     ctx.lineWidth = 2;
     ctx.strokeRect(40, 40, width - 80, height - 80);
 
@@ -1072,7 +1072,7 @@ class QuizSession {
 
     // Course title
     ctx.font = 'bold 28px sans-serif';
-    ctx.fillStyle = '#1d4ed8';
+    ctx.fillStyle = '#047857';
     ctx.fillText(`「${this.questionSet?.title || this.unit}」`, width / 2, 370);
 
     // Date
@@ -1088,26 +1088,26 @@ class QuizSession {
 
     // Site name
     ctx.font = 'bold 20px sans-serif';
-    ctx.fillStyle = '#3b82f6';
+    ctx.fillStyle = '#059669';
     ctx.fillText('じょうほうらいふ', width / 2, 520);
 
     // Decorative elements
-    ctx.fillStyle = '#fbbf24';
+    ctx.fillStyle = '#10b981';
     ctx.beginPath();
     ctx.arc(150, 150, 20, 0, 2 * Math.PI);
     ctx.fill();
 
-    ctx.fillStyle = '#10b981';
+    ctx.fillStyle = '#059669';
     ctx.beginPath();
     ctx.arc(width - 150, 150, 20, 0, 2 * Math.PI);
     ctx.fill();
 
-    ctx.fillStyle = '#f59e0b';
+    ctx.fillStyle = '#047857';
     ctx.beginPath();
     ctx.arc(150, height - 150, 20, 0, 2 * Math.PI);
     ctx.fill();
 
-    ctx.fillStyle = '#ef4444';
+    ctx.fillStyle = '#065f46';
     ctx.beginPath();
     ctx.arc(width - 150, height - 150, 20, 0, 2 * Math.PI);
     ctx.fill();
