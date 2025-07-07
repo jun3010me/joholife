@@ -217,6 +217,7 @@ class QuizSession {
     this.questions = [];
     this.currentQuestionIndex = 0;
     this.answers = {};
+    this.firstAnswers = {}; // 最初の解答のみを記録
     this.score = 0;
     this.startTime = new Date();
     this.isCompleted = false;
@@ -268,11 +269,11 @@ class QuizSession {
 
     const currentQuestion = this.questions[this.currentQuestionIndex];
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
-    const correctAnswers = Object.keys(this.answers).filter(questionId => {
+    const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
       // 現在の問題は正解率計算から除外（まだ確定していないため）
       if (questionId === currentQuestion.id) return false;
       const question = this.questions.find(q => q.id === questionId);
-      return this.isAnswerCorrect(question, this.answers[questionId]);
+      return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
 
     container.innerHTML = `
@@ -633,10 +634,10 @@ class QuizSession {
     const userAnswer = this.answers[currentQuestion.id];
     const isCorrect = this.isAnswerCorrect(currentQuestion, userAnswer);
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
-    const correctAnswers = Object.keys(this.answers).filter(questionId => {
+    const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
       // 解説画面では現在の問題も含めて計算（確定した答えとして扱う）
       const question = this.questions.find(q => q.id === questionId);
-      return this.isAnswerCorrect(question, this.answers[questionId]);
+      return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
 
     container.innerHTML = `
@@ -840,10 +841,10 @@ class QuizSession {
 
     const endTime = new Date();
     const timeSpent = Math.floor((endTime - this.startTime) / 1000);
-    const correctAnswers = Object.keys(this.answers).filter(questionId => {
+    const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
       // 結果画面では全ての問題が完了しているので、全て含めて計算
       const question = this.questions.find(q => q.id === questionId);
-      return this.isAnswerCorrect(question, this.answers[questionId]);
+      return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
     const percentage = Math.round((correctAnswers / this.questions.length) * 100);
 
@@ -1154,6 +1155,20 @@ class QuizSession {
     const question = this.questions.find(q => q.id === questionId);
     if (!question) return;
 
+    // 最初の解答を記録（まだ解答していない場合のみ）
+    if (!this.firstAnswers[questionId]) {
+      if (question.type === 'multiple-choice') {
+        const currentAnswers = this.answers[questionId] || [];
+        const newAnswers = currentAnswers.includes(optionId)
+          ? currentAnswers.filter(id => id !== optionId)
+          : [...currentAnswers, optionId];
+        this.firstAnswers[questionId] = [...newAnswers];
+      } else {
+        this.firstAnswers[questionId] = optionId;
+      }
+    }
+
+    // 現在の解答を更新（表示用）
     if (question.type === 'multiple-choice') {
       const currentAnswers = this.answers[questionId] || [];
       const newAnswers = currentAnswers.includes(optionId)
