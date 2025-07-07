@@ -464,24 +464,24 @@ questions:
   - id: q16
     type: single-choice
     title: 複合的な進数変換
-    description: "次の変換過程で**間違っているもの**はどれか。<br><br>A&#58; 2進数 1010 → 10進数 10<br>B&#58; 10進数 10 → 16進数 A<br>C&#58; 16進数 A → 2進数 1010<br>D&#58; 2進数 1010 → 16進数 A"
+    description: "次の変換過程で**間違っているもの**はどれか。<br><br>A） 2進数 1010 → 10進数 10<br>B） 10進数 10 → 16進数 A<br>C） 16進数 A → 2進数 1010<br>D） 2進数 1010 → 16進数 A"
     options:
       - id: a
         text: "Aの変換が間違っている"
         isCorrect: false
-        explanation: A: 2進数1010 = 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 10は正しいです。
+        explanation: A） 2進数1010 = 1×2³ + 0×2² + 1×2¹ + 0×2⁰ = 10は正しいです。
       - id: b
         text: "Bの変換が間違っている"
         isCorrect: true
-        explanation: 正解です！B: 10進数10は16進数ではAです。16進数のAは10進数の10を表します。
+        explanation: 正解です！B） 10進数10は16進数ではAです。16進数のAは10進数の10を表します。
       - id: c
         text: "Cの変換が間違っている"
         isCorrect: false
-        explanation: C: 16進数A = 10進数10 = 2進数1010は正しいです。
+        explanation: C） 16進数A = 10進数10 = 2進数1010は正しいです。
       - id: d
         text: "Dの変換が間違っている"
         isCorrect: false
-        explanation: D: 2進数1010 = 16進数Aは正しいです。
+        explanation: D） 2進数1010 = 16進数Aは正しいです。
     explanation: 正しい変換：10進数10 → 16進数A、16進数A → 10進数10です。各進数間の対応関係を正確に理解することが重要です。
     difficulty: hard
     tags:
