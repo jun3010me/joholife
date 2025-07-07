@@ -270,8 +270,6 @@ class QuizSession {
     const currentQuestion = this.questions[this.currentQuestionIndex];
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
-      // 現在の問題は正解率計算から除外（まだ確定していないため）
-      if (questionId === currentQuestion.id) return false;
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
@@ -635,7 +633,6 @@ class QuizSession {
     const isCorrect = this.isAnswerCorrect(currentQuestion, userAnswer);
     const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
-      // 解説画面では現在の問題も含めて計算（確定した答えとして扱う）
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
@@ -842,7 +839,6 @@ class QuizSession {
     const endTime = new Date();
     const timeSpent = Math.floor((endTime - this.startTime) / 1000);
     const correctAnswers = Object.keys(this.firstAnswers).filter(questionId => {
-      // 結果画面では全ての問題が完了しているので、全て含めて計算
       const question = this.questions.find(q => q.id === questionId);
       return this.isAnswerCorrect(question, this.firstAnswers[questionId]);
     }).length;
@@ -1166,11 +1162,8 @@ class QuizSession {
       this.answers[questionId] = optionId;
     }
 
-    // 最初の解答を記録（まだ解答していない場合のみ）
-    // 複数選択問題の場合は、解答を確定した時点で記録する
-    if (!this.firstAnswers[questionId] && question.type !== 'multiple-choice') {
-      this.firstAnswers[questionId] = this.answers[questionId];
-    }
+    // firstAnswersは「次の問題」ボタンをクリックした時点で記録する
+    // 選択肢をクリックした時点では記録しない
 
     this.render();
   }
@@ -1213,9 +1206,13 @@ class QuizSession {
       return; // Don't proceed if not answered
     }
     
-    // Record first answer for multiple-choice questions when user confirms answer
-    if (!this.firstAnswers[currentQuestion.id] && currentQuestion.type === 'multiple-choice') {
-      this.firstAnswers[currentQuestion.id] = [...this.answers[currentQuestion.id]];
+    // Record first answer when user confirms answer (for all question types)
+    if (!this.firstAnswers[currentQuestion.id]) {
+      if (currentQuestion.type === 'multiple-choice') {
+        this.firstAnswers[currentQuestion.id] = [...this.answers[currentQuestion.id]];
+      } else {
+        this.firstAnswers[currentQuestion.id] = this.answers[currentQuestion.id];
+      }
     }
     
     // Show explanation first
