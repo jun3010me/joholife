@@ -276,6 +276,10 @@ class QuizApp {
       this.showAlert('バグ修正に伴い、修了証のデザインを変更しました。提出箱をリセットしたので、新デザインの修了証で提出し直してください。', 'warning');
     }, 500);
 
+        setTimeout(() => {
+      this.showAlert('2025.07.08 正解数が正しくカウントされないバグを修正しました。', 'warning');
+    }, 500);
+
     // Render UnitSelector component
     // Note: In a real implementation, you'd use React's render method
     // For now, we'll handle the navigation in a simpler way
