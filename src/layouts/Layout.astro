@@ -1,9 +1,19 @@
 ---
 export interface Props {
     title: string;
+    description?: string;
+    keywords?: string;
+    ogImage?: string;
 }
 
-const { title } = Astro.props;
+const { 
+    title, 
+    description = "じょうほうらいふは高校生のための情報Ⅰ・Ⅱ学習支援サイトです。情報Ⅰの勉強、教材、問題演習、プログラミング学習を効果的にサポートします。2進数変換、アルゴリズム、データ構造、著作権などの重要なトピックを網羅。",
+    keywords = "じょうほうらいふ,情報Ⅰ,情報Ⅰ 勉強,情報Ⅰ 教材,情報Ⅰ 問題,高校,学習,プログラミング,アルゴリズム,データ構造,2進数,進数変換,著作権,産業財産権,論理回路,情報処理,コンピュータサイエンス",
+    ogImage = "https://joho.jun3010.me/og-image.jpg"
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!DOCTYPE html>
@@ -12,6 +22,88 @@ const { title } = Astro.props;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{title}</title>
+    <meta name="description" content={description}>
+    <meta name="keywords" content={keywords}>
+    <meta name="author" content="魚住惇">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href={canonicalURL}>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content={Astro.url}>
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:image" content={ogImage}>
+    <meta property="og:site_name" content="じょうほうらいふ">
+    <meta property="og:locale" content="ja_JP">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content={Astro.url}>
+    <meta property="twitter:title" content={title}>
+    <meta property="twitter:description" content={description}>
+    <meta property="twitter:image" content={ogImage}>
+    
+    <!-- Additional SEO tags -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="じょうほうらいふ">
+    
+    <!-- JSON-LD構造化データ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "じょうほうらいふ",
+        "description": "高校生のための情報Ⅰ学習支援サイト",
+        "url": "https://joho.jun3010.me",
+        "logo": "https://joho.jun3010.me/logo.png",
+        "sameAs": [
+            "https://github.com/jun3010me/joholife"
+        ],
+        "educationalUse": "高校情報Ⅰの学習支援",
+        "audience": {
+            "@type": "EducationalAudience",
+            "educationalRole": "student"
+        },
+        "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "情報Ⅰ学習コンテンツ",
+            "itemListElement": [
+                {
+                    "@type": "Course",
+                    "name": "問題演習",
+                    "description": "情報Ⅰの様々な問題を解いて理解を深める",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "じょうほうらいふ"
+                    }
+                },
+                {
+                    "@type": "Course",
+                    "name": "2進数・10進数変換",
+                    "description": "2進数と10進数の相互変換を学習",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "じょうほうらいふ"
+                    }
+                },
+                {
+                    "@type": "Course",
+                    "name": "論理回路シミュレータ",
+                    "description": "インタラクティブな論理回路の設計・シミュレーション",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "じょうほうらいふ"
+                    }
+                }
+            ]
+        }
+    }
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">

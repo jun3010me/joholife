@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# サイトマップ
+Sitemap: https://joho.jun3010.me/sitemap.xml
+
+# 特定のディレクトリを除外
+Disallow: /admin/
+Disallow: /temp/
+Disallow: /private/
+
+# メタタグで制御されているページは除外しない
+Allow: /quiz/
+Allow: /binary-converter/
+Allow: /hex-converter/
+Allow: /binary-simulator/
+Allow: /color-simulator/
+Allow: /logical-formula/
+Allow: /simcir/
+Allow: /data-compression/
+Allow: /python-playground/
+Allow: /network-simulator/
+Allow: /image-digitization/
+Allow: /database-design-tool/
+
+# クロール頻度の推奨
+Crawl-delay: 1

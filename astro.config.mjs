@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://jun3010me.github.io',
+  site: 'https://joho.jun3010.me',
   integrations: [react()],
   devToolbar: {
     enabled: false
