@@ -431,21 +431,9 @@ class QuizSession {
 
             <!-- Navigation -->
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <button
-                id="prev-button"
-                ${this.currentQuestionIndex === 0 ? 'disabled' : ''}
-                class="btn ${this.currentQuestionIndex === 0 ? 'btn-secondary' : 'btn-secondary'}"
-                style="display: flex; align-items: center; ${this.currentQuestionIndex === 0 ? 'opacity: 0.5; cursor: not-allowed;' : ''}"
-              >
-                <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                前の問題
-              </button>
-
               ${currentQuestion.type === 'multiple-choice' ? `
                 <div style="font-size: 0.875rem; color: var(--text-muted);">複数選択可能</div>
-              ` : ''}
+              ` : '<div></div>'}
 
               <button
                 id="next-button"
@@ -499,13 +487,8 @@ class QuizSession {
         });
       }
       
-      // Navigation buttons
-      const prevButton = document.getElementById('prev-button');
+      // Navigation button
       const nextButton = document.getElementById('next-button');
-      
-      if (prevButton && !prevButton.disabled) {
-        prevButton.addEventListener('click', () => this.previousQuestion());
-      }
       
       if (nextButton && !nextButton.disabled) {
         nextButton.addEventListener('click', () => this.nextQuestion());
@@ -1232,13 +1215,6 @@ class QuizSession {
     }
   }
 
-  previousQuestion() {
-    if (this.currentQuestionIndex > 0) {
-      this.showingExplanation = false;
-      this.currentQuestionIndex--;
-      this.render();
-    }
-  }
 
   getDifficultyText(difficulty) {
     switch (difficulty) {
