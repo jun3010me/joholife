@@ -710,8 +710,8 @@
   $s.registerDevice('NAND', createLogicGateFactory(AND, NOT, drawNAND) );
   $s.registerDevice('OR', createLogicGateFactory(OR, BUF, drawOR) );
   $s.registerDevice('NOR', createLogicGateFactory(OR, NOT, drawNOR) );
-  $s.registerDevice('EOR', createLogicGateFactory(EOR, BUF, drawEOR) );
-  $s.registerDevice('ENOR', createLogicGateFactory(EOR, NOT, drawENOR) );
+  $s.registerDevice('XOR', createLogicGateFactory(EOR, BUF, drawEOR) );
+  $s.registerDevice('XNOR', createLogicGateFactory(EOR, NOT, drawENOR) );
 
   // register Oscillator
   //$s.registerDevice('OSC', function(device) {
