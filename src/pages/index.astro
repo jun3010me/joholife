@@ -3,6 +3,13 @@ import Layout from '../layouts/Layout.astro';
 
 const topics = [
     {
+        title: "レッスン",
+        description: "スライド形式で情報Ⅰの基礎概念を体系的に学習",
+        icon: "📖",
+        link: "/lessons",
+        color: "from-blue-500 to-indigo-600"
+    },
+    {
         title: "問題演習",
         description: "様々な情報学の問題を解いて理解を深めるツール",
         icon: "📝",
@@ -89,8 +96,9 @@ const topics = [
 ];
 
 const stats = [
-    { number: "12", label: "学習ツール" },
+    { number: "13", label: "学習ツール" },
     { number: "120+", label: "練習問題" },
+    { number: "5+", label: "スライド" },
     { number: "24/7", label: "いつでもアクセス" }
 ];
 ---
@@ -111,11 +119,11 @@ const stats = [
                 情報Ⅰの勉強・教材・問題演習を効果的にサポートし、実際にコードを書きながら、情報技術の基礎をしっかりと身につけましょう。
             </p>
             <div class="hero-buttons">
-                <a href="/quiz" class="btn btn-primary">
-                    🚀 学習を始める
+                <a href="/lessons" class="btn btn-primary">
+                    📖 レッスンを始める
                 </a>
-                <a href="/" class="btn btn-secondary">
-                    📖 サイトについて
+                <a href="/quiz" class="btn btn-secondary">
+                    📝 問題演習
                 </a>
             </div>
         </div>
@@ -180,8 +188,8 @@ const stats = [
         <div class="cta-content">
             <h2>今すぐ学習を始めましょう</h2>
             <p>情報Ⅰの基礎から応用まで、ステップバイステップで学べます</p>
-            <a href="/getting-started" class="btn btn-primary btn-large">
-                🎯 学習スタート
+            <a href="/lessons" class="btn btn-primary btn-large">
+                🎯 レッスンスタート
             </a>
         </div>
     </section>
@@ -257,10 +265,11 @@ const stats = [
 }
 
 .hero-stats {
-    display: flex;
-    justify-content: center;
-    gap: 3rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 2rem;
+    max-width: 600px;
+    margin: 0 auto;
     position: relative;
     z-index: 2;
 }
@@ -467,7 +476,7 @@ const stats = [
     }
     
     .hero-stats {
-        gap: 2rem;
+        gap: 1.5rem;
     }
     
     .stat-number {

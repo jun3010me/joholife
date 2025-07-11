@@ -47,6 +47,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <!-- Additional SEO tags -->
     <meta name="theme-color" content="#3b82f6">
     <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="じょうほうらいふ">
@@ -72,6 +73,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             "@type": "OfferCatalog",
             "name": "情報Ⅰ学習コンテンツ",
             "itemListElement": [
+                {
+                    "@type": "Course",
+                    "name": "レッスン",
+                    "description": "スライド形式で情報Ⅰの基礎概念を体系的に学習",
+                    "provider": {
+                        "@type": "Organization",
+                        "name": "じょうほうらいふ"
+                    }
+                },
                 {
                     "@type": "Course",
                     "name": "問題演習",
@@ -116,6 +126,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
                 <span class="brand-text">じょうほうらいふ</span>
             </a>
             <ul class="nav-links">
+                <li><a href="/lessons" class="nav-link">レッスン</a></li>
                 <li><a href="/quiz" class="nav-link">問題演習</a></li>
                 <li><a href="/binary-simulator" class="nav-link">2進数</a></li>
                 <li><a href="/binary-converter" class="nav-link">進数変換学習</a></li>

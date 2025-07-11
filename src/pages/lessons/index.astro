@@ -1,0 +1,505 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+// レッスンデータを取得
+const allLessons = await getCollection('lessons');
+
+// チャプターごとにグループ化
+const lessonsByChapter = allLessons.reduce((acc, lesson) => {
+  const chapter = lesson.data.chapter;
+  if (!acc[chapter]) {
+    acc[chapter] = [];
+  }
+  acc[chapter].push(lesson);
+  return acc;
+}, {} as Record<string, typeof allLessons>);
+
+// チャプターごとにソート
+Object.keys(lessonsByChapter).forEach(chapter => {
+  lessonsByChapter[chapter].sort((a, b) => a.data.slideNumber - b.data.slideNumber);
+});
+
+const chapters = [
+  {
+    id: 'programming-basics',
+    title: 'プログラミング基礎',
+    description: '変数、条件分岐、繰り返しなどの基本概念を学習',
+    icon: '💻',
+    difficulty: 'easy',
+    color: 'blue'
+  },
+  {
+    id: 'algorithms',
+    title: 'アルゴリズム',
+    description: 'ソートアルゴリズムや探索アルゴリズムの理解',
+    icon: '🔄',
+    difficulty: 'medium',
+    color: 'green'
+  },
+  {
+    id: 'databases',
+    title: 'データベース',
+    description: 'SQLの基礎とリレーショナルデータベースの概念',
+    icon: '🗄️',
+    difficulty: 'medium',
+    color: 'purple'
+  },
+  {
+    id: 'logic-circuits',
+    title: '論理回路',
+    description: 'AND、OR、NOTゲートと論理式の基礎',
+    icon: '⚡',
+    difficulty: 'easy',
+    color: 'yellow'
+  },
+  {
+    id: 'networks',
+    title: 'ネットワーク',
+    description: 'プロトコル、IPアドレス、ネットワーク基礎',
+    icon: '🌐',
+    difficulty: 'medium',
+    color: 'red'
+  }
+];
+
+const getDifficultyInfo = (difficulty: string) => {
+  switch (difficulty) {
+    case 'easy': return { text: '初級', class: 'difficulty-easy' };
+    case 'medium': return { text: '中級', class: 'difficulty-medium' };
+    case 'hard': return { text: '上級', class: 'difficulty-hard' };
+    default: return { text: '不明', class: 'difficulty-default' };
+  }
+};
+---
+
+<Layout title="学習レッスン" description="インタラクティブな学習コンテンツで情報Ⅰの基礎をマスターしよう">
+  <div class="lessons-page">
+    <!-- ヘッダー -->
+    <div class="lessons-header">
+      <div class="header-container">
+        <div class="header-content">
+          <h1 class="main-title">学習レッスン</h1>
+          <p class="main-description">
+            インタラクティブなスライド形式で情報Ⅰの基礎概念を段階的に学習できます。
+            コード実行、可視化、クイズなどの機能を活用して効率的に学習しましょう。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="lessons-main">
+      <!-- 学習進捗 -->
+      <div class="progress-section">
+        <div class="progress-card">
+          <h2 class="section-title">学習進捗</h2>
+          <div class="progress-grid">
+            <div class="progress-item">
+              <div class="progress-number blue">0%</div>
+              <div class="progress-label">全体の進捗</div>
+            </div>
+            <div class="progress-item">
+              <div class="progress-number green">0</div>
+              <div class="progress-label">完了したレッスン</div>
+            </div>
+            <div class="progress-item">
+              <div class="progress-number purple">0</div>
+              <div class="progress-label">学習時間（分）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- チャプター一覧 -->
+      <div class="chapters-grid">
+        {chapters.map((chapter) => {
+          const lessons = lessonsByChapter[chapter.id] || [];
+          const totalSlides = lessons.length;
+          const estimatedTime = lessons.reduce((sum, lesson) => sum + (lesson.data.estimatedTime || 0), 0);
+          const difficultyInfo = getDifficultyInfo(chapter.difficulty);
+          
+          return (
+            <div class={`chapter-card chapter-${chapter.color}`}>
+              <div class="card-content">
+                <!-- チャプターヘッダー -->
+                <div class="card-header">
+                  <div class="chapter-icon">{chapter.icon}</div>
+                  <span class={`difficulty-badge ${difficultyInfo.class}`}>
+                    {difficultyInfo.text}
+                  </span>
+                </div>
+                
+                <h3 class="chapter-title">{chapter.title}</h3>
+                <p class="chapter-description">{chapter.description}</p>
+                
+                <!-- 統計情報 -->
+                <div class="chapter-stats">
+                  <span>{totalSlides} スライド</span>
+                  <span>約 {estimatedTime} 分</span>
+                </div>
+                
+                <!-- 進捗バー -->
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                
+                <!-- アクションボタン -->
+                <div class="card-actions">
+                  {totalSlides > 0 ? (
+                    <a href={`/lessons/${chapter.id}/1`} class="btn btn-primary">
+                      学習開始
+                    </a>
+                  ) : (
+                    <div class="btn btn-disabled">
+                      準備中
+                    </div>
+                  )}
+                  
+                  <button class="btn btn-secondary">
+                    詳細
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <!-- プレイグラウンドセクション -->
+      <div class="playground-section">
+        <h2 class="section-title">プレイグラウンド</h2>
+        <div class="playground-grid">
+          <a href="/playground/programming" class="playground-card">
+            <div class="playground-icon">💻</div>
+            <h3 class="playground-title">プログラミング実習</h3>
+            <p class="playground-description">JavaScript、Pythonのコードを実際に書いて実行</p>
+          </a>
+          
+          <a href="/playground/database" class="playground-card">
+            <div class="playground-icon">🗄️</div>
+            <h3 class="playground-title">データベース実習</h3>
+            <p class="playground-description">SQLクエリを書いてデータベース操作を学習</p>
+          </a>
+          
+          <a href="/playground/logic" class="playground-card">
+            <div class="playground-icon">⚡</div>
+            <h3 class="playground-title">論理回路シミュレータ</h3>
+            <p class="playground-description">論理ゲートを組み合わせて回路を設計</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    /* レッスン一覧ページのスタイル */
+    .lessons-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ヘッダー */
+    .lessons-header {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .header-content {
+      text-align: center;
+      padding: 3rem 0;
+    }
+
+    .main-title {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .main-description {
+      font-size: 1.25rem;
+      color: #6b7280;
+      max-width: 48rem;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* メインコンテンツ */
+    .lessons-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+
+    /* 学習進捗セクション */
+    .progress-section {
+      margin-bottom: 3rem;
+    }
+
+    .progress-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      padding: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+
+    .progress-item {
+      text-align: center;
+    }
+
+    .progress-number {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-number.blue { color: #3b82f6; }
+    .progress-number.green { color: #10b981; }
+    .progress-number.purple { color: #8b5cf6; }
+
+    .progress-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    /* チャプター一覧 */
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .chapter-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .chapter-card.chapter-blue:hover { border-color: #93c5fd; background: #f0f9ff; }
+    .chapter-card.chapter-green:hover { border-color: #86efac; background: #f0fdf4; }
+    .chapter-card.chapter-purple:hover { border-color: #c4b5fd; background: #faf5ff; }
+    .chapter-card.chapter-yellow:hover { border-color: #fde047; background: #fefce8; }
+    .chapter-card.chapter-red:hover { border-color: #fca5a5; background: #fef2f2; }
+
+    .card-content {
+      padding: 2rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .chapter-icon {
+      font-size: 3rem;
+    }
+
+    .difficulty-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .difficulty-easy { background: #dcfce7; color: #166534; }
+    .difficulty-medium { background: #fef3c7; color: #92400e; }
+    .difficulty-hard { background: #fecaca; color: #991b1b; }
+
+    .chapter-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.75rem;
+    }
+
+    .chapter-description {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .chapter-stats {
+      display: flex;
+      justify-content: space-between;
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 0.5rem;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+
+    /* ボタン */
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      flex: none;
+      padding: 0.75rem 1rem;
+    }
+
+    .btn-secondary:hover {
+      background: #f9fafb;
+    }
+
+    .btn-disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* プレイグラウンド */
+    .playground-section {
+      margin-top: 4rem;
+    }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .playground-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      padding: 2rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .playground-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+      border-color: #3b82f6;
+    }
+
+    .playground-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .playground-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.75rem;
+    }
+
+    .playground-description {
+      color: #6b7280;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .lessons-main {
+        padding: 2rem 1rem;
+      }
+
+      .main-title {
+        font-size: 2rem;
+      }
+
+      .main-description {
+        font-size: 1rem;
+      }
+
+      .chapters-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .card-content {
+        padding: 1.5rem;
+      }
+
+      .progress-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+  </style>
+</Layout>

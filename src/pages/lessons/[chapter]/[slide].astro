@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import LearningLayout from '../../../components/layout/LearningLayout.astro';
+
+export async function getStaticPaths() {
+  const allLessons = await getCollection('lessons');
+  
+  return allLessons.map((lesson) => {
+    console.log('Lesson slug:', lesson.slug); // デバッグ用
+    const pathParts = lesson.slug.split('/');
+    const chapter = pathParts[0];
+    const slide = pathParts[1];
+    
+    return {
+      params: { 
+        chapter: chapter,
+        slide: slide
+      },
+      props: { lesson }
+    };
+  });
+}
+
+const { lesson } = Astro.props;
+const { Content } = await lesson.render();
+
+// メタデータの準備
+const { title, description, slideNumber, totalSlides, estimatedTime, chapter } = lesson.data;
+---
+
+<LearningLayout 
+  title={title}
+  description={description}
+  chapter={chapter}
+  slideNumber={slideNumber}
+  totalSlides={totalSlides}
+  estimatedTime={estimatedTime}
+>
+  <Content />
+</LearningLayout>
