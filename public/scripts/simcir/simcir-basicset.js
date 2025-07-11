@@ -699,12 +699,12 @@
   });
 
   // register switches
-  $s.registerDevice('PushOff', createSwitchFactory('PushOff') );
-  $s.registerDevice('PushOn', createSwitchFactory('PushOn') );
+  //$s.registerDevice('PushOff', createSwitchFactory('PushOff') );
+  //$s.registerDevice('PushOn', createSwitchFactory('PushOn') );
   $s.registerDevice('Toggle', createSwitchFactory('Toggle') );
 
   // register logic gates
-  $s.registerDevice('BUF', createLogicGateFactory(null, BUF, drawBUF) );
+  //$s.registerDevice('BUF', createLogicGateFactory(null, BUF, drawBUF) );
   $s.registerDevice('NOT', createLogicGateFactory(null, NOT, drawNOT) );
   $s.registerDevice('AND', createLogicGateFactory(AND, BUF, drawAND) );
   $s.registerDevice('NAND', createLogicGateFactory(AND, NOT, drawNAND) );
@@ -714,107 +714,107 @@
   $s.registerDevice('ENOR', createLogicGateFactory(EOR, NOT, drawENOR) );
 
   // register Oscillator
-  $s.registerDevice('OSC', function(device) {
-    var freq = device.deviceDef.freq || 10;
-    var delay = ~~(500 / freq);
-    var out1 = device.addOutput();
-    var timerId = null;
-    var on = false;
-    device.$ui.on('deviceAdd', function() {
-      timerId = window.setInterval(function() {
-        out1.setValue(on? onValue : offValue);
-        on = !on;
-      }, delay);
-    });
-    device.$ui.on('deviceRemove', function() {
-      if (timerId != null) {
-        window.clearInterval(timerId);
-        timerId = null;
-      }
-    });
-    var super_createUI = device.createUI;
-    device.createUI = function() {
-      super_createUI();
-      $s.addClass(device.$ui, 'simcir-basicset-dc');
-      device.doc = {
-        params: [
-          {name: 'freq', type: 'number', defaultValue: '10',
-            description: 'frequency of an oscillator.'}
-        ],
-        code: '{"type":"' + device.deviceDef.type + '","freq":10}'
-      };
-    };
-  });
+  //$s.registerDevice('OSC', function(device) {
+  //  var freq = device.deviceDef.freq || 10;
+  //  var delay = ~~(500 / freq);
+  //  var out1 = device.addOutput();
+  //  var timerId = null;
+  //  var on = false;
+  //  device.$ui.on('deviceAdd', function() {
+  //    timerId = window.setInterval(function() {
+  //      out1.setValue(on? onValue : offValue);
+  //      on = !on;
+  //    }, delay);
+  //  });
+  //  device.$ui.on('deviceRemove', function() {
+  //    if (timerId != null) {
+  //      window.clearInterval(timerId);
+  //      timerId = null;
+  //    }
+  //  });
+  //  var super_createUI = device.createUI;
+  //  device.createUI = function() {
+  //    super_createUI();
+  //    $s.addClass(device.$ui, 'simcir-basicset-dc');
+  //    device.doc = {
+  //      params: [
+  //        {name: 'freq', type: 'number', defaultValue: '10',
+  //          description: 'frequency of an oscillator.'}
+  //      ],
+  //      code: '{"type":"' + device.deviceDef.type + '","freq":10}'
+  //    };
+  //  };
+  //});
 
   // register LED seg
-  $s.registerDevice('7seg', createLEDSegFactory(_7Seg) );
-  $s.registerDevice('16seg', createLEDSegFactory(_16Seg) );
-  $s.registerDevice('4bit7seg', createLED4bitFactory() );
+  //$s.registerDevice('7seg', createLEDSegFactory(_7Seg) );
+  //$s.registerDevice('16seg', createLEDSegFactory(_16Seg) );
+  //$s.registerDevice('4bit7seg', createLED4bitFactory() );
 
   // register Rotary Encoder
-  $s.registerDevice('RotaryEncoder', createRotaryEncoderFactory() );
+  //$s.registerDevice('RotaryEncoder', createRotaryEncoderFactory() );
 
-  $s.registerDevice('BusIn', function(device) {
-    var numOutputs = Math.max(2, device.deviceDef.numOutputs || 8);
-    device.halfPitch = true;
-    device.addInput('', 'x' + numOutputs);
-    for (var i = 0; i < numOutputs; i += 1) {
-      device.addOutput();
-    }
-    var extractValue = function(busValue, i) {
-      return (busValue != null && typeof busValue == 'object' &&
-          typeof busValue[i] != 'undefined')? busValue[i] : null;
-    };
-    device.$ui.on('inputValueChange', function() {
-      var busValue = device.getInputs()[0].getValue();
-      for (var i = 0; i < numOutputs; i += 1) {
-        device.getOutputs()[i].setValue(extractValue(busValue, i) );
-      }
-    });
-    var super_createUI = device.createUI;
-    device.createUI = function() {
-      super_createUI();
-      device.doc = {
-        params: [
-          {name: 'numOutputs', type: 'number', defaultValue: 8,
-            description: 'number of outputs.'}
-        ],
-        code: '{"type":"' + device.deviceDef.type + '","numOutputs":8}'
-      };
-    };
-  });
+  //$s.registerDevice('BusIn', function(device) {
+  //  var numOutputs = Math.max(2, device.deviceDef.numOutputs || 8);
+  //  device.halfPitch = true;
+  //  device.addInput('', 'x' + numOutputs);
+  //  for (var i = 0; i < numOutputs; i += 1) {
+  //    device.addOutput();
+  //  }
+  //  var extractValue = function(busValue, i) {
+  //    return (busValue != null && typeof busValue == 'object' &&
+  //        typeof busValue[i] != 'undefined')? busValue[i] : null;
+  //  };
+  //  device.$ui.on('inputValueChange', function() {
+  //    var busValue = device.getInputs()[0].getValue();
+  //    for (var i = 0; i < numOutputs; i += 1) {
+  //      device.getOutputs()[i].setValue(extractValue(busValue, i) );
+  //    }
+  //  });
+  //  var super_createUI = device.createUI;
+  //  device.createUI = function() {
+  //    super_createUI();
+  //    device.doc = {
+  //      params: [
+  //        {name: 'numOutputs', type: 'number', defaultValue: 8,
+  //          description: 'number of outputs.'}
+  //      ],
+  //      code: '{"type":"' + device.deviceDef.type + '","numOutputs":8}'
+  //    };
+  //  };
+  //});
 
-  $s.registerDevice('BusOut', function(device) {
-    var numInputs = Math.max(2, device.deviceDef.numInputs || 8);
-    device.halfPitch = true;
-    for (var i = 0; i < numInputs; i += 1) {
-      device.addInput();
-    }
-    device.addOutput('', 'x' + numInputs);
-    device.$ui.on('inputValueChange', function() {
-      var busValue = [];
-      var hotCount = 0;
-      for (var i = 0; i < numInputs; i += 1) {
-        var value = device.getInputs()[i].getValue();
-        if (isHot(value) ) {
-          hotCount += 1;
-        }
-        busValue.push(value);
-      }
-      device.getOutputs()[0].setValue(
-          (hotCount > 0)? busValue : null);
-    });
-    var super_createUI = device.createUI;
-    device.createUI = function() {
-      super_createUI();
-      device.doc = {
-        params: [
-          {name: 'numInputs', type: 'number', defaultValue: 8,
-            description: 'number of inputs.'}
-        ],
-        code: '{"type":"' + device.deviceDef.type + '","numInputs":8}'
-      };
-    };
-  });
+  //$s.registerDevice('BusOut', function(device) {
+  //  var numInputs = Math.max(2, device.deviceDef.numInputs || 8);
+  //  device.halfPitch = true;
+  //  for (var i = 0; i < numInputs; i += 1) {
+  //    device.addInput();
+  //  }
+  //  device.addOutput('', 'x' + numInputs);
+  //  device.$ui.on('inputValueChange', function() {
+  //    var busValue = [];
+  //    var hotCount = 0;
+  //    for (var i = 0; i < numInputs; i += 1) {
+  //      var value = device.getInputs()[i].getValue();
+  //      if (isHot(value) ) {
+  //        hotCount += 1;
+  //      }
+  //      busValue.push(value);
+  //    }
+  //    device.getOutputs()[0].setValue(
+  //        (hotCount > 0)? busValue : null);
+  //  });
+  //  var super_createUI = device.createUI;
+  //  device.createUI = function() {
+  //    super_createUI();
+  //    device.doc = {
+  //      params: [
+  //        {name: 'numInputs', type: 'number', defaultValue: 8,
+  //          description: 'number of inputs.'}
+  //      ],
+  //      code: '{"type":"' + device.deviceDef.type + '","numInputs":8}'
+  //    };
+  //  };
+  //});
 
 }(jQuery, simcir);

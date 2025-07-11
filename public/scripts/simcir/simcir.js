@@ -1311,8 +1311,8 @@ var simcir = function($) {
     };
   };
   // register built-in devices
-  registerDevice('In', createPortFactory('in') );
-  registerDevice('Out', createPortFactory('out') );
+  //registerDevice('In', createPortFactory('in') );
+  //registerDevice('Out', createPortFactory('out') );
 
   var setupSimcir = function($placeHolder, data) {
     var $workspace = simcir.createWorkspace(data);
