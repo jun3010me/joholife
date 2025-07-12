@@ -247,6 +247,86 @@ questions:
 4. **アイコン使用**: 絵文字を効果的に活用
 5. **レスポンシブ対応**: `min-width`, `flex-wrap` などの活用
 
+## 計算や手順表示のレイアウト技法
+
+### 筆算形式の表示
+
+数学的な計算（割り算、筆算など）を表示する場合の推奨パターン：
+
+```html
+<!-- 筆算形式（2進数変換の割り算など） -->
+<div style="font-family: 'Courier New', monospace; font-size: 1.1rem; line-height: 1.8; background: #f8fafc; padding: 2rem; border-radius: 0.5rem; margin: 1rem 0; display: flex; flex-direction: column; align-items: center;">
+  <div style="margin-bottom: 1rem;">
+    <span style="color: #3b82f6; font-weight: bold;">2)</span><span style="text-decoration: overline;">13</span> = 6 ・・・ <span style="background: #fef3c7; padding: 0.2rem 0.5rem; border-radius: 0.25rem; color: #92400e; font-weight: bold;">1</span> ←④
+  </div>
+  <!-- 追加の計算行... -->
+</div>
+```
+
+**ポイント:**
+- `Courier New`, monospace フォントで文字幅を統一
+- `display: flex; flex-direction: column; align-items: center;` で中央配置
+- `text-decoration: overline` で筆算の上線を表現
+- 余りや重要な部分は背景色でハイライト
+
+### 計算手順のテーブル表示
+
+複数の要素を整列させる計算手順は、テーブル形式を推奨：
+
+```html
+<table style="width: 100%; max-width: 300px; margin: 0 auto; font-family: 'Courier New', monospace; border-collapse: collapse;">
+  <tr style="line-height: 1.8;">
+    <td style="text-align: right; width: 8%; padding-right: 0.2rem;">13</td>
+    <td style="text-align: center; width: 4%; padding: 0 0.1rem;">≥</td>
+    <td style="text-align: right; width: 6%; padding-right: 0.1rem;">8</td>
+    <td style="text-align: left; width: 10%; padding-left: 0.2rem;">(2³)</td>
+    <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
+    <td style="text-align: center; width: 4%;"><span style="color: #22c55e;">○</span></td>
+    <!-- 追加のセル... -->
+  </tr>
+</table>
+```
+
+**ポイント:**
+- `max-width: 300px` でPC表示時の横幅を制限
+- `margin: 0 auto` で中央配置
+- 各セルの幅を細かく調整（数字は8%、演算子は3-4%など）
+- `text-align` で各要素の配置を最適化
+- `padding` を0.1-0.2remに抑えて要素間を詰める
+
+### 2つの手法比較表示
+
+同じ概念の異なる手法を並べて表示する場合：
+
+```html
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+  <div style="background: #f0f9ff; padding: 2rem; border-radius: 1rem; border: 1px solid #3b82f6;">
+    <h2 style="color: #3b82f6;">方法1: 割り算法</h2>
+    <!-- 割り算法の内容 -->
+  </div>
+  <div style="background: #f0fdf4; padding: 2rem; border-radius: 1rem; border: 1px solid #22c55e;">
+    <h2 style="color: #22c55e;">方法2: 引き算法</h2>
+    <!-- 引き算法の内容 -->
+  </div>
+</div>
+```
+
+### レスポンシブ対応の重要点
+
+- **PC向け**: `max-width` で表示幅を制限
+- **スマホ向け**: `width: 100%` で画面幅に合わせる
+- **フォント**: モノスペースフォント（Courier New）で整列を保証
+- **中央配置**: `margin: 0 auto` または `align-items: center` を活用
+
+### 色使いのガイドライン
+
+計算表示での色分け：
+- **青系** (#3b82f6): 除数、基本操作
+- **緑系** (#22c55e): 正解、成功状態
+- **黄系** (#f59e0b): ハイライト、余り
+- **赤系** (#ef4444): エラー、不正解
+- **背景色**: 薄いトーン (#f0f9ff, #f0fdf4など)でセクション分け
+
 ### 推奨コンテンツ構造
 
 ```html

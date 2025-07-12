@@ -500,6 +500,9 @@ class QuizSession {
     const container = document.getElementById('quiz-app');
     if (!container) return;
 
+    // ローカルストレージから保存された名前を取得
+    const savedName = localStorage.getItem('quizStudentName');
+    
     container.innerHTML = `
       <div style="max-width: 600px; margin: 0 auto; text-align: center;">
         <div class="card" style="padding: 3rem;">
@@ -532,51 +535,88 @@ class QuizSession {
           </div>
 
           <div style="border-top: 1px solid var(--border); padding-top: 2rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
-              お名前を入力してください
-            </h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.875rem;">
-              100%の正答率で全問正解すると、修了証が発行されます<br>
-              ※入力された氏名は、修了証発行にのみ使用されます。
-            </p>
-            
-            <div style="margin-bottom: 2rem;">
-              <input 
-                type="text" 
-                id="user-name-input"
-                placeholder="山田太郎"
-                style="
-                  width: 100%; 
-                  max-width: 300px;
-                  padding: 0.75rem 1rem; 
-                  border: 2px solid var(--border); 
-                  border-radius: var(--radius-md); 
-                  font-size: 1rem;
-                  text-align: center;
-                  transition: border-color 0.2s ease;
-                "
-                maxlength="20"
-              />
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-              <button
-                id="start-quiz-button"
-                class="btn btn-primary"
-                style="padding: 0.75rem 2rem; font-size: 1rem;"
-                disabled
-              >
-                問題演習を開始
-              </button>
+            ${savedName && savedName.trim() ? `
+              <!-- 名前確認画面 -->
+              <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+                🎯 問題演習開始！
+              </h3>
+              <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem;">
+                ${savedName}さん、問題演習を開始しますか？
+              </p>
               
-              <button
-                onclick="window.location.href='/quiz'"
-                class="btn btn-secondary"
-                style="font-size: 0.875rem;"
-              >
-                メニューに戻る
-              </button>
-            </div>
+              <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                <button
+                  id="start-quiz-button"
+                  class="btn btn-primary"
+                  style="padding: 0.75rem 2rem; font-size: 1rem;"
+                >
+                  はい、開始する
+                </button>
+                
+                <button
+                  id="change-name-button"
+                  class="btn btn-secondary"
+                  style="font-size: 0.875rem;"
+                >
+                  別の名前で開始
+                </button>
+                
+                <button
+                  onclick="window.location.href='/quiz'"
+                  class="btn btn-secondary"
+                  style="font-size: 0.875rem;"
+                >
+                  メニューに戻る
+                </button>
+              </div>
+            ` : `
+              <!-- 名前入力画面 -->
+              <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
+                お名前を入力してください
+              </h3>
+              <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.875rem;">
+                100%の正答率で全問正解すると、修了証が発行されます<br>
+                ※入力された氏名は、修了証発行にのみ使用されます。
+              </p>
+              
+              <div style="margin-bottom: 2rem;">
+                <input 
+                  type="text" 
+                  id="user-name-input"
+                  placeholder="山田太郎"
+                  style="
+                    width: 100%; 
+                    max-width: 300px;
+                    padding: 0.75rem 1rem; 
+                    border: 2px solid var(--border); 
+                    border-radius: var(--radius-md); 
+                    font-size: 1rem;
+                    text-align: center;
+                    transition: border-color 0.2s ease;
+                  "
+                  maxlength="20"
+                />
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                <button
+                  id="start-quiz-button"
+                  class="btn btn-primary"
+                  style="padding: 0.75rem 2rem; font-size: 1rem;"
+                  disabled
+                >
+                  問題演習を開始
+                </button>
+                
+                <button
+                  onclick="window.location.href='/quiz'"
+                  class="btn btn-secondary"
+                  style="font-size: 0.875rem;"
+                >
+                  メニューに戻る
+                </button>
+              </div>
+            `}
           </div>
         </div>
       </div>
@@ -586,23 +626,45 @@ class QuizSession {
     setTimeout(() => {
       const nameInput = document.getElementById('user-name-input');
       const startButton = document.getElementById('start-quiz-button');
+      const changeNameButton = document.getElementById('change-name-button');
       
-      if (nameInput && startButton) {
-        const validateInput = () => {
-          const name = nameInput.value.trim();
-          startButton.disabled = name.length === 0;
-          startButton.style.opacity = name.length === 0 ? '0.5' : '1';
-        };
-        
-        nameInput.addEventListener('input', validateInput);
-        nameInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter' && nameInput.value.trim()) {
+      // 保存された名前がある場合の処理
+      const savedName = localStorage.getItem('quizStudentName');
+      if (savedName && savedName.trim()) {
+        // 名前が保存されている場合は直接開始可能
+        if (startButton) {
+          startButton.addEventListener('click', () => {
+            this.userName = savedName;
             this.startQuiz();
-          }
-        });
+          });
+        }
         
-        startButton.addEventListener('click', () => this.startQuiz());
-        nameInput.focus();
+        // 名前変更ボタンの処理
+        if (changeNameButton) {
+          changeNameButton.addEventListener('click', () => {
+            localStorage.removeItem('quizStudentName');
+            this.renderNameInput(); // 画面を再描画
+          });
+        }
+      } else {
+        // 名前入力が必要な場合の処理
+        if (nameInput && startButton) {
+          const validateInput = () => {
+            const name = nameInput.value.trim();
+            startButton.disabled = name.length === 0;
+            startButton.style.opacity = name.length === 0 ? '0.5' : '1';
+          };
+          
+          nameInput.addEventListener('input', validateInput);
+          nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && nameInput.value.trim()) {
+              this.startQuiz();
+            }
+          });
+          
+          startButton.addEventListener('click', () => this.startQuiz());
+          nameInput.focus();
+        }
       }
     }, 0);
   }
@@ -804,10 +866,23 @@ class QuizSession {
   }
 
   startQuiz() {
+    // 名前が既に設定されている場合（保存された名前を使用）
+    if (this.userName && this.userName.trim()) {
+      this.showingNameInput = false;
+      this.startTime = new Date(); // Reset start time
+      this.render();
+      return;
+    }
+    
+    // 名前入力フィールドから取得
     const nameInput = document.getElementById('user-name-input');
     if (nameInput) {
       this.userName = nameInput.value.trim();
       if (this.userName) {
+        // ローカルストレージに名前を保存
+        localStorage.setItem('quizStudentName', this.userName);
+        console.log('Name saved to localStorage:', this.userName);
+        
         this.showingNameInput = false;
         this.startTime = new Date(); // Reset start time
         this.render();
@@ -892,7 +967,7 @@ class QuizSession {
 
             <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
               <button
-                onclick="window.location.reload()"
+                id="retry-button"
                 class="btn btn-primary"
                 style="display: flex; align-items: center; margin-bottom: 0.5rem;"
               >
@@ -916,6 +991,26 @@ class QuizSession {
         </div>
       </div>
     `;
+
+    // Add event listeners for buttons
+    setTimeout(() => {
+      const retryButton = document.getElementById('retry-button');
+      if (retryButton) {
+        retryButton.addEventListener('click', () => {
+          // Preserve the user name and restart quiz
+          this.currentQuestionIndex = 0;
+          this.answers = {};
+          this.firstAnswers = {};
+          this.score = 0;
+          this.startTime = new Date();
+          this.isCompleted = false;
+          this.showingExplanation = false;
+          this.showingNameInput = false; // Skip name input since we already have the name
+          this.showingCertificate = false;
+          this.render();
+        });
+      }
+    }, 0);
   }
 
   renderCertificate() {

@@ -22,12 +22,22 @@ Object.keys(lessonsByChapter).forEach(chapter => {
 
 const chapters = [
   {
+    id: 'binary-basics',
+    title: '2進数とデジタルの基礎',
+    description: 'アナログとデジタルの違いから2進数の概念まで、コンピュータの基本を学習',
+    icon: '🔢',
+    difficulty: 'easy',
+    color: 'blue',
+    totalSlides: 8,
+    estimatedTime: 15
+  },
+  {
     id: 'programming-basics',
     title: 'プログラミング基礎',
     description: '変数、条件分岐、繰り返しなどの基本概念を学習',
     icon: '💻',
     difficulty: 'easy',
-    color: 'blue'
+    color: 'green'
   },
   {
     id: 'algorithms',
@@ -35,7 +45,7 @@ const chapters = [
     description: 'ソートアルゴリズムや探索アルゴリズムの理解',
     icon: '🔄',
     difficulty: 'medium',
-    color: 'green'
+    color: 'purple'
   },
   {
     id: 'databases',
@@ -43,7 +53,7 @@ const chapters = [
     description: 'SQLの基礎とリレーショナルデータベースの概念',
     icon: '🗄️',
     difficulty: 'medium',
-    color: 'purple'
+    color: 'yellow'
   },
   {
     id: 'logic-circuits',
@@ -51,14 +61,6 @@ const chapters = [
     description: 'AND、OR、NOTゲートと論理式の基礎',
     icon: '⚡',
     difficulty: 'easy',
-    color: 'yellow'
-  },
-  {
-    id: 'networks',
-    title: 'ネットワーク',
-    description: 'プロトコル、IPアドレス、ネットワーク基礎',
-    icon: '🌐',
-    difficulty: 'medium',
     color: 'red'
   }
 ];
@@ -115,8 +117,8 @@ const getDifficultyInfo = (difficulty: string) => {
       <div class="chapters-grid">
         {chapters.map((chapter) => {
           const lessons = lessonsByChapter[chapter.id] || [];
-          const totalSlides = lessons.length;
-          const estimatedTime = lessons.reduce((sum, lesson) => sum + (lesson.data.estimatedTime || 0), 0);
+          const totalSlides = chapter.totalSlides || lessons.length;
+          const estimatedTime = chapter.estimatedTime || lessons.reduce((sum, lesson) => sum + (lesson.data.estimatedTime || 0), 0);
           const difficultyInfo = getDifficultyInfo(chapter.difficulty);
           
           return (
