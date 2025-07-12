@@ -1,0 +1,293 @@
+id: logic-circuits
+title: 論理回路と論理式
+description: 論理ゲート、真理値表、論理式、ド・モルガンの定理を学習する問題集
+icon: ⚡
+difficulty: easy
+estimatedTime: 30
+category: 論理回路
+tags:
+  - 論理回路
+  - 論理ゲート
+  - 真理値表
+  - 論理式
+  - ド・モルガンの定理
+questions:
+  - id: q1
+    type: single-choice
+    title: ANDゲートの動作
+    description: "ANDゲートに入力Ａ＝１、入力Ｂ＝０を与えたとき、出力はどうなりますか？"
+    options:
+      - id: a
+        text: "0"
+        isCorrect: true
+        explanation: 正解です！ANDゲートは両方の入力が１のときだけ出力が１になります。Ａ＝１、Ｂ＝０なので出力は０です。
+      - id: b
+        text: "1"
+        isCorrect: false
+        explanation: ANDゲートは両方の入力が１のときだけ出力が１になります。Ａ＝１、Ｂ＝０なので出力は０です。
+      - id: c
+        text: "不明"
+        isCorrect: false
+        explanation: ANDゲートの動作は決まっています。両方の入力が１のときだけ出力が１になります。
+    explanation: ANDゲートは「論理積」とも呼ばれ、すべての入力が１のときだけ出力が１になります。
+    difficulty: easy
+    tags:
+      - ANDゲート
+      - 論理積
+      - 基礎
+    points: 1
+    hint: ANDゲートは「かつ」の関係です。両方の条件が満たされたときだけ出力されます。
+
+  - id: q2
+    type: single-choice
+    title: ORゲートの動作
+    description: "ORゲートに入力Ａ＝０、入力Ｂ＝１を与えたとき、出力はどうなりますか？"
+    options:
+      - id: a
+        text: "0"
+        isCorrect: false
+        explanation: ORゲートは少なくとも１つの入力が１なら出力が１になります。Ｂ＝１なので出力は１です。
+      - id: b
+        text: "1"
+        isCorrect: true
+        explanation: 正解です！ORゲートは少なくとも１つの入力が１なら出力が１になります。Ｂ＝１なので出力は１です。
+      - id: c
+        text: "不明"
+        isCorrect: false
+        explanation: ORゲートの動作は決まっています。少なくとも１つの入力が１なら出力が１になります。
+    explanation: ORゲートは「論理和」とも呼ばれ、いずれかの入力が１なら出力が１になります。
+    difficulty: easy
+    tags:
+      - ORゲート
+      - 論理和
+      - 基礎
+    points: 1
+    hint: ORゲートは「または」の関係です。どちらか一方でも条件が満たされれば出力されます。
+
+  - id: q3
+    type: single-choice
+    title: NOTゲートの動作
+    description: "NOTゲートに入力Ａ＝１を与えたとき、出力はどうなりますか？"
+    options:
+      - id: a
+        text: "0"
+        isCorrect: true
+        explanation: 正解です！NOTゲートは入力を反転させます。入力が１なら出力は０です。
+      - id: b
+        text: "1"
+        isCorrect: false
+        explanation: NOTゲートは入力を反転させます。入力が1なら出力は0です。
+      - id: c
+        text: "不明"
+        isCorrect: false
+        explanation: NOTゲートの動作は決まっています。入力を反転させます。
+    explanation: NOTゲートは「否定」とも呼ばれ、入力の値を反転させます（0→1、1→0）。
+    difficulty: easy
+    tags:
+      - NOTゲート
+      - 否定
+      - 基礎
+    points: 1
+    hint: NOTゲートは「でない」の関係です。入力の逆になります。
+
+  - id: q4
+    type: single-choice
+    title: 論理式の読み方
+    description: "論理式「A・B + C」を日本語で正しく表現したものはどれですか？"
+    options:
+      - id: a
+        text: "AまたはBかつC"
+        isCorrect: false
+        explanation: 演算子の優先順位が間違っています。・（AND）は+（OR）より優先されます。
+      - id: b
+        text: "（AかつB）またはC"
+        isCorrect: true
+        explanation: 正解です！・（AND）は+（OR）より優先されるので、「（AかつB）またはC」となります。
+      - id: c
+        text: "AかつBまたはC"
+        isCorrect: false
+        explanation: カッコが必要です。・（AND）は+（OR）より優先されるので、正しくは「（AかつB）またはC」です。
+      - id: d
+        text: "Aかつ（BまたはC）"
+        isCorrect: false
+        explanation: 演算子の優先順位が間違っています。・（AND）は+（OR）より優先されます。
+    explanation: 論理式では・（AND）が+（OR）より優先されます。数学の掛け算と足し算の関係と同じです。
+    difficulty: medium
+    tags:
+      - 論理式
+      - 演算子優先順位
+      - 日本語表現
+    points: 2
+    hint: 数学の掛け算と足し算の優先順位と同じように考えてみましょう。
+
+  - id: q5
+    type: single-choice
+    title: 真理値表の読み方
+    description: "次の真理値表で表される論理式はどれですか？<br><br>Ａ＝０、Ｂ＝０のとき出力＝０<br>Ａ＝０、Ｂ＝１のとき出力＝１<br>Ａ＝１、Ｂ＝０のとき出力＝１<br>Ａ＝１、Ｂ＝１のとき出力＝１"
+    options:
+      - id: a
+        text: "A・B"
+        isCorrect: false
+        explanation: A・Bの真理値表では、A=1かつB=1のときだけ出力が1になります。
+      - id: b
+        text: "A+B"
+        isCorrect: true
+        explanation: 正解です！A+B（OR）の真理値表では、A=0かつB=0のときだけ出力が0で、それ以外は1になります。
+      - id: c
+        text: "A̅"
+        isCorrect: false
+        explanation: A̅（NOTゲート）は1つの入力しかありません。また、Aが0なら1、Aが1なら0になります。
+      - id: d
+        text: "A̅・B̅"
+        isCorrect: false
+        explanation: A̅・B̅では、A=0かつB=0のときだけ出力が1になります。
+    explanation: 真理値表を見て、どの入力の組み合わせで出力が1になるかを確認することで論理式を特定できます。
+    difficulty: medium
+    tags:
+      - 真理値表
+      - 論理式
+      - ORゲート
+    points: 2
+    hint: いつ出力が1になるかに注目してみましょう。
+
+  - id: q6
+    type: single-choice
+    title: 複合ゲートの計算
+    description: "論理式「（Ａ＋Ｂ）・Ｃ」で、Ａ＝１、Ｂ＝０、Ｃ＝１のとき、出力はどうなりますか？"
+    options:
+      - id: a
+        text: "0"
+        isCorrect: false
+        explanation: まず（Ａ＋Ｂ）を計算すると（１＋０）＝１、次に１・１＝１となります。
+      - id: b
+        text: "1"
+        isCorrect: true
+        explanation: 正解です！まず（Ａ＋Ｂ）＝（１＋０）＝１、次に１・Ｃ＝１・１＝１となります。
+      - id: c
+        text: "不明"
+        isCorrect: false
+        explanation: 論理演算は決まった規則があります。順番に計算すれば答えが出ます。
+    explanation: 複合論理式では、カッコ内を先に計算してから、外側の演算を行います。
+    difficulty: medium
+    tags:
+      - 複合ゲート
+      - 論理式計算
+      - 演算順序
+    points: 2
+    hint: カッコ内を先に計算しましょう。（Ａ＋Ｂ）を先に求めてから、その結果とＣのAND演算を行います。
+
+  - id: q7
+    type: single-choice
+    title: ド・モルガンの定理（第1法則）
+    description: "ド・モルガンの定理によると、「(A+B)̅」は何と等しいですか？"
+    options:
+      - id: a
+        text: "A̅+B̅"
+        isCorrect: false
+        explanation: これは第2法則です。第1法則では(A+B)̅ = A̅・B̅となります。
+      - id: b
+        text: "A̅・B̅"
+        isCorrect: true
+        explanation: 正解です！ド・モルガンの第1法則では、(A+B)̅ = A̅・B̅となります。
+      - id: c
+        text: "A・B̅"
+        isCorrect: false
+        explanation: ド・モルガンの定理では、両方の変数が否定され、演算子も変わります。
+      - id: d
+        text: "A+B"
+        isCorrect: false
+        explanation: 否定が必要です。ド・モルガンの定理では(A+B)̅ = A̅・B̅となります。
+    explanation: ド・モルガンの第1法則：「全体の否定」は「それぞれの否定の積」になります。
+    difficulty: hard
+    tags:
+      - ド・モルガンの定理
+      - 第1法則
+      - 論理変換
+    points: 3
+    hint: "「(AまたはB)でない」は「Aでない かつ Bでない」と同じ意味です。"
+
+  - id: q8
+    type: single-choice
+    title: ド・モルガンの定理（第2法則）
+    description: "ド・モルガンの定理によると、「(A・B)̅」は何と等しいですか？"
+    options:
+      - id: a
+        text: "A̅・B̅"
+        isCorrect: false
+        explanation: これは第1法則です。第2法則では(A・B)̅ = A̅+B̅となります。
+      - id: b
+        text: "A̅+B̅"
+        isCorrect: true
+        explanation: 正解です！ド・モルガンの第2法則では、(A・B)̅ = A̅+B̅となります。
+      - id: c
+        text: "A+B̅"
+        isCorrect: false
+        explanation: ド・モルガンの定理では、両方の変数が否定され、演算子も変わります。
+      - id: d
+        text: "A・B"
+        isCorrect: false
+        explanation: 否定が必要です。ド・モルガンの定理では(A・B)̅ = A̅+B̅となります。
+    explanation: ド・モルガンの第2法則：「積の否定」は「それぞれの否定の和」になります。
+    difficulty: hard
+    tags:
+      - ド・モルガンの定理
+      - 第2法則
+      - 論理変換
+    points: 3
+    hint: "「(AかつB)でない」は「Aでない または Bでない」と同じ意味です。"
+
+  - id: q9
+    type: single-choice
+    title: 実用例での論理思考
+    description: "「宿題が終わって**かつ**時間があるなら遊ぶ」という条件で、<br>宿題が終わっていない場合、遊べますか？"
+    options:
+      - id: a
+        text: "遊べる"
+        isCorrect: false
+        explanation: ANDの条件では、すべての条件が満たされる必要があります。宿題が終わっていないので遊べません。
+      - id: b
+        text: "遊べない"
+        isCorrect: true
+        explanation: 正解です！「宿題が終わって**かつ**時間がある」という条件では、両方とも満たされる必要があります。
+      - id: c
+        text: "時間があれば遊べる"
+        isCorrect: false
+        explanation: ANDの条件では、すべての条件が満たされる必要があります。宿題が終わっていないので遊べません。
+    explanation: 日常の判断でも論理演算と同じ考え方が使われています。ANDは「すべての条件」が必要です。
+    difficulty: easy
+    tags:
+      - 実用例
+      - 日常思考
+      - ANDゲート
+    points: 1
+    hint: "「かつ」は両方の条件が必要です。"
+
+  - id: q10
+    type: single-choice
+    title: 論理式の簡単化
+    description: "論理式「A・(A+B)」を簡単化すると何になりますか？"
+    options:
+      - id: a
+        text: "A"
+        isCorrect: true
+        explanation: 正解です！吸収則により、A・(A+B) = A となります。
+      - id: b
+        text: "B"
+        isCorrect: false
+        explanation: 吸収則を適用すると A・(A+B) = A となります。
+      - id: c
+        text: "A+B"
+        isCorrect: false
+        explanation: 吸収則を適用すると A・(A+B) = A となります。
+      - id: d
+        text: "A・B"
+        isCorrect: false
+        explanation: 吸収則を適用すると A・(A+B) = A となります。
+    explanation: 吸収則：A・(A+B) = A。これは「Aで、かつ（AまたはB）」は単に「A」と同じ意味だからです。
+    difficulty: hard
+    tags:
+      - 論理式簡単化
+      - 吸収則
+      - 論理法則
+    points: 3
+    hint: "「Aで、かつ（AまたはB）」を満たすには、Aが必要です。Aが満たされていれば（AまたはB）は自動的に満たされます。"
