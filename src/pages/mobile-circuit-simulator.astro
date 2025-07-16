@@ -909,9 +909,11 @@ import Layout from '../layouts/Layout.astro';
 
             startComponentDrag(event) {
                 event.preventDefault();
+                console.log('startComponentDrag called with type:', event.currentTarget.dataset.type);
                 
                 // 横レイアウト時は、即座にドラッグ開始せず、スクロール判定を待つ
                 const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                console.log('isLandscape:', isLandscape);
                 
                 if (isLandscape) {
                     // 横レイアウト時：部品ドラッグを保留して、スクロール判定に委ねる
@@ -922,6 +924,7 @@ import Layout from '../layouts/Layout.astro';
                         type: event.currentTarget.dataset.type,
                         event: event
                     };
+                    console.log('pendingComponentDrag set to:', this.pendingComponentDrag);
                     return;
                 }
                 
@@ -2534,6 +2537,7 @@ import Layout from '../layouts/Layout.astro';
                 }
                 
                 // 待機中の部品ドラッグをクリア
+                console.log('handlePaletteScrollEnd: clearing pendingComponentDrag from', this.pendingComponentDrag ? 'exists' : 'null');
                 this.isPaletteScrolling = false;
                 this.pendingComponentDrag = null;
                 
