@@ -2453,7 +2453,11 @@ import Layout from '../layouts/Layout.astro';
                 if (componentItem) {
                     console.log('handlePaletteScrollStart: component-item detected, calling startComponentDrag directly');
                     // イベントのcurrentTargetを修正してstartComponentDragを呼び出す
-                    const modifiedEvent = { ...event, currentTarget: componentItem };
+                    const modifiedEvent = { 
+                        ...event, 
+                        currentTarget: componentItem,
+                        preventDefault: () => {} // preventDefault関数を追加
+                    };
                     this.startComponentDrag(modifiedEvent);
                     return;
                 }
@@ -2469,6 +2473,12 @@ import Layout from '../layouts/Layout.astro';
                 
                 const palette = document.getElementById('component-palette');
                 if (!palette.classList.contains('open')) {
+                    return;
+                }
+                
+                // 既にドラッグ中の場合はスキップ
+                if (this.isDragging) {
+                    console.log('handlePaletteScrollMove: skipping because already dragging');
                     return;
                 }
                 
