@@ -877,6 +877,8 @@ import Layout from '../layouts/Layout.astro';
                             if (component.isNewFromPalette) {
                                 component.isNewFromPalette = false;
                                 console.log('Component placed from palette:', component.type);
+                                console.log('Component position:', component.x, component.y);
+                                console.log('Component added to map, total components:', this.components.size);
                             }
                             this.saveState();
                             // console.log('Drag completed for:', this.selectedComponent.type);
@@ -2675,6 +2677,10 @@ import Layout from '../layouts/Layout.astro';
                 this.dragOffset = { x: 0, y: 0 };
                 this.dragStarted = true;
                 
+                // 実際にマップに追加
+                this.components.set(component.id, component);
+                console.log('Component added to map with ID:', component.id, 'Total components:', this.components.size);
+                
                 // 現在のタッチ位置を記録
                 this.currentMousePos = {
                     x: (touch.clientX - canvasRect.left - this.panX) / this.scale,
@@ -2690,6 +2696,12 @@ import Layout from '../layouts/Layout.astro';
                 }
                 
                 this.render();
+                
+                // デバッグ用：配置後の状態を確認
+                console.log('After render - components.size:', this.components.size);
+                console.log('After render - pendingComponent:', this.pendingComponent);
+                console.log('After render - canvas dimensions:', this.canvas.width, 'x', this.canvas.height);
+                console.log('After render - scale:', this.scale, 'panX:', this.panX, 'panY:', this.panY);
             }
         }
 
