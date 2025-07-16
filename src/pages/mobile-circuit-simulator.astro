@@ -1648,6 +1648,17 @@ import Layout from '../layouts/Layout.astro';
                 this.drawNotBubble(ctx, x + w - 8, y + h/2, 3);
             }
             
+            drawNOTTriangle(ctx, x, y, w, h) {
+                // NOT gate triangle only (without bubble)
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + h);
+                ctx.lineTo(x + w, y + h/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
             drawNotBubble(ctx, x, y, radius = 5) {
                 ctx.beginPath();
                 ctx.arc(x + radius, y, radius, 0, 2 * Math.PI);
@@ -1718,20 +1729,22 @@ import Layout from '../layouts/Layout.astro';
                             this.drawXORGate(ctx, 2, 2, w - 4, h - 4);
                             break;
                         case 'NAND':
-                            // AND gate positioned closer to bubble
-                            this.drawANDGate(ctx, 6, 2, w - 16, h - 4);
-                            // Position bubble with proper spacing
-                            this.drawNotBubble(ctx, w - 16 + 6, h/2, 3);
+                            // AND gate with space for bubble
+                            this.drawANDGate(ctx, 2, 2, w - 12, h - 4);
+                            // Position bubble with proper clearance
+                            this.drawNotBubble(ctx, w - 9, h/2, 2.5);
                             break;
                         case 'NOR':
                             // OR gate with space for bubble  
-                            this.drawORGate(ctx, 2, 2, w - 16, h - 4);
-                            // Position bubble with proper spacing
-                            this.drawNotBubble(ctx, w - 16 + 2, h/2, 3);
+                            this.drawORGate(ctx, 2, 2, w - 12, h - 4);
+                            // Position bubble with proper clearance
+                            this.drawNotBubble(ctx, w - 9, h/2, 2.5);
                             break;
                         case 'NOT':
-                            // NOT gate with wider triangle
-                            this.drawNOTGate(ctx, 2, 2, (w - 16) * 1.5, h - 4);
+                            // NOT triangle with space for bubble
+                            this.drawNOTTriangle(ctx, 2, 2, w - 12, h - 4);
+                            // Position bubble with proper clearance
+                            this.drawNotBubble(ctx, w - 9, h/2, 2.5);
                             break;
                     }
                 });
