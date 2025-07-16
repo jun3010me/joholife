@@ -556,6 +556,8 @@ import Layout from '../layouts/Layout.astro';
                 console.log('Checking for port at', pos.x, pos.y, 'found:', port ? port.type : 'none');
                 if (port) {
                     console.log('Starting connection from port:', port.type);
+                    // 接続開始時にマウス座標を更新（点線が正しい位置から始まるように）
+                    this.currentMousePos = pos;
                     this.startConnection(port);
                     return;
                 }
