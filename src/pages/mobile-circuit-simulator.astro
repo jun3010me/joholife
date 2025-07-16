@@ -531,6 +531,20 @@ import Layout from '../layouts/Layout.astro';
                 
                 this.init();
             }
+            
+            // モバイル横画面の判定（iPhone 16 Pro Maxなど大きな画面にも対応）
+            isMobileLandscape() {
+                const isLandscape = window.matchMedia('(orientation: landscape)').matches && 
+                                   window.innerWidth <= 1024 && // 横幅上限を拡大
+                                   window.innerHeight <= 600;   // 縦幅上限を拡大
+                console.log('Landscape detection:', {
+                    orientation: window.matchMedia('(orientation: landscape)').matches,
+                    innerWidth: window.innerWidth,
+                    innerHeight: window.innerHeight,
+                    isLandscape: isLandscape
+                });
+                return isLandscape;
+            }
 
             init() {
                 this.setupCanvas();
@@ -598,7 +612,7 @@ import Layout from '../layouts/Layout.astro';
                 const items = palette.querySelectorAll('.component-item');
 
                 // 横レイアウトでない場合は従来通り
-                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                const isLandscape = this.isMobileLandscape();
                 
                 if (!isLandscape) {
                     items.forEach(item => {
@@ -919,7 +933,7 @@ import Layout from '../layouts/Layout.astro';
                 console.log('startComponentDrag called with type:', event.currentTarget.dataset.type);
                 
                 // 横レイアウト時は、即座にドラッグ開始せず、スクロール判定を待つ
-                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                const isLandscape = this.isMobileLandscape();
                 console.log('isLandscape:', isLandscape);
                 
                 if (isLandscape) {
@@ -951,7 +965,7 @@ import Layout from '../layouts/Layout.astro';
                     
                     // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
                     let isWithinCanvas = false;
-                    const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                    const isLandscape = this.isMobileLandscape();
                     
                     if (isLandscape) {
                         // 横レイアウト時：パレット領域（下部140px）を除外
@@ -2434,7 +2448,7 @@ import Layout from '../layouts/Layout.astro';
             // パレットスクロール処理
             handlePaletteScrollStart(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
+                if (!this.isMobileLandscape()) {
                     return;
                 }
                 
@@ -2473,7 +2487,7 @@ import Layout from '../layouts/Layout.astro';
             
             handlePaletteScrollMove(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
+                if (!this.isMobileLandscape()) {
                     return;
                 }
                 
@@ -2553,7 +2567,7 @@ import Layout from '../layouts/Layout.astro';
             
             handlePaletteScrollEnd(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
+                if (!this.isMobileLandscape()) {
                     return;
                 }
                 
@@ -2582,7 +2596,7 @@ import Layout from '../layouts/Layout.astro';
                     
                     // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
                     let isWithinCanvas = false;
-                    const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                    const isLandscape = this.isMobileLandscape();
                     
                     if (isLandscape) {
                         // 横レイアウト時：パレット領域（下部140px）を除外
@@ -2652,7 +2666,7 @@ import Layout from '../layouts/Layout.astro';
                 const canvasRect = this.canvas.getBoundingClientRect();
                 
                 // 横レイアウトの場合、パレット領域を除いた中央に配置
-                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                const isLandscape = this.isMobileLandscape();
                 let x, y;
                 
                 if (isLandscape) {
