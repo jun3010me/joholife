@@ -1,0 +1,1878 @@
+---
+// mobile-circuit-simulator.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="スマホ対応論理回路シミュレータ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* 部品パレット */
+        .component-palette {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .palette-header {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .palette-title {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .palette-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .palette-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .component-category {
+            margin-bottom: 16px;
+        }
+
+        .category-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .component-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .component-item:hover {
+            border-color: #2196f3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+        }
+
+        .component-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .component-icon-canvas {
+            margin-bottom: 4px;
+            background: transparent;
+        }
+
+        .component-name {
+            font-size: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* メインキャンバス */
+        .main-canvas {
+            flex: 1;
+            position: relative;
+            background: white;
+            overflow: hidden;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            touch-action: none;
+        }
+
+        #circuit-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10px 10px, #ddd 1px, transparent 1px),
+                radial-gradient(circle at 30px 30px, #ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        /* ツールバー */
+        .toolbar {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .toolbar-button {
+            background: none;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toolbar-button:hover {
+            background: #f5f5f5;
+        }
+
+        .toolbar-button:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .toolbar-button:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .toolbar-button + .toolbar-button {
+            border-top: 1px solid #eee;
+        }
+
+        /* ファイルメニュー */
+        .file-menu {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            display: flex;
+            padding: 4px;
+            z-index: 1000;
+        }
+
+        .file-button {
+            background: none;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            font-weight: 500;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-button:hover {
+            background: #f5f5f5;
+        }
+
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .component-palette {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                width: 280px;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            }
+
+            .component-palette.open {
+                transform: translateX(0);
+            }
+
+            .palette-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.3);
+                z-index: 999;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s;
+            }
+
+            .palette-overlay.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .main-canvas {
+                width: 100vw;
+            }
+
+            .mobile-toggle {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                background: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 18px;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                z-index: 1001;
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        /* ドラッグ中の部品スタイル */
+        .dragging-component {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        /* 隠しファイル入力 */
+        .hidden-file-input {
+            display: none;
+        }
+    </style>
+
+    <!-- メインアプリケーション -->
+    <div class="app-container">
+        <!-- モバイル用パレット切り替えボタン -->
+        <button class="mobile-toggle" id="mobile-toggle">☰</button>
+        
+        <!-- パレットオーバーレイ（モバイル用） -->
+        <div class="palette-overlay" id="palette-overlay"></div>
+        
+        <!-- 部品パレット -->
+        <div class="component-palette" id="component-palette">
+            <div class="palette-header">
+                <span class="palette-title">部品パレット</span>
+                <button class="palette-toggle" id="palette-toggle">✕</button>
+            </div>
+            <div class="palette-content">
+                <!-- 基本ゲート -->
+                <div class="component-category">
+                    <div class="category-title">基本ゲート</div>
+                    <div class="component-grid">
+                        <div class="component-item" data-type="AND">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="AND"></canvas>
+                            <div class="component-name">AND</div>
+                        </div>
+                        <div class="component-item" data-type="OR">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="OR"></canvas>
+                            <div class="component-name">OR</div>
+                        </div>
+                        <div class="component-item" data-type="NOT">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="NOT"></canvas>
+                            <div class="component-name">NOT</div>
+                        </div>
+                        <div class="component-item" data-type="XOR">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="XOR"></canvas>
+                            <div class="component-name">XOR</div>
+                        </div>
+                        <div class="component-item" data-type="NAND">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="NAND"></canvas>
+                            <div class="component-name">NAND</div>
+                        </div>
+                        <div class="component-item" data-type="NOR">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="NOR"></canvas>
+                            <div class="component-name">NOR</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 入出力 -->
+                <div class="component-category">
+                    <div class="category-title">入出力</div>
+                    <div class="component-grid">
+                        <div class="component-item" data-type="INPUT">
+                            <div class="component-icon">◯</div>
+                            <div class="component-name">入力</div>
+                        </div>
+                        <div class="component-item" data-type="OUTPUT">
+                            <div class="component-icon">●</div>
+                            <div class="component-name">出力</div>
+                        </div>
+                        <div class="component-item" data-type="LED">
+                            <div class="component-icon">💡</div>
+                            <div class="component-name">LED</div>
+                        </div>
+                        <div class="component-item" data-type="SWITCH">
+                            <div class="component-icon">🔘</div>
+                            <div class="component-name">スイッチ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- メインキャンバス -->
+        <div class="main-canvas">
+            <div class="canvas-container">
+                <canvas id="circuit-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- ツールバー -->
+        <div class="toolbar">
+            <button class="toolbar-button" id="delete-btn" title="削除（接続線はダブルクリックでも削除可能）">🗑️</button>
+            <button class="toolbar-button" id="clear-btn" title="すべてクリア">🧹</button>
+            <button class="toolbar-button" id="undo-btn" title="元に戻す">↶</button>
+            <button class="toolbar-button" id="redo-btn" title="やり直し">↷</button>
+        </div>
+
+        <!-- ファイルメニュー -->
+        <div class="file-menu">
+            <button class="file-button" id="save-btn">💾 保存</button>
+            <button class="file-button" id="load-btn">📁 読込</button>
+            <button class="file-button" id="export-btn">📷 画像</button>
+        </div>
+
+        <!-- 隠しファイル入力 -->
+        <input type="file" class="hidden-file-input" id="file-input" accept=".json">
+    </div>
+
+    <script type="module">
+        // アプリケーションの初期化
+        class MobileCircuitSimulator {
+            constructor() {
+                this.canvas = document.getElementById('circuit-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.components = new Map();
+                this.connections = [];
+                this.selectedComponent = null;
+                this.isDragging = false;
+                this.dragOffset = { x: 0, y: 0 };
+                this.scale = 1;
+                this.panX = 0;
+                this.panY = 0;
+                this.history = [];
+                this.historyIndex = -1;
+                this.isConnecting = false;
+                this.connectionStart = null;
+                this.currentMousePos = { x: 0, y: 0 };
+                this.isSimulating = true;
+                this.simulationInterval = null;
+                this.isPanning = false;
+                this.lastPanPoint = null;
+                this.touches = [];
+                this.lastPinchDistance = null;
+                this.touchStartTime = 0;
+                this.touchStartPos = null;
+                this.dragThreshold = 10; // ピクセル単位でのドラッグ判定しきい値
+                this.selectedConnection = null;
+                this.lastClickTime = 0;
+                this.doubleClickDelay = 300; // ダブルクリック判定時間（ミリ秒）
+                
+                this.init();
+            }
+
+            init() {
+                this.setupCanvas();
+                this.setupEventListeners();
+                this.setupPalette();
+                this.setupFileHandling();
+                this.drawPaletteIcons();
+                this.startSimulation();
+                this.render();
+            }
+            
+            startSimulation() {
+                this.simulationInterval = setInterval(() => {
+                    if (this.isSimulating) {
+                        this.updateSimulation();
+                    }
+                }, 100); // 10Hzでシミュレーション更新
+            }
+
+            setupCanvas() {
+                const resizeCanvas = () => {
+                    const container = this.canvas.parentElement;
+                    const dpr = window.devicePixelRatio || 1;
+                    
+                    this.canvas.width = container.clientWidth * dpr;
+                    this.canvas.height = container.clientHeight * dpr;
+                    this.canvas.style.width = container.clientWidth + 'px';
+                    this.canvas.style.height = container.clientHeight + 'px';
+                    
+                    this.ctx.scale(dpr, dpr);
+                    this.render();
+                };
+
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+            }
+
+            setupEventListeners() {
+                // タッチ・マウスイベント
+                this.canvas.addEventListener('mousedown', this.handlePointerDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handlePointerMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.handlePointerUp.bind(this));
+                
+                this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+
+                // ピンチズーム
+                this.canvas.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
+
+                // ツールバーボタン
+                document.getElementById('delete-btn').addEventListener('click', this.deleteSelected.bind(this));
+                document.getElementById('clear-btn').addEventListener('click', this.clearAll.bind(this));
+                document.getElementById('undo-btn').addEventListener('click', this.undo.bind(this));
+                document.getElementById('redo-btn').addEventListener('click', this.redo.bind(this));
+
+                // モバイルUI
+                document.getElementById('mobile-toggle').addEventListener('click', this.togglePalette.bind(this));
+                document.getElementById('palette-toggle').addEventListener('click', this.togglePalette.bind(this));
+                document.getElementById('palette-overlay').addEventListener('click', this.togglePalette.bind(this));
+            }
+
+            setupPalette() {
+                const palette = document.getElementById('component-palette');
+                const items = palette.querySelectorAll('.component-item');
+
+                items.forEach(item => {
+                    item.addEventListener('mousedown', this.startComponentDrag.bind(this));
+                    item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
+                });
+            }
+
+            setupFileHandling() {
+                document.getElementById('save-btn').addEventListener('click', this.saveCircuit.bind(this));
+                document.getElementById('load-btn').addEventListener('click', this.loadCircuit.bind(this));
+                document.getElementById('export-btn').addEventListener('click', this.exportImage.bind(this));
+                document.getElementById('file-input').addEventListener('change', this.handleFileLoad.bind(this));
+            }
+
+            getPointerPos(event) {
+                const rect = this.canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                // タッチイベントかマウスイベントかを判定
+                if (event.touches && event.touches.length > 0) {
+                    // タッチイベントの場合
+                    clientX = event.touches[0].clientX;
+                    clientY = event.touches[0].clientY;
+                } else if (event.changedTouches && event.changedTouches.length > 0) {
+                    // タッチエンドイベントの場合
+                    clientX = event.changedTouches[0].clientX;
+                    clientY = event.changedTouches[0].clientY;
+                } else {
+                    // マウスイベントの場合
+                    clientX = event.clientX;
+                    clientY = event.clientY;
+                }
+                
+                return {
+                    x: (clientX - rect.left - this.panX) / this.scale,
+                    y: (clientY - rect.top - this.panY) / this.scale
+                };
+            }
+
+            handlePointerDown(event) {
+                event.preventDefault();
+                console.log('PointerDown triggered, event type:', event.type);
+                
+                // マルチタッチの場合はスキップ
+                if (event.touches && event.touches.length > 1) return;
+                
+                const pos = this.getPointerPos(event);
+                this.touchStartTime = Date.now();
+                this.touchStartPos = { x: pos.x, y: pos.y };
+                
+                // ポート接続チェック
+                const port = this.getPortAt(pos.x, pos.y);
+                console.log('Checking for port at', pos.x, pos.y, 'found:', port ? port.type : 'none');
+                if (port) {
+                    console.log('Starting connection from port:', port.type);
+                    this.startConnection(port);
+                    return;
+                }
+                
+                // 接続線チェック
+                const connection = this.getConnectionAt(pos.x, pos.y);
+                if (connection) {
+                    const currentTime = Date.now();
+                    
+                    // ダブルクリック判定
+                    if (this.selectedConnection === connection && 
+                        currentTime - this.lastClickTime < this.doubleClickDelay) {
+                        // ダブルクリック：接続線を削除
+                        this.removeConnection(connection.id);
+                        this.selectedConnection = null;
+                        this.render();
+                        this.saveState();
+                        this.updateSimulation();
+                        // console.log('Connection deleted via double-click');
+                        return;
+                    }
+                    
+                    // シングルクリック：接続線を選択
+                    this.selectedConnection = connection;
+                    this.lastClickTime = currentTime;
+                    this.render();
+                    return;
+                }
+                
+                // 部品選択
+                const component = this.getComponentAt(pos.x, pos.y);
+                console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
+                if (component) {
+                    console.log('Component selected for dragging:', component.type);
+                    this.selectedComponent = component;
+                    this.selectedConnection = null; // 部品選択時は接続線選択をリセット
+                    this.isDragging = true;
+                    this.dragOffset = {
+                        x: pos.x - component.x,
+                        y: pos.y - component.y
+                    };
+                    this.isPanning = false; // 部品選択時はパンを無効化
+                } else {
+                    // 空の領域をクリックした場合はパン開始
+                    console.log('No component found, starting pan mode');
+                    this.selectedComponent = null;
+                    this.selectedConnection = null;
+                    this.isDragging = false;
+                    this.isPanning = true;
+                    this.lastPanPoint = pos;
+                }
+                
+                this.render();
+            }
+
+            handlePointerMove(event) {
+                event.preventDefault();
+                
+                // マルチタッチの場合はスキップ
+                if (event.touches && event.touches.length > 1) return;
+                
+                const pos = this.getPointerPos(event);
+                this.currentMousePos = pos;
+                
+                if (this.isConnecting) {
+                    this.render();
+                } else if (this.isDragging && this.selectedComponent) {
+                    this.selectedComponent.x = pos.x - this.dragOffset.x;
+                    this.selectedComponent.y = pos.y - this.dragOffset.y;
+                    this.render();
+                } else if (this.isPanning && this.lastPanPoint) {
+                    const deltaX = (pos.x - this.lastPanPoint.x) * this.scale;
+                    const deltaY = (pos.y - this.lastPanPoint.y) * this.scale;
+                    this.panX += deltaX;
+                    this.panY += deltaY;
+                    this.lastPanPoint = pos;
+                    this.render();
+                }
+            }
+
+            handlePointerUp(event) {
+                event.preventDefault();
+                
+                if (this.isConnecting && this.connectionStart) {
+                    const pos = this.getPointerPos(event);
+                    const port = this.getPortAt(pos.x, pos.y);
+                    console.log('handlePointerUp - Connection mode, found port:', port ? port.type : 'none');
+                    if (port && port !== this.connectionStart) {
+                        this.completeConnection(this.connectionStart, port);
+                    } else {
+                        console.log('handlePointerUp - No valid end port found');
+                    }
+                    this.cancelConnection();
+                } else if (this.isDragging && this.selectedComponent) {
+                    const pos = this.getPointerPos(event);
+                    const touchDuration = Date.now() - this.touchStartTime;
+                    const touchDistance = this.touchStartPos ? 
+                        Math.sqrt(Math.pow(pos.x - this.touchStartPos.x, 2) + Math.pow(pos.y - this.touchStartPos.y, 2)) : 0;
+                    
+                    // 短いタップかつ移動距離が小さい場合は状態切り替え
+                    if ((this.selectedComponent.type === 'INPUT' || this.selectedComponent.type === 'SWITCH') &&
+                        touchDuration < 500 && // 500ms以下
+                        touchDistance < this.dragThreshold) { // 10px以下の移動
+                        this.toggleInput(this.selectedComponent);
+                        // console.log('Toggle input:', this.selectedComponent.type, 'to', this.selectedComponent.state);
+                    } else {
+                        // ドラッグ完了
+                        this.saveState();
+                        // console.log('Drag completed for:', this.selectedComponent.type);
+                    }
+                    
+                    this.isDragging = false;
+                } else if (this.isPanning) {
+                    this.isPanning = false;
+                    this.lastPanPoint = null;
+                }
+                
+                // 状態をリセット
+                this.touchStartTime = 0;
+                this.touchStartPos = null;
+            }
+
+            handleWheel(event) {
+                event.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                
+                const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.max(0.1, Math.min(3, this.scale * zoomFactor));
+                
+                // ズーム中心を調整
+                this.panX = mouseX - (mouseX - this.panX) * (newScale / this.scale);
+                this.panY = mouseY - (mouseY - this.panY) * (newScale / this.scale);
+                
+                this.scale = newScale;
+                this.render();
+            }
+
+            startComponentDrag(event) {
+                event.preventDefault();
+                const type = event.currentTarget.dataset.type;
+                
+                // 新しい部品を作成
+                const pos = this.getPointerPos(event);
+                const component = this.createComponent(type, pos.x, pos.y);
+                
+                this.components.set(component.id, component);
+                this.selectedComponent = component;
+                this.isDragging = true;
+                this.dragOffset = { x: 0, y: 0 };
+                
+                // タッチイベントの場合、グローバルなイベントリスナーを追加
+                if (event.type === 'touchstart') {
+                    this.setupGlobalTouchHandlers();
+                }
+                
+                this.render();
+                this.saveState();
+            }
+            
+            setupGlobalTouchHandlers() {
+                // グローバルなタッチムーブとタッチエンドイベントを追加
+                const handleGlobalTouchMove = (event) => {
+                    if (this.isDragging) {
+                        event.preventDefault();
+                        this.handlePointerMove(event);
+                    }
+                };
+                
+                const handleGlobalTouchEnd = (event) => {
+                    if (this.isDragging) {
+                        event.preventDefault();
+                        this.handlePointerUp(event);
+                    }
+                    // イベントリスナーを削除
+                    document.removeEventListener('touchmove', handleGlobalTouchMove);
+                    document.removeEventListener('touchend', handleGlobalTouchEnd);
+                };
+                
+                document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+                document.addEventListener('touchend', handleGlobalTouchEnd, { passive: false });
+            }
+
+            createComponent(type, x, y) {
+                const id = 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // 基本ゲートは一回り大きく
+                let width = 90;
+                let height = 50;
+                if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(type)) {
+                    width = 110;
+                    height = 60;
+                }
+                
+                const baseComponent = {
+                    id,
+                    type,
+                    x,
+                    y,
+                    width,
+                    height,
+                    inputs: [],
+                    outputs: [],
+                    state: false
+                };
+
+                // タイプ別の設定
+                switch (type) {
+                    case 'AND':
+                    case 'OR':
+                    case 'XOR':
+                        baseComponent.inputs = [
+                            { id: 'in1', x: 0, y: 20, connected: null },
+                            { id: 'in2', x: 0, y: 40, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'out', x: 110, y: 30, connected: [] }
+                        ];
+                        break;
+                    case 'NAND':
+                    case 'NOR':
+                        baseComponent.inputs = [
+                            { id: 'in1', x: 0, y: 20, connected: null },
+                            { id: 'in2', x: 0, y: 40, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'out', x: 110, y: 30, connected: [] }
+                        ];
+                        break;
+                    case 'NOT':
+                        baseComponent.inputs = [
+                            { id: 'in', x: 0, y: 30, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'out', x: 110, y: 30, connected: [] }
+                        ];
+                        break;
+                    case 'INPUT':
+                    case 'SWITCH':
+                        baseComponent.outputs = [
+                            { id: 'out', x: 90, y: 25, connected: [] }
+                        ];
+                        break;
+                    case 'OUTPUT':
+                    case 'LED':
+                        baseComponent.inputs = [
+                            { id: 'in', x: 0, y: 25, connected: null }
+                        ];
+                        break;
+                }
+
+                return baseComponent;
+            }
+            
+            getPortAt(x, y) {
+                const tolerance = 12;
+                
+                for (const component of this.components.values()) {
+                    // 入力ポートをチェック
+                    for (const port of component.inputs || []) {
+                        const portX = component.x + port.x;
+                        const portY = component.y + port.y;
+                        if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
+                            console.log('getPortAt - Found input port at', portX, portY);
+                            return { component, port, type: 'input' };
+                        }
+                    }
+                    
+                    // 出力ポートをチェック
+                    for (const port of component.outputs || []) {
+                        const portX = component.x + port.x;
+                        const portY = component.y + port.y;
+                        if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
+                            console.log('getPortAt - Found output port at', portX, portY);
+                            return { component, port, type: 'output' };
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            
+            startConnection(portInfo) {
+                this.isConnecting = true;
+                this.connectionStart = portInfo;
+                console.log('startConnection - Port:', portInfo.type, 'Component:', portInfo.component.type);
+            }
+            
+            completeConnection(startPort, endPort) {
+                console.log('completeConnection - Start:', startPort.type, 'End:', endPort.type);
+                
+                // 接続の妥当性をチェック
+                if (startPort.type === endPort.type) {
+                    console.log('Cannot connect same type ports');
+                    return; // 同じタイプは接続不可
+                }
+                if (startPort.component === endPort.component) {
+                    console.log('Cannot connect same component');
+                    return; // 同じ部品内は接続不可
+                }
+                
+                let outputPort = startPort.type === 'output' ? startPort : endPort;
+                let inputPort = startPort.type === 'input' ? startPort : endPort;
+                
+                // 既存の接続をチェック
+                if (inputPort.port.connected) {
+                    this.removeConnection(inputPort.port.connected);
+                }
+                
+                // 新しい接続を作成
+                const connection = {
+                    id: 'conn_' + Date.now(),
+                    from: { component: outputPort.component, port: outputPort.port },
+                    to: { component: inputPort.component, port: inputPort.port }
+                };
+                
+                console.log('Connection created:', connection.id);
+                this.connections.push(connection);
+                inputPort.port.connected = connection.id;
+                outputPort.port.connected = outputPort.port.connected || [];
+                outputPort.port.connected.push(connection.id);
+                
+                this.saveState();
+                this.updateSimulation();
+            }
+            
+            cancelConnection() {
+                console.log('cancelConnection - Was connecting:', this.isConnecting);
+                this.isConnecting = false;
+                this.connectionStart = null;
+            }
+            
+            removeConnection(connectionId) {
+                const connectionIndex = this.connections.findIndex(c => c.id === connectionId);
+                if (connectionIndex === -1) return;
+                
+                const connection = this.connections[connectionIndex];
+                
+                // ポートから接続情報を削除
+                connection.to.port.connected = null;
+                if (connection.from.port.connected) {
+                    const index = connection.from.port.connected.indexOf(connectionId);
+                    if (index > -1) {
+                        connection.from.port.connected.splice(index, 1);
+                    }
+                }
+                
+                this.connections.splice(connectionIndex, 1);
+            }
+            
+            toggleInput(component) {
+                component.state = !component.state;
+                // console.log('toggleInput - Component:', component.type, 'ID:', component.id, 'New state:', component.state);
+                this.updateSimulation();
+                this.render();
+                this.saveState();
+            }
+            
+            updateSimulation() {
+                if (!this.isSimulating) return;
+                
+                // 各部品の状態を計算
+                for (const component of this.components.values()) {
+                    this.calculateComponentState(component);
+                }
+                
+                this.render();
+            }
+            
+            calculateComponentState(component) {
+                if (component.type === 'INPUT' || component.type === 'SWITCH') {
+                    // 入力部品は手動で状態を設定
+                    return;
+                }
+                
+                // 入力値を取得
+                const inputs = (component.inputs || []).map(port => {
+                    if (!port.connected) return false;
+                    
+                    const connection = this.connections.find(c => c.id === port.connected);
+                    if (!connection) return false;
+                    
+                    return connection.from.component.state || false;
+                });
+                
+                // 論理演算を実行
+                switch (component.type) {
+                    case 'AND':
+                        component.state = inputs.length >= 2 && inputs.every(Boolean);
+                        break;
+                    case 'OR':
+                        component.state = inputs.some(Boolean);
+                        break;
+                    case 'NOT':
+                        component.state = inputs.length > 0 && !inputs[0];
+                        break;
+                    case 'XOR':
+                        component.state = inputs.length >= 2 && inputs.filter(Boolean).length === 1;
+                        break;
+                    case 'NAND':
+                        component.state = !(inputs.length >= 2 && inputs.every(Boolean));
+                        break;
+                    case 'NOR':
+                        component.state = !inputs.some(Boolean);
+                        break;
+                    case 'OUTPUT':
+                    case 'LED':
+                        component.state = inputs.length > 0 && inputs[0];
+                        break;
+                    default:
+                        component.state = false;
+                }
+            }
+
+            getComponentAt(x, y) {
+                for (const component of this.components.values()) {
+                    if (x >= component.x && x <= component.x + component.width &&
+                        y >= component.y && y <= component.y + component.height) {
+                        // console.log('Found component at', x, y, ':', component.type, component.id);
+                        return component;
+                    }
+                }
+                // console.log('No component found at', x, y);
+                return null;
+            }
+            
+            getConnectionAt(x, y) {
+                const tolerance = 30; // 接続線の当たり判定の許容範囲（さらにタッチしやすく拡大）
+                let closestConnection = null;
+                let closestDistance = Infinity;
+                
+                for (const connection of this.connections) {
+                    const fromX = connection.from.component.x + connection.from.port.x;
+                    const fromY = connection.from.component.y + connection.from.port.y;
+                    const toX = connection.to.component.x + connection.to.port.x;
+                    const toY = connection.to.component.y + connection.to.port.y;
+                    
+                    // ベジエ曲線の詳細な当たり判定（より多くの点で判定）
+                    const midX = (fromX + toX) / 2;
+                    
+                    // 線分の複数点での当たり判定（判定点を増加）
+                    const points = [];
+                    for (let i = 0; i <= 15; i++) {
+                        const t = i / 15;
+                        // 簡易的なベジエ曲線の計算
+                        const pointX = fromX + t * (midX - fromX) + t * (t * (toX - midX));
+                        const pointY = fromY + t * (fromY - fromY) + t * (t * (toY - fromY));
+                        
+                        // より正確なベジエ曲線
+                        const bezierX = Math.pow(1-t, 2) * fromX + 2 * (1-t) * t * midX + Math.pow(t, 2) * toX;
+                        const bezierY = Math.pow(1-t, 2) * fromY + 2 * (1-t) * t * fromY + Math.pow(t, 2) * toY;
+                        
+                        points.push({ x: bezierX, y: bezierY });
+                    }
+                    
+                    // この接続線の最短距離を計算
+                    let minDistanceForConnection = Infinity;
+                    for (const point of points) {
+                        const distance = Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+                        minDistanceForConnection = Math.min(minDistanceForConnection, distance);
+                    }
+                    
+                    // tolerance内で最も近い接続線を記録
+                    if (minDistanceForConnection <= tolerance && minDistanceForConnection < closestDistance) {
+                        closestDistance = minDistanceForConnection;
+                        closestConnection = connection;
+                    }
+                }
+                
+                return closestConnection;
+            }
+
+            deleteSelected() {
+                if (this.selectedComponent) {
+                    this.components.delete(this.selectedComponent.id);
+                    this.selectedComponent = null;
+                    this.render();
+                    this.saveState();
+                } else if (this.selectedConnection) {
+                    this.removeConnection(this.selectedConnection.id);
+                    this.selectedConnection = null;
+                    this.render();
+                    this.saveState();
+                    this.updateSimulation();
+                }
+            }
+
+            clearAll() {
+                if (confirm('すべての部品を削除しますか？')) {
+                    this.components.clear();
+                    this.connections = [];
+                    this.selectedComponent = null;
+                    this.selectedConnection = null;
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            saveState() {
+                const state = {
+                    components: Array.from(this.components.values()),
+                    connections: [...this.connections]
+                };
+                
+                this.history = this.history.slice(0, this.historyIndex + 1);
+                this.history.push(JSON.stringify(state));
+                this.historyIndex++;
+                
+                // 履歴の制限
+                if (this.history.length > 50) {
+                    this.history.shift();
+                    this.historyIndex--;
+                }
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.loadState(this.history[this.historyIndex]);
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.loadState(this.history[this.historyIndex]);
+                }
+            }
+
+            loadState(stateStr) {
+                const state = JSON.parse(stateStr);
+                this.components.clear();
+                
+                state.components.forEach(comp => {
+                    this.components.set(comp.id, comp);
+                });
+                
+                this.connections = state.connections;
+                this.selectedComponent = null;
+                this.render();
+            }
+
+            togglePalette() {
+                const palette = document.getElementById('component-palette');
+                const overlay = document.getElementById('palette-overlay');
+                
+                palette.classList.toggle('open');
+                overlay.classList.toggle('visible');
+            }
+
+            saveCircuit() {
+                const data = {
+                    version: "1.0",
+                    components: Array.from(this.components.values()),
+                    connections: this.connections
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'circuit.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            loadCircuit() {
+                document.getElementById('file-input').click();
+            }
+
+            handleFileLoad(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        this.components.clear();
+                        
+                        data.components.forEach(comp => {
+                            this.components.set(comp.id, comp);
+                        });
+                        
+                        this.connections = data.connections || [];
+                        this.selectedComponent = null;
+                        this.render();
+                        this.saveState();
+                    } catch (error) {
+                        alert('ファイルの読み込みに失敗しました');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            exportImage() {
+                const link = document.createElement('a');
+                link.download = 'circuit.png';
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+
+            render() {
+                const ctx = this.ctx;
+                const width = this.canvas.clientWidth;
+                const height = this.canvas.clientHeight;
+                
+                // クリア
+                ctx.clearRect(0, 0, width, height);
+                
+                // 座標変換
+                ctx.save();
+                ctx.translate(this.panX, this.panY);
+                ctx.scale(this.scale, this.scale);
+                
+                // 接続線描画
+                this.drawConnections(ctx);
+                
+                // 接続中の線描画
+                if (this.isConnecting && this.connectionStart) {
+                    this.drawConnectionPreview(ctx);
+                }
+                
+                // 部品描画
+                for (const component of this.components.values()) {
+                    this.drawComponent(ctx, component);
+                }
+                
+                ctx.restore();
+            }
+
+            drawComponent(ctx, component) {
+                const isSelected = component === this.selectedComponent;
+                const isActive = component.state;
+                
+                // 論理回路記号を描画
+                this.drawLogicGateSymbol(ctx, component, isSelected, isActive);
+                
+                // LEDは豆電球として描画
+                if (component.type === 'LED') {
+                    const x = component.x;
+                    const y = component.y;
+                    const w = component.width;
+                    const h = component.height;
+                    
+                    // 枠の描画
+                    let bgColor = '#ffffff';
+                    if (isActive) {
+                        bgColor = '#ffeb3b'; // アクティブな出力は黄色
+                    } else if (isSelected) {
+                        bgColor = '#e3f2fd'; // 選択状態
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(x, y, w, h);
+                    
+                    // 枠線
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(x, y, w, h);
+                    
+                    // 豆電球の描画
+                    this.drawLightBulb(ctx, x + 8, y + 8, w - 16, h - 16, isActive);
+                    
+                    // ラベル
+                    ctx.fillStyle = '#333333';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        'LED',
+                        x + w / 2,
+                        y + h - 8
+                    );
+                }
+                // OUTPUTは1/0表示、その他は従来通り
+                else if (component.type === 'OUTPUT') {
+                    // 背景色は白固定
+                    let bgColor = '#ffffff';
+                    if (isSelected) {
+                        bgColor = '#e3f2fd'; // 選択状態
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(component.x, component.y, component.width, component.height);
+                    
+                    // 枠線
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(component.x, component.y, component.width, component.height);
+                    
+                    // 上部にOUTPUTラベル
+                    ctx.fillStyle = '#666666';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        'OUTPUT',
+                        component.x + component.width / 2,
+                        component.y + component.height * 0.25
+                    );
+                    
+                    // 中央に大きな1または0を表示
+                    ctx.fillStyle = isActive ? '#4caf50' : '#f44336'; // 1は緑、0は赤
+                    ctx.font = 'bold 24px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        isActive ? '1' : '0',
+                        component.x + component.width / 2,
+                        component.y + component.height * 0.65
+                    );
+                }
+                // INPUTは1/0表示、SWITCHは従来通り
+                else if (component.type === 'INPUT') {
+                    // 背景色は白固定
+                    let bgColor = '#ffffff';
+                    if (isSelected) {
+                        bgColor = '#e3f2fd'; // 選択状態
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(component.x, component.y, component.width, component.height);
+                    
+                    // 枠線
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(component.x, component.y, component.width, component.height);
+                    
+                    // 上部にINPUTラベル
+                    ctx.fillStyle = '#666666';
+                    ctx.font = '10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        'INPUT',
+                        component.x + component.width / 2,
+                        component.y + component.height * 0.25
+                    );
+                    
+                    // 中央に大きな1または0を表示
+                    ctx.fillStyle = isActive ? '#4caf50' : '#f44336'; // 1は緑、0は赤
+                    ctx.font = 'bold 24px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        isActive ? '1' : '0',
+                        component.x + component.width / 2,
+                        component.y + component.height * 0.65
+                    );
+                }
+                // スイッチは従来通り四角形で描画
+                else if (component.type === 'SWITCH') {
+                    
+                    // 背景色を状態に応じて変更
+                    let bgColor = '#ffffff';
+                    if (isActive) {
+                        bgColor = '#4caf50'; // アクティブな入力は緑色
+                    } else if (isSelected) {
+                        bgColor = '#e3f2fd'; // 選択状態は最後に判定
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(component.x, component.y, component.width, component.height);
+                    
+                    // 枠線
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(component.x, component.y, component.width, component.height);
+                    
+                    // ラベル
+                    ctx.fillStyle = '#333333';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        component.type,
+                        component.x + component.width / 2,
+                        component.y + component.height / 2
+                    );
+                }
+                
+                // ピン描画
+                // 入力ピン
+                component.inputs?.forEach(pin => {
+                    ctx.fillStyle = pin.connected ? '#2196f3' : '#4caf50';
+                    ctx.beginPath();
+                    ctx.arc(component.x + pin.x, component.y + pin.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+                
+                // 出力ピン
+                component.outputs?.forEach(pin => {
+                    ctx.fillStyle = (pin.connected && pin.connected.length > 0) ? '#2196f3' : '#ff9800';
+                    ctx.beginPath();
+                    ctx.arc(component.x + pin.x, component.y + pin.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+            }
+            
+            drawLogicGateSymbol(ctx, component, isSelected, isActive) {
+                const x = component.x;
+                const y = component.y;
+                const w = component.width;
+                const h = component.height;
+                
+                // 論理ゲート以外はここでは描画しない
+                if (!['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(component.type)) {
+                    return;
+                }
+                
+                // 色設定
+                const fillColor = isSelected ? '#e3f2fd' : '#ffffff';
+                const strokeColor = isSelected ? '#2196f3' : '#333333';
+                const lineWidth = isSelected ? 2 : 1;
+                
+                // 基本ゲートの場合は枠を描画
+                if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(component.type)) {
+                    // 枠の描画
+                    ctx.fillStyle = fillColor;
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = lineWidth;
+                    ctx.fillRect(x, y, w, h);
+                    ctx.strokeRect(x, y, w, h);
+                    
+                    // 図形の描画（枠の中に描画）
+                    ctx.fillStyle = '#ffffff'; // 図形は白色
+                    ctx.strokeStyle = '#333333'; // 図形の線は濃いグレー
+                    ctx.lineWidth = 1;
+                    
+                    switch (component.type) {
+                        case 'AND':
+                            this.drawANDGateInside(ctx, x + 8, y + 8, w - 16, h - 16);
+                            this.drawGateLabel(ctx, 'AND', x, y, w, h);
+                            break;
+                        case 'OR':
+                            this.drawORGateInside(ctx, x + 8, y + 8, w - 16, h - 16);
+                            this.drawGateLabel(ctx, 'OR', x, y, w, h);
+                            break;
+                        case 'XOR':
+                            this.drawXORGateInside(ctx, x + 8, y + 8, w - 16, h - 16);
+                            this.drawGateLabel(ctx, 'XOR', x, y, w, h);
+                            break;
+                        case 'NAND':
+                            this.drawANDGateInside(ctx, x + 8, y + 8, w - 26, h - 16);
+                            this.drawNotBubble(ctx, x + w - 29, y + h/2, 4);
+                            this.drawGateLabel(ctx, 'NAND', x, y, w, h);
+                            break;
+                        case 'NOR':
+                            this.drawORGateInside(ctx, x + 8, y + 8, w - 26, h - 16);
+                            this.drawNotBubble(ctx, x + w - 18, y + h/2, 4);
+                            this.drawGateLabel(ctx, 'NOR', x, y, w, h);
+                            break;
+                        case 'NOT':
+                            this.drawNOTGateInside(ctx, x + 8, y + 8, w - 26, h - 16);
+                            this.drawNotBubble(ctx, x + w - 18, y + h/2, 4);
+                            this.drawGateLabel(ctx, 'NOT', x, y, w, h);
+                            break;
+                    }
+                } else {
+                    // 他の部品（INPUT、OUTPUT等）は従来通り
+                    ctx.fillStyle = fillColor;
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = lineWidth;
+                }
+            }
+            
+            // 枠内描画用のゲート関数群
+            drawANDGateInside(ctx, x, y, w, h) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w * 0.6, y);
+                ctx.arc(x + w * 0.6, y + h/2, h/2, -Math.PI/2, Math.PI/2);
+                ctx.lineTo(x, y + h);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawORGateInside(ctx, x, y, w, h) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.quadraticCurveTo(x + w * 0.6, y, x + w, y + h/2);
+                ctx.quadraticCurveTo(x + w * 0.6, y + h, x, y + h);
+                ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawXORGateInside(ctx, x, y, w, h) {
+                // 外側の曲線
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.quadraticCurveTo(x + w * 0.6, y, x + w, y + h/2);
+                ctx.quadraticCurveTo(x + w * 0.6, y + h, x, y + h);
+                ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 内側の追加線
+                ctx.beginPath();
+                ctx.moveTo(x - 4, y);
+                ctx.quadraticCurveTo(x + w * 0.2 - 4, y + h/2, x - 4, y + h);
+                ctx.stroke();
+            }
+            
+            drawNOTGateInside(ctx, x, y, w, h) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + h);
+                ctx.lineTo(x + w, y + h/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawLightBulb(ctx, x, y, w, h, isActive) {
+                ctx.save();
+                
+                const centerX = x + w / 2;
+                const centerY = y + h / 2;
+                const bulbWidth = w * 0.7;
+                const bulbHeight = h * 0.8;
+                
+                // エレガントな豆電球の形（涙滴形）
+                ctx.beginPath();
+                
+                // 上部の丸い部分
+                const topRadius = bulbWidth * 0.35;
+                const topCenterY = centerY - bulbHeight * 0.15;
+                ctx.arc(centerX, topCenterY, topRadius, 0, Math.PI, true);
+                
+                // 下部のとがった部分（ベジェ曲線で滑らかに）
+                ctx.bezierCurveTo(
+                    centerX - topRadius, topCenterY,
+                    centerX - bulbWidth * 0.2, centerY + bulbHeight * 0.3,
+                    centerX, centerY + bulbHeight * 0.4
+                );
+                ctx.bezierCurveTo(
+                    centerX + bulbWidth * 0.2, centerY + bulbHeight * 0.3,
+                    centerX + topRadius, topCenterY,
+                    centerX + topRadius, topCenterY
+                );
+                
+                ctx.closePath();
+                
+                // グラデーション効果
+                if (isActive) {
+                    // 点灯時のグラデーション
+                    const gradient = ctx.createRadialGradient(
+                        centerX - topRadius * 0.3, topCenterY - topRadius * 0.3, 0,
+                        centerX, centerY, topRadius
+                    );
+                    gradient.addColorStop(0, '#fffacd');
+                    gradient.addColorStop(0.6, '#ffff00');
+                    gradient.addColorStop(1, '#ffa500');
+                    ctx.fillStyle = gradient;
+                } else {
+                    // 消灯時のグラデーション
+                    const gradient = ctx.createRadialGradient(
+                        centerX - topRadius * 0.3, topCenterY - topRadius * 0.3, 0,
+                        centerX, centerY, topRadius
+                    );
+                    gradient.addColorStop(0, '#ffffff');
+                    gradient.addColorStop(0.6, '#f0f0f0');
+                    gradient.addColorStop(1, '#d0d0d0');
+                    ctx.fillStyle = gradient;
+                }
+                
+                ctx.fill();
+                
+                // 外枠
+                ctx.strokeStyle = isActive ? '#cc8800' : '#999999';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                // ソケット部分（下部の金属キャップ）
+                const socketY = centerY + bulbHeight * 0.35;
+                const socketHeight = h * 0.15;
+                
+                ctx.fillStyle = '#b8860b';
+                ctx.fillRect(centerX - bulbWidth * 0.2, socketY, bulbWidth * 0.4, socketHeight);
+                
+                // ソケットの螺旋模様
+                ctx.strokeStyle = '#8b7355';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const lineY = socketY + (socketHeight / 4) * (i + 1);
+                    ctx.beginPath();
+                    ctx.moveTo(centerX - bulbWidth * 0.18, lineY);
+                    ctx.lineTo(centerX + bulbWidth * 0.18, lineY);
+                    ctx.stroke();
+                }
+                
+                // フィラメント（エレガントな曲線）
+                if (isActive) {
+                    ctx.strokeStyle = '#ff4500';
+                    ctx.lineWidth = 1.5;
+                } else {
+                    ctx.strokeStyle = '#aaaaaa';
+                    ctx.lineWidth = 1;
+                }
+                
+                ctx.beginPath();
+                // 中央の支柱
+                ctx.moveTo(centerX, centerY + bulbHeight * 0.2);
+                ctx.lineTo(centerX, topCenterY);
+                
+                // 美しい曲線のフィラメント
+                ctx.moveTo(centerX - topRadius * 0.4, topCenterY - topRadius * 0.2);
+                ctx.quadraticCurveTo(centerX, topCenterY - topRadius * 0.4, centerX + topRadius * 0.4, topCenterY - topRadius * 0.2);
+                ctx.moveTo(centerX - topRadius * 0.3, topCenterY);
+                ctx.quadraticCurveTo(centerX, topCenterY + topRadius * 0.3, centerX + topRadius * 0.3, topCenterY);
+                
+                ctx.stroke();
+                
+                // 点灯時の光のオーラ
+                if (isActive) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.15)';
+                    ctx.beginPath();
+                    ctx.arc(centerX, topCenterY, topRadius * 1.8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // 光の線
+                    ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i * Math.PI * 2) / 8;
+                        const x1 = centerX + Math.cos(angle) * topRadius * 1.2;
+                        const y1 = topCenterY + Math.sin(angle) * topRadius * 1.2;
+                        const x2 = centerX + Math.cos(angle) * topRadius * 1.6;
+                        const y2 = topCenterY + Math.sin(angle) * topRadius * 1.6;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    }
+                }
+                
+                ctx.restore();
+            }
+            
+            // 従来のゲート関数（後方互換性のため残す）
+            drawANDGate(ctx, x, y, w, h) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w - h/2, y);
+                ctx.arc(x + w - h/2, y + h/2, h/2, -Math.PI/2, Math.PI/2);
+                ctx.lineTo(x, y + h);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawORGate(ctx, x, y, w, h) {
+                ctx.beginPath();
+                // 左側の曲線
+                ctx.moveTo(x, y);
+                ctx.quadraticCurveTo(x + w * 0.3, y + h/2, x, y + h);
+                // 右側の曲線
+                ctx.quadraticCurveTo(x + w * 0.7, y + h * 0.8, x + w, y + h/2);
+                ctx.quadraticCurveTo(x + w * 0.7, y + h * 0.2, x, y);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawXORGate(ctx, x, y, w, h) {
+                // ORゲートを描画
+                this.drawORGate(ctx, x + 8, y, w - 8, h);
+                
+                // 左側の追加線
+                ctx.beginPath();
+                ctx.moveTo(x, y + h * 0.2);
+                ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y + h * 0.8);
+                ctx.stroke();
+            }
+            
+            drawNOTGate(ctx, x, y, w, h) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + h);
+                ctx.lineTo(x + w - 10, y + h/2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                // NOTバブル (右端近くに配置)
+                this.drawNotBubble(ctx, x + w - 8, y + h/2, 3);
+            }
+            
+            drawNotBubble(ctx, x, y, radius = 5) {
+                ctx.beginPath();
+                ctx.arc(x + radius, y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            drawGateLabel(ctx, label, x, y, w, h) {
+                // テキストスタイル設定
+                ctx.save();
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // ゲートタイプに応じて位置を微調整
+                let centerX = x + w / 2;
+                const centerY = y + h / 2 + 1; // 全てのラベルを1px下に移動
+                
+                switch (label) {
+                    case 'AND':
+                        centerX = x + w / 2 - 5; // 左に5px移動
+                        break;
+                    case 'NOT':
+                        centerX = x + w / 2 - 8; // 左に8px移動（さらに3px左へ）
+                        break;
+                    case 'NAND':
+                        centerX = x + w / 2 - 2; // 左に2px移動
+                        break;
+                    case 'NOR':
+                        centerX = x + w / 2 - 2; // 左に2px移動
+                        break;
+                    case 'OR':
+                    case 'XOR':
+                        // ORとXORはそのまま中央
+                        break;
+                }
+                
+                ctx.fillText(label, centerX, centerY);
+                ctx.restore();
+            }
+            
+            drawPaletteIcons() {
+                const canvases = document.querySelectorAll('.component-icon-canvas');
+                canvases.forEach(canvas => {
+                    const ctx = canvas.getContext('2d');
+                    const gateType = canvas.dataset.gate;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    
+                    // 背景をクリア
+                    ctx.clearRect(0, 0, w, h);
+                    
+                    // スタイル設定
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#333333';
+                    ctx.lineWidth = 1;
+                    
+                    // 小さなサイズで描画
+                    switch (gateType) {
+                        case 'AND':
+                            this.drawANDGate(ctx, 2, 2, w - 4, h - 4);
+                            break;
+                        case 'OR':
+                            this.drawORGate(ctx, 2, 2, w - 4, h - 4);
+                            break;
+                        case 'XOR':
+                            this.drawXORGate(ctx, 2, 2, w - 4, h - 4);
+                            break;
+                        case 'NAND':
+                            // AND gate positioned closer to bubble
+                            this.drawANDGate(ctx, 6, 2, w - 16, h - 4);
+                            // Position bubble with proper spacing
+                            this.drawNotBubble(ctx, w - 16 + 6, h/2, 3);
+                            break;
+                        case 'NOR':
+                            // OR gate with space for bubble  
+                            this.drawORGate(ctx, 2, 2, w - 16, h - 4);
+                            // Position bubble with proper spacing
+                            this.drawNotBubble(ctx, w - 16 + 2, h/2, 3);
+                            break;
+                        case 'NOT':
+                            // NOT gate with wider triangle
+                            this.drawNOTGate(ctx, 2, 2, (w - 16) * 1.5, h - 4);
+                            break;
+                    }
+                });
+            }
+            
+            drawConnections(ctx) {
+                for (const connection of this.connections) {
+                    const fromX = connection.from.component.x + connection.from.port.x;
+                    const fromY = connection.from.component.y + connection.from.port.y;
+                    const toX = connection.to.component.x + connection.to.port.x;
+                    const toY = connection.to.component.y + connection.to.port.y;
+                    
+                    // 選択された接続線かどうかチェック
+                    const isSelected = this.selectedConnection === connection;
+                    
+                    // 線の色を信号状態に応じて変更
+                    if (isSelected) {
+                        ctx.strokeStyle = '#ff5722'; // 選択時は赤色
+                        ctx.lineWidth = 6;
+                    } else {
+                        ctx.strokeStyle = connection.from.component.state ? '#4caf50' : '#9e9e9e';
+                        ctx.lineWidth = 4;
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(fromX, fromY);
+                    
+                    // 曲線で接続を描画
+                    const midX = (fromX + toX) / 2;
+                    ctx.bezierCurveTo(midX, fromY, midX, toY, toX, toY);
+                    ctx.stroke();
+                }
+            }
+            
+            drawConnectionPreview(ctx) {
+                if (!this.connectionStart) return;
+                
+                const startX = this.connectionStart.component.x + this.connectionStart.port.x;
+                const startY = this.connectionStart.component.y + this.connectionStart.port.y;
+                const endX = this.currentMousePos.x;
+                const endY = this.currentMousePos.y;
+                
+                ctx.strokeStyle = '#ff5722';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([8, 8]);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                
+                const midX = (startX + endX) / 2;
+                ctx.bezierCurveTo(midX, startY, midX, endY, endX, endY);
+                ctx.stroke();
+                
+                ctx.setLineDash([]);
+            }
+            
+            handleTouchStart(event) {
+                event.preventDefault();
+                this.touches = Array.from(event.touches);
+                
+                if (this.touches.length === 1) {
+                    // シングルタッチは通常のポインターイベントとして処理
+                    this.handlePointerDown(event);
+                } else if (this.touches.length === 2) {
+                    // ピンチズーム開始
+                    this.isPanning = false;
+                    this.isDragging = false;
+                    this.isConnecting = false;
+                    this.selectedComponent = null;
+                    this.selectedConnection = null;
+                    this.cancelConnection();
+                }
+            }
+            
+            handleTouchMove(event) {
+                event.preventDefault();
+                this.touches = Array.from(event.touches);
+                
+                if (this.touches.length === 1) {
+                    // シングルタッチは通常のポインターイベントとして処理
+                    this.handlePointerMove(event);
+                } else if (this.touches.length === 2) {
+                    // ピンチズーム処理
+                    this.handlePinchZoom(event);
+                    
+                    // ピンチ中は他の操作をキャンセル
+                    this.isDragging = false;
+                    this.isPanning = false;
+                    this.isConnecting = false;
+                    this.cancelConnection();
+                }
+            }
+            
+            handleTouchEnd(event) {
+                event.preventDefault();
+                this.touches = Array.from(event.touches);
+                
+                if (this.touches.length === 0) {
+                    // すべてのタッチが終了
+                    this.handlePointerUp(event);
+                    this.lastPinchDistance = null;
+                } else if (this.touches.length === 1) {
+                    // ピンチからシングルタッチに変更
+                    this.lastPinchDistance = null;
+                }
+            }
+            
+            handlePinchZoom(event) {
+                const touch1 = this.touches[0];
+                const touch2 = this.touches[1];
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const x1 = touch1.clientX - rect.left;
+                const y1 = touch1.clientY - rect.top;
+                const x2 = touch2.clientX - rect.left;
+                const y2 = touch2.clientY - rect.top;
+                
+                const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                
+                if (this.lastPinchDistance) {
+                    const scale = distance / this.lastPinchDistance;
+                    const newScale = Math.max(0.1, Math.min(5, this.scale * scale));
+                    
+                    // ズーム中心をタッチポイントの中点に設定
+                    const centerX = (x1 + x2) / 2;
+                    const centerY = (y1 + y2) / 2;
+                    
+                    this.panX = centerX - (centerX - this.panX) * (newScale / this.scale);
+                    this.panY = centerY - (centerY - this.panY) * (newScale / this.scale);
+                    
+                    this.scale = newScale;
+                    this.render();
+                }
+                
+                this.lastPinchDistance = distance;
+            }
+        }
+
+        // アプリケーション開始
+        window.addEventListener('DOMContentLoaded', () => {
+            new MobileCircuitSimulator();
+        });
+    </script>
+</Layout>
