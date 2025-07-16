@@ -560,39 +560,10 @@ import Layout from '../layouts/Layout.astro';
                 const component = this.getComponentAt(pos.x, pos.y, true);
                 console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
                 if (component) {
-                    // 部品選択処理（元のコードと同じ）
-                    const currentTime = Date.now();
-                    
-                    // ダブルタップ判定（同じコンポーネント、短時間内）
-                    if (this.selectedComponent === component && 
-                        currentTime - this.lastClickTime < this.doubleClickDelay) {
-                        // ダブルタップ：コンポーネントを削除
-                        console.log('Double tap detected, deleting component:', component.type);
-                        
-                        // 削除するコンポーネントに接続された接続線をすべて削除
-                        const connectionsToDelete = this.connections.filter(connection => 
-                            connection.from.component.id === component.id || 
-                            connection.to.component.id === component.id
-                        );
-                        
-                        connectionsToDelete.forEach(connection => {
-                            this.removeConnection(connection.id);
-                        });
-                        
-                        // コンポーネントを削除
-                        this.components.delete(component.id);
-                        this.selectedComponent = null;
-                        this.render();
-                        this.saveState();
-                        this.updateSimulation();
-                        return;
-                    }
-                    
-                    // シングルタップ：通常の選択・ドラッグ開始
+                    // 部品選択・ドラッグ開始
                     console.log('Component selected for dragging:', component.type);
                     this.selectedComponent = component;
                     this.selectedConnection = null; // 部品選択時は接続線選択をリセット
-                    this.lastClickTime = currentTime;
                     
                     // 選択されたコンポーネントを前面に移動
                     component.zIndex = this.nextZIndex++;
