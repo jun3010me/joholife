@@ -206,6 +206,7 @@ import Layout from '../layouts/Layout.astro';
             display: flex;
             padding: 4px;
             z-index: 1000;
+            white-space: nowrap; /* 改行を防ぐ */
         }
 
         .file-button {
@@ -221,6 +222,7 @@ import Layout from '../layouts/Layout.astro';
             display: flex;
             align-items: center;
             gap: 4px;
+            flex-shrink: 0; /* ボタンの縮小を防ぐ */
         }
 
         .file-button:hover {
