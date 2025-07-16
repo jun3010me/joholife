@@ -2485,9 +2485,11 @@ import Layout from '../layouts/Layout.astro';
                             this.pendingComponentDrag = null;
                         } else {
                             // 移動距離が長い場合はドラッグアンドドロップとして判定
-                            console.log('Starting component drag (long movement)');
-                            this.executeComponentDrag(this.pendingComponentDrag.type, this.pendingComponentDrag.event);
+                            console.log('Starting component drag (long movement), deltaX:', deltaX);
+                            console.log('Pending component drag:', this.pendingComponentDrag);
+                            this.startActualComponentDrag(this.pendingComponentDrag.type, event);
                             this.pendingComponentDrag = null;
+                            return; // スクロール処理は実行しない
                         }
                     } else {
                         // 部品ドラッグ待機中でない場合は通常のスクロール
@@ -2593,6 +2595,54 @@ import Layout from '../layouts/Layout.astro';
                 
                 // 実際のドラッグ開始フラグを設定
                 this.dragStarted = true;
+                
+                this.render();
+            }
+            
+            // 実際のドラッグを開始する関数（現在のタッチイベントを使用）
+            startActualComponentDrag(type, currentEvent) {
+                console.log('startActualComponentDrag called with type:', type);
+                
+                // パレットスクロール状態をリセット
+                this.isPaletteScrolling = false;
+                
+                // 現在のタッチ位置を取得
+                const touch = currentEvent.touches[0];
+                const canvasRect = this.canvas.getBoundingClientRect();
+                
+                // 横レイアウトの場合、パレット領域を除いた中央に配置
+                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                let x, y;
+                
+                if (isLandscape) {
+                    // 横レイアウト時：パレット領域を除いたキャンバス中央
+                    x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                    y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
+                } else {
+                    // 縦レイアウト時：通常のキャンバス中央
+                    x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                    y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+                }
+                
+                console.log('Creating component at position:', x, y);
+                
+                const component = this.createComponent(type, x, y);
+                component.isNewFromPalette = true;
+                
+                // 重要：まだマップには追加せず、一時的に保持
+                this.pendingComponent = component;
+                this.selectedComponent = component;
+                this.isDragging = true;
+                this.dragOffset = { x: 0, y: 0 };
+                this.dragStarted = true;
+                
+                // 現在のタッチ位置を記録
+                this.currentMousePos = {
+                    x: (touch.clientX - canvasRect.left - this.panX) / this.scale,
+                    y: (touch.clientY - canvasRect.top - this.panY) / this.scale
+                };
+                
+                console.log('Component drag started, isDragging:', this.isDragging, 'selectedComponent:', this.selectedComponent);
                 
                 this.render();
             }
