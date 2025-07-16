@@ -613,7 +613,15 @@ import Layout from '../layouts/Layout.astro';
                 this.selectedConnection = null;
                 this.isDragging = false;
                 this.isPanning = true;
-                this.lastPanPoint = pos;
+                
+                // パン開始時は生の座標を使用
+                const rect = this.canvas.getBoundingClientRect();
+                const rawX = event.clientX || (event.touches && event.touches[0].clientX);
+                const rawY = event.clientY || (event.touches && event.touches[0].clientY);
+                this.lastPanPoint = {
+                    x: rawX - rect.left,
+                    y: rawY - rect.top
+                };
                 
                 this.render();
             }
@@ -642,11 +650,22 @@ import Layout from '../layouts/Layout.astro';
                     this.selectedComponent.y = pos.y - this.dragOffset.y;
                     this.render();
                 } else if (this.isPanning && this.lastPanPoint) {
-                    const deltaX = (pos.x - this.lastPanPoint.x) * this.scale;
-                    const deltaY = (pos.y - this.lastPanPoint.y) * this.scale;
+                    // パン処理は生の座標を使用
+                    const rect = this.canvas.getBoundingClientRect();
+                    const rawX = event.clientX || (event.touches && event.touches[0].clientX);
+                    const rawY = event.clientY || (event.touches && event.touches[0].clientY);
+                    const currentRawPos = {
+                        x: rawX - rect.left,
+                        y: rawY - rect.top
+                    };
+                    
+                    const deltaX = currentRawPos.x - this.lastPanPoint.x;
+                    const deltaY = currentRawPos.y - this.lastPanPoint.y;
                     this.panX += deltaX;
                     this.panY += deltaY;
-                    this.lastPanPoint = pos;
+                    
+                    // 次回のために生の座標を保存
+                    this.lastPanPoint = currentRawPos;
                     this.render();
                 }
             }
@@ -705,16 +724,21 @@ import Layout from '../layouts/Layout.astro';
                         // console.log('Toggle input:', this.selectedComponent.type, 'to', this.selectedComponent.state);
                     } else {
                         // ドラッグ完了 - エリア外削除判定
-                        const canvasRect = this.canvas.getBoundingClientRect();
                         const component = this.selectedComponent;
+                        
+                        // ワールド座標系での表示可能領域を計算
+                        const visibleLeft = -this.panX / this.scale;
+                        const visibleTop = -this.panY / this.scale;
+                        const visibleRight = (this.canvas.clientWidth - this.panX) / this.scale;
+                        const visibleBottom = (this.canvas.clientHeight - this.panY) / this.scale;
                         
                         // コンポーネントがキャンバスエリア外に完全に出た場合は削除
                         // ただし、パレットから新しく作成された部品の初回ドロップは除外
                         if (!component.isNewFromPalette && 
-                            (component.x + component.width < 0 || 
-                             component.x > canvasRect.width || 
-                             component.y + component.height < 0 || 
-                             component.y > canvasRect.height)) {
+                            (component.x + component.width < visibleLeft || 
+                             component.x > visibleRight || 
+                             component.y + component.height < visibleTop || 
+                             component.y > visibleBottom)) {
                             
                             console.log('Component dragged outside canvas, deleting:', component.type);
                             
