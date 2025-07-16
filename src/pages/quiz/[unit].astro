@@ -225,6 +225,7 @@ class QuizSession {
     this.userName = '';
     this.showingNameInput = true;
     this.showingCertificate = false;
+    this.shuffledOptionsCache = {}; // 各問題の選択肢シャッフル結果をキャッシュ
     this.init();
   }
 
@@ -348,7 +349,7 @@ class QuizSession {
 
             <!-- Options -->
             <div style="margin-bottom: 2rem;">
-              ${currentQuestion.options.map((option, index) => `
+              ${this.getShuffledOptions(currentQuestion).map((option, index) => `
                 <button
                   class="option-button"
                   data-question-id="${currentQuestion.id}"
@@ -754,7 +755,7 @@ class QuizSession {
             <div style="margin-bottom: 2rem;">
               <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">選択肢と解説</h3>
               <div style="space-y: 0.75rem;">
-                ${currentQuestion.options.map((option, index) => {
+                ${this.getShuffledOptions(currentQuestion).map((option, index) => {
                   const isUserSelected = this.isOptionSelected(currentQuestion.id, option.id);
                   const isCorrectOption = option.isCorrect;
                   
@@ -1333,6 +1334,14 @@ class QuizSession {
     if (percentage >= 70) return 'よくできました！もう少し復習すれば完璧です。';
     if (percentage >= 50) return '合格ライン！間違えた問題を復習しましょう。';
     return '復習が必要です。基礎からもう一度確認しましょう。';
+  }
+
+  getShuffledOptions(question) {
+    // 各問題IDに対して一度だけシャッフルし、結果をキャッシュ
+    if (!this.shuffledOptionsCache[question.id]) {
+      this.shuffledOptionsCache[question.id] = shuffleArray(question.options);
+    }
+    return this.shuffledOptionsCache[question.id];
   }
 }
 
