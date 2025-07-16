@@ -521,7 +521,7 @@ import Layout from '../layouts/Layout.astro';
                 this.isPaletteScrolling = false;
                 this.paletteScrollStartX = 0;
                 this.paletteScrollStartY = 0;
-                this.paletteScrollThreshold = 10;
+                this.paletteScrollThreshold = 5;
                 this.paletteScrollStartScrollLeft = 0;
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 this.nextZIndex = 1; // Z-index管理用カウンター
@@ -2433,12 +2433,24 @@ import Layout from '../layouts/Layout.astro';
                 const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
                 const deltaY = Math.abs(touch.clientY - this.paletteScrollStartY);
                 
-                // 横方向の移動が縦方向より大きく、しきい値を超えた場合はスクロール
-                if (deltaX > this.paletteScrollThreshold && deltaX > deltaY) {
+                // デバッグ用ログ
+                console.log('Palette scroll move:', {
+                    deltaX,
+                    deltaY,
+                    threshold: this.paletteScrollThreshold,
+                    isScrolling: this.isPaletteScrolling,
+                    targetClass: event.target.className,
+                    closestItem: event.target.closest('.component-item') ? 'found' : 'none'
+                });
+                
+                // 横方向の移動がしきい値を超えた場合はスクロール（縦方向との比較は削除）
+                if (deltaX > this.paletteScrollThreshold) {
                     this.isPaletteScrolling = true;
+                    console.log('Palette scroll activated!');
                     
                     // component-itemでのタッチ移動の場合は通常の処理を停止
                     if (event.target.closest('.component-item')) {
+                        console.log('Component item detected, preventing scroll');
                         event.preventDefault();
                         return;
                     }
