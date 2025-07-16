@@ -2389,7 +2389,7 @@ import Layout from '../layouts/Layout.astro';
             // パレットスクロール処理
             handlePaletteScrollStart(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
                     return;
                 }
                 
@@ -2415,7 +2415,7 @@ import Layout from '../layouts/Layout.astro';
             
             handlePaletteScrollMove(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
                     return;
                 }
                 
@@ -2448,7 +2448,7 @@ import Layout from '../layouts/Layout.astro';
             
             handlePaletteScrollEnd(event) {
                 // スマホ横画面でパレットが開いている場合のみ有効
-                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                if (window.innerWidth > 768 || window.innerHeight > 500 || !window.matchMedia('(orientation: landscape)').matches) {
                     return;
                 }
                 
