@@ -915,6 +915,9 @@ import Layout from '../layouts/Layout.astro';
                 
                 if (isLandscape) {
                     // 横レイアウト時：部品ドラッグを保留して、スクロール判定に委ねる
+                    // スクロール状態をリセット
+                    console.log('startComponentDrag: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
+                    this.isPaletteScrolling = false;
                     this.pendingComponentDrag = {
                         type: event.currentTarget.dataset.type,
                         event: event
@@ -2438,13 +2441,14 @@ import Layout from '../layouts/Layout.astro';
                 const paletteContent = document.querySelector('.palette-content');
                 this.paletteScrollStartScrollLeft = paletteContent ? paletteContent.scrollLeft : 0;
                 
+                // 常にスクロール状態をリセット（部品アイテムタッチでも背景タッチでも）
+                console.log('handlePaletteScrollStart: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
+                this.isPaletteScrolling = false;
+                
                 // component-itemでのタッチ開始の場合は通常の処理を継続
                 if (event.target.closest('.component-item')) {
                     return;
                 }
-                
-                // パレット背景のタッチ開始時にスクロール状態をリセット
-                this.isPaletteScrolling = false;
                 
                 event.preventDefault();
             }
