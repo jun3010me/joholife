@@ -752,11 +752,11 @@ import Layout from '../layouts/Layout.astro';
                     const isLandscape = window.innerWidth > window.innerHeight;
                     const isLargeScreen = window.innerWidth >= 844;
                     
-                    // CSSクラスを動的に管理
+                    // CSSクラスを動的に管理（横画面かつ大画面のみ）
                     document.body.classList.toggle('landscape', isLandscape && !isLargeScreen);
                     document.body.classList.toggle('large-landscape', isLandscape && isLargeScreen);
                     
-                    // 大画面横画面時はパレットを常時表示
+                    // 横画面かつ大画面時はパレットを常時表示
                     if (isLandscape && isLargeScreen) {
                         const palette = document.querySelector('.component-palette');
                         const overlay = document.querySelector('.palette-overlay');
