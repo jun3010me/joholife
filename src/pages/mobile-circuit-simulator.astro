@@ -428,6 +428,7 @@ import Layout from '../layouts/Layout.astro';
                 this.lastClickPosition = null; // 最後のクリック位置
                 this.overlappingComponents = []; // 重なったコンポーネントのリスト
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
+                this.nextZIndex = 1; // Z-index管理用カウンター
                 
                 this.init();
             }
@@ -555,35 +556,11 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                // 接続線チェック
-                const connection = this.getConnectionAt(pos.x, pos.y);
-                if (connection) {
-                    const currentTime = Date.now();
-                    
-                    // ダブルクリック判定
-                    if (this.selectedConnection === connection && 
-                        currentTime - this.lastClickTime < this.doubleClickDelay) {
-                        // ダブルクリック：接続線を削除
-                        this.removeConnection(connection.id);
-                        this.selectedConnection = null;
-                        this.render();
-                        this.saveState();
-                        this.updateSimulation();
-                        // console.log('Connection deleted via double-click');
-                        return;
-                    }
-                    
-                    // シングルクリック：接続線を選択
-                    this.selectedConnection = connection;
-                    this.lastClickTime = currentTime;
-                    this.render();
-                    return;
-                }
-                
-                // 部品選択（循環選択有効）
+                // 部品選択（循環選択有効）- 接続線より優先
                 const component = this.getComponentAt(pos.x, pos.y, true);
                 console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
                 if (component) {
+                    // 部品選択処理（元のコードと同じ）
                     const currentTime = Date.now();
                     
                     // ダブルタップ判定（同じコンポーネント、短時間内）
@@ -616,21 +593,52 @@ import Layout from '../layouts/Layout.astro';
                     this.selectedComponent = component;
                     this.selectedConnection = null; // 部品選択時は接続線選択をリセット
                     this.lastClickTime = currentTime;
+                    
+                    // 選択されたコンポーネントを前面に移動
+                    component.zIndex = this.nextZIndex++;
+                    
                     this.isDragging = true;
                     this.dragOffset = {
                         x: pos.x - component.x,
                         y: pos.y - component.y
                     };
                     this.isPanning = false; // 部品選択時はパンを無効化
-                } else {
-                    // 空の領域をクリックした場合はパン開始
-                    console.log('No component found, starting pan mode');
-                    this.selectedComponent = null;
-                    this.selectedConnection = null;
-                    this.isDragging = false;
-                    this.isPanning = true;
-                    this.lastPanPoint = pos;
+                    return;
                 }
+                
+                // 接続線チェック（部品がない場合のみ）
+                const connection = this.getConnectionAt(pos.x, pos.y);
+                if (connection) {
+                    const currentTime = Date.now();
+                    
+                    // ダブルクリック判定
+                    if (this.selectedConnection === connection && 
+                        currentTime - this.lastClickTime < this.doubleClickDelay) {
+                        // ダブルクリック：接続線を削除
+                        this.removeConnection(connection.id);
+                        this.selectedConnection = null;
+                        this.render();
+                        this.saveState();
+                        this.updateSimulation();
+                        // console.log('Connection deleted via double-click');
+                        return;
+                    }
+                    
+                    // シングルクリック：接続線を選択
+                    this.selectedConnection = connection;
+                    this.selectedComponent = null; // 接続線選択時は部品選択をリセット
+                    this.lastClickTime = currentTime;
+                    this.render();
+                    return;
+                }
+                
+                // 何も選択されなかった場合はパン開始
+                console.log('No component or connection found, starting pan mode');
+                this.selectedComponent = null;
+                this.selectedConnection = null;
+                this.isDragging = false;
+                this.isPanning = true;
+                this.lastPanPoint = pos;
                 
                 this.render();
             }
@@ -832,7 +840,8 @@ import Layout from '../layouts/Layout.astro';
                     height,
                     inputs: [],
                     outputs: [],
-                    state: false
+                    state: false,
+                    zIndex: this.nextZIndex++ // Z-index設定
                 };
 
                 // タイプ別の設定
@@ -1086,7 +1095,7 @@ import Layout from '../layouts/Layout.astro';
             }
 
             getComponentAt(x, y, cycleSelection = false) {
-                // 指定位置の全てのコンポーネントを取得
+                // 指定位置の全てのコンポーネントを取得（Z-index降順でソート）
                 const componentsAtPosition = [];
                 for (const component of this.components.values()) {
                     if (x >= component.x && x <= component.x + component.width &&
@@ -1094,6 +1103,9 @@ import Layout from '../layouts/Layout.astro';
                         componentsAtPosition.push(component);
                     }
                 }
+                
+                // Z-indexで降順ソート（最前面のコンポーネントが最初に来る）
+                componentsAtPosition.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
                 
                 if (componentsAtPosition.length === 0) {
                     // console.log('No component found at', x, y);
@@ -1262,6 +1274,22 @@ import Layout from '../layouts/Layout.astro';
                     this.components.set(comp.id, comp);
                 });
                 
+                // まず全てのポートの接続情報をクリア
+                for (const component of this.components.values()) {
+                    // 入力ポートの接続情報をクリア
+                    if (component.inputs) {
+                        component.inputs.forEach(port => {
+                            port.connected = null;
+                        });
+                    }
+                    // 出力ポートの接続情報をクリア
+                    if (component.outputs) {
+                        component.outputs.forEach(port => {
+                            port.connected = [];
+                        });
+                    }
+                }
+                
                 // 接続線を復元（コンポーネント参照を再構築）
                 this.connections = state.connections.map(connection => {
                     const fromComponent = this.components.get(connection.from.component.id);
@@ -1273,7 +1301,7 @@ import Layout from '../layouts/Layout.astro';
                         const toPort = toComponent.inputs?.find(p => p.id === connection.to.port.id);
                         
                         if (fromPort && toPort) {
-                            return {
+                            const restoredConnection = {
                                 ...connection,
                                 from: {
                                     component: fromComponent,
@@ -1284,6 +1312,15 @@ import Layout from '../layouts/Layout.astro';
                                     port: toPort
                                 }
                             };
+                            
+                            // ポートの接続情報も復元
+                            toPort.connected = connection.id;
+                            if (!fromPort.connected) {
+                                fromPort.connected = [];
+                            }
+                            fromPort.connected.push(connection.id);
+                            
+                            return restoredConnection;
                         }
                     }
                     return null; // 無効な接続線は除外
@@ -1304,10 +1341,39 @@ import Layout from '../layouts/Layout.astro';
             }
 
             saveCircuit() {
+                // 接続情報を明示的に含めたデータ構造を作成
+                const componentsData = Array.from(this.components.values()).map(component => ({
+                    ...component,
+                    inputs: component.inputs ? component.inputs.map(port => ({
+                        id: port.id,
+                        x: port.x,
+                        y: port.y,
+                        connected: port.connected
+                    })) : [],
+                    outputs: component.outputs ? component.outputs.map(port => ({
+                        id: port.id,
+                        x: port.x,
+                        y: port.y,
+                        connected: port.connected
+                    })) : []
+                }));
+                
+                const connectionsData = this.connections.map(connection => ({
+                    id: connection.id,
+                    from: {
+                        component: { id: connection.from.component.id },
+                        port: { id: connection.from.port.id }
+                    },
+                    to: {
+                        component: { id: connection.to.component.id },
+                        port: { id: connection.to.port.id }
+                    }
+                }));
+                
                 const data = {
                     version: "1.0",
-                    components: Array.from(this.components.values()),
-                    connections: this.connections
+                    components: componentsData,
+                    connections: connectionsData
                 };
                 
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1335,13 +1401,64 @@ import Layout from '../layouts/Layout.astro';
                         const data = JSON.parse(e.target.result);
                         this.components.clear();
                         
+                        // コンポーネントを復元
                         data.components.forEach(comp => {
                             this.components.set(comp.id, comp);
                         });
                         
-                        this.connections = data.connections || [];
+                        // まず全てのポートの接続情報をクリア
+                        for (const component of this.components.values()) {
+                            if (component.inputs) {
+                                component.inputs.forEach(port => {
+                                    port.connected = null;
+                                });
+                            }
+                            if (component.outputs) {
+                                component.outputs.forEach(port => {
+                                    port.connected = [];
+                                });
+                            }
+                        }
+                        
+                        // 接続線を復元（コンポーネント参照を再構築）
+                        this.connections = (data.connections || []).map(connection => {
+                            const fromComponent = this.components.get(connection.from.component.id);
+                            const toComponent = this.components.get(connection.to.component.id);
+                            
+                            if (fromComponent && toComponent) {
+                                const fromPort = fromComponent.outputs?.find(p => p.id === connection.from.port.id);
+                                const toPort = toComponent.inputs?.find(p => p.id === connection.to.port.id);
+                                
+                                if (fromPort && toPort) {
+                                    const restoredConnection = {
+                                        ...connection,
+                                        from: {
+                                            component: fromComponent,
+                                            port: fromPort
+                                        },
+                                        to: {
+                                            component: toComponent,
+                                            port: toPort
+                                        }
+                                    };
+                                    
+                                    // ポートの接続情報も復元
+                                    toPort.connected = connection.id;
+                                    if (!fromPort.connected) {
+                                        fromPort.connected = [];
+                                    }
+                                    fromPort.connected.push(connection.id);
+                                    
+                                    return restoredConnection;
+                                }
+                            }
+                            return null;
+                        }).filter(Boolean);
+                        
                         this.selectedComponent = null;
+                        this.selectedConnection = null;
                         this.render();
+                        this.updateSimulation();
                         this.saveState();
                     } catch (error) {
                         alert('ファイルの読み込みに失敗しました');
@@ -1378,8 +1495,10 @@ import Layout from '../layouts/Layout.astro';
                     this.drawConnectionPreview(ctx);
                 }
                 
-                // 部品描画
-                for (const component of this.components.values()) {
+                // 部品描画（Z-index順）
+                const sortedComponents = Array.from(this.components.values())
+                    .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+                for (const component of sortedComponents) {
                     this.drawComponent(ctx, component);
                 }
                 
