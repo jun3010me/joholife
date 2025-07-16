@@ -425,6 +425,9 @@ import Layout from '../layouts/Layout.astro';
                 this.selectedConnection = null;
                 this.lastClickTime = 0;
                 this.doubleClickDelay = 300; // ダブルクリック判定時間（ミリ秒）
+                this.lastClickPosition = null; // 最後のクリック位置
+                this.overlappingComponents = []; // 重なったコンポーネントのリスト
+                this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 
                 this.init();
             }
@@ -577,13 +580,42 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                // 部品選択
-                const component = this.getComponentAt(pos.x, pos.y);
+                // 部品選択（循環選択有効）
+                const component = this.getComponentAt(pos.x, pos.y, true);
                 console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
                 if (component) {
+                    const currentTime = Date.now();
+                    
+                    // ダブルタップ判定（同じコンポーネント、短時間内）
+                    if (this.selectedComponent === component && 
+                        currentTime - this.lastClickTime < this.doubleClickDelay) {
+                        // ダブルタップ：コンポーネントを削除
+                        console.log('Double tap detected, deleting component:', component.type);
+                        
+                        // 削除するコンポーネントに接続された接続線をすべて削除
+                        const connectionsToDelete = this.connections.filter(connection => 
+                            connection.from.component.id === component.id || 
+                            connection.to.component.id === component.id
+                        );
+                        
+                        connectionsToDelete.forEach(connection => {
+                            this.removeConnection(connection.id);
+                        });
+                        
+                        // コンポーネントを削除
+                        this.components.delete(component.id);
+                        this.selectedComponent = null;
+                        this.render();
+                        this.saveState();
+                        this.updateSimulation();
+                        return;
+                    }
+                    
+                    // シングルタップ：通常の選択・ドラッグ開始
                     console.log('Component selected for dragging:', component.type);
                     this.selectedComponent = component;
                     this.selectedConnection = null; // 部品選択時は接続線選択をリセット
+                    this.lastClickTime = currentTime;
                     this.isDragging = true;
                     this.dragOffset = {
                         x: pos.x - component.x,
@@ -633,7 +665,25 @@ import Layout from '../layouts/Layout.astro';
                 
                 if (this.isConnecting && this.connectionStart) {
                     const pos = this.getPointerPos(event);
-                    const port = this.getPortAt(pos.x, pos.y);
+                    let port = this.getPortAt(pos.x, pos.y);
+                    
+                    // 端子が見つからない場合、コンポーネント内でのスマート接続を試行
+                    if (!port) {
+                        const component = this.getComponentAt(pos.x, pos.y);
+                        if (component) {
+                            console.log('handlePointerUp - No direct port hit, trying smart connection to:', component.type);
+                            
+                            // 接続開始が出力端子の場合、入力端子を探す
+                            if (this.connectionStart.type === 'output') {
+                                port = this.findBestInputPort(component, pos.x, pos.y);
+                            }
+                            // 接続開始が入力端子の場合、出力端子を探す  
+                            else if (this.connectionStart.type === 'input') {
+                                port = this.findBestOutputPort(component, pos.x, pos.y);
+                            }
+                        }
+                    }
+                    
                     console.log('handlePointerUp - Connection mode, found port:', port ? port.type : 'none');
                     if (port && port !== this.connectionStart) {
                         this.completeConnection(this.connectionStart, port);
@@ -654,9 +704,39 @@ import Layout from '../layouts/Layout.astro';
                         this.toggleInput(this.selectedComponent);
                         // console.log('Toggle input:', this.selectedComponent.type, 'to', this.selectedComponent.state);
                     } else {
-                        // ドラッグ完了
-                        this.saveState();
-                        // console.log('Drag completed for:', this.selectedComponent.type);
+                        // ドラッグ完了 - エリア外削除判定
+                        const canvasRect = this.canvas.getBoundingClientRect();
+                        const component = this.selectedComponent;
+                        
+                        // コンポーネントがキャンバスエリア外に完全に出た場合は削除
+                        if (component.x + component.width < 0 || 
+                            component.x > canvasRect.width || 
+                            component.y + component.height < 0 || 
+                            component.y > canvasRect.height) {
+                            
+                            console.log('Component dragged outside canvas, deleting:', component.type);
+                            
+                            // 削除するコンポーネントに接続された接続線をすべて削除
+                            const connectionsToDelete = this.connections.filter(connection => 
+                                connection.from.component.id === component.id || 
+                                connection.to.component.id === component.id
+                            );
+                            
+                            connectionsToDelete.forEach(connection => {
+                                this.removeConnection(connection.id);
+                            });
+                            
+                            // コンポーネントを削除
+                            this.components.delete(component.id);
+                            this.selectedComponent = null;
+                            this.render();
+                            this.saveState();
+                            this.updateSimulation();
+                        } else {
+                            // 通常のドラッグ完了
+                            this.saveState();
+                            // console.log('Drag completed for:', this.selectedComponent.type);
+                        }
                     }
                     
                     this.isDragging = false;
@@ -831,6 +911,48 @@ import Layout from '../layouts/Layout.astro';
                 return null;
             }
             
+            findBestInputPort(component, x, y) {
+                if (!component.inputs || component.inputs.length === 0) return null;
+                
+                // 最も近い入力端子を探す
+                let bestPort = null;
+                let minDistance = Infinity;
+                
+                for (const port of component.inputs) {
+                    const portX = component.x + port.x;
+                    const portY = component.y + port.y;
+                    const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestPort = port;
+                    }
+                }
+                
+                return bestPort ? { component, port: bestPort, type: 'input' } : null;
+            }
+            
+            findBestOutputPort(component, x, y) {
+                if (!component.outputs || component.outputs.length === 0) return null;
+                
+                // 最も近い出力端子を探す
+                let bestPort = null;
+                let minDistance = Infinity;
+                
+                for (const port of component.outputs) {
+                    const portX = component.x + port.x;
+                    const portY = component.y + port.y;
+                    const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestPort = port;
+                    }
+                }
+                
+                return bestPort ? { component, port: bestPort, type: 'output' } : null;
+            }
+            
             startConnection(portInfo) {
                 this.isConnecting = true;
                 this.connectionStart = portInfo;
@@ -963,16 +1085,53 @@ import Layout from '../layouts/Layout.astro';
                 }
             }
 
-            getComponentAt(x, y) {
+            getComponentAt(x, y, cycleSelection = false) {
+                // 指定位置の全てのコンポーネントを取得
+                const componentsAtPosition = [];
                 for (const component of this.components.values()) {
                     if (x >= component.x && x <= component.x + component.width &&
                         y >= component.y && y <= component.y + component.height) {
-                        // console.log('Found component at', x, y, ':', component.type, component.id);
-                        return component;
+                        componentsAtPosition.push(component);
                     }
                 }
-                // console.log('No component found at', x, y);
-                return null;
+                
+                if (componentsAtPosition.length === 0) {
+                    // console.log('No component found at', x, y);
+                    this.overlappingComponents = [];
+                    this.currentOverlapIndex = 0;
+                    this.lastClickPosition = null;
+                    return null;
+                }
+                
+                if (componentsAtPosition.length === 1) {
+                    // 重なりなし
+                    return componentsAtPosition[0];
+                }
+                
+                // 重なりあり - 循環選択の処理
+                const clickThreshold = 20; // 同じ位置判定の許容範囲
+                const isSamePosition = this.lastClickPosition && 
+                    Math.abs(x - this.lastClickPosition.x) < clickThreshold &&
+                    Math.abs(y - this.lastClickPosition.y) < clickThreshold;
+                
+                if (cycleSelection && isSamePosition && 
+                    JSON.stringify(this.overlappingComponents.map(c => c.id)) === 
+                    JSON.stringify(componentsAtPosition.map(c => c.id))) {
+                    // 同じ位置での連続クリック - 次のコンポーネントを選択
+                    this.currentOverlapIndex = (this.currentOverlapIndex + 1) % componentsAtPosition.length;
+                } else {
+                    // 新しい位置または初回 - 最初のコンポーネントを選択
+                    this.overlappingComponents = componentsAtPosition;
+                    this.currentOverlapIndex = 0;
+                }
+                
+                this.lastClickPosition = { x, y };
+                
+                const selectedComponent = componentsAtPosition[this.currentOverlapIndex];
+                console.log(`Selected component ${this.currentOverlapIndex + 1}/${componentsAtPosition.length}:`, 
+                           selectedComponent.type, selectedComponent.id);
+                
+                return selectedComponent;
             }
             
             getConnectionAt(x, y) {
@@ -989,17 +1148,19 @@ import Layout from '../layouts/Layout.astro';
                     // ベジエ曲線の詳細な当たり判定（より多くの点で判定）
                     const midX = (fromX + toX) / 2;
                     
-                    // 線分の複数点での当たり判定（判定点を増加）
+                    // ベジエ曲線の複数点での当たり判定
                     const points = [];
-                    for (let i = 0; i <= 15; i++) {
-                        const t = i / 15;
-                        // 簡易的なベジエ曲線の計算
-                        const pointX = fromX + t * (midX - fromX) + t * (t * (toX - midX));
-                        const pointY = fromY + t * (fromY - fromY) + t * (t * (toY - fromY));
-                        
-                        // より正確なベジエ曲線
-                        const bezierX = Math.pow(1-t, 2) * fromX + 2 * (1-t) * t * midX + Math.pow(t, 2) * toX;
-                        const bezierY = Math.pow(1-t, 2) * fromY + 2 * (1-t) * t * fromY + Math.pow(t, 2) * toY;
+                    for (let i = 0; i <= 20; i++) {
+                        const t = i / 20;
+                        // 正確なベジエ曲線の計算（3次ベジエ曲線）
+                        const bezierX = Math.pow(1-t, 3) * fromX + 
+                                       3 * Math.pow(1-t, 2) * t * midX + 
+                                       3 * (1-t) * Math.pow(t, 2) * midX + 
+                                       Math.pow(t, 3) * toX;
+                        const bezierY = Math.pow(1-t, 3) * fromY + 
+                                       3 * Math.pow(1-t, 2) * t * fromY + 
+                                       3 * (1-t) * Math.pow(t, 2) * toY + 
+                                       Math.pow(t, 3) * toY;
                         
                         points.push({ x: bezierX, y: bezierY });
                     }
@@ -1023,10 +1184,24 @@ import Layout from '../layouts/Layout.astro';
 
             deleteSelected() {
                 if (this.selectedComponent) {
-                    this.components.delete(this.selectedComponent.id);
+                    // 削除するコンポーネントに接続された接続線をすべて削除
+                    const componentToDelete = this.selectedComponent;
+                    const connectionsToDelete = this.connections.filter(connection => 
+                        connection.from.component.id === componentToDelete.id || 
+                        connection.to.component.id === componentToDelete.id
+                    );
+                    
+                    // 接続線を削除
+                    connectionsToDelete.forEach(connection => {
+                        this.removeConnection(connection.id);
+                    });
+                    
+                    // コンポーネントを削除
+                    this.components.delete(componentToDelete.id);
                     this.selectedComponent = null;
                     this.render();
                     this.saveState();
+                    this.updateSimulation();
                 } else if (this.selectedConnection) {
                     this.removeConnection(this.selectedConnection.id);
                     this.selectedConnection = null;
@@ -1082,13 +1257,42 @@ import Layout from '../layouts/Layout.astro';
                 const state = JSON.parse(stateStr);
                 this.components.clear();
                 
+                // コンポーネントを復元
                 state.components.forEach(comp => {
                     this.components.set(comp.id, comp);
                 });
                 
-                this.connections = state.connections;
+                // 接続線を復元（コンポーネント参照を再構築）
+                this.connections = state.connections.map(connection => {
+                    const fromComponent = this.components.get(connection.from.component.id);
+                    const toComponent = this.components.get(connection.to.component.id);
+                    
+                    if (fromComponent && toComponent) {
+                        // 正しいポート参照を取得
+                        const fromPort = fromComponent.outputs?.find(p => p.id === connection.from.port.id);
+                        const toPort = toComponent.inputs?.find(p => p.id === connection.to.port.id);
+                        
+                        if (fromPort && toPort) {
+                            return {
+                                ...connection,
+                                from: {
+                                    component: fromComponent,
+                                    port: fromPort
+                                },
+                                to: {
+                                    component: toComponent,
+                                    port: toPort
+                                }
+                            };
+                        }
+                    }
+                    return null; // 無効な接続線は除外
+                }).filter(Boolean); // null を除去
+                
                 this.selectedComponent = null;
+                this.selectedConnection = null;
                 this.render();
+                this.updateSimulation();
             }
 
             togglePalette() {
