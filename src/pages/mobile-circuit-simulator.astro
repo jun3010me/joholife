@@ -597,17 +597,22 @@ import Layout from '../layouts/Layout.astro';
                 const palette = document.getElementById('component-palette');
                 const items = palette.querySelectorAll('.component-item');
 
-                items.forEach(item => {
-                    item.addEventListener('mousedown', this.startComponentDrag.bind(this));
-                    item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
-                });
+                // 横レイアウトでない場合は従来通り
+                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
                 
-                // パレットスクロール対応
-                const paletteContent = document.querySelector('.palette-content');
-                if (paletteContent) {
-                    paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
-                    paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
-                    paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
+                if (!isLandscape) {
+                    items.forEach(item => {
+                        item.addEventListener('mousedown', this.startComponentDrag.bind(this));
+                        item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
+                    });
+                } else {
+                    // 横レイアウトの場合は、パレットコンテンツ全体でイベントを処理
+                    const paletteContent = document.querySelector('.palette-content');
+                    if (paletteContent) {
+                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
+                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
+                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
+                    }
                 }
             }
 
@@ -2448,17 +2453,16 @@ import Layout from '../layouts/Layout.astro';
                 console.log('handlePaletteScrollStart: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
                 this.isPaletteScrolling = false;
                 
-                // component-itemでのタッチ開始の場合は通常の処理を継続
+                // component-itemでのタッチ開始の場合は、部品ドラッグ処理を設定
                 const componentItem = event.target.closest('.component-item');
                 if (componentItem) {
-                    console.log('handlePaletteScrollStart: component-item detected, calling startComponentDrag directly');
-                    // イベントのcurrentTargetを修正してstartComponentDragを呼び出す
-                    const modifiedEvent = { 
-                        ...event, 
-                        currentTarget: componentItem,
-                        preventDefault: () => {} // preventDefault関数を追加
+                    console.log('handlePaletteScrollStart: component-item detected, setting up component drag');
+                    this.isPaletteScrolling = false;
+                    this.pendingComponentDrag = {
+                        type: componentItem.dataset.type,
+                        event: event
                     };
-                    this.startComponentDrag(modifiedEvent);
+                    console.log('pendingComponentDrag set to:', this.pendingComponentDrag);
                     return;
                 }
                 
@@ -2476,11 +2480,11 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                // 既にドラッグ中の場合はスキップ
-                if (this.isDragging) {
-                    console.log('handlePaletteScrollMove: skipping because already dragging');
-                    return;
-                }
+                // 既にドラッグ中の場合はスキップ（コメントアウト）
+                // if (this.isDragging) {
+                //     console.log('handlePaletteScrollMove: skipping because already dragging');
+                //     return;
+                // }
                 
                 const touch = event.touches[0];
                 const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
