@@ -431,6 +431,8 @@ import Layout from '../layouts/Layout.astro';
                 this.overlappingComponents = []; // 重なったコンポーネントのリスト
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 this.nextZIndex = 1; // Z-index管理用カウンター
+                this.pendingComponent = null; // パレットからドラッグ中の部品（まだマップに追加されていない）
+                this.dragStarted = false; // 実際のドラッグ移動が開始されたかのフラグ
                 
                 this.init();
             }
@@ -628,6 +630,14 @@ import Layout from '../layouts/Layout.astro';
                 if (this.isConnecting) {
                     this.render();
                 } else if (this.isDragging && this.selectedComponent) {
+                    // パレットから作成された部品で、まだマップに追加されていない場合
+                    if (this.pendingComponent && !this.dragStarted) {
+                        console.log('First drag movement detected, adding component to map:', this.pendingComponent.type);
+                        this.components.set(this.pendingComponent.id, this.pendingComponent);
+                        this.dragStarted = true;
+                        this.saveState();
+                    }
+                    
                     this.selectedComponent.x = pos.x - this.dragOffset.x;
                     this.selectedComponent.y = pos.y - this.dragOffset.y;
                     this.render();
@@ -677,6 +687,15 @@ import Layout from '../layouts/Layout.astro';
                     const touchDuration = Date.now() - this.touchStartTime;
                     const touchDistance = this.touchStartPos ? 
                         Math.sqrt(Math.pow(pos.x - this.touchStartPos.x, 2) + Math.pow(pos.y - this.touchStartPos.y, 2)) : 0;
+                    
+                    // パレットから作成された部品で、実際のドラッグが開始されていない場合
+                    if (this.pendingComponent && !this.dragStarted) {
+                        console.log('Canceling pending component - no drag detected:', this.pendingComponent.type);
+                        this.pendingComponent = null;
+                        this.selectedComponent = null;
+                        this.isDragging = false;
+                        return;
+                    }
                     
                     // 短いタップかつ移動距離が小さい場合は状態切り替え
                     if ((this.selectedComponent.type === 'INPUT' || this.selectedComponent.type === 'SWITCH') &&
@@ -728,6 +747,7 @@ import Layout from '../layouts/Layout.astro';
                     }
                     
                     this.isDragging = false;
+                    this.pendingComponent = null;
                 } else if (this.isPanning) {
                     this.isPanning = false;
                     this.lastPanPoint = null;
@@ -792,18 +812,20 @@ import Layout from '../layouts/Layout.astro';
                 const component = this.createComponent(type, x, y);
                 component.isNewFromPalette = true; // パレットから作成されたことを記録
                 
-                this.components.set(component.id, component);
+                // 重要：まだマップには追加せず、一時的に保持
+                this.pendingComponent = component;
                 this.selectedComponent = component;
                 this.isDragging = true;
                 this.dragOffset = { x: 0, y: 0 };
+                this.dragStarted = false; // 実際のドラッグが開始されたかのフラグ
                 
                 // タッチイベントの場合、グローバルなイベントリスナーを追加
                 if (event.type === 'touchstart') {
                     this.setupGlobalTouchHandlers();
                 }
                 
-                this.render();
-                this.saveState();
+                // まだ描画はしない（部品は表示されない）
+                console.log('Component prepared for drag, not yet visible:', component.type);
             }
             
             setupGlobalTouchHandlers() {
