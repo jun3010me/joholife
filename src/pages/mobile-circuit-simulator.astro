@@ -424,6 +424,7 @@ import Layout from '../layouts/Layout.astro';
                 this.lastPanPoint = null;
                 this.touches = [];
                 this.lastPinchDistance = null;
+                this.lastPinchCenter = null;
                 this.touchStartTime = 0;
                 this.touchStartPos = null;
                 this.dragThreshold = 10; // ピクセル単位でのドラッグ判定しきい値
@@ -2234,9 +2235,11 @@ import Layout from '../layouts/Layout.astro';
                     // すべてのタッチが終了
                     this.handlePointerUp(event);
                     this.lastPinchDistance = null;
+                    this.lastPinchCenter = null;
                 } else if (this.touches.length === 1) {
                     // ピンチからシングルタッチに変更
                     this.lastPinchDistance = null;
+                    this.lastPinchCenter = null;
                 }
             }
             
@@ -2251,23 +2254,31 @@ import Layout from '../layouts/Layout.astro';
                 const y2 = touch2.clientY - rect.top;
                 
                 const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const centerX = (x1 + x2) / 2;
+                const centerY = (y1 + y2) / 2;
                 
-                if (this.lastPinchDistance) {
+                if (this.lastPinchDistance && this.lastPinchCenter) {
+                    // ズーム処理
                     const scale = distance / this.lastPinchDistance;
                     const newScale = Math.max(0.1, Math.min(5, this.scale * scale));
                     
                     // ズーム中心をタッチポイントの中点に設定
-                    const centerX = (x1 + x2) / 2;
-                    const centerY = (y1 + y2) / 2;
-                    
                     this.panX = centerX - (centerX - this.panX) * (newScale / this.scale);
                     this.panY = centerY - (centerY - this.panY) * (newScale / this.scale);
                     
                     this.scale = newScale;
+                    
+                    // パン処理（ピンチ中心点の移動を追跡）
+                    const centerDeltaX = centerX - this.lastPinchCenter.x;
+                    const centerDeltaY = centerY - this.lastPinchCenter.y;
+                    this.panX += centerDeltaX;
+                    this.panY += centerDeltaY;
+                    
                     this.render();
                 }
                 
                 this.lastPinchDistance = distance;
+                this.lastPinchCenter = { x: centerX, y: centerY };
             }
         }
 
