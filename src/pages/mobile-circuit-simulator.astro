@@ -2449,7 +2449,12 @@ import Layout from '../layouts/Layout.astro';
                 this.isPaletteScrolling = false;
                 
                 // component-itemでのタッチ開始の場合は通常の処理を継続
-                if (event.target.closest('.component-item')) {
+                const componentItem = event.target.closest('.component-item');
+                if (componentItem) {
+                    console.log('handlePaletteScrollStart: component-item detected, calling startComponentDrag directly');
+                    // イベントのcurrentTargetを修正してstartComponentDragを呼び出す
+                    const modifiedEvent = { ...event, currentTarget: componentItem };
+                    this.startComponentDrag(modifiedEvent);
                     return;
                 }
                 
