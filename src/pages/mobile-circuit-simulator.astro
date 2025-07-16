@@ -63,6 +63,7 @@ import Layout from '../layouts/Layout.astro';
             font-size: 18px;
             cursor: pointer;
             padding: 4px;
+            touch-action: manipulation; /* ダブルタップズームを無効化 */
         }
 
         .palette-content {
@@ -176,6 +177,7 @@ import Layout from '../layouts/Layout.astro';
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: manipulation; /* ダブルタップズームを無効化 */
         }
 
         .toolbar-button:hover {
@@ -281,6 +283,7 @@ import Layout from '../layouts/Layout.astro';
                 z-index: 1001;
                 min-width: 44px;
                 min-height: 44px;
+                touch-action: manipulation; /* ダブルタップズームを無効化 */
             }
         }
 
