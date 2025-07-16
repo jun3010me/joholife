@@ -523,6 +523,7 @@ import Layout from '../layouts/Layout.astro';
                 this.paletteScrollStartY = 0;
                 this.paletteScrollThreshold = 5;
                 this.paletteScrollStartScrollLeft = 0;
+                this.pendingComponentDrag = null; // 部品ドラッグ開始待機用
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 this.nextZIndex = 1; // Z-index管理用カウンター
                 this.pendingComponent = null; // パレットからドラッグ中の部品（まだマップに追加されていない）
@@ -909,9 +910,20 @@ import Layout from '../layouts/Layout.astro';
             startComponentDrag(event) {
                 event.preventDefault();
                 
-                // パレットスクロール状態をリセット（部品ドラッグが開始されたため）
-                this.isPaletteScrolling = false;
+                // 横レイアウト時は、即座にドラッグ開始せず、スクロール判定を待つ
+                const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
                 
+                if (isLandscape) {
+                    // 横レイアウト時：部品ドラッグを保留して、スクロール判定に委ねる
+                    this.pendingComponentDrag = {
+                        type: event.currentTarget.dataset.type,
+                        event: event
+                    };
+                    return;
+                }
+                
+                // 縦レイアウト時：従来通りの処理
+                this.isPaletteScrolling = false;
                 const type = event.currentTarget.dataset.type;
                 
                 // パレットアイテムの場合は、適切なキャンバス座標に部品を作成
@@ -2462,16 +2474,15 @@ import Layout from '../layouts/Layout.astro';
                     closestItem: event.target.closest('.component-item') ? 'found' : 'none'
                 });
                 
-                // 横方向の移動がしきい値を超えた場合はスクロール（縦方向との比較は削除）
+                // 横方向の移動がしきい値を超えた場合はスクロール
                 if (deltaX > this.paletteScrollThreshold) {
                     this.isPaletteScrolling = true;
                     console.log('Palette scroll activated!');
                     
-                    // component-itemでのタッチ移動の場合は通常の処理を停止
-                    if (event.target.closest('.component-item')) {
-                        console.log('Component item detected, preventing scroll');
-                        event.preventDefault();
-                        return;
+                    // 部品ドラッグ待機中の場合はキャンセル
+                    if (this.pendingComponentDrag) {
+                        console.log('Canceling pending component drag due to scroll');
+                        this.pendingComponentDrag = null;
                     }
                 }
                 
@@ -2494,14 +2505,88 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                this.isPaletteScrolling = false;
-                
-                // component-itemでのタッチ終了の場合は通常の処理を継続
-                if (event.target.closest('.component-item')) {
-                    return;
+                // スクロールが発生しなかった場合、部品ドラッグを開始
+                if (!this.isPaletteScrolling && this.pendingComponentDrag) {
+                    console.log('Starting component drag after no scroll detected');
+                    this.executeComponentDrag(this.pendingComponentDrag.type, this.pendingComponentDrag.event);
                 }
                 
+                this.isPaletteScrolling = false;
+                this.pendingComponentDrag = null;
+                
                 event.preventDefault();
+            }
+            
+            // 部品ドラッグを実行する関数（元のstartComponentDragの処理を抽出）
+            executeComponentDrag(type, event) {
+                // パレットスクロール状態をリセット
+                this.isPaletteScrolling = false;
+                
+                // パレットアイテムの場合は、適切なキャンバス座標に部品を作成
+                let x, y;
+                const canvasRect = this.canvas.getBoundingClientRect();
+                
+                if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
+                    // タッチの場合
+                    const touch = event.touches[0];
+                    console.log('Touch position:', touch.clientX, touch.clientY);
+                    console.log('Canvas rect:', canvasRect);
+                    
+                    // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
+                    let isWithinCanvas = false;
+                    const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                    
+                    if (isLandscape) {
+                        // 横レイアウト時：パレット領域（下部140px）を除外
+                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                       touch.clientY >= canvasRect.top && touch.clientY <= (canvasRect.bottom - 140);
+                    } else {
+                        // 縦レイアウト時：通常の判定
+                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                       touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
+                    }
+                    
+                    if (isWithinCanvas) {
+                        // キャンバス内の場合、その座標を使用
+                        x = (touch.clientX - canvasRect.left - this.panX) / this.scale;
+                        y = (touch.clientY - canvasRect.top - this.panY) / this.scale;
+                        console.log('Touch within canvas, using touch position:', x, y);
+                    } else {
+                        // キャンバス外（パレット）の場合、キャンバス中央に配置
+                        if (isLandscape) {
+                            // 横レイアウト時：パレット領域を除いたキャンバス中央
+                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                            y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
+                        } else {
+                            // 縦レイアウト時：通常のキャンバス中央
+                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                            y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+                        }
+                        console.log('Touch outside canvas (palette), using center:', x, y);
+                    }
+                } else {
+                    // マウスの場合も同様の処理
+                    x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                    y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+                    console.log('Mouse event, using center:', x, y);
+                }
+                
+                const component = this.createComponent(type, x, y);
+                component.isNewFromPalette = true; // パレットから作成されたことを記録
+                
+                // 重要：まだマップには追加せず、一時的に保持
+                this.pendingComponent = component;
+                this.selectedComponent = component;
+                this.isDragging = true;
+                this.dragOffset = { x: 0, y: 0 };
+                this.dragStarted = false; // 実際のドラッグが開始されたかのフラグ
+                
+                // タッチイベントの場合、グローバルなイベントリスナーを追加
+                if (event.type === 'touchstart') {
+                    this.setupGlobalTouchHandlers();
+                }
+                
+                this.render();
             }
         }
 
