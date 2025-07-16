@@ -278,8 +278,8 @@ import Layout from '../layouts/Layout.astro';
             }
         }
 
-        /* 横画面対応（モバイル・タブレットのみ） */
-        @media (orientation: landscape) and (max-width: 932px) and (max-height: 768px) {
+        /* 横画面対応（縦幅が短い場合のみ） */
+        @media (orientation: landscape) and (max-height: 600px) {
             .component-palette {
                 width: 200px; /* パレット幅を縮小 */
             }
@@ -347,8 +347,8 @@ import Layout from '../layouts/Layout.astro';
             }
         }
 
-        /* iPhone16ProMAX等の大画面横画面対応（モバイルデバイスのみ） */
-        @media (orientation: landscape) and (min-width: 844px) and (max-width: 1024px) and (max-height: 768px) {
+        /* iPhone16ProMAX等の大画面横画面対応（縦幅が短い大画面） */
+        @media (orientation: landscape) and (min-width: 844px) and (max-height: 600px) {
             .component-palette {
                 width: 240px; /* 大画面では少し幅を広く */
                 position: relative; /* 大画面では常時表示 */
@@ -750,7 +750,8 @@ import Layout from '../layouts/Layout.astro';
                 // 画面向き変更とリサイズイベントの処理
                 const handleOrientationChange = () => {
                     const isLandscape = window.innerWidth > window.innerHeight;
-                    const isLargeScreen = window.innerWidth >= 844 && window.innerWidth <= 1024 && window.innerHeight <= 768;
+                    const isShortHeight = window.innerHeight <= 600;
+                    const isLargeScreen = window.innerWidth >= 844 && isLandscape && isShortHeight;
                     
                     // CSSクラスを動的に管理（横画面かつ大画面のみ）
                     document.body.classList.toggle('landscape', isLandscape && !isLargeScreen);
@@ -1766,7 +1767,8 @@ import Layout from '../layouts/Layout.astro';
                 
                 // 大画面横画面時は何もしない
                 const isLandscape = window.innerWidth > window.innerHeight;
-                const isLargeScreen = window.innerWidth >= 844 && window.innerWidth <= 1024 && window.innerHeight <= 768;
+                const isShortHeight = window.innerHeight <= 600;
+                const isLargeScreen = window.innerWidth >= 844 && isLandscape && isShortHeight;
                 
                 if (isLandscape && isLargeScreen) {
                     return; // 大画面横画面時はトグル無効
