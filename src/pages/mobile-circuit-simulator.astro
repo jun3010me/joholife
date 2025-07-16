@@ -1518,19 +1518,19 @@ import Layout from '../layouts/Layout.astro';
                 ctx.translate(this.panX, this.panY);
                 ctx.scale(this.scale, this.scale);
                 
-                // 接続線描画
-                this.drawConnections(ctx);
-                
-                // 接続中の線描画
-                if (this.isConnecting && this.connectionStart) {
-                    this.drawConnectionPreview(ctx);
-                }
-                
                 // 部品描画（Z-index順）
                 const sortedComponents = Array.from(this.components.values())
                     .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
                 for (const component of sortedComponents) {
                     this.drawComponent(ctx, component);
+                }
+                
+                // 接続線描画（部品の上に表示）
+                this.drawConnections(ctx);
+                
+                // 接続中の線描画
+                if (this.isConnecting && this.connectionStart) {
+                    this.drawConnectionPreview(ctx);
                 }
                 
                 ctx.restore();
