@@ -761,8 +761,8 @@ import Layout from '../layouts/Layout.astro';
                     case 'OR':
                     case 'XOR':
                         baseComponent.inputs = [
-                            { id: 'in1', x: 0, y: 20, connected: null },
-                            { id: 'in2', x: 0, y: 40, connected: null }
+                            { id: 'in1', x: 0, y: 15, connected: null },
+                            { id: 'in2', x: 0, y: 45, connected: null }
                         ];
                         baseComponent.outputs = [
                             { id: 'out', x: 110, y: 30, connected: [] }
@@ -771,8 +771,8 @@ import Layout from '../layouts/Layout.astro';
                     case 'NAND':
                     case 'NOR':
                         baseComponent.inputs = [
-                            { id: 'in1', x: 0, y: 20, connected: null },
-                            { id: 'in2', x: 0, y: 40, connected: null }
+                            { id: 'in1', x: 0, y: 15, connected: null },
+                            { id: 'in2', x: 0, y: 45, connected: null }
                         ];
                         baseComponent.outputs = [
                             { id: 'out', x: 110, y: 30, connected: [] }
@@ -804,7 +804,7 @@ import Layout from '../layouts/Layout.astro';
             }
             
             getPortAt(x, y) {
-                const tolerance = 12;
+                const tolerance = 20; // タッチ操作に適したサイズに拡大
                 
                 for (const component of this.components.values()) {
                     // 入力ポートをチェック
