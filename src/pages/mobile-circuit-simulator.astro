@@ -516,6 +516,12 @@ import Layout from '../layouts/Layout.astro';
                 this.doubleClickDelay = 300; // ダブルクリック判定時間（ミリ秒）
                 this.lastClickPosition = null; // 最後のクリック位置
                 this.overlappingComponents = []; // 重なったコンポーネントのリスト
+                
+                // パレットスクロール対応
+                this.isPaletteScrolling = false;
+                this.paletteScrollStartX = 0;
+                this.paletteScrollStartY = 0;
+                this.paletteScrollThreshold = 10;
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 this.nextZIndex = 1; // Z-index管理用カウンター
                 this.pendingComponent = null; // パレットからドラッグ中の部品（まだマップに追加されていない）
@@ -593,6 +599,14 @@ import Layout from '../layouts/Layout.astro';
                     item.addEventListener('mousedown', this.startComponentDrag.bind(this));
                     item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
                 });
+                
+                // パレットスクロール対応
+                const paletteContent = document.querySelector('.palette-content');
+                if (paletteContent) {
+                    paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
+                    paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
+                    paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
+                }
             }
 
             setupFileHandling() {
@@ -2319,6 +2333,7 @@ import Layout from '../layouts/Layout.astro';
                     this.handlePointerUp(event);
                     this.lastPinchDistance = null;
                     this.lastPinchCenter = null;
+                    this.isPaletteScrolling = false;
                 } else if (this.touches.length === 1) {
                     // ピンチからシングルタッチに変更
                     this.lastPinchDistance = null;
@@ -2362,6 +2377,80 @@ import Layout from '../layouts/Layout.astro';
                 
                 this.lastPinchDistance = distance;
                 this.lastPinchCenter = { x: centerX, y: centerY };
+            }
+            
+            // パレットスクロール処理
+            handlePaletteScrollStart(event) {
+                // スマホ横画面でパレットが開いている場合のみ有効
+                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                    return;
+                }
+                
+                const palette = document.getElementById('component-palette');
+                if (!palette.classList.contains('open')) {
+                    return;
+                }
+                
+                const touch = event.touches[0];
+                this.paletteScrollStartX = touch.clientX;
+                this.paletteScrollStartY = touch.clientY;
+                this.isPaletteScrolling = false;
+                
+                // component-itemでのタッチ開始の場合は通常の処理を継続
+                if (event.target.closest('.component-item')) {
+                    return;
+                }
+                
+                event.preventDefault();
+            }
+            
+            handlePaletteScrollMove(event) {
+                // スマホ横画面でパレットが開いている場合のみ有効
+                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                    return;
+                }
+                
+                const palette = document.getElementById('component-palette');
+                if (!palette.classList.contains('open')) {
+                    return;
+                }
+                
+                const touch = event.touches[0];
+                const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
+                const deltaY = Math.abs(touch.clientY - this.paletteScrollStartY);
+                
+                // 横方向の移動が縦方向より大きく、しきい値を超えた場合はスクロール
+                if (deltaX > this.paletteScrollThreshold && deltaX > deltaY) {
+                    this.isPaletteScrolling = true;
+                    
+                    // component-itemでのタッチ移動の場合は通常の処理を停止
+                    if (event.target.closest('.component-item')) {
+                        event.preventDefault();
+                        return;
+                    }
+                }
+                
+                // スクロール中は他のイベントを阻止
+                if (this.isPaletteScrolling) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+            
+            handlePaletteScrollEnd(event) {
+                // スマホ横画面でパレットが開いている場合のみ有効
+                if (window.innerWidth > 768 || window.innerHeight > 500 || window.screen.orientation.angle === 0) {
+                    return;
+                }
+                
+                this.isPaletteScrolling = false;
+                
+                // component-itemでのタッチ終了の場合は通常の処理を継続
+                if (event.target.closest('.component-item')) {
+                    return;
+                }
+                
+                event.preventDefault();
             }
         }
 
