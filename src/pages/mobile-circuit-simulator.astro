@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="スマホ対応論理回路シミュレータ">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     
     <style>
         * {
@@ -688,10 +688,12 @@ import Layout from '../layouts/Layout.astro';
                         const component = this.selectedComponent;
                         
                         // コンポーネントがキャンバスエリア外に完全に出た場合は削除
-                        if (component.x + component.width < 0 || 
-                            component.x > canvasRect.width || 
-                            component.y + component.height < 0 || 
-                            component.y > canvasRect.height) {
+                        // ただし、パレットから新しく作成された部品の初回ドロップは除外
+                        if (!component.isNewFromPalette && 
+                            (component.x + component.width < 0 || 
+                             component.x > canvasRect.width || 
+                             component.y + component.height < 0 || 
+                             component.y > canvasRect.height)) {
                             
                             console.log('Component dragged outside canvas, deleting:', component.type);
                             
@@ -713,6 +715,11 @@ import Layout from '../layouts/Layout.astro';
                             this.updateSimulation();
                         } else {
                             // 通常のドラッグ完了
+                            // パレットから作成されたフラグをクリア
+                            if (component.isNewFromPalette) {
+                                component.isNewFromPalette = false;
+                                console.log('Component placed from palette:', component.type);
+                            }
                             this.saveState();
                             // console.log('Drag completed for:', this.selectedComponent.type);
                         }
@@ -750,9 +757,38 @@ import Layout from '../layouts/Layout.astro';
                 event.preventDefault();
                 const type = event.currentTarget.dataset.type;
                 
-                // 新しい部品を作成
-                const pos = this.getPointerPos(event);
-                const component = this.createComponent(type, pos.x, pos.y);
+                // パレットアイテムの場合は、適切なキャンバス座標に部品を作成
+                let x, y;
+                const canvasRect = this.canvas.getBoundingClientRect();
+                
+                if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
+                    // タッチの場合
+                    const touch = event.touches[0];
+                    console.log('Touch position:', touch.clientX, touch.clientY);
+                    console.log('Canvas rect:', canvasRect);
+                    
+                    // タッチ位置がキャンバス内かチェック
+                    if (touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                        touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom) {
+                        // キャンバス内の場合、その座標を使用
+                        x = (touch.clientX - canvasRect.left - this.panX) / this.scale;
+                        y = (touch.clientY - canvasRect.top - this.panY) / this.scale;
+                        console.log('Touch within canvas, using touch position:', x, y);
+                    } else {
+                        // キャンバス外（パレット）の場合、キャンバス中央に配置
+                        x = (canvasRect.width / 2 - this.panX) / this.scale;
+                        y = (canvasRect.height / 2 - this.panY) / this.scale;
+                        console.log('Touch outside canvas (palette), using center:', x, y);
+                    }
+                } else {
+                    // マウスの場合も同様の処理
+                    x = (canvasRect.width / 2 - this.panX) / this.scale;
+                    y = (canvasRect.height / 2 - this.panY) / this.scale;
+                    console.log('Mouse event, using center:', x, y);
+                }
+                
+                const component = this.createComponent(type, x, y);
+                component.isNewFromPalette = true; // パレットから作成されたことを記録
                 
                 this.components.set(component.id, component);
                 this.selectedComponent = component;
