@@ -276,6 +276,176 @@ import Layout from '../layouts/Layout.astro';
                 overflow-y: hidden;
                 padding: 10px;
             }
+        }
+
+        /* 横画面対応 */
+        @media (orientation: landscape) and (max-width: 932px) {
+            .component-palette {
+                width: 200px; /* パレット幅を縮小 */
+            }
+            
+            .component-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2列に変更 */
+            }
+            
+            .canvas-container {
+                flex: 1;
+                max-width: calc(100vw - 200px); /* 横画面時の最適化 */
+            }
+
+            .toolbar {
+                flex-direction: row;
+                height: 50px;
+                width: auto;
+                top: 8px;
+                right: 8px;
+            }
+
+            .toolbar-button {
+                min-width: 44px;
+                min-height: 44px;
+                border-radius: 0;
+            }
+
+            .toolbar-button:first-child {
+                border-radius: 8px 0 0 8px;
+            }
+
+            .toolbar-button:last-child {
+                border-radius: 0 8px 8px 0;
+            }
+
+            .toolbar-button + .toolbar-button {
+                border-top: none;
+                border-left: 1px solid #eee;
+            }
+
+            .file-menu {
+                bottom: 8px;
+                left: 8px;
+                flex-direction: row;
+                width: auto;
+            }
+
+            .file-menu-button {
+                min-width: 44px;
+                min-height: 44px;
+                border-radius: 0;
+            }
+
+            .file-menu-button:first-child {
+                border-radius: 8px 0 0 8px;
+            }
+
+            .file-menu-button:last-child {
+                border-radius: 0 8px 8px 0;
+            }
+
+            .file-menu-button + .file-menu-button {
+                border-top: none;
+                border-left: 1px solid #eee;
+            }
+        }
+
+        /* iPhone16ProMAX等の大画面横画面対応 */
+        @media (orientation: landscape) and (min-width: 844px) {
+            .component-palette {
+                width: 240px; /* 大画面では少し幅を広く */
+                position: relative; /* 大画面では常時表示 */
+                transform: none !important;
+                box-shadow: none;
+            }
+            
+            .component-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3列を維持 */
+            }
+
+            .main-canvas {
+                width: calc(100vw - 240px);
+            }
+
+            .mobile-toggle {
+                display: none; /* 大画面では非表示 */
+            }
+
+            .palette-overlay {
+                display: none; /* オーバーレイ不要 */
+            }
+
+            .toolbar {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                flex-direction: column;
+                width: auto;
+                height: auto;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .toolbar-button {
+                border-radius: 0;
+            }
+
+            .toolbar-button:first-child {
+                border-radius: 12px 12px 0 0;
+            }
+
+            .toolbar-button:last-child {
+                border-radius: 0 0 12px 12px;
+            }
+
+            .toolbar-button + .toolbar-button {
+                border-top: 1px solid #eee;
+                border-left: none;
+            }
+
+            .file-menu {
+                position: fixed;
+                bottom: 20px;
+                left: 260px;
+                flex-direction: row;
+                width: auto;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .file-menu-button {
+                border-radius: 0;
+            }
+
+            .file-menu-button:first-child {
+                border-radius: 12px 0 0 12px;
+            }
+
+            .file-menu-button:last-child {
+                border-radius: 0 12px 12px 0;
+            }
+
+            .file-menu-button + .file-menu-button {
+                border-top: none;
+                border-left: 1px solid #eee;
+            }
+        }
+
+        /* SafeArea対応 */
+        @supports (padding: max(0px)) {
+            .app-container {
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
+            }
+            
+            @media (orientation: landscape) {
+                .app-container {
+                    padding-left: max(20px, env(safe-area-inset-left));
+                    padding-right: max(20px, env(safe-area-inset-right));
+                }
+            }
+        }
 
             .component-category {
                 display: flex;
@@ -578,8 +748,43 @@ import Layout from '../layouts/Layout.astro';
                     this.render();
                 };
 
-                window.addEventListener('resize', this.resizeCanvas);
-                this.resizeCanvas();
+                // 画面向き変更とリサイズイベントの処理
+                const handleOrientationChange = () => {
+                    const isLandscape = window.innerWidth > window.innerHeight;
+                    const isLargeScreen = window.innerWidth >= 844;
+                    
+                    // CSSクラスを動的に管理
+                    document.body.classList.toggle('landscape', isLandscape && !isLargeScreen);
+                    document.body.classList.toggle('large-landscape', isLandscape && isLargeScreen);
+                    
+                    // 大画面横画面時はパレットを常時表示
+                    if (isLandscape && isLargeScreen) {
+                        const palette = document.querySelector('.component-palette');
+                        const overlay = document.querySelector('.palette-overlay');
+                        if (palette) {
+                            palette.classList.remove('open');
+                            // パレットを常時表示状態にする
+                            palette.style.transform = 'translateX(0)';
+                            palette.style.position = 'relative';
+                        }
+                        if (overlay) {
+                            overlay.classList.remove('visible');
+                        }
+                    }
+                    
+                    // キャンバスのリサイズ
+                    setTimeout(() => {
+                        this.resizeCanvas();
+                    }, 100);
+                };
+
+                window.addEventListener('resize', handleOrientationChange);
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(handleOrientationChange, 100);
+                });
+                
+                // 初期化時に実行
+                handleOrientationChange();
             }
 
             setupEventListeners() {
@@ -1559,6 +1764,14 @@ import Layout from '../layouts/Layout.astro';
             togglePalette() {
                 const palette = document.getElementById('component-palette');
                 const overlay = document.getElementById('palette-overlay');
+                
+                // 大画面横画面時は何もしない
+                const isLandscape = window.innerWidth > window.innerHeight;
+                const isLargeScreen = window.innerWidth >= 844;
+                
+                if (isLandscape && isLargeScreen) {
+                    return; // 大画面横画面時はトグル無効
+                }
                 
                 palette.classList.toggle('open');
                 overlay.classList.toggle('visible');
