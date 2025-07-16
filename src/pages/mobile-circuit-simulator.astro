@@ -2478,27 +2478,36 @@ import Layout from '../layouts/Layout.astro';
                     closestItem: event.target.closest('.component-item') ? 'found' : 'none'
                 });
                 
-                // 横方向の移動がしきい値を超えた場合の判定
-                if (deltaX > this.paletteScrollThreshold) {
+                // 移動判定の改善：縦方向の移動が大きい場合は部品ドラッグを優先
+                if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
                     // 部品ドラッグ待機中の場合
                     if (this.pendingComponentDrag) {
-                        // 移動距離が短い場合（20px以下）はスクロールとして判定
-                        if (deltaX <= 20) {
-                            this.isPaletteScrolling = true;
-                            console.log('Palette scroll activated (short movement)!');
+                        // 縦方向の移動が横方向より大きい場合は部品ドラッグとして判定
+                        if (deltaY > deltaX) {
+                            console.log('Starting component drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
+                            this.startActualComponentDrag(this.pendingComponentDrag.type, event);
                             this.pendingComponentDrag = null;
-                        } else {
-                            // 移動距離が長い場合はドラッグアンドドロップとして判定
-                            console.log('Starting component drag (long movement), deltaX:', deltaX);
-                            console.log('Pending component drag:', this.pendingComponentDrag);
+                            return; // スクロール処理は実行しない
+                        }
+                        // 横方向の移動が大きく、移動距離が短い場合はスクロール
+                        else if (deltaX <= 20) {
+                            this.isPaletteScrolling = true;
+                            console.log('Palette scroll activated (short horizontal movement)!');
+                            this.pendingComponentDrag = null;
+                        }
+                        // 横方向の移動が大きく、移動距離が長い場合はドラッグ
+                        else {
+                            console.log('Starting component drag (long horizontal movement), deltaX:', deltaX);
                             this.startActualComponentDrag(this.pendingComponentDrag.type, event);
                             this.pendingComponentDrag = null;
                             return; // スクロール処理は実行しない
                         }
                     } else {
-                        // 部品ドラッグ待機中でない場合は通常のスクロール
-                        this.isPaletteScrolling = true;
-                        console.log('Palette scroll activated!');
+                        // 部品ドラッグ待機中でない場合で、横方向の移動が大きい場合はスクロール
+                        if (deltaX > deltaY) {
+                            this.isPaletteScrolling = true;
+                            console.log('Palette scroll activated!');
+                        }
                     }
                 }
                 
