@@ -2480,11 +2480,11 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                // 既にドラッグ中の場合はスキップ（コメントアウト）
-                // if (this.isDragging) {
-                //     console.log('handlePaletteScrollMove: skipping because already dragging');
-                //     return;
-                // }
+                // 既にドラッグ中の場合はスキップ
+                if (this.isDragging) {
+                    console.log('handlePaletteScrollMove: skipping because already dragging');
+                    return;
+                }
                 
                 const touch = event.touches[0];
                 const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
@@ -2682,6 +2682,12 @@ import Layout from '../layouts/Layout.astro';
                 };
                 
                 console.log('Component drag started, isDragging:', this.isDragging, 'selectedComponent:', this.selectedComponent);
+                
+                // タッチイベントの場合、グローバルなイベントリスナーを追加
+                if (currentEvent.type === 'touchstart' || currentEvent.type === 'touchmove') {
+                    console.log('Setting up global touch handlers');
+                    this.setupGlobalTouchHandlers();
+                }
                 
                 this.render();
             }
