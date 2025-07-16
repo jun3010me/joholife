@@ -776,6 +776,9 @@ import Layout from '../layouts/Layout.astro';
             handlePointerUp(event) {
                 event.preventDefault();
                 
+                // パレットスクロール状態をリセット
+                this.isPaletteScrolling = false;
+                
                 if (this.isConnecting && this.connectionStart) {
                     const pos = this.getPointerPos(event);
                     let port = this.getPortAt(pos.x, pos.y);
@@ -904,6 +907,10 @@ import Layout from '../layouts/Layout.astro';
 
             startComponentDrag(event) {
                 event.preventDefault();
+                
+                // パレットスクロール状態をリセット（部品ドラッグが開始されたため）
+                this.isPaletteScrolling = false;
+                
                 const type = event.currentTarget.dataset.type;
                 
                 // パレットアイテムの場合は、適切なキャンバス座標に部品を作成
@@ -2394,12 +2401,14 @@ import Layout from '../layouts/Layout.astro';
                 const touch = event.touches[0];
                 this.paletteScrollStartX = touch.clientX;
                 this.paletteScrollStartY = touch.clientY;
-                this.isPaletteScrolling = false;
                 
                 // component-itemでのタッチ開始の場合は通常の処理を継続
                 if (event.target.closest('.component-item')) {
                     return;
                 }
+                
+                // パレット背景のタッチ開始時にスクロール状態をリセット
+                this.isPaletteScrolling = false;
                 
                 event.preventDefault();
             }
