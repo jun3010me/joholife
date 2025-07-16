@@ -522,6 +522,7 @@ import Layout from '../layouts/Layout.astro';
                 this.paletteScrollStartX = 0;
                 this.paletteScrollStartY = 0;
                 this.paletteScrollThreshold = 10;
+                this.paletteScrollStartScrollLeft = 0;
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
                 this.nextZIndex = 1; // Z-index管理用カウンター
                 this.pendingComponent = null; // パレットからドラッグ中の部品（まだマップに追加されていない）
@@ -2402,6 +2403,10 @@ import Layout from '../layouts/Layout.astro';
                 this.paletteScrollStartX = touch.clientX;
                 this.paletteScrollStartY = touch.clientY;
                 
+                // パレットコンテンツの現在のスクロール位置を記録
+                const paletteContent = document.querySelector('.palette-content');
+                this.paletteScrollStartScrollLeft = paletteContent ? paletteContent.scrollLeft : 0;
+                
                 // component-itemでのタッチ開始の場合は通常の処理を継続
                 if (event.target.closest('.component-item')) {
                     return;
@@ -2439,8 +2444,14 @@ import Layout from '../layouts/Layout.astro';
                     }
                 }
                 
-                // スクロール中は他のイベントを阻止
+                // スクロール中は実際にパレットをスクロールさせる
                 if (this.isPaletteScrolling) {
+                    const paletteContent = document.querySelector('.palette-content');
+                    if (paletteContent) {
+                        const deltaX = touch.clientX - this.paletteScrollStartX;
+                        const newScrollLeft = this.paletteScrollStartScrollLeft - deltaX;
+                        paletteContent.scrollLeft = Math.max(0, Math.min(newScrollLeft, paletteContent.scrollWidth - paletteContent.clientWidth));
+                    }
                     event.preventDefault();
                     return;
                 }
