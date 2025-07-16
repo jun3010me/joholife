@@ -924,17 +924,36 @@ import Layout from '../layouts/Layout.astro';
                     console.log('Touch position:', touch.clientX, touch.clientY);
                     console.log('Canvas rect:', canvasRect);
                     
-                    // タッチ位置がキャンバス内かチェック
-                    if (touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
-                        touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom) {
+                    // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
+                    let isWithinCanvas = false;
+                    const isLandscape = window.innerWidth <= 768 && window.innerHeight <= 500 && window.matchMedia('(orientation: landscape)').matches;
+                    
+                    if (isLandscape) {
+                        // 横レイアウト時：パレット領域（下部140px）を除外
+                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                       touch.clientY >= canvasRect.top && touch.clientY <= (canvasRect.bottom - 140);
+                    } else {
+                        // 縦レイアウト時：通常の判定
+                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                       touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
+                    }
+                    
+                    if (isWithinCanvas) {
                         // キャンバス内の場合、その座標を使用
                         x = (touch.clientX - canvasRect.left - this.panX) / this.scale;
                         y = (touch.clientY - canvasRect.top - this.panY) / this.scale;
                         console.log('Touch within canvas, using touch position:', x, y);
                     } else {
                         // キャンバス外（パレット）の場合、キャンバス中央に配置
-                        x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                        y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+                        if (isLandscape) {
+                            // 横レイアウト時：パレット領域を除いたキャンバス中央
+                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                            y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
+                        } else {
+                            // 縦レイアウト時：通常のキャンバス中央
+                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                            y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+                        }
                         console.log('Touch outside canvas (palette), using center:', x, y);
                     }
                 } else {
