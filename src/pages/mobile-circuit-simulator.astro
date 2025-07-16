@@ -246,45 +246,128 @@ import Layout from '../layouts/Layout.astro';
             .component-palette.open {
                 transform: translateX(0);
             }
+        }
 
-            .palette-overlay {
+        /* スマホ横画面対応 */
+        @media (max-width: 768px) and (max-height: 500px) and (orientation: landscape) {
+            .component-palette {
                 position: fixed;
-                top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0,0,0,0.3);
-                z-index: 999;
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.3s;
+                top: auto;
+                height: 140px;
+                width: 100%;
+                transform: translateY(100%);
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+                box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
             }
 
-            .palette-overlay.visible {
-                opacity: 1;
-                pointer-events: auto;
+            .component-palette.open {
+                transform: translateY(0);
             }
 
-            .main-canvas {
-                width: 100vw;
+            .palette-content {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 10px;
             }
 
+            .component-category {
+                display: flex;
+                flex-direction: row;
+                margin-right: 0;
+                margin-bottom: 0;
+            }
+
+            .component-grid {
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 10px;
+                margin-right: 20px;
+            }
+
+            .component-item {
+                min-width: 60px;
+                flex-shrink: 0;
+            }
+
+            /* ハンバーガーメニューを下部に移動 */
             .mobile-toggle {
-                position: fixed;
-                top: 12px;
+                bottom: 160px;
+                top: auto;
                 left: 12px;
-                background: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 18px;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                z-index: 1001;
-                min-width: 44px;
-                min-height: 44px;
-                touch-action: manipulation; /* ダブルタップズームを無効化 */
             }
+
+            /* ツールバーを中央右に配置 */
+            .toolbar {
+                top: 50%;
+                transform: translateY(-50%);
+                right: 12px;
+            }
+
+            /* メインキャンバスの高さ調整 */
+            .main-canvas {
+                height: calc(100vh - 140px);
+            }
+
+            /* パレットヘッダーを横向き用に調整 */
+            .palette-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 15px;
+                min-height: 40px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .palette-title {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+
+        .palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .palette-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .main-canvas {
+            width: 100vw;
+        }
+
+        .mobile-toggle {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1001;
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation; /* ダブルタップズームを無効化 */
         }
 
         /* ドラッグ中の部品スタイル */

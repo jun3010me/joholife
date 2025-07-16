@@ -39,7 +39,7 @@ const slides = [
     content: `
       <div>
         <h1>アナログとデジタルの違い</h1>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 2rem 0;">
           <div style="background: #f0fdf4; padding: 2rem; border-radius: 1rem; border: 1px solid #22c55e;">
             <h2 style="color: #22c55e; margin-bottom: 1rem;">📡 アナログ</h2>
             <p style="margin-bottom: 1rem;">連続的に変化する量</p>
@@ -71,7 +71,7 @@ const slides = [
         
         <div style="background: #fdf2f8; padding: 2rem; border-radius: 1rem; margin-top: 2rem; border: 1px solid #ec4899;">
           <h3 style="color: #ec4899;">💡 身近な例で考えてみよう</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
             <div>
               <strong>アナログ時計</strong>
               <p style="font-size: 0.9rem;">針が滑らかに動く</p>
@@ -94,7 +94,7 @@ const slides = [
         <div style="text-align: center; margin: 2rem 0;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 1rem;">
             <h2 style="color: white; margin-bottom: 1rem;">⚡ 電気の状態は2つだけ</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 2rem;">
               <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 0.75rem;">
                 <div style="font-size: 3rem; margin-bottom: 0.5rem;">💡</div>
                 <h3 style="color: white;">ON（オン）</h3>
@@ -148,51 +148,51 @@ const slides = [
         
         <div style="background: #f8fafc; padding: 2rem; border-radius: 1rem; margin: 2rem 0; border: 1px solid #e2e8f0;">
           <h3>📊 位の値（4桁の場合）</h3>
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0;">
-            <div style="background: #fdf2f8; padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid #ec4899;">
-              <div style="font-size: 2rem; font-weight: bold; color: #ec4899;">8</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 2rem 0; max-width: 320px; margin-left: auto; margin-right: auto;">
+            <div style="background: #fdf2f8; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 2px solid #ec4899;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: #ec4899;">8</div>
               <div style="font-size: 0.875rem; color: #6b7280;">8の位</div>
-              <div style="margin-top: 0.5rem; font-size: 3rem;">⬜</div>
+              <div style="margin-top: 0.3rem; font-size: 2rem;">⬜</div>
             </div>
-            <div style="background: #fef3c7; padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid #f59e0b;">
-              <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;">4</div>
+            <div style="background: #fef3c7; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 2px solid #f59e0b;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">4</div>
               <div style="font-size: 0.875rem; color: #6b7280;">4の位</div>
-              <div style="margin-top: 0.5rem; font-size: 3rem;">⬜</div>
+              <div style="margin-top: 0.3rem; font-size: 2rem;">⬜</div>
             </div>
-            <div style="background: #dcfce7; padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid #22c55e;">
-              <div style="font-size: 2rem; font-weight: bold; color: #22c55e;">2</div>
+            <div style="background: #dcfce7; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 2px solid #22c55e;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">2</div>
               <div style="font-size: 0.875rem; color: #6b7280;">2の位</div>
-              <div style="margin-top: 0.5rem; font-size: 3rem;">⬜</div>
+              <div style="margin-top: 0.3rem; font-size: 2rem;">⬜</div>
             </div>
-            <div style="background: #dbeafe; padding: 1.5rem; border-radius: 0.75rem; text-align: center; border: 2px solid #3b82f6;">
-              <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">1</div>
+            <div style="background: #dbeafe; padding: 1rem; border-radius: 0.75rem; text-align: center; border: 2px solid #3b82f6;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">1</div>
               <div style="font-size: 0.875rem; color: #6b7280;">1の位</div>
-              <div style="margin-top: 0.5rem; font-size: 3rem;">⬜</div>
+              <div style="margin-top: 0.3rem; font-size: 2rem;">⬜</div>
             </div>
           </div>
         </div>
         
         <div style="background: #f0f9ff; padding: 2rem; border-radius: 1rem; border: 1px solid #0ea5e9;">
           <h3 style="color: #0ea5e9;">💡 具体例：2進数「1101」を10進数に変換</h3>
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 2rem 0;">
-            <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
-              <div style="font-size: 1.5rem; color: #ec4899; font-weight: bold;">8の位</div>
-              <div style="font-size: 3rem; margin: 0.5rem 0; color: #ec4899;">1</div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 2rem 0; max-width: 320px; margin-left: auto; margin-right: auto;">
+            <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center;">
+              <div style="font-size: 1.2rem; color: #ec4899; font-weight: bold;">8の位</div>
+              <div style="font-size: 2rem; margin: 0.3rem 0; color: #ec4899;">1</div>
               <div style="font-size: 1rem;">8 × 1 = 8</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
-              <div style="font-size: 1.5rem; color: #f59e0b; font-weight: bold;">4の位</div>
-              <div style="font-size: 3rem; margin: 0.5rem 0; color: #f59e0b;">1</div>
+            <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center;">
+              <div style="font-size: 1.2rem; color: #f59e0b; font-weight: bold;">4の位</div>
+              <div style="font-size: 2rem; margin: 0.3rem 0; color: #f59e0b;">1</div>
               <div style="font-size: 1rem;">4 × 1 = 4</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
-              <div style="font-size: 1.5rem; color: #22c55e; font-weight: bold;">2の位</div>
-              <div style="font-size: 3rem; margin: 0.5rem 0; color: #22c55e;">0</div>
+            <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center;">
+              <div style="font-size: 1.2rem; color: #22c55e; font-weight: bold;">2の位</div>
+              <div style="font-size: 2rem; margin: 0.3rem 0; color: #22c55e;">0</div>
               <div style="font-size: 1rem;">2 × 0 = 0</div>
             </div>
-            <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
-              <div style="font-size: 1.5rem; color: #3b82f6; font-weight: bold;">1の位</div>
-              <div style="font-size: 3rem; margin: 0.5rem 0; color: #3b82f6;">1</div>
+            <div style="background: white; padding: 1rem; border-radius: 0.75rem; text-align: center;">
+              <div style="font-size: 1.2rem; color: #3b82f6; font-weight: bold;">1の位</div>
+              <div style="font-size: 2rem; margin: 0.3rem 0; color: #3b82f6;">1</div>
               <div style="font-size: 1rem;">1 × 1 = 1</div>
             </div>
           </div>
@@ -214,32 +214,32 @@ const slides = [
         
         <div style="background: #f8fafc; padding: 2rem; border-radius: 1rem; margin: 2rem 0; border: 1px solid #e2e8f0;">
           <div id="binary-converter">
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto;">
               <div style="text-align: center;">
                 <div style="background: #fdf2f8; padding: 1rem; border-radius: 0.75rem; border: 2px solid #ec4899;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #ec4899;">8の位</div>
-                  <button onclick="toggleBit(3)" id="bit-3" style="margin: 1rem 0; font-size: 3rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 1rem; cursor: pointer; width: 100%;">0</button>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #ec4899;">8の位</div>
+                  <button onclick="toggleBit(3)" id="bit-3" style="margin: 0.5rem 0; font-size: 2rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; width: 100%;">0</button>
                   <div id="calc-3" style="font-size: 1rem;">8 × 0 = 0</div>
                 </div>
               </div>
               <div style="text-align: center;">
                 <div style="background: #fef3c7; padding: 1rem; border-radius: 0.75rem; border: 2px solid #f59e0b;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">4の位</div>
-                  <button onclick="toggleBit(2)" id="bit-2" style="margin: 1rem 0; font-size: 3rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 1rem; cursor: pointer; width: 100%;">0</button>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;">4の位</div>
+                  <button onclick="toggleBit(2)" id="bit-2" style="margin: 0.5rem 0; font-size: 2rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; width: 100%;">0</button>
                   <div id="calc-2" style="font-size: 1rem;">4 × 0 = 0</div>
                 </div>
               </div>
               <div style="text-align: center;">
                 <div style="background: #dcfce7; padding: 1rem; border-radius: 0.75rem; border: 2px solid #22c55e;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">2の位</div>
-                  <button onclick="toggleBit(1)" id="bit-1" style="margin: 1rem 0; font-size: 3rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 1rem; cursor: pointer; width: 100%;">0</button>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #22c55e;">2の位</div>
+                  <button onclick="toggleBit(1)" id="bit-1" style="margin: 0.5rem 0; font-size: 2rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; width: 100%;">0</button>
                   <div id="calc-1" style="font-size: 1rem;">2 × 0 = 0</div>
                 </div>
               </div>
               <div style="text-align: center;">
                 <div style="background: #dbeafe; padding: 1rem; border-radius: 0.75rem; border: 2px solid #3b82f6;">
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">1の位</div>
-                  <button onclick="toggleBit(0)" id="bit-0" style="margin: 1rem 0; font-size: 3rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 1rem; cursor: pointer; width: 100%;">0</button>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #3b82f6;">1の位</div>
+                  <button onclick="toggleBit(0)" id="bit-0" style="margin: 0.5rem 0; font-size: 2rem; background: #ef4444; color: white; border: none; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; width: 100%;">0</button>
                   <div id="calc-0" style="font-size: 1rem;">1 × 0 = 0</div>
                 </div>
               </div>
@@ -249,7 +249,7 @@ const slides = [
               <h3>結果</h3>
               <div style="margin: 1rem 0;">
                 <span style="font-size: 1.5rem; font-weight: bold;">2進数：</span>
-                <span id="binary-result" style="font-size: 2rem; font-weight: bold; color: #3b82f6; font-family: monospace;">0000</span>
+                <span id="binary-result" style="font-size: 1.5rem; font-weight: bold; color: #3b82f6; font-family: monospace;">0000</span>
               </div>
               <div style="margin: 1rem 0;">
                 <span style="font-size: 1.5rem; font-weight: bold;">10進数：</span>
@@ -290,7 +290,7 @@ const slides = [
           <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; margin: 1rem 0;">
             <h3 style="color: #1f2937; margin-bottom: 1rem;">例：10進数の13を2進数に変換</h3>
             
-            <div style="font-family: 'Courier New', monospace; font-size: 1.1rem; line-height: 1.8; background: #f8fafc; padding: 2rem; border-radius: 0.5rem; margin: 1rem 0; display: flex; flex-direction: column; align-items: center;">
+            <div style="font-family: 'Courier New', monospace; font-size: 1rem; line-height: 1.6; background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0; display: flex; flex-direction: column; align-items: center; overflow-x: auto;">
               <div style="margin-bottom: 1rem;">
                 <span style="color: #3b82f6; font-weight: bold;">2)</span><span style="text-decoration: overline;">13</span> = 6 ・・・ <span style="background: #fef3c7; padding: 0.2rem 0.5rem; border-radius: 0.25rem; color: #92400e; font-weight: bold;">1</span> ←④
               </div>
@@ -307,7 +307,7 @@ const slides = [
             
             <div style="background: #f0fdf4; padding: 1rem; border-radius: 0.5rem; margin-top: 1.5rem;">
               <div style="text-align: center; margin-bottom: 1rem; color: #166534; font-weight: bold;">余りを下から読み上げる</div>
-              <div style="text-align: center; font-family: 'Courier New', monospace; font-size: 1.5rem;">
+              <div style="text-align: center; font-family: 'Courier New', monospace; font-size: 1.2rem;">
                 ①②③④ → 
                 <span style="background: #22c55e; color: white; padding: 0.3rem 0.6rem; border-radius: 0.5rem; margin-left: 0.5rem; font-weight: bold;">1101₂</span>
               </div>
@@ -326,7 +326,7 @@ const slides = [
             <!-- 2の累乗表 -->
             <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
               <h4 style="text-align: center; margin-bottom: 1rem; color: #475569;">2の累乗表</h4>
-              <div style="display: flex; justify-content: center; gap: 1rem; font-family: monospace; align-items: end;">
+              <div style="display: flex; justify-content: center; gap: 0.5rem; font-family: monospace; align-items: end; flex-wrap: wrap;">
                 <div style="text-align: center;">
                   <div style="background: #e2e8f0; padding: 0.5rem; border-radius: 0.25rem; margin-bottom: 0.25rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">2³</div>
                   <div>8</div>
@@ -349,70 +349,18 @@ const slides = [
             <!-- 計算手順 -->
             <div style="background: #fef3c7; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
               <h4 style="color: #92400e; margin-bottom: 1rem;">計算手順</h4>
-              <table style="width: 100%; max-width: 300px; margin: 0 auto; font-family: 'Courier New', monospace; border-collapse: collapse;">
-                <tr style="line-height: 1.8;">
-                  <td style="text-align: right; width: 8%; padding-right: 0.2rem;">13</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.1rem;">≥</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">8</td>
-                  <td style="text-align: left; width: 10%; padding-left: 0.2rem;">(2³)</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: center; width: 4%;"><span style="color: #22c55e;">○</span></td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: right; width: 8%; padding-right: 0.1rem;">13</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.1rem;">-</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">8</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.2rem;">=</td>
-                  <td style="text-align: left; width: 6%; padding-left: 0.2rem;">5</td>
-                </tr>
-                <tr style="line-height: 1.8;">
-                  <td style="text-align: right; width: 8%; padding-right: 0.2rem;">5</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.1rem;">≥</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">4</td>
-                  <td style="text-align: left; width: 10%; padding-left: 0.2rem;">(2²)</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: center; width: 4%;"><span style="color: #22c55e;">○</span></td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: right; width: 8%; padding-right: 0.1rem;">5</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.1rem;">-</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">4</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.2rem;">=</td>
-                  <td style="text-align: left; width: 6%; padding-left: 0.2rem;">1</td>
-                </tr>
-                <tr style="line-height: 1.8;">
-                  <td style="text-align: right; width: 8%; padding-right: 0.2rem;">1</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.1rem;">≥</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">2</td>
-                  <td style="text-align: left; width: 10%; padding-left: 0.2rem;">(2¹)</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: center; width: 4%;"><span style="color: #ef4444;">×</span></td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: right; width: 8%; padding-right: 0.1rem;">1</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.1rem;">-</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">0</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.2rem;">=</td>
-                  <td style="text-align: left; width: 6%; padding-left: 0.2rem;">1</td>
-                </tr>
-                <tr style="line-height: 1.8;">
-                  <td style="text-align: right; width: 8%; padding-right: 0.2rem;">1</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.1rem;">≥</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">1</td>
-                  <td style="text-align: left; width: 10%; padding-left: 0.2rem;">(2⁰)</td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: center; width: 4%;"><span style="color: #22c55e;">○</span></td>
-                  <td style="text-align: center; width: 4%; padding: 0 0.2rem;">→</td>
-                  <td style="text-align: right; width: 8%; padding-right: 0.1rem;">1</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.1rem;">-</td>
-                  <td style="text-align: right; width: 6%; padding-right: 0.1rem;">1</td>
-                  <td style="text-align: center; width: 3%; padding: 0 0.2rem;">=</td>
-                  <td style="text-align: left; width: 6%; padding-left: 0.2rem;">0</td>
-                </tr>
-              </table>
+              <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; text-align: center;">
+                <div style="margin: 0.5rem 0;">13 ≥ 8(2³) → <span style="color: #22c55e;">○</span> → 13-8=5</div>
+                <div style="margin: 0.5rem 0;">5 ≥ 4(2²) → <span style="color: #22c55e;">○</span> → 5-4=1</div>
+                <div style="margin: 0.5rem 0;">1 ≥ 2(2¹) → <span style="color: #ef4444;">×</span> → 1-0=1</div>
+                <div style="margin: 0.5rem 0;">1 ≥ 1(2⁰) → <span style="color: #22c55e;">○</span> → 1-1=0</div>
+              </div>
             </div>
             
             <div style="text-align: center; margin-top: 1.5rem;">
               <div style="background: #dbeafe; padding: 1rem; border-radius: 0.5rem; display: inline-block;">
                 <div style="color: #1e40af; margin-bottom: 0.5rem;">2進数の各桁</div>
-                <div style="font-family: monospace; font-size: 1.5rem; font-weight: bold;">
+                <div style="font-family: monospace; font-size: 1.2rem; font-weight: bold;">
                   <span style="color: #22c55e;">1</span>
                   <span style="color: #22c55e;">1</span>
                   <span style="color: #ef4444;">0</span>
@@ -429,7 +377,7 @@ const slides = [
         <!-- どちらの方法を使うか -->
         <div style="background: #fdf2f8; padding: 2rem; border-radius: 1rem; margin: 2rem 0; border: 1px solid #ec4899;">
           <h2 style="color: #ec4899; margin-bottom: 1rem;">💡 どちらの方法を使うべき？</h2>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
             <div style="background: white; padding: 1.5rem; border-radius: 0.75rem;">
               <h3 style="color: #3b82f6;">割り算法</h3>
               <p style="font-size: 0.9rem; color: #6b7280;">✅ 機械的に計算できる<br>✅ 大きな数でも確実<br>⚠️ 計算ステップが多い</p>

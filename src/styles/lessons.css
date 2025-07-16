@@ -1,0 +1,264 @@
+/* レッスンページ共通スタイル */
+
+/* 4桁表示グリッド（位の値表示用） */
+.lesson-position-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin: 2rem 0;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 位の値カード */
+.lesson-position-card {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  border: 2px solid;
+}
+
+/* 位の値 - 数字部分 */
+.lesson-position-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* 位の値 - ラベル部分 */
+.lesson-position-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* 位の値 - アイコン部分 */
+.lesson-position-icon {
+  margin-top: 0.3rem;
+  font-size: 2rem;
+}
+
+/* 具体例の数字 */
+.lesson-example-number {
+  font-size: 2rem;
+  margin: 0.3rem 0;
+}
+
+/* 具体例のラベル */
+.lesson-example-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* インタラクティブツール用グリッド */
+.lesson-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ツールのカード */
+.lesson-tool-card {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid;
+}
+
+/* ツールのラベル */
+.lesson-tool-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* ツールのボタン */
+.lesson-tool-button {
+  margin: 0.5rem 0;
+  font-size: 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  width: 100%;
+  color: white;
+}
+
+/* ツールの計算結果 */
+.lesson-tool-calc {
+  font-size: 1rem;
+}
+
+/* カラーバリエーション - ピンク系 */
+.lesson-color-pink {
+  background: #fdf2f8;
+  border-color: #ec4899;
+}
+
+.lesson-color-pink .lesson-position-number,
+.lesson-color-pink .lesson-example-label,
+.lesson-color-pink .lesson-tool-label {
+  color: #ec4899;
+}
+
+.lesson-color-pink .lesson-example-number {
+  color: #ec4899;
+}
+
+/* カラーバリエーション - 黄色系 */
+.lesson-color-yellow {
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.lesson-color-yellow .lesson-position-number,
+.lesson-color-yellow .lesson-example-label,
+.lesson-color-yellow .lesson-tool-label {
+  color: #f59e0b;
+}
+
+.lesson-color-yellow .lesson-example-number {
+  color: #f59e0b;
+}
+
+/* カラーバリエーション - 緑系 */
+.lesson-color-green {
+  background: #dcfce7;
+  border-color: #22c55e;
+}
+
+.lesson-color-green .lesson-position-number,
+.lesson-color-green .lesson-example-label,
+.lesson-color-green .lesson-tool-label {
+  color: #22c55e;
+}
+
+.lesson-color-green .lesson-example-number {
+  color: #22c55e;
+}
+
+/* カラーバリエーション - 青系 */
+.lesson-color-blue {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.lesson-color-blue .lesson-position-number,
+.lesson-color-blue .lesson-example-label,
+.lesson-color-blue .lesson-tool-label {
+  color: #3b82f6;
+}
+
+.lesson-color-blue .lesson-example-number {
+  color: #3b82f6;
+}
+
+/* 背景カード */
+.lesson-section-card {
+  background: #f8fafc;
+  padding: 2rem;
+  border-radius: 1rem;
+  margin: 2rem 0;
+  border: 1px solid #e2e8f0;
+}
+
+.lesson-example-card {
+  background: #f0f9ff;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid #0ea5e9;
+}
+
+.lesson-example-card h3 {
+  color: #0ea5e9;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .lesson-position-grid,
+  .lesson-tool-grid {
+    gap: 0.25rem;
+  }
+  
+  .lesson-position-card,
+  .lesson-tool-card {
+    padding: 0.75rem;
+  }
+  
+  .lesson-position-number {
+    font-size: 1.3rem;
+  }
+  
+  .lesson-position-icon {
+    font-size: 1.8rem;
+  }
+  
+  .lesson-example-number {
+    font-size: 1.8rem;
+  }
+  
+  .lesson-tool-button {
+    font-size: 1.8rem;
+    padding: 0.4rem;
+  }
+  
+  .lesson-tool-label {
+    font-size: 1.1rem;
+  }
+}
+
+/* 計算表示エリア */
+.lesson-calculation-area {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  line-height: 1.6;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: auto;
+}
+
+.lesson-calculation-step {
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* 2の累乗表 */
+.lesson-power-display {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: monospace;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+/* 結果表示エリア */
+.lesson-result-area {
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  margin-top: 2rem;
+  border: 2px solid #3b82f6;
+}
+
+.lesson-binary-result {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #3b82f6;
+  font-family: monospace;
+}
+
+.lesson-decimal-result {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ec4899;
+}
