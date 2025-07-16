@@ -2475,13 +2475,15 @@ import Layout from '../layouts/Layout.astro';
                     threshold: this.paletteScrollThreshold,
                     isScrolling: this.isPaletteScrolling,
                     targetClass: event.target.className,
-                    closestItem: event.target.closest('.component-item') ? 'found' : 'none'
+                    closestItem: event.target.closest('.component-item') ? 'found' : 'none',
+                    pendingComponentDrag: this.pendingComponentDrag ? 'exists' : 'null'
                 });
                 
                 // 移動判定の改善：縦方向の移動が大きい場合は部品ドラッグを優先
                 if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
                     // 部品ドラッグ待機中の場合
                     if (this.pendingComponentDrag) {
+                        console.log('Evaluating movement: deltaY:', deltaY, 'deltaX:', deltaX, 'deltaY > deltaX:', deltaY > deltaX);
                         // 縦方向の移動が横方向より大きい場合は部品ドラッグとして判定
                         if (deltaY > deltaX) {
                             console.log('Starting component drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
@@ -2503,6 +2505,7 @@ import Layout from '../layouts/Layout.astro';
                             return; // スクロール処理は実行しない
                         }
                     } else {
+                        console.log('No pending component drag, deltaX:', deltaX, 'deltaY:', deltaY);
                         // 部品ドラッグ待機中でない場合で、横方向の移動が大きい場合はスクロール
                         if (deltaX > deltaY) {
                             this.isPaletteScrolling = true;
