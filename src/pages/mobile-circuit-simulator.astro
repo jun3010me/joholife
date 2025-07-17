@@ -231,6 +231,30 @@ import Layout from '../layouts/Layout.astro';
             background: #f5f5f5;
         }
 
+        /* PC・デスクトップ対応（明示的に正常レイアウト保証） */
+        @media (min-width: 769px) {
+            .component-palette {
+                position: relative !important;
+                transform: none !important;
+                width: 280px !important;
+                height: auto !important;
+                flex-direction: column !important;
+                box-shadow: none !important;
+            }
+            
+            .mobile-toggle {
+                display: none !important;
+            }
+            
+            .palette-overlay {
+                display: none !important;
+            }
+            
+            .main-canvas {
+                width: calc(100vw - 280px) !important;
+            }
+        }
+
         /* モバイル対応 */
         @media (max-width: 768px) {
             .component-palette {
@@ -749,6 +773,13 @@ import Layout from '../layouts/Layout.astro';
 
                 // 画面向き変更とリサイズイベントの処理
                 const handleOrientationChange = () => {
+                    const isDesktop = window.innerWidth > 768;
+                    if (isDesktop) {
+                        // PC環境では何もしない
+                        document.body.classList.remove('landscape', 'large-landscape');
+                        return;
+                    }
+                    
                     const isLandscape = window.innerWidth > window.innerHeight;
                     const isShortHeight = window.innerHeight <= 600;
                     const isLargeScreen = window.innerWidth >= 844 && isLandscape && isShortHeight;
@@ -1764,6 +1795,12 @@ import Layout from '../layouts/Layout.astro';
             togglePalette() {
                 const palette = document.getElementById('component-palette');
                 const overlay = document.getElementById('palette-overlay');
+                
+                // PC環境では何もしない
+                const isDesktop = window.innerWidth > 768;
+                if (isDesktop) {
+                    return;
+                }
                 
                 // 大画面横画面時は何もしない
                 const isLandscape = window.innerWidth > window.innerHeight;
