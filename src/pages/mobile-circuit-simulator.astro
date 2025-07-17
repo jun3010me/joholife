@@ -832,13 +832,17 @@ import Layout from '../layouts/Layout.astro';
                 this.init();
             }
             
-            // モバイル横画面の判定（iPhone 16 Pro Maxなど大きな画面にも対応）
+            // モバイル横画面の判定（CSSメディアクエリと完全統一）
             isMobileLandscape() {
-                const isLandscape = window.matchMedia('(orientation: landscape)').matches && 
-                                   window.innerWidth <= 1024 && // 横幅上限を拡大
-                                   window.innerHeight <= 600;   // 縦幅上限を拡大
+                // CSSと同じ条件：(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)
+                const isLandscape = window.matchMedia('(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)').matches;
+                
                 console.log('Landscape detection:', {
+                    mediaQuery: window.matchMedia('(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)').matches,
                     orientation: window.matchMedia('(orientation: landscape)').matches,
+                    maxWidth: window.matchMedia('(max-width: 1024px)').matches,
+                    hoverNone: window.matchMedia('(hover: none)').matches,
+                    pointerCoarse: window.matchMedia('(pointer: coarse)').matches,
                     innerWidth: window.innerWidth,
                     innerHeight: window.innerHeight,
                     isLandscape: isLandscape
@@ -928,11 +932,115 @@ import Layout from '../layouts/Layout.astro';
 
                 window.addEventListener('resize', handleOrientationChange);
                 window.addEventListener('orientationchange', () => {
-                    setTimeout(handleOrientationChange, 100);
+                    setTimeout(() => {
+                        handleOrientationChange();
+                        // 部品パレットの再構築を実行
+                        this.rebuildComponentPalette();
+                    }, 100);
                 });
                 
                 // 初期化時に実行
                 handleOrientationChange();
+                
+                // メディアクエリの変更を監視
+                const landscapeQuery = window.matchMedia('(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)');
+                landscapeQuery.addEventListener('change', () => {
+                    console.log('Media query changed, rebuilding palette');
+                    setTimeout(() => {
+                        this.rebuildComponentPalette();
+                    }, 100);
+                });
+            }
+
+            // 画面回転時の部品パレット再構築
+            rebuildComponentPalette() {
+                console.log('Rebuilding component palette for orientation change');
+                
+                const isLandscape = this.isMobileLandscape();
+                const palette = document.querySelector('.component-palette');
+                
+                if (!palette) return;
+                
+                // 現在の画面方向に応じてパレットを再構築
+                if (isLandscape) {
+                    // 横画面用の再構築
+                    console.log('Rebuilding for landscape mode');
+                    
+                    // パレットのスクロール状態をリセット
+                    this.isPaletteScrolling = false;
+                    
+                    // 部品グリッドを横スクロール用に再配置
+                    const componentGrids = palette.querySelectorAll('.component-grid');
+                    componentGrids.forEach(grid => {
+                        // グリッドをフレックスボックスに変更
+                        grid.style.display = 'flex';
+                        grid.style.flexDirection = 'row';
+                        grid.style.flexWrap = 'nowrap';
+                        grid.style.overflowX = 'visible';
+                        grid.style.gap = '4px';
+                        
+                        // 部品アイテムのサイズを調整
+                        const items = grid.querySelectorAll('.component-item');
+                        items.forEach(item => {
+                            item.style.width = '55px';
+                            item.style.height = '60px';
+                            item.style.fontSize = '0.8rem';
+                            item.style.flexShrink = '0';
+                        });
+                    });
+                    
+                    // パレットコンテンツを横スクロール用に調整
+                    const paletteContent = palette.querySelector('.palette-content');
+                    if (paletteContent) {
+                        paletteContent.style.overflowX = 'auto';
+                        paletteContent.style.overflowY = 'hidden';
+                        paletteContent.style.display = 'flex';
+                        paletteContent.style.flexDirection = 'row';
+                        paletteContent.style.alignItems = 'center';
+                    }
+                } else {
+                    // 縦画面用の再構築
+                    console.log('Rebuilding for portrait mode');
+                    
+                    // パレットのスクロール状態をリセット
+                    this.isPaletteScrolling = false;
+                    
+                    // 部品グリッドを縦画面用に再配置
+                    const componentGrids = palette.querySelectorAll('.component-grid');
+                    componentGrids.forEach(grid => {
+                        // グリッドをグリッドレイアウトに戻す
+                        grid.style.display = 'grid';
+                        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                        grid.style.flexDirection = '';
+                        grid.style.flexWrap = '';
+                        grid.style.overflowX = '';
+                        grid.style.gap = '8px';
+                        
+                        // 部品アイテムのサイズを元に戻す
+                        const items = grid.querySelectorAll('.component-item');
+                        items.forEach(item => {
+                            item.style.width = '';
+                            item.style.height = '';
+                            item.style.fontSize = '';
+                            item.style.flexShrink = '';
+                        });
+                    });
+                    
+                    // パレットコンテンツを縦画面用に調整
+                    const paletteContent = palette.querySelector('.palette-content');
+                    if (paletteContent) {
+                        paletteContent.style.overflowX = '';
+                        paletteContent.style.overflowY = 'auto';
+                        paletteContent.style.display = '';
+                        paletteContent.style.flexDirection = '';
+                        paletteContent.style.alignItems = '';
+                    }
+                }
+                
+                // レンダリングを更新
+                setTimeout(() => {
+                    this.render();
+                }, 50);
             }
 
             setupEventListeners() {
