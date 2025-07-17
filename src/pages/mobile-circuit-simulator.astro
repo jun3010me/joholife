@@ -662,6 +662,29 @@ import Layout from '../layouts/Layout.astro';
                         </div>
                     </div>
                 </div>
+
+                <!-- フリップフロップ -->
+                <div class="component-category">
+                    <div class="category-title">フリップフロップ</div>
+                    <div class="component-grid">
+                        <div class="component-item" data-type="DFF">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="DFF"></canvas>
+                            <div class="component-name">D-FF</div>
+                        </div>
+                        <div class="component-item" data-type="JKFF">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="JKFF"></canvas>
+                            <div class="component-name">JK-FF</div>
+                        </div>
+                        <div class="component-item" data-type="TFF">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="TFF"></canvas>
+                            <div class="component-name">T-FF</div>
+                        </div>
+                        <div class="component-item" data-type="SRFF">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="SRFF"></canvas>
+                            <div class="component-name">SR-FF</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1302,12 +1325,15 @@ import Layout from '../layouts/Layout.astro';
             createComponent(type, x, y) {
                 const id = 'comp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 
-                // 基本ゲートは一回り大きく
+                // 基本ゲートとフリップフロップは一回り大きく
                 let width = 90;
                 let height = 50;
                 if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(type)) {
                     width = 110;
                     height = 60;
+                } else if (['DFF', 'JKFF', 'TFF', 'SRFF'].includes(type)) {
+                    width = 100;
+                    height = 70;
                 }
                 
                 const baseComponent = {
@@ -1365,6 +1391,56 @@ import Layout from '../layouts/Layout.astro';
                         baseComponent.inputs = [
                             { id: 'in', x: 0, y: 25, connected: null }
                         ];
+                        break;
+                    case 'DFF':
+                        baseComponent.inputs = [
+                            { id: 'D', x: 0, y: 20, connected: null },
+                            { id: 'CLK', x: 0, y: 50, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'Q', x: 100, y: 20, connected: [] },
+                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                        ];
+                        baseComponent.prevClk = false;
+                        baseComponent.qState = false;
+                        break;
+                    case 'JKFF':
+                        baseComponent.inputs = [
+                            { id: 'J', x: 0, y: 15, connected: null },
+                            { id: 'CLK', x: 0, y: 35, connected: null },
+                            { id: 'K', x: 0, y: 55, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'Q', x: 100, y: 20, connected: [] },
+                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                        ];
+                        baseComponent.prevClk = false;
+                        baseComponent.qState = false;
+                        break;
+                    case 'TFF':
+                        baseComponent.inputs = [
+                            { id: 'T', x: 0, y: 20, connected: null },
+                            { id: 'CLK', x: 0, y: 50, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'Q', x: 100, y: 20, connected: [] },
+                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                        ];
+                        baseComponent.prevClk = false;
+                        baseComponent.qState = false;
+                        break;
+                    case 'SRFF':
+                        baseComponent.inputs = [
+                            { id: 'S', x: 0, y: 15, connected: null },
+                            { id: 'CLK', x: 0, y: 35, connected: null },
+                            { id: 'R', x: 0, y: 55, connected: null }
+                        ];
+                        baseComponent.outputs = [
+                            { id: 'Q', x: 100, y: 20, connected: [] },
+                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                        ];
+                        baseComponent.prevClk = false;
+                        baseComponent.qState = false;
                         break;
                 }
 
@@ -1568,8 +1644,121 @@ import Layout from '../layouts/Layout.astro';
                     case 'LED':
                         component.state = inputs.length > 0 && inputs[0];
                         break;
+                    case 'DFF':
+                        this.updateDFlipFlop(component);
+                        break;
+                    case 'JKFF':
+                        this.updateJKFlipFlop(component);
+                        break;
+                    case 'TFF':
+                        this.updateTFlipFlop(component);
+                        break;
+                    case 'SRFF':
+                        this.updateSRFlipFlop(component);
+                        break;
                     default:
                         component.state = false;
+                }
+            }
+
+            updateDFlipFlop(component) {
+                const dInput = this.getInputValue(component, 'D');
+                const clkInput = this.getInputValue(component, 'CLK');
+                
+                // クロックの立ち上がりエッジで状態を更新
+                if (clkInput && !component.prevClk) {
+                    component.qState = dInput;
+                }
+                component.prevClk = clkInput;
+                
+                // 出力を設定
+                this.setOutputValue(component, 'Q', component.qState);
+                this.setOutputValue(component, 'Qn', !component.qState);
+                component.state = component.qState;
+            }
+
+            updateJKFlipFlop(component) {
+                const jInput = this.getInputValue(component, 'J');
+                const kInput = this.getInputValue(component, 'K');
+                const clkInput = this.getInputValue(component, 'CLK');
+                
+                // クロックの立ち上がりエッジで状態を更新
+                if (clkInput && !component.prevClk) {
+                    if (jInput && kInput) {
+                        // J=1, K=1: トグル
+                        component.qState = !component.qState;
+                    } else if (jInput) {
+                        // J=1, K=0: セット
+                        component.qState = true;
+                    } else if (kInput) {
+                        // J=0, K=1: リセット
+                        component.qState = false;
+                    }
+                    // J=0, K=0: 保持（何もしない）
+                }
+                component.prevClk = clkInput;
+                
+                // 出力を設定
+                this.setOutputValue(component, 'Q', component.qState);
+                this.setOutputValue(component, 'Qn', !component.qState);
+                component.state = component.qState;
+            }
+
+            updateTFlipFlop(component) {
+                const tInput = this.getInputValue(component, 'T');
+                const clkInput = this.getInputValue(component, 'CLK');
+                
+                // クロックの立ち上がりエッジで状態を更新
+                if (clkInput && !component.prevClk && tInput) {
+                    component.qState = !component.qState;
+                }
+                component.prevClk = clkInput;
+                
+                // 出力を設定
+                this.setOutputValue(component, 'Q', component.qState);
+                this.setOutputValue(component, 'Qn', !component.qState);
+                component.state = component.qState;
+            }
+
+            updateSRFlipFlop(component) {
+                const sInput = this.getInputValue(component, 'S');
+                const rInput = this.getInputValue(component, 'R');
+                const clkInput = this.getInputValue(component, 'CLK');
+                
+                // クロックの立ち上がりエッジで状態を更新
+                if (clkInput && !component.prevClk) {
+                    if (sInput && !rInput) {
+                        // S=1, R=0: セット
+                        component.qState = true;
+                    } else if (!sInput && rInput) {
+                        // S=0, R=1: リセット
+                        component.qState = false;
+                    }
+                    // S=0, R=0: 保持
+                    // S=1, R=1: 不定（通常は使用しない）
+                }
+                component.prevClk = clkInput;
+                
+                // 出力を設定
+                this.setOutputValue(component, 'Q', component.qState);
+                this.setOutputValue(component, 'Qn', !component.qState);
+                component.state = component.qState;
+            }
+
+            getInputValue(component, inputId) {
+                const input = component.inputs?.find(i => i.id === inputId);
+                if (!input?.connected) return false;
+                
+                const connection = this.connections.find(conn => 
+                    conn.to.component === component && conn.to.port === input
+                );
+                return connection ? connection.from.component.state : false;
+            }
+
+            setOutputValue(component, outputId, value) {
+                const output = component.outputs?.find(o => o.id === outputId);
+                if (output) {
+                    output.state = value;
                 }
             }
 
@@ -2185,8 +2374,8 @@ import Layout from '../layouts/Layout.astro';
                 const w = component.width;
                 const h = component.height;
                 
-                // 論理ゲート以外はここでは描画しない
-                if (!['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(component.type)) {
+                // 論理ゲートとフリップフロップ以外はここでは描画しない
+                if (!['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT', 'DFF', 'JKFF', 'TFF', 'SRFF'].includes(component.type)) {
                     return;
                 }
                 
@@ -2236,6 +2425,23 @@ import Layout from '../layouts/Layout.astro';
                             this.drawNOTGateInside(ctx, x + 8, y + 8, w - 26, h - 16);
                             this.drawNotBubble(ctx, x + w - 18, y + h/2, 4);
                             this.drawGateLabel(ctx, 'NOT', x, y, w, h);
+                            break;
+                    }
+                } 
+                // フリップフロップの場合
+                else if (['DFF', 'JKFF', 'TFF', 'SRFF'].includes(component.type)) {
+                    switch (component.type) {
+                        case 'DFF':
+                            this.drawFlipFlop(ctx, x, y, w, h, 'D', component);
+                            break;
+                        case 'JKFF':
+                            this.drawFlipFlop(ctx, x, y, w, h, 'JK', component);
+                            break;
+                        case 'TFF':
+                            this.drawFlipFlop(ctx, x, y, w, h, 'T', component);
+                            break;
+                        case 'SRFF':
+                            this.drawFlipFlop(ctx, x, y, w, h, 'SR', component);
                             break;
                     }
                 } else {
@@ -2523,6 +2729,101 @@ import Layout from '../layouts/Layout.astro';
                 ctx.restore();
             }
             
+            drawFlipFlopIcon(ctx, x, y, w, h, type) {
+                // フリップフロップの基本四角形
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeRect(x, y, w, h);
+                
+                // タイプラベルを描画
+                ctx.save();
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 8px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                if (type === 'JK') {
+                    // JK-FFの場合、JとKを上下に分けて表示
+                    ctx.fillText('J', x + w/2, y + h/3);
+                    ctx.fillText('K', x + w/2, y + 2*h/3);
+                } else if (type === 'SR') {
+                    // SR-FFの場合、SとRを上下に分けて表示
+                    ctx.fillText('S', x + w/2, y + h/3);
+                    ctx.fillText('R', x + w/2, y + 2*h/3);
+                } else {
+                    // D-FF、T-FFの場合は中央に表示
+                    ctx.fillText(type, x + w/2, y + h/2);
+                }
+                
+                // クロック入力を示す小さな三角形
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x - 1, y + h/2 + 2);
+                ctx.lineTo(x + 2, y + h/2);
+                ctx.lineTo(x - 1, y + h/2 - 2);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            drawFlipFlop(ctx, x, y, w, h, type, component) {
+                // フリップフロップの基本四角形
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+                
+                // タイプラベルを描画
+                ctx.save();
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                if (type === 'JK') {
+                    // JK-FFの場合、JとKを分けて表示
+                    ctx.fillText('JK-FF', x + w/2, y + 15);
+                    // 入力ラベル
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('J', x + 5, y + 15);
+                    ctx.fillText('>', x + 5, y + 35); // クロック
+                    ctx.fillText('K', x + 5, y + 55);
+                } else if (type === 'SR') {
+                    // SR-FFの場合、SとRを分けて表示
+                    ctx.fillText('SR-FF', x + w/2, y + 15);
+                    // 入力ラベル
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('S', x + 5, y + 15);
+                    ctx.fillText('>', x + 5, y + 35); // クロック
+                    ctx.fillText('R', x + 5, y + 55);
+                } else {
+                    // D-FF、T-FFの場合
+                    ctx.fillText(type + '-FF', x + w/2, y + 15);
+                    // 入力ラベル
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(type, x + 5, y + 20);
+                    ctx.fillText('>', x + 5, y + 50); // クロック
+                }
+                
+                // 出力ラベル
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText('Q', x + w - 5, y + 20);
+                ctx.fillText('Q̄', x + w - 5, y + 50);
+                
+                // 状態表示（Q出力の現在値）
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = component.qState ? '#4caf50' : '#f44336';
+                ctx.fillText(component.qState ? '1' : '0', x + w/2, y + h - 15);
+                
+                ctx.restore();
+            }
+            
             drawPaletteIcons() {
                 const canvases = document.querySelectorAll('.component-icon-canvas');
                 canvases.forEach(canvas => {
@@ -2567,6 +2868,18 @@ import Layout from '../layouts/Layout.astro';
                             this.drawNOTTriangle(ctx, 2, 2, w - 12, h - 4);
                             // Position bubble with proper clearance
                             this.drawNotBubble(ctx, w - 9, h/2, 2.5);
+                            break;
+                        case 'DFF':
+                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'D');
+                            break;
+                        case 'JKFF':
+                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'JK');
+                            break;
+                        case 'TFF':
+                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'T');
+                            break;
+                        case 'SRFF':
+                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'SR');
                             break;
                     }
                 });
