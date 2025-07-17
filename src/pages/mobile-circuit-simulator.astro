@@ -264,6 +264,11 @@ import Layout from '../layouts/Layout.astro';
             .main-canvas {
                 width: calc(100vw - 280px) !important;
             }
+            
+            .canvas-container {
+                width: 100% !important;
+                height: 100% !important;
+            }
         }
 
         /* モバイル対応 */
@@ -786,8 +791,11 @@ import Layout from '../layouts/Layout.astro';
                 const handleOrientationChange = () => {
                     const isDesktop = window.innerWidth > 768;
                     if (isDesktop) {
-                        // PC環境では何もしない
+                        // PC環境ではクラス管理のみスキップ、キャンバスリサイズは実行
                         document.body.classList.remove('landscape', 'large-landscape');
+                        setTimeout(() => {
+                            this.resizeCanvas();
+                        }, 100);
                         return;
                     }
                     
