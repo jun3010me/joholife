@@ -679,9 +679,9 @@ import Layout from '../layouts/Layout.astro';
                             <canvas class="component-icon-canvas" width="40" height="30" data-gate="TFF"></canvas>
                             <div class="component-name">T-FF</div>
                         </div>
-                        <div class="component-item" data-type="SRFF">
-                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="SRFF"></canvas>
-                            <div class="component-name">SR-FF</div>
+                        <div class="component-item" data-type="RSFF">
+                            <canvas class="component-icon-canvas" width="40" height="30" data-gate="RSFF"></canvas>
+                            <div class="component-name">RS-FF</div>
                         </div>
                     </div>
                 </div>
@@ -866,6 +866,10 @@ import Layout from '../layouts/Layout.astro';
                 this.canvas.addEventListener('mousemove', this.handlePointerMove.bind(this));
                 this.canvas.addEventListener('mouseup', this.handlePointerUp.bind(this));
                 
+                // グローバルマウスイベント（キャンバス外でのドラッグ対応）
+                this.globalMouseMoveHandler = this.handleGlobalMouseMove.bind(this);
+                this.globalMouseUpHandler = this.handleGlobalMouseUp.bind(this);
+                
                 this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
                 this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
                 this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
@@ -934,6 +938,7 @@ import Layout from '../layouts/Layout.astro';
                     clientY = event.clientY;
                 }
                 
+                // キャンバス外でもドラッグできるように座標変換
                 return {
                     x: (clientX - rect.left - this.panX) / this.scale,
                     y: (clientY - rect.top - this.panY) / this.scale
@@ -980,6 +985,10 @@ import Layout from '../layouts/Layout.astro';
                         y: pos.y - component.y
                     };
                     this.isPanning = false; // 部品選択時はパンを無効化
+                    
+                    // グローバルマウスイベントを追加（キャンバス外でのドラッグ対応）
+                    document.addEventListener('mousemove', this.globalMouseMoveHandler);
+                    document.addEventListener('mouseup', this.globalMouseUpHandler);
                     return;
                 }
                 
@@ -1131,19 +1140,54 @@ import Layout from '../layouts/Layout.astro';
                         // ドラッグ完了 - エリア外削除判定
                         const component = this.selectedComponent;
                         
-                        // ワールド座標系での表示可能領域を計算
-                        const visibleLeft = -this.panX / this.scale;
-                        const visibleTop = -this.panY / this.scale;
-                        const visibleRight = (this.canvas.clientWidth - this.panX) / this.scale;
-                        const visibleBottom = (this.canvas.clientHeight - this.panY) / this.scale;
+                        // PC環境とモバイル環境で異なる削除判定を使用
+                        const isDesktop = window.innerWidth > 768;
+                        let shouldDelete = false;
+                        
+                        if (isDesktop) {
+                            // PC環境：スクリーン座標でキャンバス領域外かどうかを判定
+                            const rect = this.canvas.getBoundingClientRect();
+                            const screenX = component.x * this.scale + this.panX;
+                            const screenY = component.y * this.scale + this.panY;
+                            const screenWidth = component.width * this.scale;
+                            const screenHeight = component.height * this.scale;
+                            
+                            // PC環境では、左側にパレット（パレットが閉じられていてもマージンを考慮）
+                            const leftMargin = 0; // キャンバス領域は既にパレット分が除外されている
+                            const deleteThreshold = 50; // 削除判定のマージン（50px）
+                            
+                            console.log('PC deletion check:', {
+                                componentType: component.type,
+                                isNewFromPalette: component.isNewFromPalette,
+                                screenPos: { x: screenX, y: screenY },
+                                screenSize: { w: screenWidth, h: screenHeight },
+                                canvasSize: { w: rect.width, h: rect.height },
+                                deleteThreshold
+                            });
+                            
+                            shouldDelete = !component.isNewFromPalette && (
+                                screenX + screenWidth < -deleteThreshold || 
+                                screenX > rect.width + deleteThreshold || 
+                                screenY + screenHeight < -deleteThreshold || 
+                                screenY > rect.height + deleteThreshold
+                            );
+                        } else {
+                            // モバイル環境：従来のワールド座標系での判定
+                            const visibleLeft = -this.panX / this.scale;
+                            const visibleTop = -this.panY / this.scale;
+                            const visibleRight = (this.canvas.clientWidth - this.panX) / this.scale;
+                            const visibleBottom = (this.canvas.clientHeight - this.panY) / this.scale;
+                            
+                            shouldDelete = !component.isNewFromPalette && (
+                                component.x + component.width < visibleLeft || 
+                                component.x > visibleRight || 
+                                component.y + component.height < visibleTop || 
+                                component.y > visibleBottom
+                            );
+                        }
                         
                         // コンポーネントがキャンバスエリア外に完全に出た場合は削除
-                        // ただし、パレットから新しく作成された部品の初回ドロップは除外
-                        if (!component.isNewFromPalette && 
-                            (component.x + component.width < visibleLeft || 
-                             component.x > visibleRight || 
-                             component.y + component.height < visibleTop || 
-                             component.y > visibleBottom)) {
+                        if (shouldDelete) {
                             
                             console.log('Component dragged outside canvas, deleting:', component.type);
                             
@@ -1179,6 +1223,12 @@ import Layout from '../layouts/Layout.astro';
                     
                     this.isDragging = false;
                     this.pendingComponent = null;
+                    
+                    // グローバルイベントリスナーを削除
+                    if (this.globalMouseMoveHandler) {
+                        document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                        document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                    }
                 } else if (this.isPanning) {
                     this.isPanning = false;
                     this.lastPanPoint = null;
@@ -1331,7 +1381,7 @@ import Layout from '../layouts/Layout.astro';
                 if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(type)) {
                     width = 110;
                     height = 60;
-                } else if (['DFF', 'JKFF', 'TFF', 'SRFF'].includes(type)) {
+                } else if (['DFF', 'JKFF', 'TFF', 'RSFF'].includes(type)) {
                     width = 100;
                     height = 70;
                 }
@@ -1398,11 +1448,12 @@ import Layout from '../layouts/Layout.astro';
                             { id: 'CLK', x: 0, y: 50, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'Q', x: 100, y: 20, connected: [] },
-                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                            { id: 'Q', x: 100, y: 20, connected: [], state: false },
+                            { id: 'Qn', x: 100, y: 50, connected: [], state: true }
                         ];
                         baseComponent.prevClk = false;
                         baseComponent.qState = false;
+                        baseComponent.state = false;
                         break;
                     case 'JKFF':
                         baseComponent.inputs = [
@@ -1411,36 +1462,38 @@ import Layout from '../layouts/Layout.astro';
                             { id: 'K', x: 0, y: 55, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'Q', x: 100, y: 20, connected: [] },
-                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                            { id: 'Q', x: 100, y: 20, connected: [], state: false },
+                            { id: 'Qn', x: 100, y: 50, connected: [], state: true }
                         ];
                         baseComponent.prevClk = false;
                         baseComponent.qState = false;
+                        baseComponent.state = false;
                         break;
                     case 'TFF':
                         baseComponent.inputs = [
-                            { id: 'T', x: 0, y: 20, connected: null },
-                            { id: 'CLK', x: 0, y: 50, connected: null }
+                            { id: 'T', x: 0, y: 35, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'Q', x: 100, y: 20, connected: [] },
-                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                            { id: 'Q', x: 100, y: 20, connected: [], state: false },
+                            { id: 'Qn', x: 100, y: 50, connected: [], state: true }
                         ];
-                        baseComponent.prevClk = false;
+                        baseComponent.prevT = false;
                         baseComponent.qState = false;
+                        baseComponent.state = false;
                         break;
-                    case 'SRFF':
+                    case 'RSFF':
                         baseComponent.inputs = [
-                            { id: 'S', x: 0, y: 15, connected: null },
+                            { id: 'R', x: 0, y: 15, connected: null },
                             { id: 'CLK', x: 0, y: 35, connected: null },
-                            { id: 'R', x: 0, y: 55, connected: null }
+                            { id: 'S', x: 0, y: 55, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'Q', x: 100, y: 20, connected: [] },
-                            { id: 'Qn', x: 100, y: 50, connected: [] }
+                            { id: 'Q', x: 100, y: 20, connected: [], state: false },
+                            { id: 'Qn', x: 100, y: 50, connected: [], state: true }
                         ];
                         baseComponent.prevClk = false;
                         baseComponent.qState = false;
+                        baseComponent.state = false;
                         break;
                 }
 
@@ -1561,6 +1614,24 @@ import Layout from '../layouts/Layout.astro';
                 this.updateSimulation();
             }
             
+            handleGlobalMouseMove(event) {
+                if (this.isDragging && this.selectedComponent) {
+                    // キャンバス外でもマウス位置を取得して部品を移動
+                    this.handlePointerMove(event);
+                }
+            }
+            
+            handleGlobalMouseUp(event) {
+                if (this.isDragging) {
+                    // グローバルイベントリスナーを削除
+                    document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                    document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                    
+                    // 通常のマウスアップ処理を実行
+                    this.handlePointerUp(event);
+                }
+            }
+            
             cancelConnection() {
                 console.log('cancelConnection - Was connecting:', this.isConnecting);
                 this.isConnecting = false;
@@ -1596,9 +1667,12 @@ import Layout from '../layouts/Layout.astro';
             updateSimulation() {
                 if (!this.isSimulating) return;
                 
-                // 各部品の状態を計算
-                for (const component of this.components.values()) {
-                    this.calculateComponentState(component);
+                // 複数回更新して状態の安定化を図る（フリップフロップの状態伝播のため）
+                for (let iteration = 0; iteration < 3; iteration++) {
+                    // 各部品の状態を計算
+                    for (const component of this.components.values()) {
+                        this.calculateComponentState(component);
+                    }
                 }
                 
                 this.render();
@@ -1616,6 +1690,17 @@ import Layout from '../layouts/Layout.astro';
                     
                     const connection = this.connections.find(c => c.id === port.connected);
                     if (!connection) return false;
+                    
+                    // フリップフロップの場合、特定の出力ピンの状態を取得
+                    const fromComponent = connection.from.component;
+                    if (['DFF', 'JKFF', 'TFF', 'RSFF'].includes(fromComponent.type)) {
+                        const fromPort = connection.from.port;
+                        if (fromPort.id === 'Q') {
+                            return fromComponent.qState;
+                        } else if (fromPort.id === 'Qn') {
+                            return !fromComponent.qState;
+                        }
+                    }
                     
                     return connection.from.component.state || false;
                 });
@@ -1653,8 +1738,8 @@ import Layout from '../layouts/Layout.astro';
                     case 'TFF':
                         this.updateTFlipFlop(component);
                         break;
-                    case 'SRFF':
-                        this.updateSRFlipFlop(component);
+                    case 'RSFF':
+                        this.updateRSFlipFlop(component);
                         break;
                     default:
                         component.state = false;
@@ -1706,13 +1791,12 @@ import Layout from '../layouts/Layout.astro';
 
             updateTFlipFlop(component) {
                 const tInput = this.getInputValue(component, 'T');
-                const clkInput = this.getInputValue(component, 'CLK');
                 
-                // クロックの立ち上がりエッジで状態を更新
-                if (clkInput && !component.prevClk && tInput) {
+                // T入力の立ち上がりエッジで状態を更新
+                if (tInput && !component.prevT) {
                     component.qState = !component.qState;
                 }
-                component.prevClk = clkInput;
+                component.prevT = tInput;
                 
                 // 出力を設定
                 this.setOutputValue(component, 'Q', component.qState);
@@ -1720,24 +1804,36 @@ import Layout from '../layouts/Layout.astro';
                 component.state = component.qState;
             }
 
-            updateSRFlipFlop(component) {
-                const sInput = this.getInputValue(component, 'S');
+            updateRSFlipFlop(component) {
                 const rInput = this.getInputValue(component, 'R');
+                const sInput = this.getInputValue(component, 'S');
                 const clkInput = this.getInputValue(component, 'CLK');
                 
-                // クロックの立ち上がりエッジで状態を更新
-                if (clkInput && !component.prevClk) {
-                    if (sInput && !rInput) {
-                        // S=1, R=0: セット
+                // 同期型（クロックエッジ）と非同期型（即座）の両方をサポート
+                let shouldUpdate = false;
+                
+                // クロック信号が接続されている場合は同期型として動作
+                const clkConnected = component.inputs.find(i => i.id === 'CLK')?.connected;
+                if (clkConnected) {
+                    // クロックの立ち上がりエッジで状態を更新
+                    shouldUpdate = clkInput && !component.prevClk;
+                    component.prevClk = clkInput;
+                } else {
+                    // クロック未接続の場合は非同期型として動作（即座に更新）
+                    shouldUpdate = true;
+                }
+                
+                if (shouldUpdate) {
+                    if (!rInput && sInput) {
+                        // R=0, S=1: セット
                         component.qState = true;
-                    } else if (!sInput && rInput) {
-                        // S=0, R=1: リセット
+                    } else if (rInput && !sInput) {
+                        // R=1, S=0: リセット
                         component.qState = false;
                     }
-                    // S=0, R=0: 保持
-                    // S=1, R=1: 不定（通常は使用しない）
+                    // R=0, S=0: 保持
+                    // R=1, S=1: 不定（通常は使用しない）
                 }
-                component.prevClk = clkInput;
                 
                 // 出力を設定
                 this.setOutputValue(component, 'Q', component.qState);
@@ -1752,13 +1848,36 @@ import Layout from '../layouts/Layout.astro';
                 const connection = this.connections.find(conn => 
                     conn.to.component === component && conn.to.port === input
                 );
-                return connection ? connection.from.component.state : false;
+                
+                if (!connection) return false;
+                
+                // フリップフロップの場合、特定の出力ピンの状態を取得
+                const fromComponent = connection.from.component;
+                if (['DFF', 'JKFF', 'TFF', 'RSFF'].includes(fromComponent.type)) {
+                    const fromPort = connection.from.port;
+                    if (fromPort.id === 'Q') {
+                        return fromComponent.qState;
+                    } else if (fromPort.id === 'Qn') {
+                        return !fromComponent.qState;
+                    }
+                }
+                
+                return connection.from.component.state || false;
             }
 
             setOutputValue(component, outputId, value) {
                 const output = component.outputs?.find(o => o.id === outputId);
                 if (output) {
                     output.state = value;
+                    // 接続されたコンポーネントに状態を伝播
+                    if (output.connected && output.connected.length > 0) {
+                        output.connected.forEach(connectedPort => {
+                            if (connectedPort.component) {
+                                // 接続先のコンポーネントの入力状態を更新
+                                connectedPort.state = value;
+                            }
+                        });
+                    }
                 }
             }
 
@@ -2375,7 +2494,7 @@ import Layout from '../layouts/Layout.astro';
                 const h = component.height;
                 
                 // 論理ゲートとフリップフロップ以外はここでは描画しない
-                if (!['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT', 'DFF', 'JKFF', 'TFF', 'SRFF'].includes(component.type)) {
+                if (!['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT', 'DFF', 'JKFF', 'TFF', 'RSFF'].includes(component.type)) {
                     return;
                 }
                 
@@ -2429,7 +2548,7 @@ import Layout from '../layouts/Layout.astro';
                     }
                 } 
                 // フリップフロップの場合
-                else if (['DFF', 'JKFF', 'TFF', 'SRFF'].includes(component.type)) {
+                else if (['DFF', 'JKFF', 'TFF', 'RSFF'].includes(component.type)) {
                     switch (component.type) {
                         case 'DFF':
                             this.drawFlipFlop(ctx, x, y, w, h, 'D', component);
@@ -2440,8 +2559,8 @@ import Layout from '../layouts/Layout.astro';
                         case 'TFF':
                             this.drawFlipFlop(ctx, x, y, w, h, 'T', component);
                             break;
-                        case 'SRFF':
-                            this.drawFlipFlop(ctx, x, y, w, h, 'SR', component);
+                        case 'RSFF':
+                            this.drawFlipFlop(ctx, x, y, w, h, 'RS', component);
                             break;
                     }
                 } else {
@@ -2745,23 +2864,25 @@ import Layout from '../layouts/Layout.astro';
                     // JK-FFの場合、JとKを上下に分けて表示
                     ctx.fillText('J', x + w/2, y + h/3);
                     ctx.fillText('K', x + w/2, y + 2*h/3);
-                } else if (type === 'SR') {
-                    // SR-FFの場合、SとRを上下に分けて表示
-                    ctx.fillText('S', x + w/2, y + h/3);
-                    ctx.fillText('R', x + w/2, y + 2*h/3);
+                } else if (type === 'RS') {
+                    // RS-FFの場合、RとSを上下に分けて表示
+                    ctx.fillText('R', x + w/2, y + h/3);
+                    ctx.fillText('S', x + w/2, y + 2*h/3);
                 } else {
                     // D-FF、T-FFの場合は中央に表示
                     ctx.fillText(type, x + w/2, y + h/2);
                 }
                 
-                // クロック入力を示す小さな三角形
-                ctx.strokeStyle = '#333333';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x - 1, y + h/2 + 2);
-                ctx.lineTo(x + 2, y + h/2);
-                ctx.lineTo(x - 1, y + h/2 - 2);
-                ctx.stroke();
+                // クロック入力を示す小さな三角形（TFFを除く）
+                if (type !== 'T') {
+                    ctx.strokeStyle = '#333333';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x - 1, y + h/2 + 2);
+                    ctx.lineTo(x + 2, y + h/2);
+                    ctx.lineTo(x - 1, y + h/2 - 2);
+                    ctx.stroke();
+                }
                 
                 ctx.restore();
             }
@@ -2790,17 +2911,24 @@ import Layout from '../layouts/Layout.astro';
                     ctx.fillText('J', x + 5, y + 15);
                     ctx.fillText('>', x + 5, y + 35); // クロック
                     ctx.fillText('K', x + 5, y + 55);
-                } else if (type === 'SR') {
-                    // SR-FFの場合、SとRを分けて表示
-                    ctx.fillText('SR-FF', x + w/2, y + 15);
+                } else if (type === 'RS') {
+                    // RS-FFの場合、RとSを分けて表示
+                    ctx.fillText('RS-FF', x + w/2, y + 15);
                     // 入力ラベル
                     ctx.font = '10px Arial';
                     ctx.textAlign = 'left';
-                    ctx.fillText('S', x + 5, y + 15);
+                    ctx.fillText('R', x + 5, y + 15);
                     ctx.fillText('>', x + 5, y + 35); // クロック
-                    ctx.fillText('R', x + 5, y + 55);
+                    ctx.fillText('S', x + 5, y + 55);
+                } else if (type === 'T') {
+                    // T-FFの場合（クロック入力なし）
+                    ctx.fillText(type + '-FF', x + w/2, y + 15);
+                    // 入力ラベル
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(type, x + 5, y + 35);
                 } else {
-                    // D-FF、T-FFの場合
+                    // D-FFの場合
                     ctx.fillText(type + '-FF', x + w/2, y + 15);
                     // 入力ラベル
                     ctx.font = '10px Arial';
@@ -2878,8 +3006,8 @@ import Layout from '../layouts/Layout.astro';
                         case 'TFF':
                             this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'T');
                             break;
-                        case 'SRFF':
-                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'SR');
+                        case 'RSFF':
+                            this.drawFlipFlopIcon(ctx, 2, 2, w - 4, h - 4, 'RS');
                             break;
                     }
                 });
