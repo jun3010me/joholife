@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="スマホ対応論理回路シミュレータ">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
     
     <style>
         * {
@@ -51,8 +51,8 @@ import Layout from '../layouts/Layout.astro';
             position: fixed;
             left: 0;
             right: 0;
-            top: 4rem; /* ナビゲーションバーの下 */
-            height: 90px; /* アイコンサイズに合わせて調整 */
+            top: max(4rem, env(safe-area-inset-top, 0px) + 4rem); /* Safe Area対応 */
+            height: clamp(90px, 12vh, 120px); /* 動的高さ調整（最小90px、最大120px） */
             background: white;
             border-bottom: 1px solid #ddd;
             display: flex;
@@ -62,6 +62,8 @@ import Layout from '../layouts/Layout.astro';
             overflow-y: hidden;
             z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding-left: max(8px, env(safe-area-inset-left, 8px)); /* 左Safe Area */
+            padding-right: max(8px, env(safe-area-inset-right, 8px)); /* 右Safe Area */
         }
 
         .palette-header {
@@ -118,10 +120,10 @@ import Layout from '../layouts/Layout.astro';
 
         .component-item {
             flex-shrink: 0;
-            width: 60px;
-            height: 60px; /* 元の高さに戻す */
-            min-height: 60px;
-            font-size: 0.8rem;
+            width: clamp(55px, 8vw, 75px); /* 動的幅調整 */
+            height: calc(clamp(90px, 12vh, 120px) - 16px); /* パレット高さ - パディング */
+            min-height: 55px;
+            font-size: clamp(0.7rem, 1.5vw, 0.9rem); /* 動的フォントサイズ */
         }
 
         .category-title {
@@ -132,15 +134,16 @@ import Layout from '../layouts/Layout.astro';
             background: white;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 12px 8px; /* 元のパディングに戻す */
+            padding: clamp(6px, 1.5vw, 12px) clamp(4px, 1vw, 8px); /* 動的パディング */
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            min-height: 60px; /* 元の高さに戻す */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            user-select: none;
+            box-sizing: border-box;
         }
 
         .component-item:hover {
@@ -167,10 +170,10 @@ import Layout from '../layouts/Layout.astro';
         /* メインキャンバス（上部パレット対応） */
         .main-canvas {
             position: fixed;
-            top: calc(4rem + 90px); /* ナビ + パレット分（90pxに調整） */
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: calc(max(4rem, env(safe-area-inset-top, 0px) + 4rem) + clamp(90px, 12vh, 120px)); /* Safe Area + 動的パレット高さ */
+            left: env(safe-area-inset-left, 0px);
+            right: env(safe-area-inset-right, 0px);
+            bottom: env(safe-area-inset-bottom, 0px);
             background: white;
             overflow: hidden;
         }
@@ -280,17 +283,7 @@ import Layout from '../layouts/Layout.astro';
                 grid-template-columns: none !important; /* グリッド設定を無効化 */
             }
 
-            .component-item {
-                display: flex !important;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                flex-shrink: 0;
-                width: 60px;
-                height: 64px;
-                margin-right: 6px;
-                padding: 6px 3px;
-            }
+            /* component-item設定は統合済み - 動的調整を使用 */
 
             .component-item:last-child {
                 margin-right: 0;
@@ -493,10 +486,7 @@ import Layout from '../layouts/Layout.astro';
                 right: 12px;
             }
 
-            /* メインキャンバスの高さ調整 */
-            .main-canvas {
-                height: calc(100vh - 90px);
-            }
+            /* メインキャンバスの高さ調整は統合済み - 動的計算を使用 */
 
             /* パレットヘッダーを横向き用に調整 */
             .palette-header {
