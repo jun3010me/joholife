@@ -46,65 +46,97 @@ import Layout from '../layouts/Layout.astro';
             box-sizing: border-box;
         }
 
-        /* 部品パレット */
+        /* 部品パレット（新標準：画面上部固定、PC・モバイル共通） */
         .component-palette {
-            width: 280px;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 4rem; /* ナビゲーションバーの下 */
+            height: 90px; /* アイコンサイズに合わせて調整 */
             background: white;
-            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
             display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
+            flex-direction: row;
+            padding: 8px; /* 元のパディングに戻す */
+            overflow-x: auto;
+            overflow-y: hidden;
             z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .palette-header {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            background: #fafafa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: none; /* タイトル表示を完全に無効化 */
         }
 
         .palette-title {
-            font-weight: bold;
-            font-size: 14px;
+            display: none;
         }
 
 
         .palette-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            gap: 8px !important; /* アイテム間の間隔を狭く */
+            padding: 4px 8px 4px 8px; /* 上下パディングを縮小 */
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            width: 100% !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+            flex-wrap: nowrap !important; /* 絶対に折り返さない */
+            touch-action: pan-x !important; /* 横方向のタッチスクロールのみ許可 */
+            
+            /* スクロールバーを非表示にする */
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE・Edge */
+        }
+
+        /* WebKit系ブラウザ（Chrome、Safari）でスクロールバーを非表示 */
+        .palette-content::-webkit-scrollbar {
+            display: none !important;
         }
 
         .component-category {
-            margin-bottom: 16px;
+            display: flex !important; /* 横並びに戻す */
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            flex-wrap: nowrap !important;
         }
 
         .category-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #666;
-            margin-bottom: 8px;
-            text-transform: uppercase;
+            display: none; /* 完全に非表示 */
         }
 
+        /* 全てのレイアウトで1行横スクロール表示に統一 */
         .component-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        .component-item {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px; /* 元の高さに戻す */
+            min-height: 60px;
+            font-size: 0.8rem;
+        }
+
+        .category-title {
+            display: none; /* 全てのサイズで非表示 */
         }
 
         .component-item {
             background: white;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 12px 8px;
+            padding: 12px 8px; /* 元のパディングに戻す */
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            min-height: 60px;
+            min-height: 60px; /* 元の高さに戻す */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -132,13 +164,18 @@ import Layout from '../layouts/Layout.astro';
             font-weight: 500;
         }
 
-        /* メインキャンバス */
+        /* メインキャンバス（上部パレット対応） */
         .main-canvas {
-            flex: 1;
-            position: relative;
+            position: fixed;
+            top: calc(4rem + 90px); /* ナビ + パレット分（90pxに調整） */
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: white;
             overflow: hidden;
         }
+
+        /* 削除：モバイル用のパレット高さ調整（デフォルトで統一済み） */
 
         .canvas-container {
             width: 100%;
@@ -147,14 +184,7 @@ import Layout from '../layouts/Layout.astro';
             touch-action: none;
         }
 
-        /* モバイル・タブレット時のキャンバスコンテナ調整 */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
-            .canvas-container {
-                padding: 0 !important;
-                margin: 0 !important;
-                position: relative;
-            }
-        }
+        /* 古いキャンバスコンテナ調整は削除済み */
 
         #circuit-canvas {
             display: block;
@@ -167,15 +197,7 @@ import Layout from '../layouts/Layout.astro';
             background-position: 0 0, 10px 10px;
         }
 
-        /* モバイル・タブレット時のキャンバス要素調整 */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
-            #circuit-canvas {
-                margin: 0;
-                padding: 0;
-                border: none;
-                outline: none;
-            }
-        }
+        /* 古いキャンバス要素調整は削除済み */
 
         /* ファイルメニューのセパレーター */
         .file-menu-separator {
@@ -221,134 +243,18 @@ import Layout from '../layouts/Layout.astro';
             background: #f5f5f5;
         }
 
-        /* PC・デスクトップ対応（明示的に正常レイアウト保証） */
-        @media (min-width: 769px) {
-            .component-palette {
-                position: relative !important;
-                transform: none !important;
-                width: 280px !important;
-                height: auto !important;
-                flex-direction: column !important;
-                box-shadow: none !important;
-            }
-            
-            .component-grid {
-                grid-template-columns: repeat(3, 1fr) !important;
-                display: grid !important;
-            }
-            
-            .palette-content {
-                flex-direction: column !important;
-                overflow-x: visible !important;
-                overflow-y: auto !important;
-            }
-            
-            .palette-overlay {
-                display: none !important;
-            }
-            
-            .main-canvas {
-                width: calc(100vw - 280px) !important;
-            }
-            
-            .canvas-container {
-                width: 100% !important;
-                height: 100% !important;
-            }
-        }
+        /* 古いPC用サイドバーレイアウトを削除 - 新しい上部固定レイアウトを使用 */
 
-        /* モバイル・タブレット対応 - ナビゲーション下に配置 */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
-            .component-palette {
-                position: fixed;
-                left: 0;
-                right: 0;
-                top: 4rem; /* ナビゲーションバーの高さ分下げる */
-                bottom: auto;
-                height: 120px;
-                width: 100%;
-                transform: none;
-                flex-direction: row;
-                overflow-x: auto;
-                overflow-y: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-                background: white;
-            }
+        /* 古い複雑なメディアクエリは削除 - シンプルな横幅ベース判定を使用 */
+        /* 古いCSSブロック削除済み */
 
-            .palette-header {
-                display: none; /* ヘッダーを非表示 */
-            }
 
-            .palette-content {
-                display: flex;
-                flex-direction: row;
-                overflow-x: auto;
-                overflow-y: hidden;
-                padding: 16px 8px;
-                -webkit-overflow-scrolling: touch; /* iOS での慣性スクロールを有効化 */
-                scrollbar-width: thin; /* Firefox でのスクロールバー幅 */
-                white-space: nowrap;
-                align-items: flex-start;
-                height: 100%;
-                gap: 0;
-            }
 
-            .component-category {
-                display: inline-flex; /* カテゴリを横並びに */
-                flex-direction: row;
-                align-items: center;
-                margin-right: 0;
-            }
 
-            .category-title {
-                display: none; /* スマホでは非表示 */
-            }
 
-            .component-grid {
-                display: flex !important; /* グリッドを横並びflex化 */
-                flex-direction: row !important;
-                gap: 8px;
-                margin: 0;
-                padding: 0;
-                grid-template-columns: none !important; /* グリッド設定を無効化 */
-            }
 
-            .component-item {
-                display: flex !important;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                flex-shrink: 0;
-                width: 70px;
-                height: 80px;
-                margin-right: 8px;
-                padding: 8px 4px;
-            }
-
-            .component-item:last-child {
-                margin-right: 0;
-            }
-        }
-
-        /* スマホ・タブレット横画面対応 */
+        /* モバイル横画面時の1行表示対応 */
         @media (max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
-            .component-palette {
-                position: fixed;
-                left: 0;
-                right: 0;
-                top: 4rem; /* ナビゲーションバーの高さ分下げる */
-                bottom: auto;
-                height: 100px;
-                width: 100%;
-                transform: none;
-                flex-direction: row;
-                overflow-x: auto;
-                overflow-y: hidden;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                z-index: 1000;
-            }
-
             .palette-header {
                 display: none; /* ヘッダーを非表示 */
             }
@@ -358,24 +264,11 @@ import Layout from '../layouts/Layout.astro';
                 flex-direction: row;
                 overflow-x: auto;
                 overflow-y: hidden;
-                padding: 16px 8px;
-                -webkit-overflow-scrolling: touch; /* iOS での慣性スクロールを有効化 */
-                scrollbar-width: thin; /* Firefox でのスクロールバー幅 */
-                white-space: nowrap;
-                align-items: flex-start;
-                height: 100%;
-                gap: 0;
-            }
-
-            .component-category {
-                display: inline-flex; /* カテゴリを横並びに */
-                flex-direction: row;
-                align-items: center;
-                margin-right: 0;
+                padding: 8px;
             }
 
             .category-title {
-                display: none; /* 横画面でも非表示 */
+                display: none; /* 横画面では非表示 */
             }
 
             .component-grid {
@@ -625,23 +518,23 @@ import Layout from '../layouts/Layout.astro';
             width: 100vw;
         }
 
-        /* モバイル・タブレット時のキャンバス調整 */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
+        /* 古いモバイル・タブレット時のキャンバス調整（無効化） */
+        /* @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
             .main-canvas {
-                margin-top: 120px; /* 部品パレット分のマージン */
-                height: calc(100vh - 4rem - 120px); /* ナビ + パレット分を引く */
+                margin-top: 120px;
+                height: calc(100vh - 4rem - 120px);
                 padding: 0;
                 flex: 1;
                 width: 100vw;
                 position: relative;
             }
-        }
+        } */
 
-        /* スマホ・タブレット横画面時のキャンバス調整 */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+        /* 古いスマホ・タブレット横画面時のキャンバス調整（無効化） */
+        /* @media (max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
             .main-canvas {
                 margin-top: 100px;
-                height: calc(100vh - 4rem - 100px); /* ナビ + パレット分を引く */
+                height: calc(100vh - 4rem - 100px);
                 padding: 0;
             }
             
@@ -649,7 +542,7 @@ import Layout from '../layouts/Layout.astro';
                 margin-top: -8px !important;
                 top: -8px !important;
             }
-        }
+        } */
 
 
         /* ドラッグ中の部品スタイル */
@@ -821,7 +714,7 @@ import Layout from '../layouts/Layout.astro';
                 this.isPaletteScrolling = false;
                 this.paletteScrollStartX = 0;
                 this.paletteScrollStartY = 0;
-                this.paletteScrollThreshold = 3; // より敏感なスクロール検出
+                this.paletteScrollThreshold = 5; // 部品ドラッグ判定をより厳しく（スクロール優先）
                 this.paletteScrollStartScrollLeft = 0;
                 this.pendingComponentDrag = null; // 部品ドラッグ開始待機用
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
@@ -852,9 +745,13 @@ import Layout from '../layouts/Layout.astro';
 
             // タッチデバイスかどうかを判定（iPhone16ProMAX、iPad等に対応）
             isTouchDevice() {
-                return window.innerWidth <= 1024 && 
-                       ('ontouchstart' in window || navigator.maxTouchPoints > 0) &&
-                       window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+                // PCのタッチスクリーンと真のモバイルデバイスを区別
+                const isMobileWidth = window.innerWidth <= 1024;
+                const hasTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+                const isPrimaryTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+                
+                // 幅が1024以下で、かつプライマリ入力デバイスがタッチの場合のみtrue
+                return isMobileWidth && hasTouch && isPrimaryTouch;
             }
 
             init() {
@@ -1069,16 +966,37 @@ import Layout from '../layouts/Layout.astro';
                 const palette = document.getElementById('component-palette');
                 const items = palette.querySelectorAll('.component-item');
 
-                // モバイル・タブレット画面では統一してパレットコンテンツ全体でスクロール処理
-                if (this.isTouchDevice()) {
+                const isTouch = this.isTouchDevice();
+                const isNarrowScreen = window.innerWidth <= 1024; // 狭い画面かどうか
+                
+                console.log('Device detection:', {
+                    isTouchDevice: isTouch,
+                    isNarrowScreen: isNarrowScreen,
+                    width: window.innerWidth,
+                    hasTouch: ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+                    primaryTouch: window.matchMedia('(hover: none) and (pointer: coarse)').matches
+                });
+
+                // 狭い画面（1024px以下）では常にタッチスクロールを有効化
+                if (isNarrowScreen) {
+                    console.log('Setting up touch event handlers (narrow screen)');
                     const paletteContent = document.querySelector('.palette-content');
                     if (paletteContent) {
-                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
-                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
-                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
+                        // ネイティブスクロールを有効化するためpassive: trueに変更
+                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: true });
+                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: true });
+                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: true });
                     }
+                    
+                    // 狭い画面でもマウスイベントは併用（PCとタッチ両対応）
+                    items.forEach(item => {
+                        item.addEventListener('mousedown', this.startComponentDrag.bind(this));
+                        // 狭い画面でのタッチイベントはpassive: trueでスクロール優先
+                        item.addEventListener('touchstart', this.handleComponentTouch.bind(this), { passive: true });
+                    });
                 } else {
-                    // PC画面では従来通り
+                    console.log('Setting up mouse event handlers (wide screen)');
+                    // 広い画面ではマウス操作のみ
                     items.forEach(item => {
                         item.addEventListener('mousedown', this.startComponentDrag.bind(this));
                         item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
@@ -1167,8 +1085,11 @@ import Layout from '../layouts/Layout.astro';
                 }
                 
                 // 接続線チェック（部品がない場合のみ）
-                const connection = this.getConnectionAt(pos.x, pos.y);
-                if (connection) {
+                // まず、この位置に部品があるかチェック
+                const componentAtPosition = this.getComponentAt(pos.x, pos.y, false);
+                if (!componentAtPosition) {
+                    const connection = this.getConnectionAt(pos.x, pos.y);
+                    if (connection) {
                     const currentTime = Date.now();
                     
                     // ダブルクリック判定
@@ -1190,6 +1111,7 @@ import Layout from '../layouts/Layout.astro';
                     this.lastClickTime = currentTime;
                     this.render();
                     return;
+                    }
                 }
                 
                 // 何も選択されなかった場合はパン開始
@@ -1677,13 +1599,17 @@ import Layout from '../layouts/Layout.astro';
             getPortAt(x, y) {
                 const tolerance = 20; // タッチ操作に適したサイズに拡大
                 
-                for (const component of this.components.values()) {
+                // Z-index順（最前面から背面）でコンポーネントを取得
+                const sortedComponents = Array.from(this.components.values())
+                    .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
+                
+                for (const component of sortedComponents) {
                     // 入力ポートをチェック
                     for (const port of component.inputs || []) {
                         const portX = component.x + port.x;
                         const portY = component.y + port.y;
                         if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                            console.log('getPortAt - Found input port at', portX, portY);
+                            console.log('getPortAt - Found input port at', portX, portY, 'on component with zIndex:', component.zIndex);
                             return { component, port, type: 'input' };
                         }
                     }
@@ -1693,7 +1619,7 @@ import Layout from '../layouts/Layout.astro';
                         const portX = component.x + port.x;
                         const portY = component.y + port.y;
                         if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                            console.log('getPortAt - Found output port at', portX, portY);
+                            console.log('getPortAt - Found output port at', portX, portY, 'on component with zIndex:', component.zIndex);
                             return { component, port, type: 'output' };
                         }
                     }
@@ -2109,10 +2035,15 @@ import Layout from '../layouts/Layout.astro';
             
             getConnectionAt(x, y) {
                 const tolerance = 30; // 接続線の当たり判定の許容範囲（さらにタッチしやすく拡大）
-                let closestConnection = null;
-                let closestDistance = Infinity;
                 
-                for (const connection of this.connections) {
+                // 接続線を接続されている部品の最大Z-indexでソート（高い順）
+                const sortedConnections = this.connections.slice().sort((a, b) => {
+                    const aMaxZ = Math.max(a.from.component.zIndex || 0, a.to.component.zIndex || 0);
+                    const bMaxZ = Math.max(b.from.component.zIndex || 0, b.to.component.zIndex || 0);
+                    return bMaxZ - aMaxZ;
+                });
+                
+                for (const connection of sortedConnections) {
                     const fromX = connection.from.component.x + connection.from.port.x;
                     const fromY = connection.from.component.y + connection.from.port.y;
                     const toX = connection.to.component.x + connection.to.port.x;
@@ -2145,14 +2076,15 @@ import Layout from '../layouts/Layout.astro';
                         minDistanceForConnection = Math.min(minDistanceForConnection, distance);
                     }
                     
-                    // tolerance内で最も近い接続線を記録
-                    if (minDistanceForConnection <= tolerance && minDistanceForConnection < closestDistance) {
-                        closestDistance = minDistanceForConnection;
-                        closestConnection = connection;
+                    // tolerance内の最初の接続線を返す（Z-index順で最上位）
+                    if (minDistanceForConnection <= tolerance) {
+                        const maxZ = Math.max(connection.from.component.zIndex || 0, connection.to.component.zIndex || 0);
+                        console.log('getConnectionAt - Found connection with maxZ:', maxZ);
+                        return connection;
                     }
                 }
                 
-                return closestConnection;
+                return null;
             }
 
             deleteSelected() {
@@ -3305,8 +3237,8 @@ import Layout from '../layouts/Layout.astro';
             
             // パレットスクロール処理
             handlePaletteScrollStart(event) {
-                // モバイル・タブレット画面でパレットスクロールを有効化
-                if (!this.isTouchDevice()) {
+                // 狭い画面（1024px以下）でパレットスクロールを有効化
+                if (window.innerWidth > 1024) {
                     return;
                 }
                 
@@ -3331,18 +3263,20 @@ import Layout from '../layouts/Layout.astro';
                         type: componentItem.dataset.type,
                         event: event
                     };
+                    
                     console.log('pendingComponentDrag set to:', this.pendingComponentDrag);
+                    // 部品アイコン上でも最初はpreventDefaultしない（スクロール可能にする）
                     return;
                 } else {
                     console.log('📋 Touch on palette background, ready for scroll');
                 }
                 
-                event.preventDefault();
+                // 背景タッチの場合はpreventDefaultしない（ネイティブスクロールを有効化）
             }
             
             handlePaletteScrollMove(event) {
-                // モバイル・タブレット画面でパレットスクロールを有効化
-                if (!this.isTouchDevice()) {
+                // 狭い画面（1024px以下）でパレットスクロールを有効化
+                if (window.innerWidth > 1024) {
                     return;
                 }
                 
@@ -3372,8 +3306,8 @@ import Layout from '../layouts/Layout.astro';
                     // 部品ドラッグ待機中の場合
                     if (this.pendingComponentDrag) {
                         console.log('Evaluating movement: deltaY:', deltaY, 'deltaX:', deltaX, 'deltaY > deltaX:', deltaY > deltaX);
-                        // 縦方向の移動が横方向より大きい場合は部品ドラッグとして判定
-                        if (deltaY > deltaX) {
+                        // 部品ドラッグ判定を緩く（斜め移動も含む）
+                        if ((deltaY > 12 || deltaX > 12) && deltaY > 8) {
                             console.log('🔽 Starting component drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
                             this.startActualComponentDrag(this.pendingComponentDrag.type, event);
                             this.pendingComponentDrag = null;
@@ -3416,8 +3350,8 @@ import Layout from '../layouts/Layout.astro';
             }
             
             handlePaletteScrollEnd(event) {
-                // モバイル・タブレット画面でパレットスクロールを有効化
-                if (!this.isTouchDevice()) {
+                // 狭い画面（1024px以下）でパレットスクロールを有効化
+                if (window.innerWidth > 1024) {
                     return;
                 }
                 
@@ -3426,9 +3360,16 @@ import Layout from '../layouts/Layout.astro';
                 this.isPaletteScrolling = false;
                 this.pendingComponentDrag = null;
                 
-                event.preventDefault();
+                // preventDefaultしない（ネイティブスクロールを有効化）
             }
             
+            // 狭い画面での部品タッチ処理（スクロール優先）
+            handleComponentTouch(event) {
+                // passive: trueなのでpreventDefaultは使えない
+                // パレットスクロールハンドラーで判定処理を行う
+                console.log('Component touch detected (passive mode)');
+            }
+
             // 部品ドラッグを実行する関数（元のstartComponentDragの処理を抽出）
             executeComponentDrag(type, event) {
                 // パレットスクロール状態をリセット
