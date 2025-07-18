@@ -51,13 +51,13 @@ import Layout from '../layouts/Layout.astro';
             position: fixed;
             left: 0;
             right: 0;
-            top: max(4rem, env(safe-area-inset-top, 0px) + 4rem); /* Safe Area対応 */
-            height: clamp(90px, 12vh, 120px); /* 動的高さ調整（最小90px、最大120px） */
+            top: max(172px, env(safe-area-inset-top, 0px) + 172px); /* じょうほうらいふメニューの直下 + Safe Area */
+            height: 100px; /* 固定高さでシンプルに */
             background: white;
             border-bottom: 1px solid #ddd;
             display: flex;
             flex-direction: row;
-            padding: 8px; /* 元のパディングに戻す */
+            padding: 8px;
             overflow-x: auto;
             overflow-y: hidden;
             z-index: 1000;
@@ -120,10 +120,11 @@ import Layout from '../layouts/Layout.astro';
 
         .component-item {
             flex-shrink: 0;
-            width: clamp(55px, 8vw, 75px); /* 動的幅調整 */
-            height: calc(clamp(90px, 12vh, 120px) - 16px); /* パレット高さ - パディング */
-            min-height: 55px;
-            font-size: clamp(0.7rem, 1.5vw, 0.9rem); /* 動的フォントサイズ */
+            width: 80px; /* 幅を広げてより多くの部品を表示 */
+            height: 84px; /* パレット高さ(100px) - パディング(16px) */
+            min-height: 84px;
+            font-size: 0.8rem; /* 固定フォントサイズ */
+            margin-right: 4px; /* アイテム間の間隔 */
         }
 
         .category-title {
@@ -170,7 +171,7 @@ import Layout from '../layouts/Layout.astro';
         /* メインキャンバス（上部パレット対応） */
         .main-canvas {
             position: fixed;
-            top: calc(max(4rem, env(safe-area-inset-top, 0px) + 4rem) + clamp(90px, 12vh, 120px)); /* Safe Area + 動的パレット高さ */
+            top: calc(max(172px, env(safe-area-inset-top, 0px) + 172px) + 100px); /* パレット位置 + パレット高さ */
             left: env(safe-area-inset-left, 0px);
             right: env(safe-area-inset-right, 0px);
             bottom: env(safe-area-inset-bottom, 0px);
@@ -307,7 +308,8 @@ import Layout from '../layouts/Layout.astro';
 
             .file-menu {
                 bottom: 8px;
-                left: 8px;
+                left: 50%; /* 中央配置に修正 */
+                transform: translateX(-50%); /* 中央配置のため */
                 flex-direction: row;
                 width: auto;
             }
@@ -358,7 +360,8 @@ import Layout from '../layouts/Layout.astro';
             .file-menu {
                 position: fixed;
                 bottom: 20px;
-                left: 260px;
+                left: 50%; /* 中央配置に修正 */
+                transform: translateX(-50%); /* 中央配置のため */
                 flex-direction: row;
                 width: auto;
                 background: rgba(255, 255, 255, 0.95);
