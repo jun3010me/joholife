@@ -51,8 +51,8 @@ import Layout from '../layouts/Layout.astro';
             position: fixed;
             left: 0;
             right: 0;
-            top: max(172px, env(safe-area-inset-top, 0px) + 172px); /* じょうほうらいふメニューの直下 + Safe Area */
-            height: 100px; /* 固定高さでシンプルに */
+            top: calc(env(safe-area-inset-top, 0px) + 4rem); /* シンプルにナビ高さ + Safe Area */
+            height: 110px; /* アイコンが切れないよう少し高くする */
             background: white;
             border-bottom: 1px solid #ddd;
             display: flex;
@@ -121,8 +121,8 @@ import Layout from '../layouts/Layout.astro';
         .component-item {
             flex-shrink: 0;
             width: 80px; /* 幅を広げてより多くの部品を表示 */
-            height: 84px; /* パレット高さ(100px) - パディング(16px) */
-            min-height: 84px;
+            height: 86px; /* パレット高さ(110px) - 全体パディング(16px) - 余裕(8px) */
+            min-height: 86px;
             font-size: 0.8rem; /* 固定フォントサイズ */
             margin-right: 4px; /* アイテム間の間隔 */
         }
@@ -135,7 +135,7 @@ import Layout from '../layouts/Layout.astro';
             background: white;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: clamp(6px, 1.5vw, 12px) clamp(4px, 1vw, 8px); /* 動的パディング */
+            padding: 6px 4px; /* 固定パディングで確実に収める */
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
@@ -171,10 +171,10 @@ import Layout from '../layouts/Layout.astro';
         /* メインキャンバス（上部パレット対応） */
         .main-canvas {
             position: fixed;
-            top: calc(max(172px, env(safe-area-inset-top, 0px) + 172px) + 100px); /* パレット位置 + パレット高さ */
+            top: calc(env(safe-area-inset-top, 0px) + 4rem + 110px); /* Safe Area + ナビ + パレット */
             left: env(safe-area-inset-left, 0px);
             right: env(safe-area-inset-right, 0px);
-            bottom: env(safe-area-inset-bottom, 0px);
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); /* 制御ボタン用のスペースを確保 */
             background: white;
             overflow: hidden;
         }
@@ -215,7 +215,7 @@ import Layout from '../layouts/Layout.astro';
         /* ファイルメニュー */
         .file-menu {
             position: fixed;
-            bottom: 12px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
             left: 50%;
             transform: translateX(-50%);
             background: white;
@@ -293,21 +293,20 @@ import Layout from '../layouts/Layout.astro';
 
         /* PC横画面対応（大画面のみ） */
         @media (min-width: 769px) and (orientation: landscape) and (max-height: 600px) {
+            /* 部品パレットは統一されたfixed位置を維持 */
             .component-palette {
-                width: 200px; /* パレット幅を縮小 */
+                /* width設定を削除 - 統一設定を使用 */
             }
             
-            .component-grid {
-                grid-template-columns: repeat(2, 1fr); /* 2列に変更 */
-            }
+            /* component-gridは統一されたflex設定を使用 */
             
             .canvas-container {
                 flex: 1;
-                max-width: calc(100vw - 200px); /* 横画面時の最適化 */
+                /* max-width制限を削除 - 全画面幅を使用 */
             }
 
             .file-menu {
-                bottom: 8px;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
                 left: 50%; /* 中央配置に修正 */
                 transform: translateX(-50%); /* 中央配置のため */
                 flex-direction: row;
@@ -336,19 +335,15 @@ import Layout from '../layouts/Layout.astro';
 
         /* 大画面横画面対応（縦幅が短い大画面） */
         @media (min-width: 844px) and (orientation: landscape) and (max-height: 600px) {
+            /* 部品パレットは統一されたfixed位置を維持 */
             .component-palette {
-                width: 240px; /* 大画面では少し幅を広く */
-                position: relative; /* 大画面では常時表示 */
-                transform: none !important;
-                box-shadow: none;
+                /* 統一設定を使用 - position: relativeを削除 */
             }
             
-            .component-grid {
-                grid-template-columns: repeat(3, 1fr); /* 3列を維持 */
-            }
+            /* component-gridは統一されたflex設定を使用 */
 
             .main-canvas {
-                width: calc(100vw - 240px);
+                /* width制限を削除 - 全画面幅を使用 */
             }
 
 
@@ -359,7 +354,7 @@ import Layout from '../layouts/Layout.astro';
 
             .file-menu {
                 position: fixed;
-                bottom: 20px;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
                 left: 50%; /* 中央配置に修正 */
                 transform: translateX(-50%); /* 中央配置のため */
                 flex-direction: row;
@@ -460,26 +455,9 @@ import Layout from '../layouts/Layout.astro';
                 margin: 0 6px;
             }
             
-            /* 基本ゲート: 6個 → 2×3 */
-            .component-category:nth-child(1) .component-grid {
-                grid-template-columns: repeat(2, 60px);
-            }
-            
-            /* 入出力: 4個 → 2×2 */
-            .component-category:nth-child(2) .component-grid {
-                grid-template-columns: repeat(2, 60px);
-            }
-            
-            /* フリップフロップ: 4個 → 2×2 */
-            .component-category:nth-child(3) .component-grid {
-                grid-template-columns: repeat(2, 60px);
-            }
+            /* component-gridは統一されたflex設定を使用 */
 
-            .component-item {
-                min-width: 60px;
-                min-height: 50px;
-                flex-shrink: 0;
-            }
+            /* component-itemは統一設定を使用 */
 
 
             /* ツールバーを中央右に配置 */
@@ -707,7 +685,7 @@ import Layout from '../layouts/Layout.astro';
                 this.isPaletteScrolling = false;
                 this.paletteScrollStartX = 0;
                 this.paletteScrollStartY = 0;
-                this.paletteScrollThreshold = 5; // 部品ドラッグ判定をより厳しく（スクロール優先）
+                this.paletteScrollThreshold = 10; // スクロール判定を緩く（横スクロール優先）
                 this.paletteScrollStartScrollLeft = 0;
                 this.pendingComponentDrag = null; // 部品ドラッグ開始待機用
                 this.currentOverlapIndex = 0; // 現在選択中の重なりインデックス
@@ -869,12 +847,10 @@ import Layout from '../layouts/Layout.astro';
                         grid.style.overflowX = 'visible';
                         grid.style.gap = '4px';
                         
-                        // 部品アイテムのサイズを調整
+                        // 部品アイテムのサイズを調整（CSSで統一された80pxを維持）
                         const items = grid.querySelectorAll('.component-item');
                         items.forEach(item => {
-                            item.style.width = '55px';
-                            item.style.height = '60px';
-                            item.style.fontSize = '0.8rem';
+                            // CSS設定を優先して動的変更は行わない
                             item.style.flexShrink = '0';
                         });
                     });
@@ -906,12 +882,10 @@ import Layout from '../layouts/Layout.astro';
                         grid.style.overflowX = '';
                         grid.style.gap = '8px';
                         
-                        // 部品アイテムのサイズを元に戻す
+                        // 部品アイテムのサイズを元に戻す（CSS設定を維持）
                         const items = grid.querySelectorAll('.component-item');
                         items.forEach(item => {
-                            item.style.width = '';
-                            item.style.height = '';
-                            item.style.fontSize = '';
+                            // CSS設定を維持して動的変更をリセット
                             item.style.flexShrink = '';
                         });
                     });
@@ -975,17 +949,16 @@ import Layout from '../layouts/Layout.astro';
                     console.log('Setting up touch event handlers (narrow screen)');
                     const paletteContent = document.querySelector('.palette-content');
                     if (paletteContent) {
-                        // ネイティブスクロールを有効化するためpassive: trueに変更
-                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: true });
-                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: true });
-                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: true });
+                        // パレット全体でのスクロール処理（passive: falseで制御可能に）
+                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
+                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
+                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
                     }
                     
                     // 狭い画面でもマウスイベントは併用（PCとタッチ両対応）
                     items.forEach(item => {
                         item.addEventListener('mousedown', this.startComponentDrag.bind(this));
-                        // 狭い画面でのタッチイベントはpassive: trueでスクロール優先
-                        item.addEventListener('touchstart', this.handleComponentTouch.bind(this), { passive: true });
+                        // 個別アイテムのタッチイベントは削除（パレット全体で処理）
                     });
                 } else {
                     console.log('Setting up mouse event handlers (wide screen)');
@@ -3360,11 +3333,12 @@ import Layout from '../layouts/Layout.astro';
                             this.pendingComponentDrag = null;
                             return; // スクロール処理は実行しない
                         }
-                        // 横方向の移動が大きく、移動距離が短い場合はスクロール
-                        else if (deltaX <= 30) { // スクロール検出範囲を拡大
+                        // 横方向の移動が大きい場合は常にスクロール優先
+                        else if (deltaX > 8) { // スクロール検出範囲を緩く
                             this.isPaletteScrolling = true;
                             console.log('◀️▶️ Palette scroll activated (horizontal movement)! deltaX:', deltaX);
                             this.pendingComponentDrag = null;
+                            // スクロールを明示的に許可（preventDefaultしない）
                         }
                         // 横方向の移動が大きく、移動距離が長い場合はドラッグ
                         else {
