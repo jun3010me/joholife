@@ -1048,25 +1048,52 @@ import Layout from '../layouts/Layout.astro';
                 this.touchStartTime = Date.now();
                 this.touchStartPos = { x: pos.x, y: pos.y };
                 
-                // ポート接続チェック
+                // まずその位置にある全ての端子を検出
                 const port = this.getPortAt(pos.x, pos.y);
-                console.log('Checking for port at', pos.x, pos.y, 'found:', port ? port.type : 'none');
+                console.log('Checking for any port at', pos.x, pos.y, 'found:', port ? `${port.type} on ${port.component.type} (zIndex: ${port.component.zIndex})` : 'none');
+                
                 if (port) {
-                    console.log('Starting connection from port:', port.type);
-                    // 接続開始時にマウス座標を更新（点線が正しい位置から始まるように）
-                    this.currentMousePos = pos;
-                    this.startConnection(port);
-                    return;
+                    // 端子が見つかった場合、その位置にある部品との競合をチェック
+                    const componentAtPosition = this.getComponentAt(pos.x, pos.y, false);
+                    console.log('Component at same position:', componentAtPosition ? `${componentAtPosition.type} (zIndex: ${componentAtPosition.zIndex})` : 'none');
+                    
+                    if (!componentAtPosition || port.component.zIndex >= componentAtPosition.zIndex) {
+                        // 端子の部品が最前面または同等の場合、端子から接続線開始
+                        console.log('Starting connection from top-most port:', port.type, 'on', port.component.type);
+                        this.currentMousePos = pos;
+                        this.startConnection(port);
+                        return;
+                    } else {
+                        // より前面の部品がある場合、その部品をドラッグ
+                        console.log('Higher priority component found, dragging:', componentAtPosition.type);
+                        this.selectedComponent = componentAtPosition;
+                        this.selectedConnection = null;
+                        
+                        // 選択されたコンポーネントを前面に移動
+                        componentAtPosition.zIndex = this.nextZIndex++;
+                        
+                        this.isDragging = true;
+                        this.dragOffset = {
+                            x: pos.x - componentAtPosition.x,
+                            y: pos.y - componentAtPosition.y
+                        };
+                        this.isPanning = false;
+                        
+                        // グローバルマウスイベントを追加（キャンバス外でのドラッグ対応）
+                        document.addEventListener('mousemove', this.globalMouseMoveHandler);
+                        document.addEventListener('mouseup', this.globalMouseUpHandler);
+                        return;
+                    }
                 }
                 
-                // 部品選択（循環選択有効）- 接続線より優先
-                const component = this.getComponentAt(pos.x, pos.y, true);
+                // 端子がない場合、部品をチェック
+                const component = this.getComponentAt(pos.x, pos.y, false);
                 console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
                 if (component) {
-                    // 部品選択・ドラッグ開始
+                    // 部品をドラッグ
                     console.log('Component selected for dragging:', component.type);
                     this.selectedComponent = component;
-                    this.selectedConnection = null; // 部品選択時は接続線選択をリセット
+                    this.selectedConnection = null;
                     
                     // 選択されたコンポーネントを前面に移動
                     component.zIndex = this.nextZIndex++;
@@ -1076,7 +1103,7 @@ import Layout from '../layouts/Layout.astro';
                         x: pos.x - component.x,
                         y: pos.y - component.y
                     };
-                    this.isPanning = false; // 部品選択時はパンを無効化
+                    this.isPanning = false;
                     
                     // グローバルマウスイベントを追加（キャンバス外でのドラッグ対応）
                     document.addEventListener('mousemove', this.globalMouseMoveHandler);
@@ -1622,6 +1649,33 @@ import Layout from '../layouts/Layout.astro';
                             console.log('getPortAt - Found output port at', portX, portY, 'on component with zIndex:', component.zIndex);
                             return { component, port, type: 'output' };
                         }
+                    }
+                }
+                
+                return null;
+            }
+            
+            // 特定の部品の端子のみをチェックする関数
+            getPortAtComponent(component, x, y) {
+                const tolerance = 20; // タッチ操作に適したサイズに拡大
+                
+                // 入力ポートをチェック
+                for (const port of component.inputs || []) {
+                    const portX = component.x + port.x;
+                    const portY = component.y + port.y;
+                    if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
+                        console.log('getPortAtComponent - Found input port at', portX, portY, 'on component:', component.type);
+                        return { component, port, type: 'input' };
+                    }
+                }
+                
+                // 出力ポートをチェック
+                for (const port of component.outputs || []) {
+                    const portX = component.x + port.x;
+                    const portY = component.y + port.y;
+                    if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
+                        console.log('getPortAtComponent - Found output port at', portX, portY, 'on component:', component.type);
+                        return { component, port, type: 'output' };
                     }
                 }
                 
