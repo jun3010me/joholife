@@ -1,0 +1,105 @@
+---
+// mobile-circuit-simulator-clean.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="スマホ対応論理回路シミュレータ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+    
+    <link rel="stylesheet" href="/styles/mobile-circuit-simulator.css">
+    
+    <!-- メインアプリケーション -->
+    <div class="app-container">
+        <!-- 部品パレット（上部固定） -->
+        <div class="component-palette" id="component-palette">
+            <div class="palette-content">
+                <!-- 基本ゲート -->
+                <div class="component-category">
+                    <div class="component-grid">
+                        <div class="component-item" data-type="INPUT">
+                            <div class="component-icon">📥</div>
+                            <div class="component-name">入力</div>
+                        </div>
+                        <div class="component-item" data-type="OUTPUT">
+                            <div class="component-icon">📤</div>
+                            <div class="component-name">出力</div>
+                        </div>
+                        <div class="component-item" data-type="AND">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">AND</div>
+                        </div>
+                        <div class="component-item" data-type="OR">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">OR</div>
+                        </div>
+                        <div class="component-item" data-type="NOT">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">NOT</div>
+                        </div>
+                        <div class="component-item" data-type="XOR">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">XOR</div>
+                        </div>
+                        <div class="component-item" data-type="NAND">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">NAND</div>
+                        </div>
+                        <div class="component-item" data-type="NOR">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">NOR</div>
+                        </div>
+                        <div class="component-item" data-type="SWITCH">
+                            <div class="component-icon">🎚️</div>
+                            <div class="component-name">SW</div>
+                        </div>
+                        <div class="component-item" data-type="LED">
+                            <div class="component-icon">💡</div>
+                            <div class="component-name">LED</div>
+                        </div>
+                        <div class="component-item" data-type="DFF">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">DFF</div>
+                        </div>
+                        <div class="component-item" data-type="JKFF">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">JKFF</div>
+                        </div>
+                        <div class="component-item" data-type="TFF">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">TFF</div>
+                        </div>
+                        <div class="component-item" data-type="RSFF">
+                            <canvas class="component-icon-canvas" width="24" height="24"></canvas>
+                            <div class="component-name">RSFF</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- メインキャンバス -->
+        <div class="main-canvas">
+            <div class="canvas-container">
+                <canvas id="circuit-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- ファイル操作メニュー -->
+        <div class="file-menu">
+            <button class="file-button" id="save-btn">💾 保存</button>
+            <div class="file-menu-separator"></div>
+            <button class="file-button" id="load-btn">📁 読込</button>
+            <div class="file-menu-separator"></div>
+            <button class="file-button" id="export-btn">📷 画像</button>
+            <div class="file-menu-separator"></div>
+            <button class="file-button" id="undo-btn">↶ 戻る</button>
+            <div class="file-menu-separator"></div>
+            <button class="file-button" id="redo-btn">↷ 進む</button>
+        </div>
+
+        <!-- 隠しファイル入力 -->
+        <input type="file" class="hidden-file-input" id="file-input" accept=".json">
+    </div>
+
+    <script type="module" src="/scripts/mobile-circuit-simulator.js"></script>
+</Layout>

@@ -1,0 +1,520 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* モバイル・タブレット時はLayoutと協調（タッチデバイス判定） */
+@media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 部品パレット（新標準：画面上部固定、PC・モバイル共通） */
+.component-palette {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(env(safe-area-inset-top, 0px) + 4rem); /* シンプルにナビ高さ + Safe Area */
+    height: 110px; /* アイコンが切れないよう少し高くする */
+    background: white;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-direction: row;
+    padding: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding-left: max(8px, env(safe-area-inset-left, 8px)); /* 左Safe Area */
+    padding-right: max(8px, env(safe-area-inset-right, 8px)); /* 右Safe Area */
+}
+
+.palette-header {
+    display: none; /* タイトル表示を完全に無効化 */
+}
+
+.palette-title {
+    display: none;
+}
+
+
+.palette-content {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 8px !important; /* アイテム間の間隔を狭く */
+    padding: 4px 8px 4px 8px; /* 上下パディングを縮小 */
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    width: 100% !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important; /* 絶対に折り返さない */
+    touch-action: pan-x !important; /* 横方向のタッチスクロールのみ許可 */
+    
+    /* スクロールバーを非表示にする */
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE・Edge */
+}
+
+/* WebKit系ブラウザ（Chrome、Safari）でスクロールバーを非表示 */
+.palette-content::-webkit-scrollbar {
+    display: none !important;
+}
+
+.component-category {
+    display: flex !important; /* 横並びに戻す */
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    flex-wrap: nowrap !important;
+}
+
+.category-title {
+    display: none; /* 完全に非表示 */
+}
+
+/* 全てのレイアウトで1行横スクロール表示に統一 */
+.component-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+}
+
+.component-item {
+    flex-shrink: 0;
+    width: 80px; /* 幅を広げてより多くの部品を表示 */
+    height: 86px; /* パレット高さ(110px) - 全体パディング(16px) - 余裕(8px) */
+    min-height: 86px;
+    font-size: 0.8rem; /* 固定フォントサイズ */
+    margin-right: 4px; /* アイテム間の間隔 */
+}
+
+.category-title {
+    display: none; /* 全てのサイズで非表示 */
+}
+
+.component-item {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 6px 4px; /* 固定パディングで確実に収める */
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.component-item:hover {
+    border-color: #2196f3;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.component-icon {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.component-icon-canvas {
+    margin-bottom: 4px;
+    background: transparent;
+}
+
+.component-name {
+    font-size: 10px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* メインキャンバス（上部パレット対応） */
+.main-canvas {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 4rem + 110px); /* Safe Area + ナビ + パレット */
+    left: env(safe-area-inset-left, 0px);
+    right: env(safe-area-inset-right, 0px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); /* 制御ボタン用のスペースを確保 */
+    background: white;
+    overflow: hidden;
+}
+
+/* 削除：モバイル用のパレット高さ調整（デフォルトで統一済み） */
+
+.canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    touch-action: none;
+}
+
+/* 古いキャンバスコンテナ調整は削除済み */
+
+#circuit-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 10px 10px, #ddd 1px, transparent 1px),
+        radial-gradient(circle at 30px 30px, #ddd 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+}
+
+/* 古いキャンバス要素調整は削除済み */
+
+/* ファイルメニューのセパレーター */
+.file-menu-separator {
+    width: 1px;
+    height: 20px;
+    background: #ddd;
+    margin: 0 8px;
+    align-self: center;
+}
+
+/* ファイルメニュー */
+.file-menu {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    display: flex;
+    padding: 4px;
+    z-index: 1000;
+    white-space: nowrap; /* 改行を防ぐ */
+}
+
+.file-button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 500;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0; /* ボタンの縮小を防ぐ */
+}
+
+.file-button:hover {
+    background: #f5f5f5;
+}
+
+/* 古いPC用サイドバーレイアウトを削除 - 新しい上部固定レイアウトを使用 */
+
+/* 古い複雑なメディアクエリは削除 - シンプルな横幅ベース判定を使用 */
+/* 古いCSSブロック削除済み */
+
+
+
+
+/* モバイル横画面時の1行表示対応 */
+@media (max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    .palette-header {
+        display: none; /* ヘッダーを非表示 */
+    }
+
+    .palette-content {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 8px;
+    }
+
+    .category-title {
+        display: none; /* 横画面では非表示 */
+    }
+
+    .component-grid {
+        display: flex !important; /* グリッドを横並びflex化 */
+        flex-direction: row !important;
+        gap: 6px;
+        margin: 0;
+        padding: 0;
+        grid-template-columns: none !important; /* グリッド設定を無効化 */
+    }
+
+    /* component-item設定は統合済み - 動的調整を使用 */
+
+    .component-item:last-child {
+        margin-right: 0;
+    }
+}
+
+/* PC横画面対応（大画面のみ） */
+@media (min-width: 769px) and (orientation: landscape) and (max-height: 600px) {
+    /* 部品パレットは統一されたfixed位置を維持 */
+    .component-palette {
+        /* width設定を削除 - 統一設定を使用 */
+    }
+    
+    /* component-gridは統一されたflex設定を使用 */
+    
+    .canvas-container {
+        flex: 1;
+        /* max-width制限を削除 - 全画面幅を使用 */
+    }
+
+    .file-menu {
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        left: 50%; /* 中央配置に修正 */
+        transform: translateX(-50%); /* 中央配置のため */
+        flex-direction: row;
+        width: auto;
+    }
+
+    .file-menu-button {
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 0;
+    }
+
+    .file-menu-button:first-child {
+        border-radius: 8px 0 0 8px;
+    }
+
+    .file-menu-button:last-child {
+        border-radius: 0 8px 8px 0;
+    }
+
+    .file-menu-button + .file-menu-button {
+        border-top: none;
+        border-left: 1px solid #eee;
+    }
+}
+
+/* 大画面横画面対応（縦幅が短い大画面） */
+@media (min-width: 844px) and (orientation: landscape) and (max-height: 600px) {
+    /* 部品パレットは統一されたfixed位置を維持 */
+    .component-palette {
+        /* 統一設定を使用 - position: relativeを削除 */
+    }
+    
+    /* component-gridは統一されたflex設定を使用 */
+
+    .main-canvas {
+        /* width制限を削除 - 全画面幅を使用 */
+    }
+
+
+    .palette-overlay {
+        display: none; /* オーバーレイ不要 */
+    }
+
+
+    .file-menu {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        left: 50%; /* 中央配置に修正 */
+        transform: translateX(-50%); /* 中央配置のため */
+        flex-direction: row;
+        width: auto;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-menu-button {
+        border-radius: 0;
+    }
+
+    .file-menu-button:first-child {
+        border-radius: 12px 0 0 12px;
+    }
+
+    .file-menu-button:last-child {
+        border-radius: 0 12px 12px 0;
+    }
+
+    .file-menu-button + .file-menu-button {
+        border-top: none;
+        border-left: 1px solid #eee;
+    }
+}
+
+/* SafeArea対応 - モバイル時は完全無効化 */
+@media (min-width: 769px) {
+    @supports (padding: max(0px)) {
+        .app-container {
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        
+        @media (orientation: landscape) {
+            .app-container {
+                padding-left: max(20px, env(safe-area-inset-left));
+                padding-right: max(20px, env(safe-area-inset-right));
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+    }
+}
+
+/* Layoutコンポーネントとの協調（タッチデバイス） */
+@media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
+    /* main-contentを回路シミュレータ用に調整 */
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        height: calc(100vh - 4rem) !important; /* ナビゲーションバー分を引く */
+        max-width: none !important;
+    }
+    
+    /* footerの無効化（必要に応じて） */
+    .footer {
+        display: none !important;
+    }
+    
+    /* app-containerの調整 */
+    .app-container {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: calc(100vh - 4rem) !important; /* ナビゲーションバー分を引く */
+        width: 100vw !important;
+        display: flex !important;
+        flex-direction: column !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+}
+
+    .component-category {
+        display: flex;
+        flex-direction: column;
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+    
+    .component-category .category-title {
+        font-size: 10px;
+        margin-top: 10px;
+        margin-bottom: 4px;
+        text-align: center;
+    }
+
+    .component-grid {
+        display: grid;
+        gap: 6px;
+        justify-content: center;
+        margin: 0 6px;
+    }
+    
+    /* component-gridは統一されたflex設定を使用 */
+
+    /* component-itemは統一設定を使用 */
+
+
+    /* ツールバーを中央右に配置 */
+    .toolbar {
+        top: 50%;
+        transform: translateY(-50%);
+        right: 12px;
+    }
+
+    /* メインキャンバスの高さ調整は統合済み - 動的計算を使用 */
+
+    /* パレットヘッダーを横向き用に調整 */
+    .palette-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px;
+        min-height: 30px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .palette-title {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+
+.main-canvas {
+    width: 100vw;
+}
+
+/* 古いモバイル・タブレット時のキャンバス調整（無効化） */
+/* @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
+    .main-canvas {
+        margin-top: 120px;
+        height: calc(100vh - 4rem - 120px);
+        padding: 0;
+        flex: 1;
+        width: 100vw;
+        position: relative;
+    }
+} */
+
+/* 古いスマホ・タブレット横画面時のキャンバス調整（無効化） */
+/* @media (max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    .main-canvas {
+        margin-top: 100px;
+        height: calc(100vh - 4rem - 100px);
+        padding: 0;
+    }
+    
+    .canvas-container {
+        margin-top: -8px !important;
+        top: -8px !important;
+    }
+} */
+
+
+/* ドラッグ中の部品スタイル */
+.dragging-component {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0.8;
+    transform: scale(1.1);
+}
+
+/* 隠しファイル入力 */
+.hidden-file-input {
+    display: none;
+}
