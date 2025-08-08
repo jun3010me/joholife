@@ -1014,47 +1014,58 @@ import Layout from '../layouts/Layout.astro';
                 this.touchStartTime = Date.now();
                 this.touchStartPos = { x: pos.x, y: pos.y };
                 
-                // まずその位置にある全ての端子を検出
+                // コンテキスト認識型タッチ判定システム
+                // 1. まず端子を優先チェック（接続開始の意図を尊重）
                 const port = this.getPortAt(pos.x, pos.y);
                 console.log('Checking for any port at', pos.x, pos.y, 'found:', port ? `${port.type} on ${port.component.type} (zIndex: ${port.component.zIndex})` : 'none');
                 
-                if (port) {
-                    // 端子が見つかった場合、その位置にある部品との競合をチェック
+                // 2. 部品の中心部分かどうかを判定
+                const component = this.getComponentAt(pos.x, pos.y, false);
+                const isComponentCenter = component ? this.isInComponentCenter(component, pos.x, pos.y) : false;
+                
+                // 3. 接続線をチェック
+                const connection = this.getConnectionAt(pos.x, pos.y);
+                console.log('Checking for connection at', pos.x, pos.y, 'found:', connection ? connection.id : 'none');
+                
+                // 判定の優先順位を決定
+                if (port && (!connection || !isComponentCenter)) {
+                    // 端子が見つかり、かつ（接続線がないか、部品中心部でない）場合は端子を優先
                     const componentAtPosition = this.getComponentAt(pos.x, pos.y, false);
                     console.log('Component at same position:', componentAtPosition ? `${componentAtPosition.type} (zIndex: ${componentAtPosition.zIndex})` : 'none');
                     
                     if (!componentAtPosition || port.component.zIndex >= componentAtPosition.zIndex) {
                         // 端子の部品が最前面または同等の場合、端子から接続線開始
-                        console.log('Starting connection from top-most port:', port.type, 'on', port.component.type);
+                        console.log('Starting connection from port:', port.type, 'on', port.component.type);
                         this.currentMousePos = pos;
                         this.startConnection(port);
                         return;
-                    } else {
-                        // より前面の部品がある場合、その部品をドラッグ
-                        console.log('Higher priority component found, dragging:', componentAtPosition.type);
-                        this.selectedComponent = componentAtPosition;
+                    }
+                } else if (connection && !isComponentCenter) {
+                    // 接続線が見つかり、部品中心部でない場合は接続線を優先
+                    const currentTime = Date.now();
+                    
+                    if (this.selectedConnection === connection && 
+                        currentTime - this.lastClickTime < this.doubleClickDelay) {
+                        // ダブルクリック：接続線を削除
+                        this.removeConnection(connection.id);
                         this.selectedConnection = null;
-                        
-                        // 選択されたコンポーネントを前面に移動
-                        componentAtPosition.zIndex = this.nextZIndex++;
-                        
-                        this.isDragging = true;
-                        this.dragOffset = {
-                            x: pos.x - componentAtPosition.x,
-                            y: pos.y - componentAtPosition.y
-                        };
-                        this.isPanning = false;
-                        
-                        // グローバルマウスイベントを追加（キャンバス外でのドラッグ対応）
-                        document.addEventListener('mousemove', this.globalMouseMoveHandler);
-                        document.addEventListener('mouseup', this.globalMouseUpHandler);
+                        this.render();
+                        this.saveState();
+                        this.updateSimulation();
+                        console.log('Connection deleted via double-click');
                         return;
                     }
+                    
+                    // シングルクリック：接続線を選択
+                    this.selectedConnection = connection;
+                    this.selectedComponent = null;
+                    this.lastClickTime = currentTime;
+                    this.render();
+                    console.log('Selected connection:', connection.id);
+                    return;
                 }
                 
-                // 端子がない場合、部品をチェック
-                const component = this.getComponentAt(pos.x, pos.y, false);
-                console.log('Looking for component at', pos.x, pos.y, 'found:', component ? component.type : 'none');
+                // 最後に部品をチェック（既に上でcomponentは取得済み）
                 if (component) {
                     // 部品をドラッグ
                     console.log('Component selected for dragging:', component.type);
@@ -1077,35 +1088,7 @@ import Layout from '../layouts/Layout.astro';
                     return;
                 }
                 
-                // 接続線チェック（部品がない場合のみ）
-                // まず、この位置に部品があるかチェック
-                const componentAtPosition = this.getComponentAt(pos.x, pos.y, false);
-                if (!componentAtPosition) {
-                    const connection = this.getConnectionAt(pos.x, pos.y);
-                    if (connection) {
-                    const currentTime = Date.now();
-                    
-                    // ダブルクリック判定
-                    if (this.selectedConnection === connection && 
-                        currentTime - this.lastClickTime < this.doubleClickDelay) {
-                        // ダブルクリック：接続線を削除
-                        this.removeConnection(connection.id);
-                        this.selectedConnection = null;
-                        this.render();
-                        this.saveState();
-                        this.updateSimulation();
-                        // console.log('Connection deleted via double-click');
-                        return;
-                    }
-                    
-                    // シングルクリック：接続線を選択
-                    this.selectedConnection = connection;
-                    this.selectedComponent = null; // 接続線選択時は部品選択をリセット
-                    this.lastClickTime = currentTime;
-                    this.render();
-                    return;
-                    }
-                }
+                // 接続線は既に上でチェック済み
                 
                 // 何も選択されなかった場合はパン開始
                 console.log('No component or connection found, starting pan mode');
@@ -1589,21 +1572,29 @@ import Layout from '../layouts/Layout.astro';
                 return baseComponent;
             }
             
-            getPortAt(x, y) {
-                const tolerance = 20; // タッチ操作に適したサイズに拡大
+            getPortAt(x, y, nearbyConnection = null) {
+                // 基本tolerance（複数接続可能にするため調整）
+                const tolerance = 25;
                 
                 // Z-index順（最前面から背面）でコンポーネントを取得
                 const sortedComponents = Array.from(this.components.values())
                     .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
+                
+                // tolerance内の全ポートを収集
+                const portsWithinTolerance = [];
                 
                 for (const component of sortedComponents) {
                     // 入力ポートをチェック
                     for (const port of component.inputs || []) {
                         const portX = component.x + port.x;
                         const portY = component.y + port.y;
-                        if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                            console.log('getPortAt - Found input port at', portX, portY, 'on component with zIndex:', component.zIndex);
-                            return { component, port, type: 'input' };
+                        const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                        if (distance <= tolerance) {
+                            portsWithinTolerance.push({
+                                component, port, type: 'input', 
+                                distance: distance,
+                                portX: portX, portY: portY
+                            });
                         }
                     }
                     
@@ -1611,27 +1602,95 @@ import Layout from '../layouts/Layout.astro';
                     for (const port of component.outputs || []) {
                         const portX = component.x + port.x;
                         const portY = component.y + port.y;
-                        if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                            console.log('getPortAt - Found output port at', portX, portY, 'on component with zIndex:', component.zIndex);
-                            return { component, port, type: 'output' };
+                        const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                        if (distance <= tolerance) {
+                            portsWithinTolerance.push({
+                                component, port, type: 'output',
+                                distance: distance,
+                                portX: portX, portY: portY
+                            });
                         }
                     }
                 }
                 
-                return null;
+                if (portsWithinTolerance.length === 0) {
+                    return null;
+                }
+                
+                if (portsWithinTolerance.length === 1) {
+                    const result = portsWithinTolerance[0];
+                    console.log('getPortAt - Found single port at', result.portX, result.portY, 'on component with zIndex:', result.component.zIndex);
+                    return { component: result.component, port: result.port, type: result.type };
+                }
+                
+                // 複数のポートが範囲内にある場合の改善された選択ロジック
+                console.log('getPortAt - Multiple ports found:', portsWithinTolerance.length);
+                
+                // 1. 出力端子を優先（複数接続可能にするため）
+                const outputPorts = portsWithinTolerance.filter(p => p.type === 'output');
+                const inputPorts = portsWithinTolerance.filter(p => p.type === 'input');
+                
+                // 出力端子がある場合は出力端子を優先
+                const priorityPorts = outputPorts.length > 0 ? outputPorts : inputPorts.length > 0 ? inputPorts : portsWithinTolerance;
+                
+                // 2. 最前面のコンポーネント（最高Z-index）のポートを優先
+                const maxZIndex = Math.max(...priorityPorts.map(p => p.component.zIndex || 0));
+                const topMostPorts = priorityPorts.filter(p => (p.component.zIndex || 0) === maxZIndex);
+                
+                if (topMostPorts.length === 1) {
+                    const result = topMostPorts[0];
+                    console.log('getPortAt - Selected priority port at', result.portX, result.portY, 'type:', result.type, 'zIndex:', maxZIndex);
+                    return { component: result.component, port: result.port, type: result.type };
+                }
+                
+                // 3. 同じZ-indexのポートが複数ある場合、タッチ位置に最も近いものを選択
+                // ただし、極端に近い場合（5px以内）は縦方向の位置を重視
+                const veryClosePorts = topMostPorts.filter(p => p.distance <= 5);
+                
+                if (veryClosePorts.length > 1) {
+                    // 非常に近い場合は、縦方向の距離を重視
+                    let bestPort = veryClosePorts[0];
+                    let minVerticalDistance = Math.abs(y - bestPort.portY);
+                    
+                    for (const portInfo of veryClosePorts.slice(1)) {
+                        const verticalDistance = Math.abs(y - portInfo.portY);
+                        if (verticalDistance < minVerticalDistance) {
+                            minVerticalDistance = verticalDistance;
+                            bestPort = portInfo;
+                        }
+                    }
+                    
+                    console.log('getPortAt - Selected port by vertical proximity at', bestPort.portX, bestPort.portY, 'type:', bestPort.type);
+                    return { component: bestPort.component, port: bestPort.port, type: bestPort.type };
+                } else {
+                    // 一般的なケース：単純に距離で選択
+                    const bestPort = topMostPorts.reduce((best, current) => 
+                        current.distance < best.distance ? current : best
+                    );
+                    
+                    console.log('getPortAt - Selected closest port at', bestPort.portX, bestPort.portY, 'type:', bestPort.type, 'distance:', bestPort.distance.toFixed(2));
+                    return { component: bestPort.component, port: bestPort.port, type: bestPort.type };
+                }
             }
             
             // 特定の部品の端子のみをチェックする関数
             getPortAtComponent(component, x, y) {
-                const tolerance = 20; // タッチ操作に適したサイズに拡大
+                const tolerance = 25; // タッチ操作に適したサイズに拡大（20→25）
+                
+                // tolerance内の全ポートを収集
+                const portsWithinTolerance = [];
                 
                 // 入力ポートをチェック
                 for (const port of component.inputs || []) {
                     const portX = component.x + port.x;
                     const portY = component.y + port.y;
-                    if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                        console.log('getPortAtComponent - Found input port at', portX, portY, 'on component:', component.type);
-                        return { component, port, type: 'input' };
+                    const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    if (distance <= tolerance) {
+                        portsWithinTolerance.push({
+                            port, type: 'input', distance: distance,
+                            portX: portX, portY: portY,
+                            verticalDistance: Math.abs(y - portY)
+                        });
                     }
                 }
                 
@@ -1639,55 +1698,124 @@ import Layout from '../layouts/Layout.astro';
                 for (const port of component.outputs || []) {
                     const portX = component.x + port.x;
                     const portY = component.y + port.y;
-                    if (Math.abs(x - portX) <= tolerance && Math.abs(y - portY) <= tolerance) {
-                        console.log('getPortAtComponent - Found output port at', portX, portY, 'on component:', component.type);
-                        return { component, port, type: 'output' };
+                    const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    if (distance <= tolerance) {
+                        portsWithinTolerance.push({
+                            port, type: 'output', distance: distance,
+                            portX: portX, portY: portY,
+                            verticalDistance: Math.abs(y - portY)
+                        });
                     }
                 }
                 
-                return null;
+                if (portsWithinTolerance.length === 0) {
+                    return null;
+                }
+                
+                if (portsWithinTolerance.length === 1) {
+                    const result = portsWithinTolerance[0];
+                    console.log('getPortAtComponent - Found single port at', result.portX, result.portY, 'on component:', component.type);
+                    return { component, port: result.port, type: result.type };
+                }
+                
+                // 複数ポートの場合の改善された選択
+                const veryClosePorts = portsWithinTolerance.filter(p => p.distance <= 5);
+                
+                if (veryClosePorts.length > 1) {
+                    // 非常に近い場合は縦方向の距離を重視
+                    const bestPort = veryClosePorts.reduce((best, current) => 
+                        current.verticalDistance < best.verticalDistance ? current : best
+                    );
+                    console.log('getPortAtComponent - Selected port by vertical proximity at', bestPort.portX, bestPort.portY);
+                    return { component, port: bestPort.port, type: bestPort.type };
+                } else {
+                    // 通常の場合は距離で選択
+                    const bestPort = portsWithinTolerance.reduce((best, current) => 
+                        current.distance < best.distance ? current : best
+                    );
+                    console.log('getPortAtComponent - Selected closest port at', bestPort.portX, bestPort.portY, 'distance:', bestPort.distance.toFixed(2));
+                    return { component, port: bestPort.port, type: bestPort.type };
+                }
             }
             
             findBestInputPort(component, x, y) {
                 if (!component.inputs || component.inputs.length === 0) return null;
                 
-                // 最も近い入力端子を探す
-                let bestPort = null;
-                let minDistance = Infinity;
+                // 入力端子候補を評価
+                const portCandidates = [];
                 
                 for (const port of component.inputs) {
                     const portX = component.x + port.x;
                     const portY = component.y + port.y;
                     const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    const verticalDistance = Math.abs(y - portY);
+                    const horizontalDistance = Math.abs(x - portX);
                     
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        bestPort = port;
-                    }
+                    portCandidates.push({
+                        port, portX, portY, distance, verticalDistance, horizontalDistance
+                    });
                 }
                 
-                return bestPort ? { component, port: bestPort, type: 'input' } : null;
+                // 近接性による優先順位付き選択
+                portCandidates.sort((a, b) => {
+                    // 非常に近い場合（10px以内）は縦方向の距離を重視
+                    if (a.distance <= 10 && b.distance <= 10) {
+                        const verticalDiff = a.verticalDistance - b.verticalDistance;
+                        if (Math.abs(verticalDiff) > 2) { // 縦方向に2px以上差がある場合
+                            return verticalDiff;
+                        }
+                        // 縦方向がほぼ同じ場合は全体距離で決定
+                        return a.distance - b.distance;
+                    }
+                    
+                    // 一般的なケース：全体距離で選択
+                    return a.distance - b.distance;
+                });
+                
+                const bestCandidate = portCandidates[0];
+                console.log(`findBestInputPort - Selected input port at (${bestCandidate.portX}, ${bestCandidate.portY}) with distance ${bestCandidate.distance.toFixed(2)}`);
+                
+                return { component, port: bestCandidate.port, type: 'input' };
             }
             
             findBestOutputPort(component, x, y) {
                 if (!component.outputs || component.outputs.length === 0) return null;
                 
-                // 最も近い出力端子を探す
-                let bestPort = null;
-                let minDistance = Infinity;
+                // 出力端子候補を評価
+                const portCandidates = [];
                 
                 for (const port of component.outputs) {
                     const portX = component.x + port.x;
                     const portY = component.y + port.y;
                     const distance = Math.sqrt(Math.pow(x - portX, 2) + Math.pow(y - portY, 2));
+                    const verticalDistance = Math.abs(y - portY);
+                    const horizontalDistance = Math.abs(x - portX);
                     
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        bestPort = port;
-                    }
+                    portCandidates.push({
+                        port, portX, portY, distance, verticalDistance, horizontalDistance
+                    });
                 }
                 
-                return bestPort ? { component, port: bestPort, type: 'output' } : null;
+                // 近接性による優先順位付き選択
+                portCandidates.sort((a, b) => {
+                    // 非常に近い場合（10px以内）は縦方向の距離を重視
+                    if (a.distance <= 10 && b.distance <= 10) {
+                        const verticalDiff = a.verticalDistance - b.verticalDistance;
+                        if (Math.abs(verticalDiff) > 2) { // 縦方向に2px以上差がある場合
+                            return verticalDiff;
+                        }
+                        // 縦方向がほぼ同じ場合は全体距離で決定
+                        return a.distance - b.distance;
+                    }
+                    
+                    // 一般的なケース：全体距離で選択
+                    return a.distance - b.distance;
+                });
+                
+                const bestCandidate = portCandidates[0];
+                console.log(`findBestOutputPort - Selected output port at (${bestCandidate.portX}, ${bestCandidate.portY}) with distance ${bestCandidate.distance.toFixed(2)}`);
+                
+                return { component, port: bestCandidate.port, type: 'output' };
             }
             
             startConnection(portInfo) {
@@ -2053,8 +2181,52 @@ import Layout from '../layouts/Layout.astro';
                 return selectedComponent;
             }
             
+            isInComponentCenter(component, x, y) {
+                // 部品の中心部分（端子から離れた部分）かどうかを判定
+                const centerX = component.x + component.width / 2;
+                const centerY = component.y + component.height / 2;
+                const centerRadius = Math.min(component.width, component.height) * 0.4; // 中心部の判定半径（0.3→0.4に拡大）
+                
+                const distanceToCenter = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                const isInCenter = distanceToCenter <= centerRadius;
+                
+                console.log(`isInComponentCenter: distance=${distanceToCenter.toFixed(2)}, radius=${centerRadius.toFixed(2)}, isCenter=${isInCenter}`);
+                return isInCenter;
+            }
+
+            findNearbyConnection(x, y, searchRadius) {
+                // 指定半径内に接続線があるかを判定（直接ヒットしない場合の補助判定用）
+                for (const connection of this.connections) {
+                    const fromX = connection.from.component.x + connection.from.port.x;
+                    const fromY = connection.from.component.y + connection.from.port.y;
+                    const toX = connection.to.component.x + connection.to.port.x;
+                    const toY = connection.to.component.y + connection.to.port.y;
+                    
+                    // ベジエ曲線の複数点での距離チェック
+                    const midX = (fromX + toX) / 2;
+                    
+                    for (let i = 0; i <= 10; i++) {
+                        const t = i / 10;
+                        const bezierX = Math.pow(1-t, 3) * fromX + 
+                                       3 * Math.pow(1-t, 2) * t * midX + 
+                                       3 * (1-t) * Math.pow(t, 2) * midX + 
+                                       Math.pow(t, 3) * toX;
+                        const bezierY = Math.pow(1-t, 3) * fromY + 
+                                       3 * Math.pow(1-t, 2) * t * fromY + 
+                                       3 * (1-t) * Math.pow(t, 2) * toY + 
+                                       Math.pow(t, 3) * toY;
+                        
+                        const distance = Math.sqrt(Math.pow(x - bezierX, 2) + Math.pow(y - bezierY, 2));
+                        if (distance <= searchRadius) {
+                            return connection;
+                        }
+                    }
+                }
+                return null;
+            }
+
             getConnectionAt(x, y) {
-                const tolerance = 30; // 接続線の当たり判定の許容範囲（さらにタッチしやすく拡大）
+                const tolerance = 35; // 接続線の当たり判定の許容範囲（端子より優先させるために拡大）
                 
                 // 接続線を接続されている部品の最大Z-indexでソート（高い順）
                 const sortedConnections = this.connections.slice().sort((a, b) => {
