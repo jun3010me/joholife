@@ -27,6 +27,7 @@ class NetworkSimulator {
         this.lastClickTime = 0;
         this.doubleClickDelay = 300;
         this.lastClickPosition = null;
+        this.lastClickedDevice = null;
         
         // パレットスクロール対応
         this.isPaletteScrolling = false;
@@ -347,6 +348,42 @@ class NetworkSimulator {
         return subnet + hostNumber;
     }
 
+    // LAN2のデフォルトIP取得
+    getLAN2DefaultIP(type, count) {
+        if (type !== 'router') return '192.168.2.1';
+        
+        const routerIP = this.getDefaultIP(type, count);
+        const parts = routerIP.split('.');
+        return `${parts[0]}.${parts[1]}.2.1`;
+    }
+
+    // LAN3のデフォルトIP取得
+    getLAN3DefaultIP(type, count) {
+        if (type !== 'router') return '192.168.3.1';
+        
+        const routerIP = this.getDefaultIP(type, count);
+        const parts = routerIP.split('.');
+        return `${parts[0]}.${parts[1]}.3.1`;
+    }
+
+    // DHCPプール開始アドレス取得（LAN番号対応）
+    getDHCPPoolStart(type, count, lanNumber = 1) {
+        if (type !== 'router') return '192.168.1.100';
+        
+        const routerIP = this.getDefaultIP(type, count);
+        const parts = routerIP.split('.');
+        return `${parts[0]}.${parts[1]}.${lanNumber}.100`;
+    }
+
+    // DHCPプール終了アドレス取得（LAN番号対応）
+    getDHCPPoolEnd(type, count, lanNumber = 1) {
+        if (type !== 'router') return '192.168.1.199';
+        
+        const routerIP = this.getDefaultIP(type, count);
+        const parts = routerIP.split('.');
+        return `${parts[0]}.${parts[1]}.${lanNumber}.199`;
+    }
+
     // デバイスのNICポート情報を取得（入出力兼用）
     getDevicePorts(type) {
         const portConfigs = {
@@ -596,7 +633,36 @@ class NetworkSimulator {
             config: {
                 ipAddress: this.getDefaultIP(deviceType, deviceCount),
                 subnetMask: '255.255.255.0',
-                defaultGateway: '192.168.1.1'
+                defaultGateway: '192.168.1.1',
+                dhcpEnabled: false,
+                // 複数LAN対応のDHCP設定
+                lan1: {
+                    ipAddress: this.getDefaultIP(deviceType, deviceCount),
+                    dhcpEnabled: deviceType === 'router',
+                    dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 1),
+                    dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 1),
+                    dhcpAllocatedIPs: new Map()
+                },
+                lan2: {
+                    ipAddress: this.getLAN2DefaultIP(deviceType, deviceCount),
+                    dhcpEnabled: false,
+                    dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 2),
+                    dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 2),
+                    dhcpAllocatedIPs: new Map()
+                },
+                lan3: {
+                    ipAddress: this.getLAN3DefaultIP(deviceType, deviceCount),
+                    dhcpEnabled: false,
+                    dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 3),
+                    dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 3),
+                    dhcpAllocatedIPs: new Map()
+                },
+                dhcpLeaseTime: 3600,
+                // 後方互換性のための旧設定（LAN1と同期）
+                dhcpServerEnabled: deviceType === 'router',
+                dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 1),
+                dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 1),
+                dhcpAllocatedIPs: new Map()
             },
             zIndex: this.nextZIndex++,
             ports: this.getDevicePorts(deviceType)
@@ -902,10 +968,8 @@ class NetworkSimulator {
         if (this.isDragging && (this.selectedDevice || this.pendingDevice)) {
             this.finalizeDrag();
         } else if (this.dragPrepared && this.selectedDevice) {
-            // ドラッグされずに終了した場合（単純なクリック）
-            console.log('単純なクリック検出:', this.selectedDevice.name);
-            // デバイスの選択状態は維持する（設定ボタンが有効になる）
-            this.updateStatus(`${this.selectedDevice.name}を選択しました（設定ボタンをクリックして設定変更）`);
+            // ドラッグされずに終了した場合（単純なクリックまたはダブルクリック）
+            this.handleDeviceClick(this.selectedDevice);
         }
         
         // 残りのクリーンアップ
@@ -2281,8 +2345,58 @@ class NetworkSimulator {
         document.getElementById('subnet-mask').value = this.selectedDevice.config.subnetMask;
         document.getElementById('default-gateway').value = this.selectedDevice.config.defaultGateway;
         
+        // DHCPクライアント設定
+        document.getElementById('dhcp-enabled').checked = this.selectedDevice.config.dhcpEnabled;
+        
+        // DHCPサーバー設定（ルーターのみ表示）
+        const dhcpServerSection = document.getElementById('dhcp-server-section');
+        if (this.selectedDevice.type === 'router') {
+            dhcpServerSection.style.display = 'block';
+            
+            // LAN1 設定
+            document.getElementById('lan1-ip').value = this.selectedDevice.config.lan1.ipAddress;
+            document.getElementById('lan1-dhcp-enabled').checked = this.selectedDevice.config.lan1.dhcpEnabled;
+            document.getElementById('lan1-pool-start').value = this.selectedDevice.config.lan1.dhcpPoolStart;
+            document.getElementById('lan1-pool-end').value = this.selectedDevice.config.lan1.dhcpPoolEnd;
+            
+            // LAN2 設定
+            document.getElementById('lan2-ip').value = this.selectedDevice.config.lan2.ipAddress;
+            document.getElementById('lan2-dhcp-enabled').checked = this.selectedDevice.config.lan2.dhcpEnabled;
+            document.getElementById('lan2-pool-start').value = this.selectedDevice.config.lan2.dhcpPoolStart;
+            document.getElementById('lan2-pool-end').value = this.selectedDevice.config.lan2.dhcpPoolEnd;
+            
+            // LAN3 設定
+            document.getElementById('lan3-ip').value = this.selectedDevice.config.lan3.ipAddress;
+            document.getElementById('lan3-dhcp-enabled').checked = this.selectedDevice.config.lan3.dhcpEnabled;
+            document.getElementById('lan3-pool-start').value = this.selectedDevice.config.lan3.dhcpPoolStart;
+            document.getElementById('lan3-pool-end').value = this.selectedDevice.config.lan3.dhcpPoolEnd;
+            
+            // 共通設定
+            document.getElementById('dhcp-lease-time').value = this.selectedDevice.config.dhcpLeaseTime;
+        } else {
+            dhcpServerSection.style.display = 'none';
+        }
+        
+        // DHCP有効時はIP設定を無効化
+        this.toggleIPFields(this.selectedDevice.config.dhcpEnabled);
+        
         document.getElementById('dialog-overlay').style.display = 'block';
         document.getElementById('device-config-dialog').style.display = 'block';
+        
+        // DHCPチェックボックスの変更イベントを設定
+        document.getElementById('dhcp-enabled').addEventListener('change', (e) => {
+            this.toggleIPFields(e.target.checked);
+        });
+    }
+
+    // IP設定フィールドの有効/無効切り替え
+    toggleIPFields(dhcpEnabled) {
+        const fields = ['ip-address', 'subnet-mask', 'default-gateway'];
+        fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            field.disabled = dhcpEnabled;
+            field.style.backgroundColor = dhcpEnabled ? '#f5f5f5' : 'white';
+        });
     }
 
     // デバイス設定ダイアログ非表示
@@ -2300,17 +2414,132 @@ class NetworkSimulator {
         const ipAddress = document.getElementById('ip-address').value;
         const subnetMask = document.getElementById('subnet-mask').value;
         const defaultGateway = document.getElementById('default-gateway').value;
+        const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
         
-        // IPアドレスの簡単な検証
-        if (!this.isValidIP(ipAddress)) {
-            alert('有効なIPアドレスを入力してください');
-            return;
+        // DHCP無効時のみIP設定を検証
+        if (!dhcpEnabled) {
+            if (!this.isValidIP(ipAddress)) {
+                alert('有効なIPアドレスを入力してください');
+                return;
+            }
+            
+            if (!this.isValidIP(subnetMask)) {
+                alert('有効なサブネットマスクを入力してください');
+                return;
+            }
         }
         
+        // 基本設定の更新
         this.currentDeviceConfig.name = name;
-        this.currentDeviceConfig.config.ipAddress = ipAddress;
-        this.currentDeviceConfig.config.subnetMask = subnetMask;
-        this.currentDeviceConfig.config.defaultGateway = defaultGateway;
+        this.currentDeviceConfig.config.dhcpEnabled = dhcpEnabled;
+        
+        if (!dhcpEnabled) {
+            // DHCP無効時は手動IP設定を保存
+            this.currentDeviceConfig.config.ipAddress = ipAddress;
+            this.currentDeviceConfig.config.subnetMask = subnetMask;
+            this.currentDeviceConfig.config.defaultGateway = defaultGateway;
+        }
+        
+        // ルーターの場合はDHCPサーバー設定も保存
+        if (this.currentDeviceConfig.type === 'router') {
+            const dhcpLeaseTime = parseInt(document.getElementById('dhcp-lease-time').value) || 3600;
+            
+            // LAN1 設定
+            const lan1IP = document.getElementById('lan1-ip').value;
+            const lan1DHCPEnabled = document.getElementById('lan1-dhcp-enabled').checked;
+            const lan1PoolStart = document.getElementById('lan1-pool-start').value;
+            const lan1PoolEnd = document.getElementById('lan1-pool-end').value;
+            
+            if (!this.isValidIP(lan1IP)) {
+                alert('有効なLAN1 IPアドレスを入力してください');
+                return;
+            }
+            
+            if (lan1DHCPEnabled) {
+                if (!this.isValidIP(lan1PoolStart) || !this.isValidIP(lan1PoolEnd)) {
+                    alert('有効なLAN1 IPプール範囲を入力してください');
+                    return;
+                }
+            }
+            
+            // LAN2 設定
+            const lan2IP = document.getElementById('lan2-ip').value;
+            const lan2DHCPEnabled = document.getElementById('lan2-dhcp-enabled').checked;
+            const lan2PoolStart = document.getElementById('lan2-pool-start').value;
+            const lan2PoolEnd = document.getElementById('lan2-pool-end').value;
+            
+            if (!this.isValidIP(lan2IP)) {
+                alert('有効なLAN2 IPアドレスを入力してください');
+                return;
+            }
+            
+            if (lan2DHCPEnabled) {
+                if (!this.isValidIP(lan2PoolStart) || !this.isValidIP(lan2PoolEnd)) {
+                    alert('有効なLAN2 IPプール範囲を入力してください');
+                    return;
+                }
+            }
+            
+            // LAN3 設定
+            const lan3IP = document.getElementById('lan3-ip').value;
+            const lan3DHCPEnabled = document.getElementById('lan3-dhcp-enabled').checked;
+            const lan3PoolStart = document.getElementById('lan3-pool-start').value;
+            const lan3PoolEnd = document.getElementById('lan3-pool-end').value;
+            
+            if (!this.isValidIP(lan3IP)) {
+                alert('有効なLAN3 IPアドレスを入力してください');
+                return;
+            }
+            
+            if (lan3DHCPEnabled) {
+                if (!this.isValidIP(lan3PoolStart) || !this.isValidIP(lan3PoolEnd)) {
+                    alert('有効なLAN3 IPプール範囲を入力してください');
+                    return;
+                }
+            }
+            
+            // 設定を保存
+            this.currentDeviceConfig.config.lan1.ipAddress = lan1IP;
+            this.currentDeviceConfig.config.lan1.dhcpEnabled = lan1DHCPEnabled;
+            this.currentDeviceConfig.config.lan1.dhcpPoolStart = lan1PoolStart;
+            this.currentDeviceConfig.config.lan1.dhcpPoolEnd = lan1PoolEnd;
+            
+            this.currentDeviceConfig.config.lan2.ipAddress = lan2IP;
+            this.currentDeviceConfig.config.lan2.dhcpEnabled = lan2DHCPEnabled;
+            this.currentDeviceConfig.config.lan2.dhcpPoolStart = lan2PoolStart;
+            this.currentDeviceConfig.config.lan2.dhcpPoolEnd = lan2PoolEnd;
+            
+            this.currentDeviceConfig.config.lan3.ipAddress = lan3IP;
+            this.currentDeviceConfig.config.lan3.dhcpEnabled = lan3DHCPEnabled;
+            this.currentDeviceConfig.config.lan3.dhcpPoolStart = lan3PoolStart;
+            this.currentDeviceConfig.config.lan3.dhcpPoolEnd = lan3PoolEnd;
+            
+            this.currentDeviceConfig.config.dhcpLeaseTime = dhcpLeaseTime;
+            
+            // 後方互換性のために旧設定も同期
+            this.currentDeviceConfig.config.dhcpServerEnabled = lan1DHCPEnabled;
+            this.currentDeviceConfig.config.dhcpPoolStart = lan1PoolStart;
+            this.currentDeviceConfig.config.dhcpPoolEnd = lan1PoolEnd;
+            this.currentDeviceConfig.config.ipAddress = lan1IP; // メインIPはLAN1に設定
+            
+            // DHCP設定変更時のクライアント再配布
+            this.redistributeDHCPAddresses(this.currentDeviceConfig);
+        }
+        
+        // DHCP有効デバイスのIPアドレス取得を試行
+        if (dhcpEnabled) {
+            // 前の静的IPアドレスをクリア
+            this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
+            
+            // DHCP要求を実行
+            const success = this.requestDHCPAddress(this.currentDeviceConfig);
+            
+            if (!success) {
+                console.log(`DHCP要求失敗: ${this.currentDeviceConfig.name}`);
+                // DHCPが失敗した場合、一時的に無効なIPを設定
+                this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
+            }
+        }
         
         this.hideDeviceConfig();
         this.updateStatus(`${name} の設定を更新しました`);
@@ -2704,9 +2933,553 @@ class NetworkSimulator {
         };
         return icons[type] || '📱';
     }
+
+    // DHCP アドレス要求（複数LAN対応・デバッグ強化）
+    requestDHCPAddress(client) {
+        console.log(`\n=== DHCP要求開始: ${client.name} ===`);
+        
+        // 接続されたDHCPサーバー（ルーター）を探す
+        const dhcpServerInfo = this.findDHCPServer(client);
+        
+        if (!dhcpServerInfo) {
+            const message = `❌ DHCP失敗: ${client.name} - DHCPサーバーが見つかりません`;
+            console.log(message);
+            this.updateStatus(message);
+            client.config.ipAddress = '0.0.0.0';
+            return false;
+        }
+        
+        const { router, lanConfig } = dhcpServerInfo;
+        const lanName = this.getLANName(router, lanConfig);
+        
+        console.log(`DHCP: ${client.name} -> ${router.name} (${lanName})`);
+        console.log(`プール範囲: ${lanConfig.dhcpPoolStart} - ${lanConfig.dhcpPoolEnd}`);
+        
+        // DHCPプールから利用可能なIPアドレスを割り当て
+        const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, client, router);
+        
+        if (!assignedIP) {
+            const message = `❌ DHCP失敗: ${client.name} - 利用可能なIPアドレスがありません (${lanName})`;
+            console.log(message);
+            this.updateStatus(message);
+            client.config.ipAddress = '0.0.0.0';
+            return false;
+        }
+        
+        // クライアントにIPアドレスを設定
+        client.config.ipAddress = assignedIP.ip;
+        client.config.subnetMask = '255.255.255.0'; // 固定サブネットマスク
+        client.config.defaultGateway = lanConfig.ipAddress; // そのLANのゲートウェイ
+        
+        const message = `✅ DHCP成功: ${client.name} に ${assignedIP.ip} を割り当てました (${lanName})`;
+        console.log(message);
+        console.log(`=== DHCP要求完了: ${client.name} ===\n`);
+        
+        this.updateStatus(message);
+        this.scheduleRender(); // 画面更新をスケジュール
+        return true;
+    }
+
+    // DHCPサーバーを探す（複数LAN対応）
+    findDHCPServer(client) {
+        // 物理的に接続されたデバイスをBFSで探索
+        const visited = new Set();
+        const queue = [client.id];
+        visited.add(client.id);
+        
+        while (queue.length > 0) {
+            const currentId = queue.shift();
+            const currentDevice = this.devices.get(currentId);
+            
+            if (!currentDevice) continue;
+            
+            // 現在のデバイスがDHCPサーバー有効なルーターかチェック
+            if (currentDevice.type === 'router' && currentDevice !== client) {
+                // いずれかのLANでDHCPが有効になっているかチェック
+                if (currentDevice.config.lan1?.dhcpEnabled || 
+                    currentDevice.config.lan2?.dhcpEnabled || 
+                    currentDevice.config.lan3?.dhcpEnabled) {
+                    
+                    // クライアントがどのLANに接続されているか判定
+                    const lanConfig = this.determineLANConnection(client, currentDevice);
+                    if (lanConfig) {
+                        return { router: currentDevice, lanConfig: lanConfig };
+                    }
+                }
+            }
+            
+            // 隣接デバイスをキューに追加
+            for (const connection of this.connections) {
+                let nextDeviceId = null;
+                
+                if (connection.fromDevice === currentId && !visited.has(connection.toDevice)) {
+                    nextDeviceId = connection.toDevice;
+                } else if (connection.toDevice === currentId && !visited.has(connection.fromDevice)) {
+                    nextDeviceId = connection.fromDevice;
+                }
+                
+                if (nextDeviceId) {
+                    visited.add(nextDeviceId);
+                    queue.push(nextDeviceId);
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    // クライアントが接続されているLANを判定（スイッチ経由対応）
+    determineLANConnection(client, router) {
+        // ルーターへの経路を取得してLANを判定
+        const pathToRouter = this.findPath(client, router);
+        
+        if (pathToRouter && pathToRouter.length > 1) {
+            // ルーターに直接接続されている最後のデバイス（ルーターの隣接デバイス）を特定
+            const routerNeighbor = pathToRouter[pathToRouter.length - 2];
+            const routerConnection = this.findDirectConnection(routerNeighbor, router);
+            
+            if (routerConnection) {
+                // ルーターのポート番号に基づいてLANを判定
+                const routerPortIndex = this.getPortIndex(router, routerConnection, router.id === routerConnection.fromDevice);
+                
+                // ポート0-1: LAN1, ポート2-3: LAN2, ポート4-5: LAN3 として判定
+                if (routerPortIndex <= 1 && router.config.lan1?.dhcpEnabled) {
+                    return router.config.lan1;
+                } else if (routerPortIndex <= 3 && router.config.lan2?.dhcpEnabled) {
+                    return router.config.lan2;
+                } else if (routerPortIndex <= 5 && router.config.lan3?.dhcpEnabled) {
+                    return router.config.lan3;
+                }
+            }
+        }
+        
+        // フォールバック1: スイッチ経由の場合、スイッチの位置で判定
+        const switchInPath = this.findSwitchInPath(pathToRouter);
+        if (switchInPath) {
+            const switchX = switchInPath.x;
+            const routerX = router.x;
+            const distance = Math.abs(switchX - routerX);
+            
+            // スイッチとルーター間の距離でLANを判定
+            if (distance < 100 && router.config.lan1?.dhcpEnabled) {
+                return router.config.lan1;
+            } else if (distance < 200 && router.config.lan2?.dhcpEnabled) {
+                return router.config.lan2;
+            } else if (router.config.lan3?.dhcpEnabled) {
+                return router.config.lan3;
+            }
+        }
+        
+        // フォールバック2: クライアントの位置に基づく判定
+        const clientX = client.x;
+        const routerX = router.x;
+        const distance = Math.abs(clientX - routerX);
+        
+        // 距離に基づいてLANを推測（近い順に割り当て）
+        if (distance < 150 && router.config.lan1?.dhcpEnabled) {
+            return router.config.lan1;
+        } else if (distance < 300 && router.config.lan2?.dhcpEnabled) {
+            return router.config.lan2;
+        } else if (router.config.lan3?.dhcpEnabled) {
+            return router.config.lan3;
+        }
+        
+        // 最後のフォールバック: 有効なLANから順に割り当て
+        if (router.config.lan1?.dhcpEnabled) {
+            return router.config.lan1;
+        }
+        if (router.config.lan2?.dhcpEnabled) {
+            return router.config.lan2;
+        }
+        if (router.config.lan3?.dhcpEnabled) {
+            return router.config.lan3;
+        }
+        
+        return null;
+    }
+
+    // 経路内のスイッチを検索
+    findSwitchInPath(path) {
+        if (!path) return null;
+        
+        return path.find(device => device.type === 'switch' || device.type === 'hub');
+    }
+
+    // 2つのデバイス間の直接接続を探す
+    findDirectConnection(device1, device2) {
+        return this.connections.find(conn => 
+            (conn.fromDevice === device1.id && conn.toDevice === device2.id) ||
+            (conn.fromDevice === device2.id && conn.toDevice === device1.id)
+        );
+    }
+
+    // 接続におけるデバイスのポート番号を取得
+    getPortIndex(device, connection, isFromDevice) {
+        const portId = isFromDevice ? connection.fromPort : connection.toPort;
+        const ports = device.ports?.nics || [];
+        
+        return ports.findIndex(port => port.id === portId);
+    }
+
+    // 指定LANからDHCPアドレス割り当て（競合状態対応）
+    allocateDHCPAddressFromLAN(lanConfig, client, router) {
+        const poolStart = this.ipToInt(lanConfig.dhcpPoolStart);
+        const poolEnd = this.ipToInt(lanConfig.dhcpPoolEnd);
+        const leaseTime = router.config.dhcpLeaseTime;
+        const now = Date.now();
+        
+        // 既存の割り当てを確認・クリーンアップ
+        this.cleanupExpiredLeasesFromLAN(lanConfig, now);
+        
+        // クライアントが既にIPアドレスを持っているかチェック
+        for (const [ip, lease] of lanConfig.dhcpAllocatedIPs.entries()) {
+            if (lease.clientId === client.id && lease.expiry > now) {
+                // IPアドレスが現在のプール範囲内にある場合のみリース更新
+                if (ip >= poolStart && ip <= poolEnd) {
+                    lease.expiry = now + (leaseTime * 1000);
+                    console.log(`DHCP: リース更新 ${client.name} -> ${this.intToIp(ip)} (範囲内)`);
+                    return { ip: this.intToIp(ip), lease: lease };
+                } else {
+                    // プール範囲外の場合は古いリースを削除
+                    console.log(`DHCP: 範囲外リース削除 ${client.name} -> ${this.intToIp(ip)}`);
+                    lanConfig.dhcpAllocatedIPs.delete(ip);
+                }
+            }
+        }
+        
+        // 全ての既存のデバイスのIPアドレスをチェックして重複を避ける
+        const existingIPs = new Set();
+        
+        // 現在のLANで割り当て済みのIPを収集
+        for (const [ip] of lanConfig.dhcpAllocatedIPs.entries()) {
+            existingIPs.add(ip);
+        }
+        
+        // 他のデバイスの静的IPも収集（同じプール範囲内）
+        for (const [, device] of this.devices.entries()) {
+            if (device !== client && device.config.ipAddress && device.config.ipAddress !== '0.0.0.0') {
+                const deviceIP = this.ipToInt(device.config.ipAddress);
+                if (deviceIP >= poolStart && deviceIP <= poolEnd) {
+                    existingIPs.add(deviceIP);
+                    console.log(`DHCP: 既存IP検出 ${device.name} -> ${device.config.ipAddress}`);
+                }
+            }
+        }
+        
+        // 新しいIPアドレスを探す（重複チェック強化）
+        for (let ipInt = poolStart; ipInt <= poolEnd; ipInt++) {
+            if (!existingIPs.has(ipInt) && !this.isIPAddressInUse(this.intToIp(ipInt))) {
+                const lease = {
+                    clientId: client.id,
+                    clientName: client.name,
+                    expiry: now + (leaseTime * 1000),
+                    assignedAt: now,
+                    lanName: this.getLANName(router, lanConfig)
+                };
+                
+                lanConfig.dhcpAllocatedIPs.set(ipInt, lease);
+                console.log(`DHCP: 新規割り当て ${client.name} -> ${this.intToIp(ipInt)} (${lease.lanName})`);
+                return { ip: this.intToIp(ipInt), lease: lease };
+            }
+        }
+        
+        console.log(`DHCP: プール満杯 - ${client.name} への割り当て失敗`);
+        return null; // プールが満杯
+    }
+
+    // IPアドレスが他のデバイスで使用中かチェック
+    isIPAddressInUse(ipAddress) {
+        for (const [, device] of this.devices.entries()) {
+            if (device.config.ipAddress === ipAddress) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // LAN名取得
+    getLANName(router, lanConfig) {
+        if (lanConfig === router.config.lan1) return 'LAN1';
+        if (lanConfig === router.config.lan2) return 'LAN2';
+        if (lanConfig === router.config.lan3) return 'LAN3';
+        return 'Unknown LAN';
+    }
+
+    // 指定LANの期限切れリースのクリーンアップ（範囲外リースも削除）
+    cleanupExpiredLeasesFromLAN(lanConfig, currentTime) {
+        const toDelete = [];
+        const poolStart = this.ipToInt(lanConfig.dhcpPoolStart);
+        const poolEnd = this.ipToInt(lanConfig.dhcpPoolEnd);
+        
+        for (const [ip, lease] of lanConfig.dhcpAllocatedIPs.entries()) {
+            // 期限切れまたはプール範囲外のリースを削除対象に追加
+            if (lease.expiry <= currentTime) {
+                console.log(`DHCP: 期限切れリース削除 ${lease.clientName} -> ${this.intToIp(ip)}`);
+                toDelete.push(ip);
+            } else if (ip < poolStart || ip > poolEnd) {
+                console.log(`DHCP: 範囲外リース削除 ${lease.clientName} -> ${this.intToIp(ip)}`);
+                toDelete.push(ip);
+            }
+        }
+        
+        for (const ip of toDelete) {
+            lanConfig.dhcpAllocatedIPs.delete(ip);
+        }
+    }
+
+    // DHCPアドレス割り当て（後方互換性）
+    allocateDHCPAddress(dhcpServer, client) {
+        // 旧バージョン互換性のため、LAN1から割り当て
+        return this.allocateDHCPAddressFromLAN(dhcpServer.config.lan1 || dhcpServer.config, client, dhcpServer);
+    }
+
+    // 期限切れリースのクリーンアップ
+    cleanupExpiredLeases(dhcpServer, currentTime) {
+        const expired = [];
+        
+        for (const [ip, lease] of dhcpServer.config.dhcpAllocatedIPs.entries()) {
+            if (lease.expiry <= currentTime) {
+                expired.push(ip);
+            }
+        }
+        
+        for (const ip of expired) {
+            dhcpServer.config.dhcpAllocatedIPs.delete(ip);
+        }
+    }
+
+    // DHCP リース情報表示（複数LAN対応・デバッグ用）
+    showDHCPLeases(router) {
+        if (!router || router.type !== 'router') {
+            console.log('ルーターではありません');
+            return;
+        }
+        
+        console.log(`\n=== ${router.name} の DHCP リース情報 ===`);
+        console.log(`リース時間: ${router.config.dhcpLeaseTime}秒`);
+        
+        const now = Date.now();
+        let totalLeases = 0;
+        
+        // LAN1 リース表示
+        if (router.config.lan1?.dhcpEnabled) {
+            console.log(`\nLAN1 (${router.config.lan1.ipAddress}):`);
+            console.log(`  プール: ${router.config.lan1.dhcpPoolStart} - ${router.config.lan1.dhcpPoolEnd}`);
+            const lan1Leases = router.config.lan1.dhcpAllocatedIPs.size;
+            console.log(`  割り当て済み: ${lan1Leases}個`);
+            
+            for (const [ipInt, lease] of router.config.lan1.dhcpAllocatedIPs.entries()) {
+                const ip = this.intToIp(ipInt);
+                const remaining = Math.max(0, Math.floor((lease.expiry - now) / 1000));
+                console.log(`    ${ip} -> ${lease.clientName} (残り${remaining}秒)`);
+                totalLeases++;
+            }
+        }
+        
+        // LAN2 リース表示
+        if (router.config.lan2?.dhcpEnabled) {
+            console.log(`\nLAN2 (${router.config.lan2.ipAddress}):`);
+            console.log(`  プール: ${router.config.lan2.dhcpPoolStart} - ${router.config.lan2.dhcpPoolEnd}`);
+            const lan2Leases = router.config.lan2.dhcpAllocatedIPs.size;
+            console.log(`  割り当て済み: ${lan2Leases}個`);
+            
+            for (const [ipInt, lease] of router.config.lan2.dhcpAllocatedIPs.entries()) {
+                const ip = this.intToIp(ipInt);
+                const remaining = Math.max(0, Math.floor((lease.expiry - now) / 1000));
+                console.log(`    ${ip} -> ${lease.clientName} (残り${remaining}秒)`);
+                totalLeases++;
+            }
+        }
+        
+        // LAN3 リース表示
+        if (router.config.lan3?.dhcpEnabled) {
+            console.log(`\nLAN3 (${router.config.lan3.ipAddress}):`);
+            console.log(`  プール: ${router.config.lan3.dhcpPoolStart} - ${router.config.lan3.dhcpPoolEnd}`);
+            const lan3Leases = router.config.lan3.dhcpAllocatedIPs.size;
+            console.log(`  割り当て済み: ${lan3Leases}個`);
+            
+            for (const [ipInt, lease] of router.config.lan3.dhcpAllocatedIPs.entries()) {
+                const ip = this.intToIp(ipInt);
+                const remaining = Math.max(0, Math.floor((lease.expiry - now) / 1000));
+                console.log(`    ${ip} -> ${lease.clientName} (残り${remaining}秒)`);
+                totalLeases++;
+            }
+        }
+        
+        console.log(`\n総割り当て数: ${totalLeases}個`);
+        console.log(`=== DHCP リース情報終了 ===\n`);
+    }
+
+    // 全ルーターのDHCP状況を表示
+    showAllDHCPLeases() {
+        console.log('\n=== 全ルーターのDHCP状況 ===');
+        
+        let routerCount = 0;
+        for (const [, device] of this.devices.entries()) {
+            if (device.type === 'router') {
+                this.showDHCPLeases(device);
+                routerCount++;
+            }
+        }
+        
+        if (routerCount === 0) {
+            console.log('DHCPサーバーが見つかりません');
+        }
+        
+        console.log('=== 全ルーター情報終了 ===\n');
+    }
+
+    // DHCP設定変更時のクライアント再配布
+    redistributeDHCPAddresses(router) {
+        console.log(`\n=== DHCP再配布開始: ${router.name} ===`);
+        
+        if (router.type !== 'router') {
+            console.log('ルーターではないため、再配布をスキップ');
+            return;
+        }
+        
+        const affectedClients = [];
+        
+        // このルーターのDHCPを利用している全クライアントを検出
+        for (const [, device] of this.devices.entries()) {
+            if (device !== router && device.config.dhcpEnabled) {
+                // このデバイスがこのルーターからDHCPを受けているかチェック
+                const dhcpServerInfo = this.findDHCPServer(device);
+                if (dhcpServerInfo && dhcpServerInfo.router === router) {
+                    affectedClients.push({
+                        client: device,
+                        lanConfig: dhcpServerInfo.lanConfig
+                    });
+                }
+            }
+        }
+        
+        console.log(`影響を受けるクライアント数: ${affectedClients.length}`);
+        
+        if (affectedClients.length === 0) {
+            console.log('再配布対象のクライアントがありません');
+            console.log('=== DHCP再配布終了 ===\n');
+            return;
+        }
+        
+        // 各クライアントに新しいIPアドレスを割り当て
+        let redistributedCount = 0;
+        
+        for (const { client, lanConfig } of affectedClients) {
+            const oldIP = client.config.ipAddress;
+            
+            // 現在のリースを削除（新しい範囲で再割り当てするため）
+            this.clearClientLease(client, lanConfig);
+            
+            // 新しいIPアドレスを要求
+            const success = this.requestDHCPAddress(client);
+            
+            if (success) {
+                redistributedCount++;
+                console.log(`再配布成功: ${client.name} ${oldIP} -> ${client.config.ipAddress}`);
+                
+                // ステータスメッセージを更新
+                this.updateStatus(`🔄 DHCP再配布: ${client.name} ${oldIP} -> ${client.config.ipAddress}`);
+            } else {
+                console.log(`再配布失敗: ${client.name} (${oldIP})`);
+            }
+        }
+        
+        console.log(`再配布完了: ${redistributedCount}/${affectedClients.length} 成功`);
+        console.log('=== DHCP再配布終了 ===\n');
+        
+        // 画面更新
+        this.scheduleRender();
+    }
+
+    // クライアントの現在のリースを削除
+    clearClientLease(client, lanConfig) {
+        const toDelete = [];
+        
+        // 該当クライアントのリースを全て検索して削除
+        for (const [ip, lease] of lanConfig.dhcpAllocatedIPs.entries()) {
+            if (lease.clientId === client.id) {
+                toDelete.push(ip);
+            }
+        }
+        
+        for (const ip of toDelete) {
+            lanConfig.dhcpAllocatedIPs.delete(ip);
+            console.log(`リース削除: ${client.name} -> ${this.intToIp(ip)}`);
+        }
+        
+        // IPアドレスをクリア
+        client.config.ipAddress = '0.0.0.0';
+    }
+
+    // デバイスクリック処理（シングル・ダブルクリック対応）
+    handleDeviceClick(device) {
+        const currentTime = performance.now();
+        const timeDiff = currentTime - this.lastClickTime;
+        
+        // ダブルクリック・ダブルタップの判定
+        if (this.lastClickedDevice === device && timeDiff < this.doubleClickDelay) {
+            console.log('ダブルクリック検出:', device.name);
+            this.handleDoubleClick(device);
+        } else {
+            console.log('シングルクリック検出:', device.name);
+            this.handleSingleClick(device);
+        }
+        
+        // 状態を更新
+        this.lastClickTime = currentTime;
+        this.lastClickedDevice = device;
+    }
+
+    // シングルクリック処理
+    handleSingleClick(device) {
+        // デバイスの選択状態は維持する（設定ボタンが有効になる）
+        const deviceType = this.isTouchDevice() ? 'タップ' : 'クリック';
+        this.updateStatus(`${device.name}を選択しました（ダブル${deviceType}で設定画面を開きます）`);
+        this.scheduleRender();
+    }
+
+    // ダブルクリック処理
+    handleDoubleClick(device) {
+        const actionType = this.isTouchDevice() ? 'ダブルタップ' : 'ダブルクリック';
+        console.log(`${actionType}で設定画面を開く:`, device.name);
+        
+        // 設定画面を自動で開く
+        this.showDeviceConfig();
+        
+        this.updateStatus(`${device.name}の設定画面を開きました`);
+    }
 }
 
 // アプリケーション初期化
 document.addEventListener('DOMContentLoaded', () => {
     const simulator = new NetworkSimulator();
+    
+    // デバッグ用のグローバル関数を登録
+    window.debugDHCP = () => {
+        simulator.showAllDHCPLeases();
+    };
+    
+    window.debugNetworkDevices = () => {
+        console.log('\n=== 全デバイス情報 ===');
+        for (const [, device] of simulator.devices.entries()) {
+            const dhcpStatus = device.config.dhcpEnabled ? 'DHCP有効' : 'DHCP無効';
+            console.log(`${device.name} (${device.type}): ${device.config.ipAddress} - ${dhcpStatus}`);
+        }
+        console.log('=== 全デバイス情報終了 ===\n');
+    };
+    
+    window.redistributeAllDHCP = () => {
+        console.log('\n=== 全ルーターでDHCP再配布 ===');
+        for (const [, device] of simulator.devices.entries()) {
+            if (device.type === 'router') {
+                simulator.redistributeDHCPAddresses(device);
+            }
+        }
+    };
+    
+    console.log('🔧 デバッグコマンド:');
+    console.log('  debugDHCP() - DHCP状況表示');
+    console.log('  debugNetworkDevices() - 全デバイス情報表示');
+    console.log('  redistributeAllDHCP() - 全ルーターでDHCP再配布実行');
 });
