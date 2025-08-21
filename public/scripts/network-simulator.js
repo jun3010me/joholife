@@ -591,8 +591,8 @@ class NetworkSimulator {
             name: `${this.getDeviceDisplayName(deviceType)}-${deviceCount}`,
             x: x,
             y: y,
-            width: 70,
-            height: 50,
+            width: 80,
+            height: 70,
             config: {
                 ipAddress: this.getDefaultIP(deviceType, deviceCount),
                 subnetMask: '255.255.255.0',
@@ -1403,9 +1403,9 @@ class NetworkSimulator {
             return { isReachable: false, reason: '無効なサブネットマスクが設定されています' };
         }
         
-        // 同一サブネット内かチェック
-        if (this.isInSameSubnet(sourceIP, targetIP, sourceSubnet)) {
-            // 同一サブネット内では直接通信可能
+        // 両方向での直接通信可能性をチェック
+        if (this.canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetSubnet)) {
+            // 両方向で同一サブネット内なら直接通信可能
             return { 
                 isReachable: true, 
                 reason: '同一サブネット内での直接通信',
@@ -1414,8 +1414,8 @@ class NetworkSimulator {
         }
         
         // 異なるサブネット間では、ルーターが必要
-        const sourceNetworkAddr = this.getNetworkAddress(sourceIP, sourceSubnet);
-        const targetNetworkAddr = this.getNetworkAddress(targetIP, targetSubnet);
+        // 詳細なサブネット不一致理由を取得
+        const subnetMismatchReason = this.getSubnetMismatchReason(sourceIP, sourceSubnet, targetIP, targetSubnet);
         
         // 経路上にルーターがあるかチェック
         const path = this.findPath(sourceDevice, targetDevice);
@@ -1424,7 +1424,7 @@ class NetworkSimulator {
         if (!hasRouter) {
             return { 
                 isReachable: false, 
-                reason: `異なるサブネット間の通信にはルーターが必要です (${sourceNetworkAddr} → ${targetNetworkAddr})`
+                reason: `${subnetMismatchReason}のためルーターが必要です`
             };
         }
         
@@ -1479,11 +1479,57 @@ class NetworkSimulator {
         return this.intToIp(broadcastInt);
     }
     
-    // 同一サブネット内かチェック
+    // 同一サブネット内かチェック（単一サブネットマスク）
     isInSameSubnet(ip1, ip2, subnet) {
         const network1 = this.getNetworkAddress(ip1, subnet);
         const network2 = this.getNetworkAddress(ip2, subnet);
         return network1 === network2;
+    }
+    
+    // 両方向のサブネット判定（より厳密）
+    canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetSubnet) {
+        // 送信元から見て送信先が同一サブネット内か
+        const sourceCanReachTarget = this.isInSameSubnet(sourceIP, targetIP, sourceSubnet);
+        
+        // 送信先から見て送信元が同一サブネット内か
+        const targetCanReachSource = this.isInSameSubnet(targetIP, sourceIP, targetSubnet);
+        
+        // 両方向で通信可能な場合のみ直接通信可能
+        return sourceCanReachTarget && targetCanReachSource;
+    }
+    
+    // 詳細なサブネット不一致の理由を取得
+    getSubnetMismatchReason(sourceIP, sourceSubnet, targetIP, targetSubnet) {
+        const sourceNetwork = this.getNetworkAddress(sourceIP, sourceSubnet);
+        const targetNetwork = this.getNetworkAddress(targetIP, targetSubnet);
+        const sourceCIDR = this.subnetMaskToCIDR(sourceSubnet);
+        const targetCIDR = this.subnetMaskToCIDR(targetSubnet);
+        
+        const sourceCanReachTarget = this.isInSameSubnet(sourceIP, targetIP, sourceSubnet);
+        const targetCanReachSource = this.isInSameSubnet(targetIP, sourceIP, targetSubnet);
+        
+        if (!sourceCanReachTarget && !targetCanReachSource) {
+            return `異なるネットワーク (送信元: ${sourceNetwork}/${sourceCIDR}, 送信先: ${targetNetwork}/${targetCIDR})`;
+        } else if (!sourceCanReachTarget) {
+            return `送信元のサブネットマスク/${sourceCIDR}では送信先に到達できません (${sourceNetwork}/${sourceCIDR} → ${targetIP})`;
+        } else if (!targetCanReachSource) {
+            return `送信先のサブネットマスク/${targetCIDR}では応答できません (${targetNetwork}/${targetCIDR} ← ${sourceIP})`;
+        }
+        
+        return '不明なサブネット不一致';
+    }
+    
+    // サブネットマスクをCIDR表記に変換
+    subnetMaskToCIDR(subnetMask) {
+        const subnetInt = this.ipToInt(subnetMask);
+        // 1のビット数を数える
+        let cidr = 0;
+        let mask = subnetInt;
+        while (mask) {
+            cidr += mask & 1;
+            mask >>>= 1;
+        }
+        return cidr;
     }
     
     // ゲートウェイへの到達可能性チェック
@@ -1526,8 +1572,8 @@ class NetworkSimulator {
             `理由: ${reason}`
         ];
         
-        // エラーアニメーション（デバイスを赤く点滅）
-        await this.animatePingError(sourceDevice, targetDevice);
+        // 失敗理由に応じたアニメーション
+        await this.animatePingErrorByReason(reason, sourceDevice, targetDevice);
         
         // 詳細エラーメッセージを表示
         this.updateStatus(errorDetails.join(' | '));
@@ -1542,15 +1588,57 @@ class NetworkSimulator {
         this.scheduleRender();
     }
     
-    // Pingエラーアニメーション
+    // 失敗理由に応じたPingエラーアニメーション
+    async animatePingErrorByReason(reason, sourceDevice, targetDevice) {
+        try {
+            this.updateStatus(`🚀 Ping送信中: ${sourceDevice.config.ipAddress} → ${targetDevice.config.ipAddress}`);
+            
+            // 失敗理由に応じてパケットがどこまで到達するかを決定
+            const path = this.findPath(sourceDevice, targetDevice);
+            const reachableHops = this.calculateReachableHopsForFailure(reason, sourceDevice, targetDevice, path);
+            
+            // 到達可能な地点までパケットを移動
+            if (reachableHops > 1) {
+                // スイッチなどの中継機器まで到達
+                for (let i = 0; i < reachableHops - 1; i++) {
+                    await this.animatePacket(path[i], path[i + 1], '🔴 ICMP Request', '#f44336');
+                    await this.sleep(200);
+                }
+                
+                // 最終到達地点で失敗表示
+                await this.sleep(300);
+                this.updateStatus(`❌ Ping失敗: ${path[reachableHops - 1].name}で通信が停止`);
+                await this.blinkDevicesRed([path[reachableHops - 1]]);
+            } else {
+                // 送信元から出られない場合
+                this.updateStatus(`❌ Ping失敗: ${sourceDevice.name}から送信できません`);
+                await this.blinkDevicesRed([sourceDevice]);
+            }
+            
+            await this.sleep(1000);
+            
+        } catch (error) {
+            console.log('Error animation failed:', error);
+        }
+    }
+    
+    // Pingエラーアニメーション（後方互換性のため保持）
     async animatePingError(sourceDevice, targetDevice) {
         // 失敗したパケットのアニメーション
         try {
-            // エラー表示用の赤いパケットを少し動かしてから停止
+            // エラー表示用の赤いパケットを実際の経路に沿って動かしてから停止
             this.updateStatus(`🚀 Ping送信中... ${sourceDevice.config.ipAddress} → ${targetDevice.config.ipAddress}`);
             
-            // 短いアニメーション（失敗を表現）
-            await this.animateFailedPacket(sourceDevice, targetDevice);
+            // 実際の経路を取得
+            const path = this.findPath(sourceDevice, targetDevice);
+            
+            // 経路に沿った失敗アニメーション
+            if (path.length > 0) {
+                await this.animateFailedPacketAlongPath(path);
+            } else {
+                // 経路がない場合は従来の直線アニメーション
+                await this.animateFailedPacket(sourceDevice, targetDevice);
+            }
             
             // デバイスを赤く点滅させる
             await this.blinkDevicesRed([sourceDevice, targetDevice]);
@@ -1560,7 +1648,213 @@ class NetworkSimulator {
         }
     }
     
-    // 失敗パケットのアニメーション
+    // 経路に沿った失敗パケットのアニメーション
+    async animateFailedPacketAlongPath(path) {
+        if (path.length < 2) return;
+        
+        const sourceDevice = path[0];
+        const targetDevice = path[path.length - 1];
+        
+        // ネットワーク到達性をチェックして、実際にパケットがどこまで進むかを計算
+        const reachableHops = this.calculateReachableHops(sourceDevice, targetDevice, path);
+        
+        if (reachableHops === 0) {
+            // 送信元デバイス自体から送信できない場合
+            await this.animateLocalFailure(sourceDevice);
+            return;
+        }
+        
+        // 到達可能な地点まで正常に進む
+        for (let i = 0; i < reachableHops - 1; i++) {
+            await this.animatePacket(path[i], path[i + 1], '🔴 ICMP Request', '#f44336');
+            await this.sleep(200);
+        }
+        
+        // 最終的に失敗する箇所で30%地点まで進んで停止
+        if (reachableHops < path.length) {
+            await this.animateFailedPacketSegment(path[reachableHops - 1], path[reachableHops]);
+        }
+    }
+    
+    // 失敗理由に応じて、パケットがどこまで到達可能かを計算
+    calculateReachableHopsForFailure(reason, sourceDevice, targetDevice, path) {
+        const sourceIP = sourceDevice.config.ipAddress;
+        const sourceSubnet = sourceDevice.config.subnetMask;
+        const sourceGateway = sourceDevice.config.defaultGateway;
+        const targetIP = targetDevice.config.ipAddress;
+        
+        // IP設定が無効な場合：送信元から出られない
+        if (reason.includes('無効なIPアドレス') || reason.includes('無効なサブネットマスク')) {
+            return 1; // 送信元デバイスのみ
+        }
+        
+        // デフォルトゲートウェイ設定エラー：同一サブネット内のスイッチまでは到達可能
+        if (reason.includes('デフォルトゲートウェイが無効') || reason.includes('ゲートウェイ')) {
+            // 両方向で同一サブネット内なら直接通信できるので、最初のスイッチまで到達
+            if (path.length > 1 && this.canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetDevice.config.subnetMask)) {
+                return Math.min(2, path.length); // 最初のスイッチまで
+            }
+            return 1; // 異なるサブネットなら送信元から出られない
+        }
+        
+        // 物理接続がない場合：送信元から出られない
+        if (reason.includes('物理接続経路がありません')) {
+            return 1;
+        }
+        
+        // ルーターが必要だが存在しない場合：同一サブネット内のスイッチまで到達
+        if (reason.includes('ルーターが必要') || reason.includes('異なるサブネット')) {
+            // 最初のスイッチ（非ルーター）まで到達
+            for (let i = 1; i < path.length; i++) {
+                if (path[i].type === 'switch' || path[i].type === 'hub') {
+                    return i + 1; // スイッチまで到達
+                }
+                if (path[i].type === 'router') {
+                    return i; // ルーターの手前まで
+                }
+            }
+            return Math.min(2, path.length); // 最低でも次のホップまで
+        }
+        
+        // その他のエラー：送信元から出られない
+        return 1;
+    }
+    
+    // ネットワーク制約を考慮して、パケットがどこまで到達可能かを計算
+    calculateReachableHops(sourceDevice, targetDevice, path) {
+        const sourceIP = sourceDevice.config.ipAddress;
+        const sourceSubnet = sourceDevice.config.subnetMask;
+        const sourceGateway = sourceDevice.config.defaultGateway;
+        
+        const targetIP = targetDevice.config.ipAddress;
+        const targetSubnet = targetDevice.config.subnetMask;
+        
+        // 同一サブネット内の場合
+        if (this.isInSameSubnet(sourceIP, targetIP, sourceSubnet)) {
+            // 直接通信可能な場合は、最初の中継機器（スイッチ等）まで到達
+            return Math.min(2, path.length); // 送信元→次のホップまで
+        }
+        
+        // 異なるサブネット間の場合
+        // デフォルトゲートウェイが設定されていない場合
+        if (!this.isValidIP(sourceGateway)) {
+            return 1; // 送信元デバイスから出られない
+        }
+        
+        // デフォルトゲートウェイが同一サブネット内にない場合
+        if (!this.isInSameSubnet(sourceIP, sourceGateway, sourceSubnet)) {
+            return 1; // 送信元デバイスから出られない
+        }
+        
+        // ルーターが経路上にない場合
+        const hasRouter = path.some(device => device.type === 'router');
+        if (!hasRouter) {
+            // 最初のスイッチまでは到達するが、その先に進めない
+            const firstRouterOrEnd = path.findIndex((device, index) => 
+                index > 0 && (device.type === 'router' || index === path.length - 1)
+            );
+            return Math.max(1, firstRouterOrEnd);
+        }
+        
+        // ルーターがある場合、ルーターまで到達
+        const routerIndex = path.findIndex((device, index) => 
+            index > 0 && device.type === 'router'
+        );
+        
+        if (routerIndex !== -1) {
+            return routerIndex + 1; // ルーターの次まで
+        }
+        
+        return 1; // フォールバック：送信元から最初のホップまで
+    }
+    
+    // 送信元デバイスでのローカル失敗アニメーション
+    async animateLocalFailure(sourceDevice) {
+        // 送信元デバイス付近で小さくアニメーション
+        const packet = {
+            x: sourceDevice.x + sourceDevice.width / 2,
+            y: sourceDevice.y + sourceDevice.height / 2,
+            targetX: sourceDevice.x + sourceDevice.width / 2 + 20,
+            targetY: sourceDevice.y + sourceDevice.height / 2 - 20,
+            label: '❌ 送信失敗',
+            color: '#f44336',
+            progress: 0
+        };
+        
+        const duration = 800;
+        const startTime = Date.now();
+        
+        return new Promise((resolve) => {
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                packet.progress = Math.min(elapsed / duration, 1);
+                
+                const actualProgress = Math.min(packet.progress / 0.2, 1); // 20%まで移動
+                
+                packet.x = sourceDevice.x + sourceDevice.width / 2 + 
+                          (packet.targetX - (sourceDevice.x + sourceDevice.width / 2)) * actualProgress;
+                packet.y = sourceDevice.y + sourceDevice.height / 2 + 
+                          (packet.targetY - (sourceDevice.y + sourceDevice.height / 2)) * actualProgress;
+                
+                this.renderWithPacket(packet);
+                
+                if (packet.progress < 0.2) {
+                    requestAnimationFrame(animate);
+                } else {
+                    this.render();
+                    resolve();
+                }
+            };
+            
+            animate();
+        });
+    }
+    
+    // セグメント内での失敗パケットアニメーション（30%地点で停止）
+    async animateFailedPacketSegment(fromDevice, toDevice) {
+        return new Promise((resolve) => {
+            const packet = {
+                x: fromDevice.x + fromDevice.width / 2,
+                y: fromDevice.y + fromDevice.height / 2,
+                targetX: toDevice.x + toDevice.width / 2,
+                targetY: toDevice.y + toDevice.height / 2,
+                label: '❌ FAILED',
+                color: '#f44336',
+                progress: 0
+            };
+            
+            const duration = 1000;
+            const startTime = Date.now();
+            
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                packet.progress = Math.min(elapsed / duration, 1);
+                
+                // 30%の地点で停止
+                const stopProgress = 0.3;
+                const actualProgress = Math.min(packet.progress / stopProgress, 1);
+                
+                packet.x = fromDevice.x + fromDevice.width / 2 + 
+                          (packet.targetX - (fromDevice.x + fromDevice.width / 2)) * actualProgress;
+                packet.y = fromDevice.y + fromDevice.height / 2 + 
+                          (packet.targetY - (fromDevice.y + fromDevice.height / 2)) * actualProgress;
+                
+                this.renderWithPacket(packet);
+                
+                if (packet.progress < stopProgress) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // パケットを消去して停止
+                    this.render();
+                    resolve();
+                }
+            };
+            
+            animate();
+        });
+    }
+    
+    // 失敗パケットのアニメーション（従来版：直線）
     async animateFailedPacket(fromDevice, toDevice) {
         return new Promise((resolve) => {
             const packet = {
@@ -2291,7 +2585,7 @@ class NetworkSimulator {
         this.ctx.fillText(
             this.getDeviceIcon(device.type),
             device.x + device.width / 2,
-            device.y + device.height / 2 - 2
+            device.y + 25
         );
         
         // デバイス名
@@ -2311,19 +2605,18 @@ class NetworkSimulator {
         this.ctx.fillText(
             displayName,
             device.x + device.width / 2,
-            device.y + device.height - 6
+            device.y + device.height - 18
         );
         
-        // IPアドレス表示（選択時）
-        if (isSelected) {
-            this.ctx.font = '9px Arial';
-            this.ctx.fillStyle = '#666';
-            this.ctx.fillText(
-                device.config.ipAddress,
-                device.x + device.width / 2,
-                device.y + device.height + 12
-            );
-        }
+        // IPアドレス表示（常時表示）
+        this.ctx.font = '9px Arial';
+        this.ctx.fillStyle = '#666';
+        const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
+        this.ctx.fillText(
+            `${device.config.ipAddress}/${cidr}`,
+            device.x + device.width / 2,
+            device.y + device.height - 6
+        );
     }
 
     // デバイスのNICポートを描画
