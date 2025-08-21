@@ -1445,9 +1445,12 @@ class NetworkSimulator {
             };
         }
         
+        // ルーター経由の場合は成功
+        const sourceNetwork = this.getNetworkAddress(sourceIP, sourceSubnet);
+        const targetNetwork = this.getNetworkAddress(targetIP, targetSubnet);
         return { 
             isReachable: true, 
-            reason: `ルーター経由での通信 (${sourceNetworkAddr} → ${targetNetworkAddr})`,
+            reason: `ルーター経由での通信 (${sourceNetwork} → ${targetNetwork})`,
             routingType: 'routed'
         };
     }
