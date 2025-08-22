@@ -6,6 +6,10 @@ class NetworkSimulator {
         this.devices = new Map();
         this.connections = [];
         this.selectedDevice = null;
+        
+        // アニメーションキューシステム
+        this.animationQueue = [];
+        this.isAnimationRunning = false;
         this.isDragging = false;
         this.dragOffset = { x: 0, y: 0 };
         this.scale = 1;
@@ -2071,14 +2075,14 @@ class NetworkSimulator {
             
             // ICMP Request（送信元 → 送信先）
             this.updateStatus(`🚀 ICMP Request送信: ${sourceDevice.config.ipAddress} → ${targetDevice.config.ipAddress} (${routingType})`);
-            await this.animatePacketAlongPath(path, '🔵 ICMP Request', '#2196f3');
+            await this.queuedAnimatePacketAlongPath(path, '🔵 ICMP Request', '#2196f3');
             
             await this.sleep(300);
             
             // ICMP Reply（送信先 → 送信元）
             this.updateStatus(`⬅️ ICMP Reply受信: ${targetDevice.config.ipAddress} → ${sourceDevice.config.ipAddress}`);
             const reversePath = [...path].reverse();
-            await this.animatePacketAlongPath(reversePath, '🟢 ICMP Reply', '#4caf50');
+            await this.queuedAnimatePacketAlongPath(reversePath, '🟢 ICMP Reply', '#4caf50');
             
             const endTime = Date.now();
             const rtt = endTime - startTime; // Round Trip Time
@@ -2101,13 +2105,104 @@ class NetworkSimulator {
         }
     }
     
-    // 経路に沿ったパケットアニメーション
-    async animatePacketAlongPath(path, label, color) {
+    // 経路に沿ったパケットアニメーション（拡張版）
+    // アニメーションキューに追加
+    addToAnimationQueue(animationFunction) {
+        return new Promise((resolve, reject) => {
+            const queueItem = {
+                execute: animationFunction,
+                resolve,
+                reject
+            };
+            
+            this.animationQueue.push(queueItem);
+            // console.log(`📋 アニメーションキューに追加 (キュー長: ${this.animationQueue.length})`);
+            
+            // キューが空いていればすぐに実行
+            if (!this.isAnimationRunning) {
+                this.processAnimationQueue();
+            }
+        });
+    }
+    
+    // アニメーションキューを処理
+    async processAnimationQueue() {
+        if (this.isAnimationRunning || this.animationQueue.length === 0) {
+            return;
+        }
+        
+        this.isAnimationRunning = true;
+        // console.log(`🎬 アニメーションキュー処理開始 (${this.animationQueue.length}件待機中)`);
+        
+        while (this.animationQueue.length > 0) {
+            const queueItem = this.animationQueue.shift();
+            
+            try {
+                // console.log(`▶️ アニメーション実行中... (残り${this.animationQueue.length}件)`);
+                const result = await queueItem.execute();
+                queueItem.resolve(result);
+                // console.log(`✅ アニメーション完了`);
+            } catch (error) {
+                console.error(`❌ アニメーションエラー:`, error);
+                queueItem.reject(error);
+            }
+        }
+        
+        this.isAnimationRunning = false;
+        // console.log(`🏁 アニメーションキュー処理完了`);
+    }
+    
+    // キューを使ったアニメーション実行（外部からの呼び出し用）
+    async queuedAnimatePacketAlongPath(path, label, color, options = {}) {
+        return this.addToAnimationQueue(async () => {
+            return this.animatePacketAlongPath(path, label, color, options);
+        });
+    }
+    
+    async animatePacketAlongPath(path, label, color, options = {}) {
         if (path.length < 2) return;
         
+        const {
+            hopDelay = 200,      // ホップ間の遅延（ms）
+            packetDuration = 1000, // パケットアニメーション時間（ms）
+            offsetX = 0,         // X軸オフセット
+            offsetY = 0,         // Y軸オフセット
+            onHopComplete = null, // ホップ完了コールバック
+            onComplete = null     // 全体完了コールバック
+        } = options;
+        
+        // 速度調整を適用
+        const speedMultiplier = window.animationSpeedMultiplier || 1.0;
+        const adjustedHopDelay = Math.max(10, hopDelay / speedMultiplier);
+        const adjustedPacketDuration = Math.max(50, packetDuration / speedMultiplier);
+        
+        console.log(`📡 経路アニメーション開始: ${label} (${path.length}ホップ)`);
+        
         for (let i = 0; i < path.length - 1; i++) {
-            await this.animatePacket(path[i], path[i + 1], label, color);
-            await this.sleep(200); // 各ホップ間での遅延
+            console.log(`  ホップ ${i + 1}: ${path[i].name || path[i].id} → ${path[i + 1].name || path[i + 1].id}`);
+            
+            await this.animatePacket(path[i], path[i + 1], label, color, {
+                duration: adjustedPacketDuration,  // 速度調整済み
+                offsetX,
+                offsetY
+            });
+            
+            // ホップ完了コールバック
+            if (onHopComplete) {
+                onHopComplete(i, path[i], path[i + 1]);
+            }
+            
+            // 最後以外はホップ間遅延（速度調整済み）
+            if (i < path.length - 2 && adjustedHopDelay > 0) {
+                await this.sleep(adjustedHopDelay);
+            }
+        }
+        
+        console.log(`✅ 経路アニメーション完了: ${label}`);
+        
+        // 全体完了コールバック
+        if (onComplete) {
+            onComplete();
         }
     }
     
@@ -2240,21 +2335,31 @@ class NetworkSimulator {
         return { x, y };
     }
 
-    // パケットアニメーション（接続線と完全に同じ軌跡）
-    async animatePacket(fromDevice, toDevice, label, color) {
+    // パケットアニメーション（接続線と完全に同じ軌跡）拡張版
+    async animatePacket(fromDevice, toDevice, label, color, options = {}) {
         return new Promise((resolve) => {
+            const {
+                duration = 1000,     // アニメーション時間（ms）
+                offsetX = 0,         // X軸オフセット
+                offsetY = 0,         // Y軸オフセット
+                onComplete = null    // 完了コールバック
+            } = options;
+            
             const connectionPath = this.getConnectionPath(fromDevice, toDevice);
             
             const packet = {
-                x: connectionPath.startX,
-                y: connectionPath.startY,
+                x: connectionPath.startX + offsetX,
+                y: connectionPath.startY + offsetY,
                 label,
                 color,
                 progress: 0,
-                path: connectionPath
+                path: connectionPath,
+                offsetX,
+                offsetY
             };
             
-            const duration = 1000; // 1秒
+            console.log(`🏃‍♂️ パケットアニメーション: ${fromDevice.name || fromDevice.id} → ${toDevice.name || toDevice.id} (${duration}ms)`);
+            
             const startTime = Date.now();
             
             const animate = () => {
@@ -2290,6 +2395,12 @@ class NetworkSimulator {
                     requestAnimationFrame(animate);
                 } else {
                     this.render(); // パケットを消去
+                    
+                    // 完了コールバックを実行
+                    if (onComplete) {
+                        onComplete();
+                    }
+                    
                     resolve();
                 }
             };
@@ -2577,7 +2688,22 @@ class NetworkSimulator {
             pingBtn.style.backgroundColor = '#2196f3';
         }
         
-        document.getElementById('config-btn').disabled = !hasSelectedDevice || this.isPingMode;
+        // HTTPボタンの制御
+        const httpBtn = document.getElementById('http-btn');
+        if (httpBtn) {
+            httpBtn.disabled = !hasPingableDevices || this.isPingMode;
+            
+            // HTTPボタンのテキストを動的に変更
+            if (this.isHTTPMode) {
+                httpBtn.textContent = '⏹️ HTTP終了';
+                httpBtn.style.backgroundColor = '#f44336';
+            } else {
+                httpBtn.textContent = '🌐 HTTP';
+                httpBtn.style.backgroundColor = '#2196f3';
+            }
+        }
+        
+        document.getElementById('config-btn').disabled = !hasSelectedDevice || this.isPingMode || this.isHTTPMode;
     }
 
     // ステータス更新
@@ -3452,34 +3578,662 @@ class NetworkSimulator {
 }
 
 // アプリケーション初期化
-document.addEventListener('DOMContentLoaded', () => {
+function initializeNetworkSimulator() {
+    // DOM要素の存在確認
+    const canvas = document.getElementById('network-canvas');
+    if (!canvas) {
+        console.warn('Canvas要素が見つかりません。コンポーネント読み込み待ち...');
+        return false;
+    }
+    
     const simulator = new NetworkSimulator();
     
-    // デバッグ用のグローバル関数を登録
-    window.debugDHCP = () => {
-        simulator.showAllDHCPLeases();
-    };
+    // グローバルに公開（TCPアニメーション等で使用）
+    window.simulator = simulator;
     
-    window.debugNetworkDevices = () => {
+    // TCP機能を既存のシミュレーターに統合
+    setupTCPIntegration(simulator);
+    
+    // アニメーション速度制御を初期化
+    initializeAnimationSpeedControl();
+    
+    // TCP表示制御を初期化  
+    initializeTCPVisibilityControl();
+    
+    // ログ表示制御を初期化
+    initializeLogVisibilityControl();
+    
+    return true;
+}
+
+// コンポーネント読み込み完了後に初期化
+if (window.componentsLoaded) {
+    initializeNetworkSimulator();
+} else {
+    window.addEventListener('componentsLoaded', () => {
+        console.log('コンポーネント読み込み完了、シミュレータを初期化中...');
+        if (!initializeNetworkSimulator()) {
+            // 要素がまだない場合は少し待ってリトライ
+            setTimeout(() => {
+                initializeNetworkSimulator();
+            }, 100);
+        }
+    });
+    
+    // フォールバック: componentsLoadedイベントが発火しない場合
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            if (!window.simulator) {
+                console.log('フォールバック初期化を実行中...');
+                initializeNetworkSimulator();
+            }
+        }, 500);
+    });
+}
+
+// デバッグ用のグローバル関数を登録
+window.debugDHCP = () => {
+    if (window.simulator) {
+        window.simulator.showAllDHCPLeases();
+    } else {
+        console.warn('シミュレーターが初期化されていません');
+    }
+};
+
+window.debugNetworkDevices = () => {
+    if (window.simulator) {
         console.log('\n=== 全デバイス情報 ===');
-        for (const [, device] of simulator.devices.entries()) {
+        for (const [, device] of window.simulator.devices.entries()) {
             const dhcpStatus = device.config.dhcpEnabled ? 'DHCP有効' : 'DHCP無効';
             console.log(`${device.name} (${device.type}): ${device.config.ipAddress} - ${dhcpStatus}`);
         }
         console.log('=== 全デバイス情報終了 ===\n');
+    } else {
+        console.warn('シミュレーターが初期化されていません');
+    }
+};
+
+window.redistributeAllDHCP = () => {
+    if (window.simulator) {
+        console.log('\n=== 全ルーターでDHCP再配布 ===');
+        for (const [, device] of window.simulator.devices.entries()) {
+            if (device.type === 'router') {
+                window.simulator.redistributeDHCPAddresses(device);
+            }
+        }
+    } else {
+        console.warn('シミュレーターが初期化されていません');
+    }
+};
+
+// TCP関連のデバッグコマンド
+window.debugTCP = () => {
+    if (window.tcpManager) {
+        const stats = window.tcpManager.getStatistics();
+        console.log('\n=== TCP接続統計 ===');
+        console.log(`総接続数: ${stats.totalConnections}`);
+        console.log(`アクティブ接続: ${stats.activeConnections}`);
+        console.log('状態分布:', stats.stateDistribution);
+        console.log('=== TCP接続統計終了 ===\n');
+    } else {
+        console.warn('TCPマネージャーが初期化されていません');
+    }
+};
+
+console.log('🔧 デバッグコマンド:');
+console.log('  debugDHCP() - DHCP状況表示');
+console.log('  debugNetworkDevices() - 全デバイス情報表示');
+console.log('  redistributeAllDHCP() - 全ルーターでDHCP再配布実行');
+console.log('  debugTCP() - TCP接続統計表示');
+
+// TCP機能を既存のシミュレーターに統合する関数
+function setupTCPIntegration(simulator) {
+    if (!simulator) {
+        console.error('シミュレーターが初期化されていません');
+        return;
+    }
+    
+    // HTTP通信モード
+    simulator.isHTTPMode = false;
+    simulator.httpSourceDevice = null;
+    simulator.httpTargetDevice = null;
+    
+    // HTTP通信ボタンのイベントリスナー
+    const httpBtn = document.getElementById('http-btn');
+    if (httpBtn) {
+        httpBtn.addEventListener('click', () => {
+            simulator.toggleHTTPMode();
+        });
+    }
+    
+    // TCPマネージャーのイベントリスナー設定
+    setupTCPEventListeners(simulator);
+    
+    // TCP状態パネルの初期化
+    setupTCPStatusPanel(simulator);
+    
+    // デバイスにTCP関連機能を追加
+    extendDevicesWithTCP(simulator);
+    
+    console.log('TCP機能が正常に統合されました');
+}
+
+// TCPイベントリスナーの設定
+function setupTCPEventListeners(simulator) {
+    // TCP接続状態変更イベント
+    window.tcpManager.addEventListener('connectionStateChange', (data) => {
+        console.log(`TCP状態変更: ${data.connection.id} ${data.oldState} → ${data.newState}`);
+        updateTCPStatusPanel(simulator);
+    });
+    
+    // セグメント送信イベント（アニメーション表示）
+    window.tcpManager.addEventListener('segmentSent', (data) => {
+        // animation-helper.jsのanimateTCPSegment関数を使用
+        if (typeof window.animateTCPSegment === 'function') {
+            window.animateTCPSegment(simulator, data);
+        } else {
+            console.error('animateTCPSegment関数が見つかりません（animation-helper.js）');
+        }
+    });
+    
+    // HTTP関連イベントはtcp-integration.jsで処理
+    
+    // 接続確立完了イベント
+    window.tcpManager.addEventListener('connectionEstablished', (data) => {
+        simulator.updateStatus(`TCP接続確立: ${data.connection.localDevice.name || data.connection.localDevice.id} ⟷ ${data.connection.remoteDevice.name || data.connection.remoteDevice.id}`);
+        updateTCPStatusPanel(simulator);
+    });
+}
+
+// TCP状態パネルの設定
+function setupTCPStatusPanel(simulator) {
+    const panel = document.getElementById('tcp-status-panel');
+    if (panel) {
+        // 初期は非表示
+        panel.style.display = 'none';
+    }
+}
+
+// TCP状態パネルの更新
+function updateTCPStatusPanel(simulator) {
+    const panel = document.getElementById('tcp-status-panel');
+    const connectionsList = document.getElementById('tcp-connections-list');
+    
+    if (!panel || !connectionsList) return;
+    
+    const connections = window.tcpManager.getAllConnections();
+    
+    if (connections.length === 0) {
+        connectionsList.innerHTML = '<div style="color: #666; font-style: italic;">接続なし</div>';
+        // ログ表示がOFFなら非表示、ONなら表示（未定義の場合はfalseとして扱う）
+        if (!window.showLogPanels) {
+            panel.style.display = 'none';
+        }
+        return;
+    }
+    
+    // ログ表示がONの場合のみ表示
+    if (window.showLogPanels) {
+        panel.style.display = 'block';
+    }
+    
+    connectionsList.innerHTML = connections.map(conn => {
+        const info = conn.getConnectionInfo();
+        const stateClass = info.state.toLowerCase().replace('_', '-');
+        const localName = info.localDevice;
+        const remoteName = info.remoteDevice;
+        
+        return `
+            <div class="tcp-connection-item ${stateClass}">
+                <div style="font-weight: bold;">${localName}:${info.localPort} ⟷ ${remoteName}:${info.remotePort}</div>
+                <div style="color: #666; font-size: 10px;">
+                    状態: ${info.state} | 送信: ${info.sentSegments} | 受信: ${info.receivedSegments}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// TCPセグメントのアニメーション（animation-helper.jsの関数を使用）
+// この関数は削除され、animation-helper.jsのanimateTCPSegment関数が使用されます
+
+// ワールド座標をDOM座標に変換する関数
+function worldToDOM(simulator, worldPos) {
+    return {
+        x: worldPos.x * simulator.scale + simulator.panX,
+        y: worldPos.y * simulator.scale + simulator.panY
+    };
+}
+
+// TCP接続に基づいて送信元デバイスを探す関数（簡易実装）
+function findDeviceByConnection(segment, targetDevice) {
+    // 既存のTCP接続から送信元を探す
+    const connections = window.tcpManager.getAllConnections();
+    for (const conn of connections) {
+        if (conn.remoteDevice === targetDevice && 
+            conn.localPort === segment.sourcePort && 
+            conn.remotePort === segment.destPort) {
+            return conn.localDevice;
+        }
+    }
+    
+    // 見つからない場合はnull
+    return null;
+}
+
+// デバイスにTCP機能を拡張
+function extendDevicesWithTCP(simulator) {
+    // 既存のデバイス作成関数を拡張
+    const originalCreateDevice = simulator.createDevice.bind(simulator);
+    simulator.createDevice = function(type, x, y) {
+        const device = originalCreateDevice(type, x, y);
+        
+        // TCP関連機能を追加
+        device.receiveSegment = function(segment, connection) {
+            console.log(`${this.name || this.id} でTCPセグメント受信:`, segment.toString());
+            
+            if (connection) {
+                connection.receiveSegment(segment);
+            } else {
+                console.warn('TCP接続が見つかりません:', segment.toString());
+            }
+        };
+        
+        // サーバータイプの場合はHTTPサーバー機能を有効にする
+        if (type === 'server') {
+            window.httpSimulator.setupSampleServer(device, 80);
+        }
+        
+        return device;
     };
     
-    window.redistributeAllDHCP = () => {
-        console.log('\n=== 全ルーターでDHCP再配布 ===');
-        for (const [, device] of simulator.devices.entries()) {
-            if (device.type === 'router') {
-                simulator.redistributeDHCPAddresses(device);
+    // HTTP通信モードの切り替え
+    simulator.toggleHTTPMode = function() {
+        if (this.isHTTPMode) {
+            // HTTP通信モードを終了
+            this.isHTTPMode = false;
+            this.httpSourceDevice = null;
+            this.httpTargetDevice = null;
+            this.updateStatus('HTTP通信モードを終了しました');
+        } else {
+            // HTTP通信モードを開始
+            this.isHTTPMode = true;
+            this.isPingMode = false; // Pingモードは無効にする
+            this.pingSourceDevice = null;
+            this.pingTargetDevice = null;
+            this.updateStatus('HTTP通信を行うクライアントとサーバーを選択してください');
+        }
+        this.updateControlButtons(); // ボタンの状態を更新
+        this.scheduleRender();
+    };
+    
+    // 既存のデバイスクリックハンドラーを拡張
+    const originalHandleDeviceClick = simulator.handleDeviceClick.bind(simulator);
+    simulator.handleDeviceClick = function(clickedDevice, event) {
+        if (this.isHTTPMode) {
+            this.handleHTTPModeClick(clickedDevice);
+            return;
+        }
+        
+        // 元の処理を実行
+        originalHandleDeviceClick(clickedDevice, event);
+    };
+    
+    // HTTP通信用のデバイスクリック処理
+    simulator.handleHTTPModeClick = function(clickedDevice) {
+        if (!this.httpSourceDevice) {
+            // 送信元を選択
+            this.httpSourceDevice = clickedDevice;
+            this.updateStatus(`HTTP送信元に ${clickedDevice.name} を選択しました。次にサーバーを選択してください。`);
+        } else if (this.httpSourceDevice === clickedDevice) {
+            // 同じデバイスをクリック → 選択解除
+            this.httpSourceDevice = null;
+            this.updateStatus('HTTP送信元の選択を解除しました。クライアントを選択してください。');
+        } else {
+            // 送信先を選択 → HTTP通信実行
+            this.httpTargetDevice = clickedDevice;
+            this.executeHTTPCommunication(this.httpSourceDevice, this.httpTargetDevice);
+            
+            // 通信実行後、送信元・送信先をリセットして次の通信に備える
+            this.httpSourceDevice = null;
+            this.httpTargetDevice = null;
+            this.updateStatus('HTTP通信を実行しました。続けて別の通信を行うか、HTTP終了ボタンを押してください。');
+            this.updateControlButtons(); // HTTPモード継続中のためボタン状態を更新
+        }
+        this.scheduleRender();
+    };
+    
+    // HTTP通信の実行
+    simulator.executeHTTPCommunication = function(client, server) {
+        console.log(`HTTP通信開始: ${client.name || client.id} → ${server.name || server.id}`);
+        
+        // IPアドレスの検証
+        if (!client.config.ipAddress || client.config.ipAddress === '0.0.0.0') {
+            this.updateStatus(`❌ HTTP通信失敗: ${client.name} にIPアドレスが設定されていません`);
+            return;
+        }
+        
+        if (!server.config.ipAddress || server.config.ipAddress === '0.0.0.0') {
+            this.updateStatus(`❌ HTTP通信失敗: ${server.name} にIPアドレスが設定されていません`);
+            return;
+        }
+        
+        // 通信可能性の検証
+        const reachabilityResult = this.checkNetworkReachability(client, server);
+        if (!reachabilityResult.isReachable) {
+            this.updateStatus(`❌ HTTP通信失敗: ${client.name} と ${server.name} は通信できません (${reachabilityResult.reason})`);
+            return;
+        }
+        
+        this.updateStatus(`🌐 HTTP通信を開始中: ${client.name} → ${server.name}`);
+        
+        // HTTPリクエストを送信
+        const session = window.httpSimulator.sendRequest(client, server, {
+            method: 'GET',
+            path: '/',
+            headers: {
+                'Host': server.config.ipAddress,
+                'User-Agent': 'NetworkSimulator/1.0'
             }
+        });
+        
+        if (!session) {
+            this.updateStatus(`❌ HTTP通信失敗: セッションの作成に失敗しました`);
         }
     };
     
-    console.log('🔧 デバッグコマンド:');
-    console.log('  debugDHCP() - DHCP状況表示');
-    console.log('  debugNetworkDevices() - 全デバイス情報表示');
-    console.log('  redistributeAllDHCP() - 全ルーターでDHCP再配布実行');
-});
+    // デバイス描画に HTTP モードのハイライトを追加
+    const originalDrawDevice = simulator.drawDevice.bind(simulator);
+    simulator.drawDevice = function(device) {
+        let httpHighlight = null;
+        
+        if (this.isHTTPMode) {
+            if (device === this.httpSourceDevice) {
+                httpHighlight = 'source';
+            } else if (device === this.httpTargetDevice) {
+                httpHighlight = 'target';
+            }
+        }
+        
+        // 元の描画処理を呼び出し（引数を拡張）
+        originalDrawDevice(device, httpHighlight);
+    };
+    
+    // クリアボタンの処理を拡張
+    const originalClearAll = simulator.clearAll.bind(simulator);
+    simulator.clearAll = function() {
+        // TCP接続をクリア
+        window.tcpManager.clearAllConnections();
+        window.httpSimulator.clearAllSessions();
+        
+        // HTTP通信モードをリセット
+        this.isHTTPMode = false;
+        this.httpSourceDevice = null;
+        this.httpTargetDevice = null;
+        document.getElementById('http-btn').textContent = 'HTTP';
+        
+        // TCP状態パネルを隠す
+        const panel = document.getElementById('tcp-status-panel');
+        if (panel) {
+            panel.style.display = 'none';
+        }
+        
+        // 元のクリア処理を実行
+        originalClearAll();
+    };
+}
+
+// 既存のdrawDevice関数を拡張してHTTPハイライトに対応
+NetworkSimulator.prototype.drawDevice = function(device, httpHighlight = null) {
+    const isSelected = device === this.selectedDevice;
+    const isConnectionStart = device === this.connectionStart;
+    
+    // Pingモードでのハイライト判定
+    let pingHighlight = null;
+    if (this.isPingMode) {
+        if (device === this.pingSourceDevice) {
+            pingHighlight = 'source';
+        } else if (device === this.pingTargetDevice) {
+            pingHighlight = 'target';
+        }
+    }
+    
+    // HTTP モードでのハイライト（引数で渡される）
+    if (httpHighlight) {
+        pingHighlight = httpHighlight; // 同じ描画ロジックを使用
+    }
+    
+    // エラー点滅効果
+    const errorBlink = this.errorBlinkDevices && this.errorBlinkDevices.has(device);
+    const blinkPhase = Math.floor(Date.now() / 200) % 2; // 200msごとに点滅
+    
+    // デバイス背景色
+    if (errorBlink && blinkPhase === 0) {
+        this.ctx.fillStyle = '#ffebee'; // エラー時の点滅色（薄い赤）
+    } else if (pingHighlight === 'source' || httpHighlight === 'source') {
+        this.ctx.fillStyle = '#e3f2fd'; // 送信元は青系
+    } else if (pingHighlight === 'target' || httpHighlight === 'target') {
+        this.ctx.fillStyle = '#ffebee'; // 送信先は赤系
+    } else {
+        this.ctx.fillStyle = this.getDeviceColor(device.type);
+    }
+    
+    // デバイス枠線
+    if (errorBlink && blinkPhase === 0) {
+        this.ctx.strokeStyle = '#f44336'; // エラー時の枠線（赤）
+        this.ctx.lineWidth = 3;
+    } else if (pingHighlight === 'source' || httpHighlight === 'source') {
+        this.ctx.strokeStyle = '#2196f3'; // 送信元は青
+        this.ctx.lineWidth = 4;
+    } else if (pingHighlight === 'target' || httpHighlight === 'target') {
+        this.ctx.strokeStyle = '#f44336'; // 送信先は赤
+        this.ctx.lineWidth = 4;
+    } else {
+        this.ctx.strokeStyle = isSelected ? '#2196f3' : (isConnectionStart ? '#ff9800' : '#666');
+        this.ctx.lineWidth = isSelected || isConnectionStart ? 3 : 1;
+    }
+    
+    this.ctx.fillRect(device.x, device.y, device.width, device.height);
+    this.ctx.strokeRect(device.x, device.y, device.width, device.height);
+    
+    // 端子を描画
+    this.drawDevicePorts(device);
+    
+    // アイコン
+    this.ctx.font = '20px Arial';
+    this.ctx.fillStyle = '#333';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+        this.getDeviceIcon(device.type),
+        device.x + device.width / 2,
+        device.y + 25
+    );
+    
+    // デバイス名
+    this.ctx.font = '10px Arial';
+    this.ctx.fillStyle = '#333';
+    let displayName = device.name;
+    
+    // モードでのインジケーター追加
+    if (pingHighlight === 'source') {
+        displayName = '🔵 ' + device.name + ' (送信元)';
+        this.ctx.fillStyle = '#2196f3';
+    } else if (pingHighlight === 'target') {
+        displayName = '🔴 ' + device.name + ' (送信先)';
+        this.ctx.fillStyle = '#f44336';
+    } else if (httpHighlight === 'source') {
+        displayName = '🌐 ' + device.name + ' (クライアント)';
+        this.ctx.fillStyle = '#2196f3';
+    } else if (httpHighlight === 'target') {
+        displayName = '🖥️ ' + device.name + ' (サーバー)';
+        this.ctx.fillStyle = '#f44336';
+    }
+    
+    this.ctx.fillText(
+        displayName,
+        device.x + device.width / 2,
+        device.y + device.height - 18
+    );
+    
+    // IPアドレス表示（常時表示）
+    this.ctx.font = '9px Arial';
+    this.ctx.fillStyle = '#666';
+    const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
+    this.ctx.fillText(
+        `${device.config.ipAddress}/${cidr}`,
+        device.x + device.width / 2,
+        device.y + device.height - 6
+    );
+};
+// TCP機能を統合
+console.log('TCP統合を開始...');
+
+// データ受信イベントリスナーを直接追加（重複防止付き）
+let httpEventListenerAdded = false;
+if (!httpEventListenerAdded) {
+    window.tcpManager.addEventListener('dataReceived', (data) => {
+        console.log('TCPManager dataReceived:', data.connection.id);
+        
+        const connection = data.connection;
+        const localDevice = connection.localDevice;
+        const remoteDevice = connection.remoteDevice;
+        
+        // TCP接続IDでHTTPセッションを正確に特定
+        const targetSessionId = connection.id;
+        console.log('HTTPセッション検索対象:', targetSessionId);
+        
+        const session = window.httpSimulator.sessions.get(targetSessionId);
+        if (session) {
+            console.log('HTTPセッションに転送:', targetSessionId);
+            session.handleReceivedData(data.data);
+        } else {
+            console.log('対応するHTTPセッションが見つかりません:', targetSessionId);
+            console.log('利用可能なHTTPセッション:', Array.from(window.httpSimulator.sessions.keys()));
+            
+            // まず逆方向のTCP接続IDでHTTPセッションを検索
+            const reversedId = window.httpSimulator.getReversedConnectionId ? 
+                window.httpSimulator.getReversedConnectionId(targetSessionId) : null;
+            
+            let matchedSession = null;
+            if (reversedId) {
+                console.log('逆方向接続ID:', reversedId);
+                matchedSession = window.httpSimulator.sessions.get(reversedId);
+                if (matchedSession) {
+                    console.log('逆方向接続でHTTPセッションに転送:', reversedId);
+                    matchedSession.handleReceivedData(data.data);
+                }
+            }
+            
+            // 逆方向でも見つからない場合、デバイス間での代替検索（最新のセッションを優先）
+            if (!matchedSession) {
+                const sessionEntries = Array.from(window.httpSimulator.sessions.entries());
+                // セッションを最新順（接続ID内のタイムスタンプが新しい順）にソート
+                sessionEntries.sort((a, b) => {
+                    const timestampA = a[0].split('_')[0].split('-')[1] || '0';
+                    const timestampB = b[0].split('_')[0].split('-')[1] || '0';
+                    return parseInt(timestampB) - parseInt(timestampA);
+                });
+                
+                for (const [sessionId, session] of sessionEntries) {
+                    const sessionLocal = session.connection.localDevice;
+                    const sessionRemote = session.connection.remoteDevice;
+                    
+                    if ((sessionLocal === localDevice && sessionRemote === remoteDevice) ||
+                        (sessionLocal === remoteDevice && sessionRemote === localDevice)) {
+                        console.log('デバイスベース（最新優先）でHTTPセッションに転送:', sessionId);
+                        session.handleReceivedData(data.data);
+                        break;
+                    }
+                }
+            }
+        }
+    });
+    httpEventListenerAdded = true;
+}
+
+console.log('TCP-HTTP統合完了');
+
+// アニメーション速度制御の初期化
+window.animationSpeedMultiplier = 1.0;
+
+function initializeAnimationSpeedControl() {
+    const slider = document.getElementById('animation-speed-slider');
+    const speedValue = document.getElementById('speed-value');
+    
+    if (slider && speedValue) {
+        // スライダーの値が変更された時の処理
+        slider.addEventListener('input', function() {
+            const speed = parseFloat(this.value);
+            window.animationSpeedMultiplier = speed;
+            speedValue.textContent = speed + '×';
+            
+            console.log('アニメーション速度を変更:', speed + '×');
+        });
+        
+        // 初期値を設定
+        window.animationSpeedMultiplier = parseFloat(slider.value);
+        speedValue.textContent = slider.value + '×';
+        
+        console.log('アニメーション速度制御を初期化しました');
+    }
+}
+
+// TCP表示制御の初期化
+function initializeTCPVisibilityControl() {
+    const checkbox = document.getElementById('tcp-visibility-checkbox');
+    if (checkbox) {
+        // 初期値を設定
+        window.showTCPPackets = checkbox.checked;
+        
+        // チェックボックスの変更イベント
+        checkbox.addEventListener('change', (event) => {
+            window.showTCPPackets = event.target.checked;
+            console.log(`TCP詳細表示: ${window.showTCPPackets ? 'ON (全パケット)' : 'OFF (HTTPデータのみ)'}`);
+        });
+        
+        console.log('TCP表示制御を初期化しました');
+    }
+}
+
+// ログ表示制御の初期化
+function initializeLogVisibilityControl() {
+    const checkbox = document.getElementById('log-visibility-checkbox');
+    
+    if (checkbox) {
+        // 初期値を設定
+        window.showLogPanels = checkbox.checked;
+        
+        // チェックボックスの変更イベント
+        checkbox.addEventListener('change', (event) => {
+            window.showLogPanels = event.target.checked;
+            console.log(`ログ表示: ${window.showLogPanels ? 'ON' : 'OFF'}`);
+            
+            // TCP詳細パネルとHTTPパネルの表示/非表示を制御
+            toggleTCPDetailPanels(event.target.checked);
+        });
+        
+        // 初期状態でパネルの表示/非表示を設定
+        toggleTCPDetailPanels(checkbox.checked);
+        
+        console.log('ログ表示制御を初期化しました');
+    }
+}
+
+// TCP詳細パネルの表示/非表示制御
+function toggleTCPDetailPanels(show) {
+    const tcpPanel = document.getElementById('tcp-status-panel');
+    const httpPanel = document.getElementById('http-status-panel');
+    
+    if (tcpPanel) {
+        tcpPanel.style.display = show ? 'block' : 'none';
+    }
+    
+    if (httpPanel) {
+        httpPanel.style.display = show ? 'block' : 'none';
+    }
+    
+    console.log(`ログパネル: ${show ? '表示' : '非表示'}`);
+}
+
+// 注意: initializeAnimationSpeedControl() と initializeTCPVisibilityControl() は
+// 現在 initializeNetworkSimulator() 内で呼び出されています

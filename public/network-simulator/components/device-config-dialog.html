@@ -1,0 +1,122 @@
+<!-- デバイス設定ダイアログ -->
+<div class="dialog-overlay" id="dialog-overlay"></div>
+<div class="device-config-dialog" id="device-config-dialog">
+    <div class="dialog-header">
+        <span id="dialog-title">デバイス設定</span>
+    </div>
+    <div class="dialog-content">
+        <div class="form-group">
+            <label class="form-label" for="device-name">デバイス名</label>
+            <input type="text" class="form-input" id="device-name" placeholder="PC-1">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="ip-address">IPアドレス</label>
+            <input type="text" class="form-input" id="ip-address" placeholder="192.168.1.1">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="subnet-mask">サブネットマスク</label>
+            <input type="text" class="form-input" id="subnet-mask" placeholder="255.255.255.0">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="default-gateway">デフォルトゲートウェイ</label>
+            <input type="text" class="form-input" id="default-gateway" placeholder="192.168.1.1">
+        </div>
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" id="dhcp-enabled" style="margin-right: 8px;">
+                DHCPでIPアドレスを自動取得
+            </label>
+        </div>
+        
+        <!-- ルーター専用のDHCPサーバー設定 -->
+        <div id="dhcp-server-section" style="display: none;">
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #ddd;">
+            <h4 style="margin-bottom: 16px; color: #333;">DHCPサーバー設定</h4>
+            
+            <!-- LAN1 設定 -->
+            <div class="lan-section">
+                <div class="lan-section-header">LAN1 (メインネットワーク)</div>
+                <div class="lan-section-content">
+                    <div class="form-group">
+                        <label class="form-label" for="lan1-ip">LAN1 IPアドレス</label>
+                        <input type="text" class="form-input" id="lan1-ip" placeholder="192.168.1.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="lan1-dhcp-enabled" style="margin-right: 8px;">
+                            LAN1でDHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan1-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="lan1-pool-start" placeholder="192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan1-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="lan1-pool-end" placeholder="192.168.1.199">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LAN2 設定 -->
+            <div class="lan-section">
+                <div class="lan-section-header">LAN2 (セカンダリネットワーク)</div>
+                <div class="lan-section-content">
+                    <div class="form-group">
+                        <label class="form-label" for="lan2-ip">LAN2 IPアドレス</label>
+                        <input type="text" class="form-input" id="lan2-ip" placeholder="192.168.2.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="lan2-dhcp-enabled" style="margin-right: 8px;">
+                            LAN2でDHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan2-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="lan2-pool-start" placeholder="192.168.2.100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan2-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="lan2-pool-end" placeholder="192.168.2.199">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LAN3 設定 -->
+            <div class="lan-section">
+                <div class="lan-section-header">LAN3 (ゲストネットワーク)</div>
+                <div class="lan-section-content">
+                    <div class="form-group">
+                        <label class="form-label" for="lan3-ip">LAN3 IPアドレス</label>
+                        <input type="text" class="form-input" id="lan3-ip" placeholder="192.168.3.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="lan3-dhcp-enabled" style="margin-right: 8px;">
+                            LAN3でDHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan3-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="lan3-pool-start" placeholder="192.168.3.100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan3-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="lan3-pool-end" placeholder="192.168.3.199">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 共通設定 -->
+            <div class="form-group">
+                <label class="form-label" for="dhcp-lease-time">リース時間（秒）</label>
+                <input type="number" class="form-input" id="dhcp-lease-time" placeholder="3600" value="3600">
+            </div>
+        </div>
+        <div class="dialog-buttons">
+            <button class="dialog-button secondary" id="cancel-btn">キャンセル</button>
+            <button class="dialog-button primary" id="save-btn">保存</button>
+        </div>
+    </div>
+</div>

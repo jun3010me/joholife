@@ -6,514 +6,71 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="ネットワーク構築シミュレータ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* モバイル・タブレット時はLayoutと協調（タッチデバイス判定） */
-        @media (max-width: 1024px) and (hover: none) and (pointer: coarse) {
-            html, body {
-                margin: 0;
-                padding: 0;
-                height: 100vh;
-                width: 100vw;
-                overflow: hidden;
-            }
-        }
-
-        .app-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            position: relative;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* 機器パレット（画面上部固定） */
-        .device-palette {
-            position: fixed;
-            left: 0;
-            right: 0;
-            top: calc(env(safe-area-inset-top, 0px) + 4rem);
-            height: 100px;
-            background: white;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            flex-direction: row;
-            padding: 8px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding-left: max(8px, env(safe-area-inset-left, 8px));
-            padding-right: max(8px, env(safe-area-inset-right, 8px));
-        }
-
-        .palette-content {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
-            padding: 8px;
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
-            width: 100% !important;
-            height: 100% !important;
-            box-sizing: border-box !important;
-            flex-wrap: nowrap !important;
-            touch-action: pan-x !important;
-            
-            /* スクロールバーを非表示にする */
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-
-        .palette-content::-webkit-scrollbar {
-            display: none !important;
-        }
-
-        .device-item {
-            flex-shrink: 0;
-            width: 70px;
-            height: 70px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-            box-sizing: border-box;
-        }
-
-        .device-item:hover {
-            border-color: #2196f3;
-            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
-        }
-
-        .device-icon {
-            font-size: 20px;
-            margin-bottom: 4px;
-        }
-
-        .device-name {
-            font-size: 10px;
-            color: #666;
-            font-weight: 500;
-            line-height: 1.2;
-        }
-
-        /* メインキャンバス */
-        .main-canvas {
-            position: fixed;
-            top: calc(env(safe-area-inset-top, 0px) + 4rem + 100px);
-            left: env(safe-area-inset-left, 0px);
-            right: env(safe-area-inset-right, 0px);
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
-            background: white;
-            overflow: hidden;
-        }
-
-        .canvas-container {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            touch-action: none;
-        }
-
-        #network-canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 10px 10px, #ddd 1px, transparent 1px),
-                radial-gradient(circle at 30px 30px, #ddd 1px, transparent 1px);
-            background-size: 20px 20px;
-            touch-action: none;
-        }
-
-        /* コントロールパネル */
-        .control-panel {
-            position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px));
-            left: env(safe-area-inset-left, 0px);
-            right: env(safe-area-inset-right, 0px);
-            height: 60px;
-            background: white;
-            border-top: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 8px;
-            z-index: 1000;
-        }
-
-        .control-button {
-            background: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            flex: 1;
-            margin: 0 4px;
-            max-width: 100px;
-        }
-
-        .control-button:hover {
-            background: #1976d2;
-        }
-
-        .control-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        /* デバイス設定ダイアログ */
-        .device-config-dialog {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 2000;
-            width: 90%;
-            max-width: 400px;
-            display: none;
-        }
-
-        .dialog-header {
-            background: #2196f3;
-            color: white;
-            padding: 16px;
-            border-radius: 12px 12px 0 0;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .dialog-content {
-            padding: 20px;
-            max-height: 70vh;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-        
-        .dialog-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .dialog-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        .dialog-content::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        
-        .dialog-content::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        .lan-section {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            margin: 16px 0;
-            overflow: hidden;
-        }
-
-        .lan-section-header {
-            background: #f5f5f5;
-            padding: 12px 16px;
-            font-weight: bold;
-            color: #333;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .lan-section-content {
-            padding: 16px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .dialog-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .dialog-button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .dialog-button.primary {
-            background: #2196f3;
-            color: white;
-        }
-
-        .dialog-button.secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .dialog-button:hover {
-            opacity: 0.8;
-        }
-
-        /* オーバーレイ */
-        .dialog-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1999;
-            display: none;
-        }
-
-        /* パケットアニメーション */
-        .packet {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        /* 状態表示 */
-        .status-panel {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.9);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="/network-simulator/styles/main.css">
+    <link rel="stylesheet" href="/network-simulator/styles/mobile.css">
+    <link rel="stylesheet" href="/network-simulator/styles/dialogs.css">
 
     <div class="app-container">
-        <!-- 機器パレット -->
-        <div class="device-palette">
-            <div class="palette-content">
-                <div class="device-item" data-device-type="pc">
-                    <div class="device-icon">💻</div>
-                    <div class="device-name">PC</div>
-                </div>
-                <div class="device-item" data-device-type="router">
-                    <div class="device-icon">📡</div>
-                    <div class="device-name">ルーター</div>
-                </div>
-                <div class="device-item" data-device-type="switch">
-                    <div class="device-icon">🔌</div>
-                    <div class="device-name">スイッチ</div>
-                </div>
-                <div class="device-item" data-device-type="server">
-                    <div class="device-icon">🖥️</div>
-                    <div class="device-name">サーバー</div>
-                </div>
-                <div class="device-item" data-device-type="hub">
-                    <div class="device-icon">⚡</div>
-                    <div class="device-name">ハブ</div>
-                </div>
-            </div>
-        </div>
+        <!-- 機器パレット（外部コンポーネントから読み込み） -->
+        <div id="device-palette-container"></div>
 
         <!-- メインキャンバス -->
         <div class="main-canvas">
             <div class="canvas-container">
                 <canvas id="network-canvas"></canvas>
-                <div class="status-panel">
-                    <div>ネットワーク構築シミュレータ</div>
-                    <div id="status-text">機器を配置してください</div>
-                </div>
+                <!-- ステータスパネル（外部コンポーネントから読み込み） -->
+                <div id="status-panels-container"></div>
             </div>
         </div>
 
-        <!-- コントロールパネル -->
-        <div class="control-panel">
-            <button class="control-button" id="clear-btn">クリア</button>
-            <button class="control-button" id="ping-btn" disabled>Ping</button>
-            <button class="control-button" id="config-btn" disabled>設定</button>
-        </div>
+        <!-- コントロールパネル（外部コンポーネントから読み込み） -->
+        <div id="control-panel-container"></div>
     </div>
 
-    <!-- デバイス設定ダイアログ -->
-    <div class="dialog-overlay" id="dialog-overlay"></div>
-    <div class="device-config-dialog" id="device-config-dialog">
-        <div class="dialog-header">
-            <span id="dialog-title">デバイス設定</span>
-        </div>
-        <div class="dialog-content">
-            <div class="form-group">
-                <label class="form-label" for="device-name">デバイス名</label>
-                <input type="text" class="form-input" id="device-name" placeholder="PC-1">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="ip-address">IPアドレス</label>
-                <input type="text" class="form-input" id="ip-address" placeholder="192.168.1.1">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="subnet-mask">サブネットマスク</label>
-                <input type="text" class="form-input" id="subnet-mask" placeholder="255.255.255.0">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="default-gateway">デフォルトゲートウェイ</label>
-                <input type="text" class="form-input" id="default-gateway" placeholder="192.168.1.1">
-            </div>
-            <div class="form-group">
-                <label class="form-label">
-                    <input type="checkbox" id="dhcp-enabled" style="margin-right: 8px;">
-                    DHCPでIPアドレスを自動取得
-                </label>
-            </div>
+    <!-- デバイス設定ダイアログ（外部コンポーネントから読み込み） -->
+    <div id="device-config-dialog-container"></div>
+
+    <!-- コンポーネントローダー -->
+    <script is:inline>
+        // HTMLコンポーネントを読み込む関数
+        async function loadComponent(containerSelector, componentPath) {
+            try {
+                const response = await fetch(componentPath);
+                const html = await response.text();
+                const container = document.querySelector(containerSelector);
+                if (container) {
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('コンポーネント読み込みエラー:', componentPath, error);
+            }
+        }
+        
+        // コンポーネント読み込み完了フラグ
+        window.componentsLoaded = false;
+        
+        // DOMContentLoadedイベントでコンポーネントを読み込み
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('コンポーネント読み込み開始...');
             
-            <!-- ルーター専用のDHCPサーバー設定 -->
-            <div id="dhcp-server-section" style="display: none;">
-                <hr style="margin: 16px 0; border: none; border-top: 1px solid #ddd;">
-                <h4 style="margin-bottom: 16px; color: #333;">DHCPサーバー設定</h4>
-                
-                <!-- LAN1 設定 -->
-                <div class="lan-section">
-                    <div class="lan-section-header">LAN1 (メインネットワーク)</div>
-                    <div class="lan-section-content">
-                        <div class="form-group">
-                            <label class="form-label" for="lan1-ip">LAN1 IPアドレス</label>
-                            <input type="text" class="form-input" id="lan1-ip" placeholder="192.168.1.1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <input type="checkbox" id="lan1-dhcp-enabled" style="margin-right: 8px;">
-                                LAN1でDHCPサーバーを有効にする
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan1-pool-start">IPプール開始アドレス</label>
-                            <input type="text" class="form-input" id="lan1-pool-start" placeholder="192.168.1.100">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan1-pool-end">IPプール終了アドレス</label>
-                            <input type="text" class="form-input" id="lan1-pool-end" placeholder="192.168.1.199">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- LAN2 設定 -->
-                <div class="lan-section">
-                    <div class="lan-section-header">LAN2 (セカンダリネットワーク)</div>
-                    <div class="lan-section-content">
-                        <div class="form-group">
-                            <label class="form-label" for="lan2-ip">LAN2 IPアドレス</label>
-                            <input type="text" class="form-input" id="lan2-ip" placeholder="192.168.2.1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <input type="checkbox" id="lan2-dhcp-enabled" style="margin-right: 8px;">
-                                LAN2でDHCPサーバーを有効にする
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan2-pool-start">IPプール開始アドレス</label>
-                            <input type="text" class="form-input" id="lan2-pool-start" placeholder="192.168.2.100">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan2-pool-end">IPプール終了アドレス</label>
-                            <input type="text" class="form-input" id="lan2-pool-end" placeholder="192.168.2.199">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- LAN3 設定 -->
-                <div class="lan-section">
-                    <div class="lan-section-header">LAN3 (ゲストネットワーク)</div>
-                    <div class="lan-section-content">
-                        <div class="form-group">
-                            <label class="form-label" for="lan3-ip">LAN3 IPアドレス</label>
-                            <input type="text" class="form-input" id="lan3-ip" placeholder="192.168.3.1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <input type="checkbox" id="lan3-dhcp-enabled" style="margin-right: 8px;">
-                                LAN3でDHCPサーバーを有効にする
-                            </label>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan3-pool-start">IPプール開始アドレス</label>
-                            <input type="text" class="form-input" id="lan3-pool-start" placeholder="192.168.3.100">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lan3-pool-end">IPプール終了アドレス</label>
-                            <input type="text" class="form-input" id="lan3-pool-end" placeholder="192.168.3.199">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 共通設定 -->
-                <div class="form-group">
-                    <label class="form-label" for="dhcp-lease-time">リース時間（秒）</label>
-                    <input type="number" class="form-input" id="dhcp-lease-time" placeholder="3600" value="3600">
-                </div>
-            </div>
-            <div class="dialog-buttons">
-                <button class="dialog-button secondary" id="cancel-btn">キャンセル</button>
-                <button class="dialog-button primary" id="save-btn">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="/scripts/network-simulator.js" is:inline></script>
+            await loadComponent('#device-palette-container', '/network-simulator/components/device-palette.html');
+            await loadComponent('#status-panels-container', '/network-simulator/components/status-panels.html');
+            await loadComponent('#control-panel-container', '/network-simulator/components/control-panel.html');
+            await loadComponent('#device-config-dialog-container', '/network-simulator/components/device-config-dialog.html');
+            
+            console.log('コンポーネント読み込み完了');
+            window.componentsLoaded = true;
+            
+            // コンポーネント読み込み完了イベントを発火
+            window.dispatchEvent(new Event('componentsLoaded'));
+        });
+    </script>
+    
+    <!-- ネットワークシミュレータスクリプト -->
+    <script src="/network-simulator/scripts/network/tcp-simulator.js" is:inline></script>
+    <script src="/network-simulator/scripts/network/http-simulator.js" is:inline></script>
+    <script src="/network-simulator/scripts/network/route-calculator.js" is:inline></script>
+    <script src="/network-simulator/scripts/utils/animation-helper.js" is:inline></script>
+    <script src="/network-simulator/scripts/utils/tcp-integration.js" is:inline></script>
+    <script src="/network-simulator/scripts/core/network-simulator.js" is:inline></script>
 </Layout>

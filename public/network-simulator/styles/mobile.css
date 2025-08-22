@@ -1,0 +1,266 @@
+/* ネットワークシミュレータ - モバイル対応スタイル */
+
+/* コントロールパネル */
+.control-panel {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px));
+    left: env(safe-area-inset-left, 0px);
+    right: env(safe-area-inset-right, 0px);
+    height: 60px;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 8px;
+    padding: 8px;
+    z-index: 1000;
+}
+
+.control-button {
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    flex: 1;
+    margin: 0 4px;
+    max-width: 100px;
+}
+
+.control-button:hover {
+    background: #1976d2;
+}
+
+.control-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.animation-speed-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 140px;
+}
+
+.tcp-visibility-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 100px;
+}
+
+.tcp-label {
+    font-size: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.tcp-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.log-visibility-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 100px;
+}
+
+.log-label {
+    font-size: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.log-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.speed-label {
+    font-size: 12px;
+    color: #333;
+    white-space: nowrap;
+}
+
+.speed-slider {
+    width: 80px;
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #2196f3;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.speed-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #2196f3;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.speed-value {
+    font-size: 11px;
+    color: #666;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .control-panel {
+        height: auto;
+        min-height: 60px;
+        padding: 8px;
+    }
+    
+    .animation-speed-control {
+        min-width: 120px;
+    }
+    
+    .tcp-visibility-control {
+        min-width: 90px;
+    }
+    
+    .log-visibility-control {
+        min-width: 90px;
+    }
+    
+    .speed-slider {
+        width: 60px;
+    }
+    
+    .control-button {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+    
+    /* タブレット・中サイズ画面でのパネル調整 */
+    .http-status-panel {
+        top: 300px; /* デスクトップより少し上に */
+        max-height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 6px 4px;
+        padding: 6px 4px;
+        max-height: 120px;
+        align-items: center;
+    }
+    
+    /* ボタン行（1段目） - 4つのボタンを横並び */
+    .control-button {
+        font-size: 10px;
+        padding: 5px 6px;
+        grid-row: 1;
+    }
+    
+    .control-button:nth-of-type(1) { grid-column: 1; }
+    .control-button:nth-of-type(2) { grid-column: 2; }
+    .control-button:nth-of-type(3) { grid-column: 3; }
+    .control-button:nth-of-type(4) { grid-column: 4; }
+    
+    /* チェックボックス行（2段目） - 2つのチェックボックスを中央に */
+    .tcp-visibility-control {
+        grid-row: 2;
+        grid-column: 2;
+        justify-self: end;
+        font-size: 10px;
+    }
+    
+    .log-visibility-control {
+        grid-row: 2;
+        grid-column: 3;
+        justify-self: start;
+        font-size: 10px;
+    }
+    
+    /* スライダー行（3段目） - 全幅で中央配置 */
+    .animation-speed-control {
+        grid-row: 3;
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    /* ラベルのフォントサイズ調整 */
+    .tcp-label,
+    .log-label,
+    .speed-label {
+        font-size: 10px;
+    }
+    
+    /* スライダー調整 - タッチ操作しやすく */
+    .speed-slider {
+        width: 140px;
+        height: 20px; /* ボタンと同じ程度の高さに調整 */
+        margin: 0 8px;
+    }
+    
+    .speed-value {
+        font-size: 9px;
+    }
+    
+    /* モバイル環境でのステータスパネル調整 */
+    .status-panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        font-size: 11px;
+    }
+    
+    .tcp-status-panel {
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+    
+    .http-status-panel {
+        top: 280px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        max-height: 180px; /* モバイルでは少し低めに設定 */
+    }
+}
