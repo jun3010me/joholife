@@ -133,6 +133,12 @@ class NetworkSimulator {
         document.getElementById('ping-btn').addEventListener('click', this.startPing.bind(this));
         document.getElementById('config-btn').addEventListener('click', this.showDeviceConfig.bind(this));
 
+        // ファイル関連イベント
+        document.getElementById('save-network-btn').addEventListener('click', this.saveNetwork.bind(this));
+        document.getElementById('load-network-btn').addEventListener('click', this.loadNetwork.bind(this));
+        document.getElementById('export-network-btn').addEventListener('click', this.exportImage.bind(this));
+        document.getElementById('file-input').addEventListener('change', this.handleFileLoad.bind(this));
+
         // ダイアログイベント
         document.getElementById('cancel-btn').addEventListener('click', this.hideDeviceConfig.bind(this));
         document.getElementById('save-btn').addEventListener('click', this.saveDeviceConfig.bind(this));
@@ -3619,6 +3625,180 @@ class NetworkSimulator {
         this.showDeviceConfig();
         
         this.updateStatus(`${device.name}の設定画面を開きました`);
+    }
+
+    // ネットワーク構成を保存
+    saveNetwork() {
+        // デバイスデータの作成
+        const devicesData = Array.from(this.devices.values()).map(device => ({
+            id: device.id,
+            type: device.type,
+            name: device.name,
+            x: device.x,
+            y: device.y,
+            width: device.width,
+            height: device.height,
+            config: {
+                ipAddress: device.config.ipAddress,
+                subnetMask: device.config.subnetMask,
+                gateway: device.config.gateway,
+                dhcp: device.config.dhcp || {}
+            },
+            ports: {
+                nics: device.ports.nics.map(port => ({
+                    id: port.id,
+                    x: port.x,
+                    y: port.y,
+                    side: port.side,
+                    connected: port.connected
+                }))
+            }
+        }));
+
+        // 接続データの作成
+        const connectionsData = this.connections.map(connection => ({
+            id: connection.id,
+            from: {
+                deviceId: connection.from.device.id,
+                portId: connection.from.port.id
+            },
+            to: {
+                deviceId: connection.to.device.id,
+                portId: connection.to.port.id
+            }
+        }));
+
+        // 保存データの構造
+        const data = {
+            version: "1.0",
+            timestamp: new Date().toISOString(),
+            devices: devicesData,
+            connections: connectionsData
+        };
+
+        // JSONファイルとしてダウンロード
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'network-diagram.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.updateStatus('ネットワーク構成を保存しました');
+    }
+
+    // ネットワーク構成を読み込み
+    loadNetwork() {
+        document.getElementById('file-input').click();
+    }
+
+    // ファイル読み込み処理
+    handleFileLoad(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                // バージョンチェック
+                if (!data.version) {
+                    throw new Error('不正なファイル形式です');
+                }
+
+                // 現在の構成をクリア
+                this.clearAll();
+
+                // デバイスを復元
+                const deviceMap = new Map();
+                data.devices.forEach(deviceData => {
+                    const device = this.createDevice(deviceData.type, deviceData.x, deviceData.y);
+                    device.id = deviceData.id;
+                    device.name = deviceData.name;
+                    device.width = deviceData.width;
+                    device.height = deviceData.height;
+                    device.config = { ...deviceData.config };
+                    
+                    // ポートを復元
+                    device.ports.nics.forEach((port, index) => {
+                        if (deviceData.ports.nics[index]) {
+                            const portData = deviceData.ports.nics[index];
+                            port.id = portData.id;
+                            port.x = portData.x;
+                            port.y = portData.y;
+                            port.side = portData.side;
+                            port.connected = portData.connected;
+                        }
+                    });
+
+                    this.devices.set(device.id, device);
+                    deviceMap.set(device.id, device);
+                });
+
+                // 接続を復元
+                data.connections.forEach(connectionData => {
+                    const fromDevice = deviceMap.get(connectionData.from.deviceId);
+                    const toDevice = deviceMap.get(connectionData.to.deviceId);
+                    
+                    if (fromDevice && toDevice) {
+                        const fromPort = fromDevice.ports.nics.find(p => p.id === connectionData.from.portId);
+                        const toPort = toDevice.ports.nics.find(p => p.id === connectionData.to.portId);
+                        
+                        if (fromPort && toPort) {
+                            const connection = {
+                                id: connectionData.id,
+                                from: { device: fromDevice, port: fromPort },
+                                to: { device: toDevice, port: toPort }
+                            };
+                            
+                            this.connections.push(connection);
+                            fromPort.connected = connection;
+                            toPort.connected = connection;
+                        }
+                    }
+                });
+
+                this.updateControlButtons();
+                this.scheduleRender();
+                this.updateStatus('ネットワーク構成を読み込みました');
+                
+            } catch (error) {
+                console.error('ファイル読み込みエラー:', error);
+                this.updateStatus('ファイル読み込みに失敗しました: ' + error.message);
+            }
+        };
+
+        reader.readAsText(file);
+        event.target.value = ''; // ファイル入力をリセット
+    }
+
+    // 画像としてエクスポート
+    exportImage() {
+        // 一時的に背景を白にして画像を生成
+        const originalFillStyle = this.ctx.fillStyle;
+        
+        // 現在のキャンバス内容をクリアして白背景で再描画
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // 現在の描画内容を再描画
+        this.render();
+        
+        // PNG画像としてダウンロード
+        const link = document.createElement('a');
+        link.download = 'network-diagram.png';
+        link.href = this.canvas.toDataURL('image/png');
+        link.click();
+        
+        // 元の描画状態に戻す
+        this.ctx.fillStyle = originalFillStyle;
+        this.scheduleRender();
+        
+        this.updateStatus('ネットワーク図を画像として保存しました');
     }
 }
 
