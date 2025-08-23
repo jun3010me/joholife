@@ -1505,7 +1505,7 @@ class NetworkSimulator {
         this.updateDynamicNICPosition(endPort.device);
         
         this.updateStatus(`${startPort.device.name}の${startPort.port.label} と ${endPort.device.name}の${endPort.port.label} を接続しました`);
-        console.log('接続作成完了:', connection.id);
+        console.log('接続作成完了:', connection.id, '-', connection.from.device.name, '→', connection.to.device.name);
     }
 
     // 指定座標のNICポートを取得
@@ -2205,14 +2205,24 @@ class NetworkSimulator {
             const path = queue.shift();
             const currentDevice = path[path.length - 1];
             
-            // 現在のデバイスの接続をチェック
+            // 現在のデバイスの接続をチェック（新旧両方の接続形式をサポート）
             for (const conn of this.connections) {
                 let nextDevice = null;
                 
-                if (conn.fromDevice === currentDevice.id) {
-                    nextDevice = this.devices.get(conn.toDevice);
-                } else if (conn.toDevice === currentDevice.id) {
-                    nextDevice = this.devices.get(conn.fromDevice);
+                if (conn.from && conn.to) {
+                    // 新しい形式
+                    if (conn.from.device === currentDevice) {
+                        nextDevice = conn.to.device;
+                    } else if (conn.to.device === currentDevice) {
+                        nextDevice = conn.from.device;
+                    }
+                } else {
+                    // 古い形式
+                    if (conn.fromDevice === currentDevice.id) {
+                        nextDevice = this.devices.get(conn.toDevice);
+                    } else if (conn.toDevice === currentDevice.id) {
+                        nextDevice = this.devices.get(conn.fromDevice);
+                    }
                 }
                 
                 if (nextDevice && !visited.has(nextDevice.id)) {
@@ -2423,11 +2433,31 @@ class NetworkSimulator {
 
     // 2つのデバイス間の接続線のパスを取得（drawConnection関数と同じロジック）
     getConnectionPath(fromDevice, toDevice) {
-        // デバイス間の接続を検索
-        const connection = this.connections.find(conn => 
-            (conn.fromDevice === fromDevice.id && conn.toDevice === toDevice.id) ||
-            (conn.fromDevice === toDevice.id && conn.toDevice === fromDevice.id)
-        );
+        
+        // デバイス間の接続を検索（新旧両方の形式をサポート）
+        const connection = this.connections.find(conn => {
+            
+            if (conn.from && conn.to) {
+                // 新しい形式
+                    
+                const match = (conn.from.device === fromDevice && conn.to.device === toDevice) ||
+                             (conn.from.device === toDevice && conn.to.device === fromDevice);
+                             
+                if (match) {
+                    console.log(`  接続発見: ${conn.from.device.name} → ${conn.to.device.name} (id: ${conn.id})`);
+                }
+                return match;
+            } else {
+                // 古い形式
+                const match = (conn.fromDevice === fromDevice.id && conn.toDevice === toDevice.id) ||
+                             (conn.fromDevice === toDevice.id && conn.toDevice === fromDevice.id);
+                             
+                if (match) {
+                    console.log(`  接続発見(旧): ${conn.fromDevice} → ${conn.toDevice} (id: ${conn.id})`);
+                }
+                return match;
+            }
+        });
         
         if (!connection) {
             // 接続が見つからない場合は直線パス
@@ -2441,9 +2471,23 @@ class NetworkSimulator {
             };
         }
         
-        // 接続線の描画ロジックと全く同じ処理
-        const actualFromDevice = this.devices.get(connection.fromDevice);
-        const actualToDevice = this.devices.get(connection.toDevice);
+        
+        // 正確なポート位置を取得（drawConnectionと同じロジック）
+        let actualFromDevice, actualToDevice, fromPortId, toPortId;
+        
+        if (connection.from && connection.to) {
+            // 新しい形式
+            actualFromDevice = connection.from.device;
+            actualToDevice = connection.to.device;
+            fromPortId = connection.from.port.id;
+            toPortId = connection.to.port.id;
+        } else {
+            // 古い形式
+            actualFromDevice = this.devices.get(connection.fromDevice);
+            actualToDevice = this.devices.get(connection.toDevice);
+            fromPortId = connection.fromPort;
+            toPortId = connection.toPort;
+        }
         
         if (!actualFromDevice || !actualToDevice) {
             return {
@@ -2456,9 +2500,19 @@ class NetworkSimulator {
             };
         }
         
-        // getPortPosition関数を使用してポート位置を取得
-        const fromPort = this.getPortPosition(actualFromDevice, connection.fromPort);
-        const toPort = this.getPortPosition(actualToDevice, connection.toPort);
+        // 実際のポート位置を取得（動的NICポート対応）
+        let fromPort, toPort;
+        
+        // 要求されたfromDevice/toDeviceに対応するポート位置を取得
+        if (actualFromDevice === fromDevice) {
+            // 接続の方向が要求方向と同じ場合
+            fromPort = this.getPortPosition(actualFromDevice, fromPortId);
+            toPort = this.getPortPosition(actualToDevice, toPortId);
+        } else {
+            // 接続の方向が要求方向と逆の場合
+            fromPort = this.getPortPosition(actualToDevice, toPortId);
+            toPort = this.getPortPosition(actualFromDevice, fromPortId);
+        }
         
         if (!fromPort || !toPort) {
             return {
@@ -2479,9 +2533,15 @@ class NetworkSimulator {
         const cp2y = toPort.y;
         
         // パケットの移動方向を決定
-        const isForward = (actualFromDevice.id === fromDevice.id);
+        const isForward = (actualFromDevice === fromDevice);
         
-        return isForward ? {
+        console.log(`🔍 getConnectionPath: ${fromDevice.name} → ${toDevice.name}`);
+        console.log(`  接続情報: ${actualFromDevice.name} → ${actualToDevice.name}`);
+        console.log(`  方向判定: isForward = ${isForward}`);
+        console.log(`  ポート位置: from(${fromPort.x}, ${fromPort.y}) → to(${toPort.x}, ${toPort.y})`);
+        
+        // fromPort と toPort は既に要求方向に合わせて取得済みなので、そのまま使用
+        const result = {
             startX: fromPort.x,
             startY: fromPort.y,
             endX: toPort.x,
@@ -2489,15 +2549,10 @@ class NetworkSimulator {
             cp1X: cp1x, cp1Y: cp1y,
             cp2X: cp2x, cp2Y: cp2y,
             isBezier: true
-        } : {
-            startX: toPort.x,
-            startY: toPort.y,
-            endX: fromPort.x,
-            endY: fromPort.y,
-            cp1X: cp2x, cp1Y: cp2y,
-            cp2X: cp1x, cp2Y: cp1y,
-            isBezier: true
         };
+        
+        console.log(`  結果パス: start(${result.startX}, ${result.startY}) → end(${result.endX}, ${result.endY})`);
+        return result;
     }
     
     // デバイスの指定IDのポートを取得
@@ -2545,7 +2600,8 @@ class NetworkSimulator {
                 offsetY
             };
             
-            console.log(`🏃‍♂️ パケットアニメーション: ${fromDevice.name || fromDevice.id} → ${toDevice.name || toDevice.id} (${duration}ms)`);
+            console.log(`🏃‍♂️ パケットアニメーション開始: ${fromDevice.name || fromDevice.id} → ${toDevice.name || toDevice.id} (${duration}ms)`);
+            console.log(`  初期位置: (${packet.x.toFixed(1)}, ${packet.y.toFixed(1)}) → 目標: (${connectionPath.endX.toFixed(1)}, ${connectionPath.endY.toFixed(1)})`);
             
             const startTime = Date.now();
             
@@ -2555,6 +2611,11 @@ class NetworkSimulator {
                 
                 // イージング関数
                 const easeProgress = 1 - Math.pow(1 - packet.progress, 3);
+                
+                // デバッグ: 開始時と終了時にログ出力
+                if (packet.progress === 0 || packet.progress >= 1) {
+                    console.log(`🚀 パケット位置: progress=${packet.progress.toFixed(2)}, x=${packet.x.toFixed(1)}, y=${packet.y.toFixed(1)}`);
+                }
                 
                 // 接続線のパスに沿って位置を計算
                 if (connectionPath.isBezier) {
@@ -2907,12 +2968,8 @@ class NetworkSimulator {
         this.ctx.translate(this.panX, this.panY);
         this.ctx.scale(this.scale, this.scale);
         
-        // レンダリング前に、接続されている単一NICデバイスの位置を更新
-        for (const device of this.devices.values()) {
-            if (this.isSingleNICDevice(device)) {
-                this.updateDynamicNICPosition(device);
-            }
-        }
+        // 動的NICポート更新は必要時のみ実行（パフォーマンス最適化）
+        // レンダリング時の自動更新は重いため、デバイス移動時とアニメーション時のみ実行
         
         // 接続線を描画
         this.drawConnections();

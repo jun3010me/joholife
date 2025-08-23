@@ -143,11 +143,18 @@ class TCPConnection {
             }
         };
 
+        // 送信方向は常に localDevice → remoteDevice
+        // （クライアント接続：client → server、サーバー接続：server → client）
+        const actualSource = this.localDevice;
+        const actualDestination = this.remoteDevice;
+        
+        console.log(`📡 TCP セグメント送信: ${actualSource.name}(${actualSource.type}) → ${actualDestination.name}(${actualDestination.type}) [${segment.toString()}]`);
+        
         // アニメーション用イベント発火（コールバック付き）
         this.emit('segmentSent', {
             segment,
-            source: this.localDevice,
-            destination: this.remoteDevice,
+            source: actualSource,
+            destination: actualDestination,
             connection: this,
             onAnimationComplete // 到着コールバックを渡す
         });
