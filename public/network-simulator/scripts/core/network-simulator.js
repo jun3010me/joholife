@@ -402,10 +402,10 @@ class NetworkSimulator {
     getDevicePorts(type) {
         const portConfigs = {
             'pc': {
-                nics: [{ id: 'eth', label: 'ETH', x: 1, y: 0.5 }]
+                nics: [{ id: 'eth', label: 'ETH', x: 1, y: 0.5, isDynamic: true }]
             },
             'server': {
-                nics: [{ id: 'eth', label: 'ETH', x: 0, y: 0.5 }]
+                nics: [{ id: 'eth', label: 'ETH', x: 0, y: 0.5, isDynamic: true }]
             },
             'router': {
                 nics: [
@@ -437,6 +437,117 @@ class NetworkSimulator {
             }
         };
         return portConfigs[type] || { nics: [] };
+    }
+
+    // 単一NICデバイスかどうかを判定
+    isSingleNICDevice(device) {
+        return device.type === 'pc' || device.type === 'server';
+    }
+
+    // 線と矩形の交点を計算
+    getLineRectIntersection(x1, y1, x2, y2, rectX, rectY, rectWidth, rectHeight) {
+        const intersections = [];
+        
+        // 上辺との交点
+        const topY = rectY;
+        if ((y1 <= topY && y2 >= topY) || (y1 >= topY && y2 <= topY)) {
+            const t = (topY - y1) / (y2 - y1);
+            const intersectX = x1 + t * (x2 - x1);
+            if (intersectX >= rectX && intersectX <= rectX + rectWidth) {
+                intersections.push({ x: intersectX, y: topY, side: 'top' });
+            }
+        }
+        
+        // 下辺との交点
+        const bottomY = rectY + rectHeight;
+        if ((y1 <= bottomY && y2 >= bottomY) || (y1 >= bottomY && y2 <= bottomY)) {
+            const t = (bottomY - y1) / (y2 - y1);
+            const intersectX = x1 + t * (x2 - x1);
+            if (intersectX >= rectX && intersectX <= rectX + rectWidth) {
+                intersections.push({ x: intersectX, y: bottomY, side: 'bottom' });
+            }
+        }
+        
+        // 左辺との交点
+        const leftX = rectX;
+        if ((x1 <= leftX && x2 >= leftX) || (x1 >= leftX && x2 <= leftX)) {
+            const t = (leftX - x1) / (x2 - x1);
+            const intersectY = y1 + t * (y2 - y1);
+            if (intersectY >= rectY && intersectY <= rectY + rectHeight) {
+                intersections.push({ x: leftX, y: intersectY, side: 'left' });
+            }
+        }
+        
+        // 右辺との交点
+        const rightX = rectX + rectWidth;
+        if ((x1 <= rightX && x2 >= rightX) || (x1 >= rightX && x2 <= rightX)) {
+            const t = (rightX - x1) / (x2 - x1);
+            const intersectY = y1 + t * (y2 - y1);
+            if (intersectY >= rectY && intersectY <= rectY + rectHeight) {
+                intersections.push({ x: rightX, y: intersectY, side: 'right' });
+            }
+        }
+        
+        return intersections;
+    }
+
+    // 動的NICポート位置を更新
+    updateDynamicNICPosition(device) {
+        if (!this.isSingleNICDevice(device)) return;
+        
+        const nic = device.ports.nics[0];
+        if (!nic.connected) return;
+        
+        const connection = nic.connected;
+        let otherDevice = null;
+        let otherPort = null;
+        
+        // 接続先デバイスとポートを特定
+        if (connection.from.device === device) {
+            otherDevice = connection.to.device;
+            otherPort = connection.to.port;
+        } else {
+            otherDevice = connection.from.device;
+            otherPort = connection.from.port;
+        }
+        
+        if (!otherDevice || !otherPort) return;
+        
+        // 接続先ポートの実際の座標を計算
+        const otherPortX = otherDevice.x + otherPort.x * otherDevice.width;
+        const otherPortY = otherDevice.y + otherPort.y * otherDevice.height;
+        
+        // デバイス中央から接続先ポートへの線と、デバイスの輪郭との交点を計算
+        const deviceCenterX = device.x + device.width / 2;
+        const deviceCenterY = device.y + device.height / 2;
+        
+        const intersections = this.getLineRectIntersection(
+            deviceCenterX, deviceCenterY,
+            otherPortX, otherPortY,
+            device.x, device.y, device.width, device.height
+        );
+        
+        if (intersections.length > 0) {
+            // 最も適切な交点を選択（接続先に近い方）
+            let bestIntersection = intersections[0];
+            let minDistance = Infinity;
+            
+            for (const intersection of intersections) {
+                const distance = Math.sqrt(
+                    Math.pow(intersection.x - otherPortX, 2) + 
+                    Math.pow(intersection.y - otherPortY, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestIntersection = intersection;
+                }
+            }
+            
+            // NICポートの位置を更新（相対座標で保存）
+            nic.x = (bestIntersection.x - device.x) / device.width;
+            nic.y = (bestIntersection.y - device.y) / device.height;
+            nic.side = bestIntersection.side;
+        }
     }
 
     // 座標変換
@@ -812,6 +923,22 @@ class NetworkSimulator {
             }
         }
         
+        // ドラッグ終了時に、接続されている単一NICデバイスのポート位置を更新
+        if (this.selectedDevice && this.isSingleNICDevice(this.selectedDevice)) {
+            this.updateDynamicNICPosition(this.selectedDevice);
+            
+            // 接続先デバイスも単一NICなら更新
+            const nic = this.selectedDevice.ports.nics[0];
+            if (nic.connected) {
+                const connection = nic.connected;
+                const otherDevice = connection.from.device === this.selectedDevice ? 
+                    connection.to.device : connection.from.device;
+                if (this.isSingleNICDevice(otherDevice)) {
+                    this.updateDynamicNICPosition(otherDevice);
+                }
+            }
+        }
+
         // クリーンアップ
         this.isDragging = false;
         this.dragPrepared = false;
@@ -1339,15 +1466,22 @@ class NetworkSimulator {
         // NIC間接続作成（1対1接続）
         const connection = {
             id: 'conn_' + Date.now(),
-            fromDevice: startPort.device.id,
-            fromPort: startPort.port.id,
-            toDevice: endPort.device.id,
-            toPort: endPort.port.id,
+            from: { device: startPort.device, port: startPort.port },
+            to: { device: endPort.device, port: endPort.port },
             type: 'ethernet',
             selected: false
         };
         
+        // ポートに接続情報を設定
+        startPort.port.connected = connection;
+        endPort.port.connected = connection;
+        
         this.connections.push(connection);
+        
+        // 単一NICデバイスの場合、動的NICポート位置を更新
+        this.updateDynamicNICPosition(startPort.device);
+        this.updateDynamicNICPosition(endPort.device);
+        
         this.updateStatus(`${startPort.device.name}の${startPort.port.label} と ${endPort.device.name}の${endPort.port.label} を接続しました`);
         console.log('接続作成完了:', connection.id);
     }
@@ -2751,6 +2885,13 @@ class NetworkSimulator {
         this.ctx.translate(this.panX, this.panY);
         this.ctx.scale(this.scale, this.scale);
         
+        // レンダリング前に、接続されている単一NICデバイスの位置を更新
+        for (const device of this.devices.values()) {
+            if (this.isSingleNICDevice(device)) {
+                this.updateDynamicNICPosition(device);
+            }
+        }
+        
         // 接続線を描画
         this.drawConnections();
         
@@ -2821,14 +2962,28 @@ class NetworkSimulator {
 
     // 個別接続線の描画
     drawConnection(connection) {
-        const fromDevice = this.devices.get(connection.fromDevice);
-        const toDevice = this.devices.get(connection.toDevice);
+        let fromDevice, toDevice, fromPortId, toPortId;
+        
+        // 新しい形式（from/to オブジェクト）と古い形式の両方をサポート
+        if (connection.from && connection.to) {
+            // 新しい形式
+            fromDevice = connection.from.device;
+            toDevice = connection.to.device;
+            fromPortId = connection.from.port.id;
+            toPortId = connection.to.port.id;
+        } else {
+            // 古い形式（後方互換性）
+            fromDevice = this.devices.get(connection.fromDevice);
+            toDevice = this.devices.get(connection.toDevice);
+            fromPortId = connection.fromPort;
+            toPortId = connection.toPort;
+        }
         
         if (!fromDevice || !toDevice) return;
         
         // 接続元と接続先の端子位置を取得
-        const fromPort = this.getPortPosition(fromDevice, connection.fromPort);
-        const toPort = this.getPortPosition(toDevice, connection.toPort);
+        const fromPort = this.getPortPosition(fromDevice, fromPortId);
+        const toPort = this.getPortPosition(toDevice, toPortId);
         
         if (!fromPort || !toPort) return;
         
