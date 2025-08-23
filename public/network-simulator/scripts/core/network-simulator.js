@@ -1285,13 +1285,27 @@ class NetworkSimulator {
         const tolerance = 8;
         
         for (const connection of this.connections) {
-            const fromDevice = this.devices.get(connection.fromDevice);
-            const toDevice = this.devices.get(connection.toDevice);
+            let fromDevice, toDevice, fromPortId, toPortId;
+            
+            // 新しい形式（from/to オブジェクト）と古い形式の両方をサポート
+            if (connection.from && connection.to) {
+                // 新しい形式
+                fromDevice = connection.from.device;
+                toDevice = connection.to.device;
+                fromPortId = connection.from.port.id;
+                toPortId = connection.to.port.id;
+            } else {
+                // 古い形式（後方互換性）
+                fromDevice = this.devices.get(connection.fromDevice);
+                toDevice = this.devices.get(connection.toDevice);
+                fromPortId = connection.fromPort;
+                toPortId = connection.toPort;
+            }
             
             if (!fromDevice || !toDevice) continue;
             
-            const fromPort = this.getPortPosition(fromDevice, connection.fromPort);
-            const toPort = this.getPortPosition(toDevice, connection.toPort);
+            const fromPort = this.getPortPosition(fromDevice, fromPortId);
+            const toPort = this.getPortPosition(toDevice, toPortId);
             
             if (!fromPort || !toPort) continue;
             
@@ -1365,6 +1379,29 @@ class NetworkSimulator {
         const connectionIndex = this.connections.findIndex(c => c.id === connectionId);
         if (connectionIndex === -1) return;
         
+        const connection = this.connections[connectionIndex];
+        
+        // 接続されているポートの接続情報をクリア
+        if (connection.from && connection.to) {
+            // 新しい形式
+            connection.from.port.connected = null;
+            connection.to.port.connected = null;
+        } else {
+            // 古い形式の場合は、デバイスとポートを検索してクリア
+            const fromDevice = this.devices.get(connection.fromDevice);
+            const toDevice = this.devices.get(connection.toDevice);
+            
+            if (fromDevice) {
+                const fromPort = fromDevice.ports.nics.find(p => p.id === connection.fromPort);
+                if (fromPort) fromPort.connected = null;
+            }
+            
+            if (toDevice) {
+                const toPort = toDevice.ports.nics.find(p => p.id === connection.toPort);
+                if (toPort) toPort.connected = null;
+            }
+        }
+        
         this.connections.splice(connectionIndex, 1);
         console.log('接続線削除:', connectionId);
     }
@@ -1416,12 +1453,7 @@ class NetworkSimulator {
     // 接続開始（1対1制限チェック付き）
     startConnection(port) {
         // 1対1制限：開始ポートが既に使用中かチェック
-        const portInUse = this.connections.some(conn =>
-            (conn.fromDevice === port.device.id && conn.fromPort === port.port.id) ||
-            (conn.toDevice === port.device.id && conn.toPort === port.port.id)
-        );
-        
-        if (portInUse) {
+        if (port.port.connected) {
             this.updateStatus(`${port.device.name}の${port.port.label}は既に接続されています`);
             return;
         }
@@ -1442,23 +1474,13 @@ class NetworkSimulator {
         }
         
         // 1対1制限：開始ポートが既に接続されているかチェック
-        const startPortInUse = this.connections.some(conn =>
-            (conn.fromDevice === startPort.device.id && conn.fromPort === startPort.port.id) ||
-            (conn.toDevice === startPort.device.id && conn.toPort === startPort.port.id)
-        );
-        
-        if (startPortInUse) {
+        if (startPort.port.connected) {
             this.updateStatus(`${startPort.device.name}の${startPort.port.label}は既に接続されています`);
             return;
         }
         
         // 1対1制限：終了ポートが既に接続されているかチェック
-        const endPortInUse = this.connections.some(conn =>
-            (conn.fromDevice === endPort.device.id && conn.fromPort === endPort.port.id) ||
-            (conn.toDevice === endPort.device.id && conn.toPort === endPort.port.id)
-        );
-        
-        if (endPortInUse) {
+        if (endPort.port.connected) {
             this.updateStatus(`${endPort.device.name}の${endPort.port.label}は既に接続されています`);
             return;
         }
