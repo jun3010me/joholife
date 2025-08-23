@@ -66,6 +66,10 @@ class NetworkSimulator {
         // エラー表示関連
         this.errorBlinkDevices = null; // エラー点滅中のデバイス
         
+        // タッチ・マウスイベント重複防止
+        this.lastTouchTime = 0;
+        this.touchEventProcessed = false;
+        
         this.init();
     }
     
@@ -821,6 +825,17 @@ class NetworkSimulator {
     // マウスイベント処理（論理回路シミュレータ風）
     handleMouseDown(e) {
         e.preventDefault();
+        
+        // タッチイベント由来でない場合のみ重複チェック
+        if (e.type !== 'touchstart') {
+            // タッチイベントの直後にマウスイベントが発生した場合はスキップ（iOS対応）
+            const currentTime = Date.now();
+            if (this.touchEventProcessed && currentTime - this.lastTouchTime < 100) {
+                console.log('重複マウスイベントをスキップ:', currentTime - this.lastTouchTime, 'ms後');
+                return;
+            }
+        }
+        
         const pos = this.getPointerPos(e);
         
         this.touchStartTime = Date.now();
@@ -995,10 +1010,20 @@ class NetworkSimulator {
                 clientX: touch.clientX,
                 clientY: touch.clientY,
                 touches: [touch],
-                preventDefault: () => e.preventDefault()
+                preventDefault: () => e.preventDefault(),
+                type: 'touchstart' // タッチイベント由来であることを示す
             };
             
             this.handleMouseDown(syntheticEvent);
+            
+            // マウスダウン処理後にタッチイベント処理フラグを設定
+            this.lastTouchTime = Date.now();
+            this.touchEventProcessed = true;
+            
+            // 一定時間後にフラグをリセット
+            setTimeout(() => {
+                this.touchEventProcessed = false;
+            }, 200);
         } else if (e.touches.length === 2) {
             // ピンチズーム開始
             this.isPanning = false; // ピンチ中はパンを無効化
@@ -2894,35 +2919,49 @@ class NetworkSimulator {
         }
     }
 
-    // 個別デバイス描画
-    drawDevice(device) {
+    // 個別デバイス描画（HTTPハイライト対応版）
+    drawDevice(device, httpHighlight = null) {
         const isSelected = this.selectedDevice && this.selectedDevice.id === device.id;
-        const isConnectionStart = this.connectionStart && this.connectionStart.id === device.id;
+        const isConnectionStart = this.connectionStart && this.connectionStart.device && this.connectionStart.device.id === device.id;
         
-        // Pingエラー点滅の表示
-        const isErrorBlinking = this.errorBlinkDevices && this.errorBlinkDevices.has(device.id);
-        
-        // Pingモードでの特別な表示
-        let pingHighlight = '';
+        // Pingモードでのハイライト判定
+        let pingHighlight = null;
         if (this.isPingMode) {
             if (device === this.pingSourceDevice) {
-                pingHighlight = 'source'; // 青色
+                pingHighlight = 'source';
             } else if (device === this.pingTargetDevice) {
-                pingHighlight = 'target'; // 赤色
+                pingHighlight = 'target';
             }
         }
         
-        // デバイス本体
-        this.ctx.fillStyle = isErrorBlinking ? '#ffebee' : this.getDeviceColor(device.type); // エラー時は薄い赤の背景
+        // HTTP モードでのハイライト（引数で渡される）
+        if (httpHighlight) {
+            pingHighlight = httpHighlight; // 同じ描画ロジックを使用
+        }
         
-        if (isErrorBlinking) {
-            // エラー点滅時は赤い太い境界線
-            this.ctx.strokeStyle = '#f44336';
-            this.ctx.lineWidth = 5;
-        } else if (pingHighlight === 'source') {
+        // エラー点滅効果
+        const errorBlink = this.errorBlinkDevices && this.errorBlinkDevices.has(device);
+        const blinkPhase = Math.floor(Date.now() / 200) % 2; // 200msごとに点滅
+        
+        // デバイス背景色
+        if (errorBlink && blinkPhase === 0) {
+            this.ctx.fillStyle = '#ffebee'; // エラー時の点滅色（薄い赤）
+        } else if (pingHighlight === 'source' || httpHighlight === 'source') {
+            this.ctx.fillStyle = '#e3f2fd'; // 送信元は青系
+        } else if (pingHighlight === 'target' || httpHighlight === 'target') {
+            this.ctx.fillStyle = '#ffebee'; // 送信先は赤系
+        } else {
+            this.ctx.fillStyle = this.getDeviceColor(device.type);
+        }
+        
+        // デバイス枠線
+        if (errorBlink && blinkPhase === 0) {
+            this.ctx.strokeStyle = '#f44336'; // エラー時の枠線（赤）
+            this.ctx.lineWidth = 3;
+        } else if (pingHighlight === 'source' || httpHighlight === 'source') {
             this.ctx.strokeStyle = '#2196f3'; // 送信元は青
             this.ctx.lineWidth = 4;
-        } else if (pingHighlight === 'target') {
+        } else if (pingHighlight === 'target' || httpHighlight === 'target') {
             this.ctx.strokeStyle = '#f44336'; // 送信先は赤
             this.ctx.lineWidth = 4;
         } else {
@@ -2951,12 +2990,18 @@ class NetworkSimulator {
         this.ctx.fillStyle = '#333';
         let displayName = device.name;
         
-        // Pingモードでのインジケーター追加
+        // モードでのインジケーター追加
         if (pingHighlight === 'source') {
             displayName = '🔵 ' + device.name + ' (送信元)';
             this.ctx.fillStyle = '#2196f3';
         } else if (pingHighlight === 'target') {
             displayName = '🔴 ' + device.name + ' (送信先)';
+            this.ctx.fillStyle = '#f44336';
+        } else if (httpHighlight === 'source') {
+            displayName = '🌐 ' + device.name + ' (クライアント)';
+            this.ctx.fillStyle = '#2196f3';
+        } else if (httpHighlight === 'target') {
+            displayName = '🖥️ ' + device.name + ' (サーバー)';
             this.ctx.fillStyle = '#f44336';
         }
         
@@ -3983,108 +4028,6 @@ function extendDevicesWithTCP(simulator) {
     };
 }
 
-// 既存のdrawDevice関数を拡張してHTTPハイライトに対応
-NetworkSimulator.prototype.drawDevice = function(device, httpHighlight = null) {
-    const isSelected = device === this.selectedDevice;
-    const isConnectionStart = device === this.connectionStart;
-    
-    // Pingモードでのハイライト判定
-    let pingHighlight = null;
-    if (this.isPingMode) {
-        if (device === this.pingSourceDevice) {
-            pingHighlight = 'source';
-        } else if (device === this.pingTargetDevice) {
-            pingHighlight = 'target';
-        }
-    }
-    
-    // HTTP モードでのハイライト（引数で渡される）
-    if (httpHighlight) {
-        pingHighlight = httpHighlight; // 同じ描画ロジックを使用
-    }
-    
-    // エラー点滅効果
-    const errorBlink = this.errorBlinkDevices && this.errorBlinkDevices.has(device);
-    const blinkPhase = Math.floor(Date.now() / 200) % 2; // 200msごとに点滅
-    
-    // デバイス背景色
-    if (errorBlink && blinkPhase === 0) {
-        this.ctx.fillStyle = '#ffebee'; // エラー時の点滅色（薄い赤）
-    } else if (pingHighlight === 'source' || httpHighlight === 'source') {
-        this.ctx.fillStyle = '#e3f2fd'; // 送信元は青系
-    } else if (pingHighlight === 'target' || httpHighlight === 'target') {
-        this.ctx.fillStyle = '#ffebee'; // 送信先は赤系
-    } else {
-        this.ctx.fillStyle = this.getDeviceColor(device.type);
-    }
-    
-    // デバイス枠線
-    if (errorBlink && blinkPhase === 0) {
-        this.ctx.strokeStyle = '#f44336'; // エラー時の枠線（赤）
-        this.ctx.lineWidth = 3;
-    } else if (pingHighlight === 'source' || httpHighlight === 'source') {
-        this.ctx.strokeStyle = '#2196f3'; // 送信元は青
-        this.ctx.lineWidth = 4;
-    } else if (pingHighlight === 'target' || httpHighlight === 'target') {
-        this.ctx.strokeStyle = '#f44336'; // 送信先は赤
-        this.ctx.lineWidth = 4;
-    } else {
-        this.ctx.strokeStyle = isSelected ? '#2196f3' : (isConnectionStart ? '#ff9800' : '#666');
-        this.ctx.lineWidth = isSelected || isConnectionStart ? 3 : 1;
-    }
-    
-    this.ctx.fillRect(device.x, device.y, device.width, device.height);
-    this.ctx.strokeRect(device.x, device.y, device.width, device.height);
-    
-    // 端子を描画
-    this.drawDevicePorts(device);
-    
-    // アイコン
-    this.ctx.font = '20px Arial';
-    this.ctx.fillStyle = '#333';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(
-        this.getDeviceIcon(device.type),
-        device.x + device.width / 2,
-        device.y + 25
-    );
-    
-    // デバイス名
-    this.ctx.font = '10px Arial';
-    this.ctx.fillStyle = '#333';
-    let displayName = device.name;
-    
-    // モードでのインジケーター追加
-    if (pingHighlight === 'source') {
-        displayName = '🔵 ' + device.name + ' (送信元)';
-        this.ctx.fillStyle = '#2196f3';
-    } else if (pingHighlight === 'target') {
-        displayName = '🔴 ' + device.name + ' (送信先)';
-        this.ctx.fillStyle = '#f44336';
-    } else if (httpHighlight === 'source') {
-        displayName = '🌐 ' + device.name + ' (クライアント)';
-        this.ctx.fillStyle = '#2196f3';
-    } else if (httpHighlight === 'target') {
-        displayName = '🖥️ ' + device.name + ' (サーバー)';
-        this.ctx.fillStyle = '#f44336';
-    }
-    
-    this.ctx.fillText(
-        displayName,
-        device.x + device.width / 2,
-        device.y + device.height - 18
-    );
-    
-    // IPアドレス表示（常時表示）
-    this.ctx.font = '9px Arial';
-    this.ctx.fillStyle = '#666';
-    const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
-    this.ctx.fillText(
-        `${device.config.ipAddress}/${cidr}`,
-        device.x + device.width / 2,
-        device.y + device.height - 6
-    );
-};
 // TCP機能を統合
 console.log('TCP統合を開始...');
 
