@@ -47,6 +47,7 @@ class NetworkSimulator {
         this.renderScheduled = false;
         this.lastRenderTime = 0;
         this.renderThrottle = 16; // 60fps制限（16ms）
+        this.lastNICUpdateFrame = 0; // NIC位置更新のフレーム制限用
         
         // グローバルマウスハンドラをバインド
         this.globalMouseMoveHandler = this.handleGlobalMouseMove.bind(this);
@@ -547,6 +548,15 @@ class NetworkSimulator {
             nic.x = (bestIntersection.x - device.x) / device.width;
             nic.y = (bestIntersection.y - device.y) / device.height;
             nic.side = bestIntersection.side;
+        }
+    }
+
+    // 全ての単一NICデバイスの動的ポート位置を更新
+    updateAllDynamicNICPositions() {
+        for (const device of this.devices.values()) {
+            if (this.isSingleNICDevice(device)) {
+                this.updateDynamicNICPosition(device);
+            }
         }
     }
 
@@ -1309,8 +1319,8 @@ class NetworkSimulator {
             
             if (!fromPort || !toPort) continue;
             
-            // 線分と点の距離を計算
-            const distance = this.pointToLineDistance(x, y, fromPort.x, fromPort.y, toPort.x, toPort.y);
+            // ベジェ曲線に対する当たり判定
+            const distance = this.pointToBezierDistance(x, y, fromDevice, toDevice, fromPortId, toPortId);
             
             if (distance <= tolerance) {
                 return connection;
@@ -1318,6 +1328,42 @@ class NetworkSimulator {
         }
         
         return null;
+    }
+
+    // 点とベジェ曲線の距離を計算
+    pointToBezierDistance(px, py, fromDevice, toDevice, fromPortId, toPortId) {
+        // 接続パスを取得
+        const connectionPath = this.getConnectionPath(fromDevice, toDevice);
+        
+        if (!connectionPath.isBezier) {
+            // 直線の場合は従来の計算
+            return this.pointToLineDistance(px, py, connectionPath.startX, connectionPath.startY, connectionPath.endX, connectionPath.endY);
+        }
+        
+        // ベジェ曲線の場合：曲線上のサンプル点との最小距離を計算
+        let minDistance = Infinity;
+        const samples = 20; // サンプル点数
+        
+        for (let i = 0; i <= samples; i++) {
+            const t = i / samples;
+            const point = this.getPointOnCubicBezierCurve(
+                t,
+                connectionPath.startX, connectionPath.startY,
+                connectionPath.cp1X, connectionPath.cp1Y,
+                connectionPath.cp2X, connectionPath.cp2Y,
+                connectionPath.endX, connectionPath.endY
+            );
+            
+            const dx = px - point.x;
+            const dy = py - point.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+            }
+        }
+        
+        return minDistance;
     }
     
     // 点と線分の距離を計算
@@ -2525,15 +2571,77 @@ class NetworkSimulator {
             };
         }
         
-        // drawConnection関数と全く同じ制御点計算
-        const controlOffset = 30;
-        const cp1x = fromPort.x + controlOffset;
-        const cp1y = fromPort.y;
-        const cp2x = toPort.x - controlOffset;
-        const cp2y = toPort.y;
-        
         // パケットの移動方向を決定
         const isForward = (actualFromDevice === fromDevice);
+        
+        // drawConnection関数と同じ制御点計算（ポートの向きに応じて設定）
+        const controlOffset = 30;
+        
+        // ポートデータを取得して制御点の向きを決定
+        let fromPortData, toPortData;
+        if (isForward) {
+            fromPortData = this.getPortData(actualFromDevice, fromPortId);
+            toPortData = this.getPortData(actualToDevice, toPortId);
+        } else {
+            fromPortData = this.getPortData(actualToDevice, toPortId);
+            toPortData = this.getPortData(actualFromDevice, fromPortId);
+        }
+        
+        let cp1x, cp1y, cp2x, cp2y;
+        
+        // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
+        const dx = toPort.x - fromPort.x;
+        const dy = toPort.y - fromPort.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const normalizedDx = length > 0 ? dx / length : 0;
+        const normalizedDy = length > 0 ? dy / length : 0;
+
+        switch (fromPortData?.side) {
+            case 'right':
+                cp1x = fromPort.x + controlOffset;
+                cp1y = fromPort.y;
+                break;
+            case 'left':
+                cp1x = fromPort.x - controlOffset;
+                cp1y = fromPort.y;
+                break;
+            case 'top':
+                cp1x = fromPort.x;
+                cp1y = fromPort.y - controlOffset;
+                break;
+            case 'bottom':
+                cp1x = fromPort.x;
+                cp1y = fromPort.y + controlOffset;
+                break;
+            default:
+                // 相手の方向を考慮したデフォルト制御点
+                cp1x = fromPort.x + normalizedDx * controlOffset;
+                cp1y = fromPort.y + normalizedDy * controlOffset;
+        }
+        
+        // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
+        switch (toPortData?.side) {
+            case 'right':
+                cp2x = toPort.x + controlOffset;
+                cp2y = toPort.y;
+                break;
+            case 'left':
+                cp2x = toPort.x - controlOffset;
+                cp2y = toPort.y;
+                break;
+            case 'top':
+                cp2x = toPort.x;
+                cp2y = toPort.y - controlOffset;
+                break;
+            case 'bottom':
+                cp2x = toPort.x;
+                cp2y = toPort.y + controlOffset;
+                break;
+            default:
+                // 送信元から来る方向を考慮したデフォルト制御点
+                cp2x = toPort.x - normalizedDx * controlOffset;
+                cp2y = toPort.y - normalizedDy * controlOffset;
+        }
         
         console.log(`🔍 getConnectionPath: ${fromDevice.name} → ${toDevice.name}`);
         console.log(`  接続情報: ${actualFromDevice.name} → ${actualToDevice.name}`);
@@ -2552,6 +2660,8 @@ class NetworkSimulator {
         };
         
         console.log(`  結果パス: start(${result.startX}, ${result.startY}) → end(${result.endX}, ${result.endY})`);
+        console.log(`  制御点: cp1(${result.cp1X}, ${result.cp1Y}) cp2(${result.cp2X}, ${result.cp2Y})`);
+        console.log(`  ポート側面: from=${fromPortData?.side} to=${toPortData?.side}`);
         return result;
     }
     
@@ -2968,8 +3078,11 @@ class NetworkSimulator {
         this.ctx.translate(this.panX, this.panY);
         this.ctx.scale(this.scale, this.scale);
         
-        // 動的NICポート更新は必要時のみ実行（パフォーマンス最適化）
-        // レンダリング時の自動更新は重いため、デバイス移動時とアニメーション時のみ実行
+        // 単一NICデバイスの動的ポート位置を更新（パフォーマンス最適化）
+        if (!this.lastNICUpdateFrame || (performance.now() - this.lastNICUpdateFrame) > 50) {
+            this.updateAllDynamicNICPositions();
+            this.lastNICUpdateFrame = performance.now();
+        }
         
         // 接続線を描画
         this.drawConnections();
@@ -3074,12 +3187,68 @@ class NetworkSimulator {
         this.ctx.beginPath();
         this.ctx.moveTo(fromPort.x, fromPort.y);
         
-        // 制御点の計算（水平方向に少し離れた位置）
+        // 制御点の計算（ポートの向きに応じて適切な方向に設定）
         const controlOffset = 30;
-        const cp1x = fromPort.x + controlOffset;
-        const cp1y = fromPort.y;
-        const cp2x = toPort.x - controlOffset;
-        const cp2y = toPort.y;
+        
+        // 送信元ポートの制御点（ポートの向きに応じて外向きに）
+        const fromPortData = this.getPortData(fromDevice, fromPortId);
+        const toPortData = this.getPortData(toDevice, toPortId);
+        
+        let cp1x, cp1y, cp2x, cp2y;
+        
+        // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
+        const dx = toPort.x - fromPort.x;
+        const dy = toPort.y - fromPort.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const normalizedDx = length > 0 ? dx / length : 0;
+        const normalizedDy = length > 0 ? dy / length : 0;
+
+        switch (fromPortData?.side) {
+            case 'right':
+                cp1x = fromPort.x + controlOffset;
+                cp1y = fromPort.y;
+                break;
+            case 'left':
+                cp1x = fromPort.x - controlOffset;
+                cp1y = fromPort.y;
+                break;
+            case 'top':
+                cp1x = fromPort.x;
+                cp1y = fromPort.y - controlOffset;
+                break;
+            case 'bottom':
+                cp1x = fromPort.x;
+                cp1y = fromPort.y + controlOffset;
+                break;
+            default:
+                // 相手の方向を考慮したデフォルト制御点
+                cp1x = fromPort.x + normalizedDx * controlOffset;
+                cp1y = fromPort.y + normalizedDy * controlOffset;
+        }
+        
+        // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
+        switch (toPortData?.side) {
+            case 'right':
+                cp2x = toPort.x + controlOffset;
+                cp2y = toPort.y;
+                break;
+            case 'left':
+                cp2x = toPort.x - controlOffset;
+                cp2y = toPort.y;
+                break;
+            case 'top':
+                cp2x = toPort.x;
+                cp2y = toPort.y - controlOffset;
+                break;
+            case 'bottom':
+                cp2x = toPort.x;
+                cp2y = toPort.y + controlOffset;
+                break;
+            default:
+                // 送信元から来る方向を考慮したデフォルト制御点
+                cp2x = toPort.x - normalizedDx * controlOffset;
+                cp2y = toPort.y - normalizedDy * controlOffset;
+        }
         
         this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, toPort.x, toPort.y);
         this.ctx.stroke();
@@ -3109,6 +3278,21 @@ class NetworkSimulator {
                     x: device.x + port.x * device.width,
                     y: device.y + port.y * device.height
                 };
+            }
+        }
+        
+        return null;
+    }
+
+    // デバイスの指定NICポートのデータ（側面情報含む）を取得
+    getPortData(device, portId) {
+        const ports = device.ports;
+        if (!ports || !ports.nics) return null;
+        
+        // NICポートから検索
+        for (const port of ports.nics) {
+            if (port.id === portId) {
+                return port;
             }
         }
         
@@ -3884,7 +4068,8 @@ class NetworkSimulator {
                     x: port.x,
                     y: port.y,
                     side: port.side,
-                    connected: port.connected
+                    // 循環参照を避けるため、接続IDのみを保存
+                    connectedId: port.connected ? port.connected.id : null
                 }))
             }
         }));
@@ -3965,7 +4150,8 @@ class NetworkSimulator {
                             port.x = portData.x;
                             port.y = portData.y;
                             port.side = portData.side;
-                            port.connected = portData.connected;
+                            // 接続情報は後で接続復元時に設定するため、ここでは初期化のみ
+                            port.connected = null;
                         }
                     });
 

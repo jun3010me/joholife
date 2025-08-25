@@ -101,15 +101,9 @@ function animateSingleHop(simulator, fromDevice, toDevice, options = {}) {
         const speedMultiplier = window.animationSpeedMultiplier || 1.0;
         const adjustedDuration = Math.max(50, duration / speedMultiplier); // 最低50ms
 
-        // 送信元と宛先のワールド座標を取得
-        const sourceWorldPos = {
-            x: fromDevice.x + fromDevice.width / 2,
-            y: fromDevice.y + fromDevice.height / 2
-        };
-        const destWorldPos = {
-            x: toDevice.x + toDevice.width / 2,
-            y: toDevice.y + toDevice.height / 2
-        };
+        // 送信元と宛先のワールド座標を取得（NIC位置を考慮）
+        const sourceWorldPos = getDeviceConnectionPoint(fromDevice, toDevice);
+        const destWorldPos = getDeviceConnectionPoint(toDevice, fromDevice);
 
         // ワールド座標をDOM座標に変換
         const sourcePos = worldToDOM(simulator, sourceWorldPos);
@@ -148,28 +142,94 @@ function animateSingleHop(simulator, fromDevice, toDevice, options = {}) {
         if (canvasContainer) {
             canvasContainer.appendChild(packet);
 
-            const deltaX = destPos.x - sourcePos.x;
-            const deltaY = destPos.y - sourcePos.y;
+            // シミュレーターの接続パスを取得してベジェ曲線でアニメーション
+            if (simulator && typeof simulator.getConnectionPath === 'function') {
+                const connectionPath = simulator.getConnectionPath(fromDevice, toDevice);
+                
+                // 複数パケットの場合は少し時間差をつける
+                const delayOffset = (activeCount % 3) * 50; // 最大150ms遅延
+                
+                setTimeout(() => {
+                    animateAlongPath(packet, connectionPath, adjustedDuration, packetOffset, resolve);
+                }, 50 + delayOffset);
+            } else {
+                // フォールバック: 直線アニメーション
+                const deltaX = destPos.x - sourcePos.x;
+                const deltaY = destPos.y - sourcePos.y;
 
-            packet.style.transition = `all ${adjustedDuration}ms ease-in-out`;
+                packet.style.transition = `all ${adjustedDuration}ms ease-in-out`;
 
-            // 複数パケットの場合は少し時間差をつける
-            const delayOffset = (activeCount % 3) * 50; // 最大150ms遅延
-            setTimeout(() => {
-                packet.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-            }, 50 + delayOffset);
+                // 複数パケットの場合は少し時間差をつける
+                const delayOffset = (activeCount % 3) * 50; // 最大150ms遅延
+                setTimeout(() => {
+                    packet.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                }, 50 + delayOffset);
 
-            setTimeout(() => {
-                if (packet.parentNode) {
-                    packet.parentNode.removeChild(packet);
-                }
-                resolve();
-            }, adjustedDuration + 100);
+                setTimeout(() => {
+                    if (packet.parentNode) {
+                        packet.parentNode.removeChild(packet);
+                    }
+                    resolve();
+                }, adjustedDuration + 100);
+            }
         } else {
             console.error('キャンバスコンテナが見つかりません');
             resolve();
         }
     });
+}
+
+// ベジェ曲線に沿ったパケットアニメーション
+function animateAlongPath(packet, connectionPath, duration, offset, resolve) {
+    const startTime = Date.now();
+    
+    const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // イージング関数
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        
+        let worldX, worldY;
+        
+        // 接続パスに沿って位置を計算
+        if (connectionPath.isBezier) {
+            // 3次ベジェ曲線
+            worldX = Math.pow(1-easeProgress, 3) * connectionPath.startX + 
+                     3 * Math.pow(1-easeProgress, 2) * easeProgress * connectionPath.cp1X + 
+                     3 * (1-easeProgress) * Math.pow(easeProgress, 2) * connectionPath.cp2X + 
+                     Math.pow(easeProgress, 3) * connectionPath.endX;
+                     
+            worldY = Math.pow(1-easeProgress, 3) * connectionPath.startY + 
+                     3 * Math.pow(1-easeProgress, 2) * easeProgress * connectionPath.cp1Y + 
+                     3 * (1-easeProgress) * Math.pow(easeProgress, 2) * connectionPath.cp2Y + 
+                     Math.pow(easeProgress, 3) * connectionPath.endY;
+        } else {
+            // 直線
+            worldX = connectionPath.startX + (connectionPath.endX - connectionPath.startX) * easeProgress;
+            worldY = connectionPath.startY + (connectionPath.endY - connectionPath.startY) * easeProgress;
+        }
+        
+        // ワールド座標をDOM座標に変換
+        const simulator = window.simulator;
+        const domPos = worldToDOM(simulator, { x: worldX, y: worldY });
+        
+        // パケットの位置を更新（オフセット適用）
+        packet.style.left = (domPos.x + offset.x) + 'px';
+        packet.style.top = (domPos.y + offset.y) + 'px';
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            // アニメーション完了
+            if (packet.parentNode) {
+                packet.parentNode.removeChild(packet);
+            }
+            resolve();
+        }
+    };
+    
+    animate();
 }
 
 // TCPセグメントのアニメーション（経路ベース）
@@ -375,6 +435,27 @@ async function animatePingAlongPath(simulator, path, options = {}) {
     console.log('Pingアニメーション完了');
 }
 
+// デバイスの接続ポイント（NIC位置）を取得する関数
+function getDeviceConnectionPoint(device, targetDevice) {
+    // 単一NICデバイスの場合は実際のNIC位置を使用
+    if ((device.type === 'pc' || device.type === 'server') && device.ports && device.ports.nics && device.ports.nics.length > 0) {
+        const nic = device.ports.nics[0];
+        if (nic.connected) {
+            // NICの実際の位置を計算（相対座標から絶対座標に変換）
+            return {
+                x: device.x + nic.x * device.width,
+                y: device.y + nic.y * device.height
+            };
+        }
+    }
+    
+    // デフォルトはデバイス中央
+    return {
+        x: device.x + device.width / 2,
+        y: device.y + device.height / 2
+    };
+}
+
 // ワールド座標をDOM座標に変換する関数
 function worldToDOM(simulator, worldPos) {
     return {
@@ -392,15 +473,12 @@ function animatePacket(simulator, fromDevice, toDevice, options = {}) {
         className = 'packet'
     } = options;
     
-    const sourcePos = worldToDOM(simulator, {
-        x: fromDevice.x + fromDevice.width / 2,
-        y: fromDevice.y + fromDevice.height / 2
-    });
+    // 送信元と宛先の接続ポイント（NIC位置を考慮）を取得
+    const sourceWorldPos = getDeviceConnectionPoint(fromDevice, toDevice);
+    const destWorldPos = getDeviceConnectionPoint(toDevice, fromDevice);
     
-    const destPos = worldToDOM(simulator, {
-        x: toDevice.x + toDevice.width / 2,
-        y: toDevice.y + toDevice.height / 2
-    });
+    const sourcePos = worldToDOM(simulator, sourceWorldPos);
+    const destPos = worldToDOM(simulator, destWorldPos);
     
     const packet = document.createElement('div');
     packet.className = className;
