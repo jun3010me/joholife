@@ -1,0 +1,283 @@
+id: network1
+title: ネットワーク基礎①
+description: ネットワークとプロトコル、LANとWAN、処理方式について学習する問題集
+icon: 📶
+difficulty: medium
+estimatedTime: 15
+category: ネットワーク
+tags:
+  - ネットワーク
+  - プロトコル
+  - LAN
+  - WAN
+  - 処理方式
+questions:
+  - id: q1
+    type: single-choice
+    title: 情報通信ネットワークの基本目標
+    description: 情報通信ネットワークの歴史的な発展における基本的な目標として正しいものはどれですか？
+    options:
+      - id: a
+        text: "より安く、より少ない電力で情報を伝える"
+        isCorrect: false
+        explanation: コスト削減や省電力は重要ですが、ネットワークの基本的な目標ではありません。
+      - id: b
+        text: "遠方の人により早く、より多くの情報を伝える"
+        isCorrect: true
+        explanation: 正解です！情報通信ネットワークの基本的な目標は、遠くの相手に早く、多くの情報を伝えることです。
+      - id: c
+        text: "より美しく、より分かりやすく情報を伝える"
+        isCorrect: false
+        explanation: 視覚的な表現は重要ですが、ネットワークの基本的な目標ではありません。
+      - id: d
+        text: "より小さく、より軽い機器で情報を伝える"
+        isCorrect: false
+        explanation: 機器の小型化は利便性を高めますが、ネットワークの基本的な目標ではありません。
+    explanation: 情報通信ネットワークは、距離を越えて早く多くの情報を伝達することを目標に発展してきました。
+    difficulty: easy
+    tags:
+      - ネットワーク
+      - 歴史
+    points: 1
+
+  - id: q2
+    type: true-false
+    title: LANとWANの範囲
+    description: LAN（Local Area Network）は同一建物や敷地内の範囲で、WAN（Wide Area Network）は離れたLANどうしを接続するものです。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！LANは狭い範囲（同一建物や敷地内）で、WANはLANどうしを広域で接続するネットワークです。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: LANは狭い範囲、WANは広い範囲でのネットワークです。この説明は正しいものです。
+    explanation: LANは狭い範囲（Local Area）のネットワークで、WANはそれらを広域（Wide Area）で接続するネットワークです。
+    difficulty: easy
+    tags:
+      - LAN
+      - WAN
+    points: 1
+
+  - id: q3
+    type: single-choice
+    title: プロトコルの定義
+    description: プロトコルについて正しい説明はどれですか？
+    options:
+      - id: a
+        text: "コンピュータのハードウェア設計図"
+        isCorrect: false
+        explanation: ハードウェア設計図はプロトコルではありません。プロトコルは通信の取り決めです。
+      - id: b
+        text: "プログラムのソースコード"
+        isCorrect: false
+        explanation: ソースコードはプロトコルではありません。プロトコルは通信規約です。
+      - id: c
+        text: "異なるコンピュータどうしの通信に関する取り決め"
+        isCorrect: true
+        explanation: 正解です！プロトコルは異なるコンピュータ間で通信するための約束事や取り決めです。
+      - id: d
+        text: "データベースの構造定義"
+        isCorrect: false
+        explanation: データベースの構造定義はプロトコルではありません。プロトコルは通信規約です。
+    explanation: プロトコルは、異なるコンピュータがネットワーク上でデータをやり取りする際の通信手順や約束事のことです。
+    difficulty: medium
+    tags:
+      - プロトコル
+      - 通信
+    points: 2
+    hint: protocol（プロトコル）は元々「外交儀礼」という意味の言葉です。
+
+  - id: q4
+    type: multiple-choice
+    title: TCP/IPの特徴
+    description: TCP/IPについて正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "インターネットで使用される統一されたプロトコル"
+        isCorrect: true
+        explanation: TCP/IPはインターネットの基盤となる統一されたプロトコルです。
+      - id: b
+        text: "異種システム（様々な種類のコンピュータ）を相互接続可能"
+        isCorrect: true
+        explanation: TCP/IPの重要な特徴は、異なる種類のコンピュータを相互に接続できることです。
+      - id: c
+        text: "4階層構造をもつ"
+        isCorrect: true
+        explanation: TCP/IPは4階層構造（リンク層、インターネット層、トランスポート層、アプリケーション層）をもちます。
+      - id: d
+        text: "日本でのみ使用される国内規格"
+        isCorrect: false
+        explanation: TCP/IPは世界標準のプロトコルです。日本限定ではありません。
+    explanation: TCP/IPはインターネットの基盤となる世界標準のプロトコルで、異なるシステム間の相互接続を可能にします。
+    difficulty: hard
+    tags:
+      - TCP/IP
+      - プロトコル
+      - インターネット
+    points: 3
+    hint: TCP/IPの正式名称は「Transmission Control Protocol / Internet Protocol」です。
+
+  - id: q5
+    type: single-choice
+    title: 集中処理システムの特徴
+    description: 集中処理システムについて正しい説明はどれですか？
+    options:
+      - id: a
+        text: "各端末が独立して処理を実行する"
+        isCorrect: false
+        explanation: これは分散処理システムの特徴です。集中処理では中央のコンピュータが処理を行います。
+      - id: b
+        text: "ホストコンピュータがすべての処理を実行し、端末は入出力のみ行う"
+        isCorrect: true
+        explanation: 正解です！集中処理システムでは、ホストコンピュータが全ての処理を担当し、端末は入出力のみを行います。
+      - id: c
+        text: "ネットワークが切断されても各端末で処理を継続できる"
+        isCorrect: false
+        explanation: 集中処理システムでは、ホストコンピュータとの接続が切れると処理ができなくなります。
+      - id: d
+        text: "コンピュータがすべて対等な関係で処理を分担する"
+        isCorrect: false
+        explanation: これはピアツーピアシステムの特徴です。集中処理では中央集権的な構造です。
+    explanation: 集中処理システムでは、中央のホストコンピュータがすべての処理を実行し、端末は入出力インターフェースとしてのみ機能します。
+    difficulty: medium
+    tags:
+      - 集中処理
+      - システム構成
+    points: 2
+
+  - id: q6
+    type: multiple-choice
+    title: 分散処理システムの利点
+    description: 分散処理システムの利点として正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "処理能力を複数のコンピュータに分散できる"
+        isCorrect: true
+        explanation: 分散処理では複数のコンピュータで処理を分担するため、全体の処理能力を向上できます。
+      - id: b
+        text: "一つのコンピュータが故障しても他で処理を継続できる冗長性がある"
+        isCorrect: true
+        explanation: 複数のコンピュータで構成されるため、一部が故障しても全体としてサービスを継続できます。
+      - id: c
+        text: "システム全体の管理が簡単"
+        isCorrect: false
+        explanation: 分散処理システムは複数の機器を管理する必要があり、集中処理よりも管理が複雑になります。
+      - id: d
+        text: "拡張性が高い（コンピュータを追加しやすい）"
+        isCorrect: true
+        explanation: 新しいコンピュータを追加してシステムを拡張しやすいのが分散処理の利点です。
+    explanation: 分散処理システムは処理能力の分散、冗長性による信頼性向上、拡張性の高さなどの利点があります。
+    difficulty: hard
+    tags:
+      - 分散処理
+      - システム構成
+      - 冗長性
+    points: 3
+    hint: 分散処理は複数のコンピュータを使う利点を考えてみましょう。
+
+  - id: q7
+    type: single-choice
+    title: サーバの種類
+    description: メール送受信を提供するサーバはどれですか？
+    options:
+      - id: a
+        text: "ファイルサーバ"
+        isCorrect: false
+        explanation: ファイルサーバはファイル共有とデータの一元管理を行うサーバです。
+      - id: b
+        text: "データベースサーバ"
+        isCorrect: false
+        explanation: データベースサーバはデータベース情報の提供と整合性管理を行うサーバです。
+      - id: c
+        text: "メールサーバ"
+        isCorrect: true
+        explanation: 正解です！メールサーバはメールの送受信を提供するサーバです。
+      - id: d
+        text: "認証サーバ"
+        isCorrect: false
+        explanation: 認証サーバは正規利用者の判別とセキュリティ管理を行うサーバです。
+    explanation: メールサーバは電子メールの送受信機能を提供する専用サーバです。
+    difficulty: easy
+    tags:
+      - サーバ
+      - メール
+    points: 1
+
+  - id: q8
+    type: single-choice
+    title: プロトコル階層化の利点
+    description: 電話での会話を例とした場合、相手が英国人になったときの変更について正しい説明はどれですか？
+    options:
+      - id: a
+        text: "すべての階層を変更する必要がある"
+        isCorrect: false
+        explanation: プロトコルの階層化により、一部の階層のみの変更で対応できます。
+      - id: b
+        text: "日本語を英語に変更するだけでよい（言語層のみ変更）"
+        isCorrect: true
+        explanation: 正解です！階層化により、言語の部分（上位層）のみを変更すれば対応でき、音声や電話回線の部分は変更不要です。
+      - id: c
+        text: "電話回線を変更する必要がある"
+        isCorrect: false
+        explanation: 電話回線（下位層）は変更する必要がありません。言語層のみの変更で済みます。
+      - id: d
+        text: "変更は不可能で新しいシステムが必要"
+        isCorrect: false
+        explanation: 階層化により柔軟な変更が可能です。新しいシステムは不要です。
+    explanation: プロトコルの階層化により、条件変更時に該当する階層のみを変更すれば対応でき、効率的です。
+    difficulty: medium
+    tags:
+      - プロトコル
+      - 階層化
+    points: 2
+    hint: 階層化の利点は「一部の階層のみ変更で対応可能」なことです。
+
+  - id: q9
+    type: true-false
+    title: インターネットの発展
+    description: LANやWANが相互に接続され、世界的に発展したものがインターネットです。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！インターネットは世界中のLANやWANが相互に接続されて形成された巨大なネットワークです。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: インターネットはまさに、世界中のネットワークが相互接続されて形成されたものです。
+    explanation: インターネットは、世界中のLANやWANが相互に接続されることで形成された世界規模のネットワークです。
+    difficulty: easy
+    tags:
+      - インターネット
+      - ネットワーク
+    points: 1
+
+  - id: q10
+    type: single-choice
+    title: クライアントサーバシステムの特徴
+    description: クライアントサーバシステムについて正しい説明はどれですか？
+    options:
+      - id: a
+        text: "すべてのコンピュータが対等な関係で通信する"
+        isCorrect: false
+        explanation: これはピアツーピアシステムの特徴です。クライアントサーバシステムでは役割が明確に分かれています。
+      - id: b
+        text: "サーバ（提供側）とクライアント（要求側）の役割が明確に分離されている"
+        isCorrect: true
+        explanation: 正解です！クライアントサーバシステムでは、サービスを提供するサーバと要求するクライアントの役割が明確に分かれています。
+      - id: c
+        text: "中央のホストコンピュータがすべての処理を実行する"
+        isCorrect: false
+        explanation: これは集中処理システムの特徴です。クライアントサーバでは処理が分散されています。
+      - id: d
+        text: "ネットワークを使用しない単体システム"
+        isCorrect: false
+        explanation: クライアントサーバシステムはネットワークを利用した分散処理システムです。
+    explanation: クライアントサーバシステムは、サービスを提供するサーバと、サービスを要求するクライアントの役割が明確に分かれた分散処理システムです。
+    difficulty: medium
+    tags:
+      - クライアントサーバ
+      - 分散処理
+    points: 2

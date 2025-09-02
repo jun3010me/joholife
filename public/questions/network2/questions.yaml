@@ -1,0 +1,439 @@
+id: network2
+title: ネットワーク基礎②
+description: IPアドレス・DNS・Web技術・メール・セキュリティについて学習する問題集
+icon: 🌐
+difficulty: medium
+estimatedTime: 18
+category: ネットワーク
+tags:
+  - IPアドレス
+  - DNS
+  - HTTP
+  - HTML
+  - メール
+  - セキュリティ
+questions:
+  - id: q1
+    type: single-choice
+    title: IPアドレスの役割
+    description: IPアドレスについて最も適切な説明はどれですか？
+    options:
+      - id: a
+        text: "プログラムのソースコードを識別する番号"
+        isCorrect: false
+        explanation: ソースコードの識別はIPアドレスの役割ではありません。
+      - id: b
+        text: "TCP/IPを利用して通信するコンピュータが持つ個別の番号"
+        isCorrect: true
+        explanation: 正解です！IPアドレスはTCP/IPネットワークにおける各コンピュータの個別識別番号で、インターネット上での「住所」のような役割を果たします。
+      - id: c
+        text: "Webページの内容を表示するための記述言語"
+        isCorrect: false
+        explanation: これはHTMLの説明です。IPアドレスは識別番号です。
+      - id: d
+        text: "電子メールの送受信を行うプロトコル"
+        isCorrect: false
+        explanation: これはSMTPなどのメールプロトコルの説明です。
+    explanation: IPアドレスは、インターネット上でコンピュータを一意に識別するための番号で、住所のような役割を果たします。
+    difficulty: easy
+    tags:
+      - IPアドレス
+      - TCP/IP
+    points: 1
+
+  - id: q2
+    type: single-choice
+    title: IPv4とIPv6の違い
+    description: IPv4からIPv6への移行が進んでいる理由は何ですか？
+    options:
+      - id: a
+        text: "IPv4は通信速度が遅いから"
+        isCorrect: false
+        explanation: 通信速度の問題ではありません。アドレス数の問題です。
+      - id: b
+        text: "IPv4のアドレス数では足りなくなったから"
+        isCorrect: true
+        explanation: 正解です！IPv4は32ビット（約43億個）で、急速なインターネットの普及とIoTデバイスの増加により枯渇が問題となっています。IPv6は128ビット（約340澗個）で十分なアドレス数を提供します。
+      - id: c
+        text: "IPv4は日本でしか使えないから"
+        isCorrect: false
+        explanation: IPv4は世界共通の規格です。
+      - id: d
+        text: "IPv4はセキュリティが弱いから"
+        isCorrect: false
+        explanation: IPv6も追加のセキュリティ機能がありますが、主な移行理由はアドレス枯渇問題です。
+    explanation: IPv4のアドレス枯渇問題を解決するため、128ビットで膨大な数のアドレスを提供するIPv6への移行が進んでいます。
+    difficulty: medium
+    tags:
+      - IPv4
+      - IPv6
+      - アドレス枯渇
+    points: 2
+
+  - id: q3
+    type: true-false
+    title: グローバルアドレスとプライベートアドレス
+    description: グローバルアドレスは世界で唯一のアドレスで、プライベートアドレスはLAN内で使用され各ネットワークで独自に割り当てることができます。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！グローバルアドレスはICANN（アイキャン）が一元管理する世界で唯一のアドレスで、プライベートアドレスは各LAN内で独自に使用できます。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: この説明は正しいものです。グローバルアドレスは一意性、プライベートアドレスは各ネットワーク内での独自性が特徴です。
+    explanation: グローバルアドレスとプライベートアドレスはそれぞれ異なる役割と管理方法を持ちます。
+    difficulty: easy
+    tags:
+      - グローバルアドレス
+      - プライベートアドレス
+      - NAT
+    points: 1
+
+  - id: q4
+    type: single-choice
+    title: DNS（Domain Name System）の役割
+    description: DNSの主な役割について正しい説明はどれですか？
+    options:
+      - id: a
+        text: "Webページのデザインを決定する"
+        isCorrect: false
+        explanation: Webページのデザインは主にCSSの役割です。
+      - id: b
+        text: "ドメイン名をIPアドレスに変換する"
+        isCorrect: true
+        explanation: 正解です！DNSはドメイン名（例：www.example.com）を対応するIPアドレスに変換する名前解決サービスです。
+      - id: c
+        text: "データを暗号化して送信する"
+        isCorrect: false
+        explanation: データの暗号化はSSL/TLSなどの役割です。
+      - id: d
+        text: "メールの送信を行う"
+        isCorrect: false
+        explanation: メールの送信はSMTPプロトコルの役割です。
+    explanation: DNSは覚えやすいドメイン名をコンピュータが理解できるIPアドレスに変換する重要なサービスです。
+    difficulty: medium
+    tags:
+      - DNS
+      - ドメイン名
+      - 名前解決
+    points: 2
+    hint: Domain Name System の名前から機能を推測してみましょう。
+
+  - id: q5
+    type: single-choice
+    title: HTTPとHTTPS
+    description: HTTPSがHTTPよりも安全とされる理由は何ですか？
+    options:
+      - id: a
+        text: "通信速度が速いから"
+        isCorrect: false
+        explanation: HTTPSは暗号化処理のため、実際は若干遅くなります。
+      - id: b
+        text: "通信内容が暗号化されているから"
+        isCorrect: true
+        explanation: 正解です！HTTPSはHTTPにSSL/TLSによる暗号化を追加したプロトコルで、通信内容の盗聴や改ざんを防ぎます。
+      - id: c
+        text: "無料で使用できるから"
+        isCorrect: false
+        explanation: HTTPもHTTPSも基本的に無料で使用できます。安全性とは関係ありません。
+      - id: d
+        text: "日本独自の技術だから"
+        isCorrect: false
+        explanation: HTTPSは世界標準の技術です。
+    explanation: HTTPSはSSL/TLS技術により通信を暗号化し、盗聴や改ざんから保護します。現在多くのWebサイトでHTTPS化が進んでいます。
+    difficulty: medium
+    tags:
+      - HTTP
+      - HTTPS
+      - SSL/TLS
+      - 暗号化
+    points: 2
+
+  - id: q6
+    type: multiple-choice
+    title: HTMLの基本タグ
+    description: HTMLの主要なタグについて正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "＜h1＞〜＜h6＞は見出しを表すタグ"
+        isCorrect: true
+        explanation: ＜h1＞から＜h6＞までは見出しレベルを表すHTMLタグです。
+      - id: b
+        text: "＜p＞は段落を表すタグ"
+        isCorrect: true
+        explanation: ＜p＞タグ（paragraph）は段落を表します。
+      - id: c
+        text: "＜a＞はリンクを作成するタグ"
+        isCorrect: true
+        explanation: ＜a＞タグ（anchor）はハイパーリンクを作成するタグです。
+      - id: d
+        text: "＜img＞は音楽を再生するタグ"
+        isCorrect: false
+        explanation: ＜img＞タグは画像を表示するタグです。音楽再生には＜audio＞タグを使います。
+    explanation: HTMLは様々なタグを使って文書の構造と意味を記述します。各タグには固有の役割があります。
+    difficulty: medium
+    tags:
+      - HTML
+      - タグ
+      - Webページ
+    points: 3
+    hint: HTMLタグはそれぞれ特定の役割を持っています。img = image（画像）です。
+
+  - id: q7
+    type: single-choice
+    title: メールプロトコル
+    description: メールの送信に使用されるプロトコルはどれですか？
+    options:
+      - id: a
+        text: "POP3"
+        isCorrect: false
+        explanation: POP3は メールの受信に使用されるプロトコルです。
+      - id: b
+        text: "IMAP"
+        isCorrect: false
+        explanation: IMAPもメールの受信に使用されるプロトコルです。
+      - id: c
+        text: "SMTP"
+        isCorrect: true
+        explanation: 正解です！SMTP（Simple Mail Transfer Protocol）はメールの送信・転送に使用されるプロトコルです。
+      - id: d
+        text: "HTTP"
+        isCorrect: false
+        explanation: HTTPはWebページの表示に使用されるプロトコルです。
+    explanation: SMTPはメール送信、POP3やIMAPはメール受信に使用されます。それぞれ役割が異なります。
+    difficulty: medium
+    tags:
+      - SMTP
+      - メール
+      - プロトコル
+    points: 2
+
+  - id: q8
+    type: single-choice
+    title: POP3とIMAPの違い
+    description: POP3とIMAPの主な違いは何ですか？
+    options:
+      - id: a
+        text: "POP3は有料、IMAPは無料"
+        isCorrect: false
+        explanation: 料金は使用するサービスプロバイダによります。プロトコル自体に料金の違いはありません。
+      - id: b
+        text: "POP3はメールをローカルにダウンロード、IMAPはサーバに保存"
+        isCorrect: true
+        explanation: 正解です！POP3はメールをローカル端末にダウンロードして管理し、IMAPはメールをサーバ上に保存して複数デバイスで同期できます。
+      - id: c
+        text: "POP3は日本専用、IMAPは世界標準"
+        isCorrect: false
+        explanation: 両方とも世界標準のプロトコルです。
+      - id: d
+        text: "POP3は暗号化あり、IMAPは暗号化なし"
+        isCorrect: false
+        explanation: どちらも暗号化版（POP3S、IMAPS）が存在します。
+    explanation: POP3とIMAPはメールの保存場所と利用形態が異なります。現在はスマートフォンの普及によりIMAPが主流です。
+    difficulty: hard
+    tags:
+      - POP3
+      - IMAP
+      - メール受信
+    points: 3
+    hint: 複数の端末（PC、スマホ）でメールを見る場合を考えてみましょう。
+
+  - id: q9
+    type: multiple-choice
+    title: 情報セキュリティの3要素
+    description: 情報セキュリティのCIA（3要素）について正しいものをすべて選択してください。
+    options:
+      - id: a
+        text: "機密性（Confidentiality）：許可された者のみがアクセス可能"
+        isCorrect: true
+        explanation: 機密性は認可された人だけが情報にアクセスできることを保証します。
+      - id: b
+        text: "完全性（Integrity）：データが正確で改ざんされていない"
+        isCorrect: true
+        explanation: 完全性はデータが正確で、不正に変更されていないことを保証します。
+      - id: c
+        text: "可用性（Availability）：必要なときに利用可能"
+        isCorrect: true
+        explanation: 可用性は必要なときにシステムやデータが利用できることを保証します。
+      - id: d
+        text: "互換性（Compatibility）：異なるシステム間での動作保証"
+        isCorrect: false
+        explanation: 互換性はセキュリティの基本3要素には含まれません。CIAは機密性・完全性・可用性です。
+    explanation: 情報セキュリティの基本はCIA（機密性・完全性・可用性）の3要素で構成されます。
+    difficulty: hard
+    tags:
+      - 情報セキュリティ
+      - CIA
+      - 機密性
+      - 完全性
+      - 可用性
+    points: 3
+
+  - id: q10
+    type: single-choice
+    title: マルウェアの種類
+    description: ファイルを暗号化して復旧と引き換えに金銭を要求するマルウェアは何ですか？
+    options:
+      - id: a
+        text: "ウイルス"
+        isCorrect: false
+        explanation: ウイルスは他のプログラムに寄生して増殖するマルウェアの総称です。
+      - id: b
+        text: "ワーム"
+        isCorrect: false
+        explanation: ワームは単体で増殖可能で、ネットワーク経由で感染を広げるマルウェアです。
+      - id: c
+        text: "トロイの木馬"
+        isCorrect: false
+        explanation: トロイの木馬は正常なソフトに偽装して情報窃取やリモート操作を行うマルウェアです。
+      - id: d
+        text: "ランサムウェア"
+        isCorrect: true
+        explanation: 正解です！ランサムウェア（Ransom：身代金）はファイルを暗号化して使用不能にし、復旧と引き換えに金銭を要求する悪質なマルウェアです。
+    explanation: ランサムウェアは近年増加している深刻な脅威で、定期的なバックアップが最も有効な対策です。
+    difficulty: medium
+    tags:
+      - マルウェア
+      - ランサムウェア
+      - サイバー攻撃
+    points: 2
+
+  - id: q11
+    type: true-false
+    title: フィッシング攻撃
+    description: フィッシング攻撃は、正規のサイトを偽装してユーザーの個人情報を窃取する攻撃手法です。
+    options:
+      - id: true
+        text: "正しい"
+        isCorrect: true
+        explanation: 正解です！フィッシング攻撃は偽装メールや偽装サイトを使用して、ユーザーをだまして個人情報（ID、パスワード、クレジットカード情報など）を盗み取る攻撃です。
+      - id: false
+        text: "間違い"
+        isCorrect: false
+        explanation: この説明はフィッシング攻撃の正確な定義です。偽装による情報窃取が特徴です。
+    explanation: フィッシング攻撃を防ぐには、送信者の確認、URLの慎重な確認、SSL証明書の確認などが重要です。
+    difficulty: easy
+    tags:
+      - フィッシング
+      - サイバー攻撃
+      - 個人情報
+    points: 1
+
+  - id: q12
+    type: single-choice
+    title: 暗号化の種類
+    description: 送信者と受信者が同じ鍵を使って暗号化・復号化を行う方式は何ですか？
+    options:
+      - id: a
+        text: "公開鍵暗号方式"
+        isCorrect: false
+        explanation: 公開鍵暗号方式では公開鍵と秘密鍵という異なる鍵を使用します。
+      - id: b
+        text: "共通鍵暗号方式"
+        isCorrect: true
+        explanation: 正解です！共通鍵暗号方式では送信者と受信者が同じ鍵を使用して暗号化・復号化を行います。高速処理が可能ですが、鍵の配送が課題です。
+      - id: c
+        text: "ハッシュ関数"
+        isCorrect: false
+        explanation: ハッシュ関数は一方向の変換で、復号化はできません。
+      - id: d
+        text: "デジタル署名"
+        isCorrect: false
+        explanation: デジタル署名は送信者の確認と改ざん検出に使用される技術です。
+    explanation: 共通鍵暗号方式はAESなどのアルゴリズムが代表的で、大量データの暗号化に適しています。
+    difficulty: medium
+    tags:
+      - 共通鍵暗号
+      - 暗号化
+      - AES
+    points: 2
+
+  - id: q13
+    type: single-choice
+    title: パスワードセキュリティ
+    description: 強固なパスワードの条件として**適切でない**ものはどれですか？
+    options:
+      - id: a
+        text: "8文字以上の長さ"
+        isCorrect: false
+        explanation: 十分な長さは強固なパスワードの重要な条件です。
+      - id: b
+        text: "大文字・小文字・数字・記号の組み合わせ"
+        isCorrect: false
+        explanation: 複雑な組み合わせは強固なパスワードの重要な条件です。
+      - id: c
+        text: "全てのサービスで同じパスワードを使用"
+        isCorrect: true
+        explanation: 正解です！全てのサービスで同じパスワードを使用するのは危険です。一つのサービスが侵害されると、他のサービスも危険にさらされます。サービスごとに異なるパスワードを使用すべきです。
+      - id: d
+        text: "辞書にない推測困難な文字列"
+        isCorrect: false
+        explanation: 推測困難な文字列は強固なパスワードの重要な条件です。
+    explanation: パスワードの使い回しは最も危険な習慣の一つです。パスワードマネージャーの活用や2要素認証も重要です。
+    difficulty: medium
+    tags:
+      - パスワード
+      - セキュリティ
+      - 認証
+    points: 2
+
+  - id: q14
+    type: single-choice
+    title: SSL/TLSの機能
+    description: SSL/TLSが提供する機能に**含まれない**ものはどれですか？
+    options:
+      - id: a
+        text: "通信の暗号化"
+        isCorrect: false
+        explanation: SSL/TLSは通信内容を暗号化して盗聴を防ぎます。
+      - id: b
+        text: "サーバの認証"
+        isCorrect: false
+        explanation: SSL/TLSはデジタル証明書によりサーバの正当性を確認します。
+      - id: c
+        text: "データの完全性確保"
+        isCorrect: false
+        explanation: SSL/TLSはデータの改ざんを検出する機能があります。
+      - id: d
+        text: "ウイルスの検出・駆除"
+        isCorrect: true
+        explanation: 正解です！SSL/TLSは通信の暗号化・認証・完全性確保を行いますが、ウイルスの検出・駆除は行いません。これはアンチウイルスソフトの機能です。
+    explanation: SSL/TLSは通信セキュリティのプロトコルで、ウイルス対策は別の技術領域です。
+    difficulty: hard
+    tags:
+      - SSL/TLS
+      - 暗号化通信
+      - セキュリティ
+    points: 3
+    hint: SSL/TLSは「通信」に関するセキュリティ技術です。
+
+  - id: q15
+    type: single-choice
+    title: パケット交換方式の利点
+    description: パケット交換方式（インターネット）が回線交換方式（従来の電話）より優れている点は何ですか？
+    options:
+      - id: a
+        text: "音質が良い"
+        isCorrect: false
+        explanation: 音質は回線交換方式の方が安定している場合が多いです。
+      - id: b
+        text: "回線を効率的に利用できる"
+        isCorrect: true
+        explanation: 正解です！パケット交換方式では、データを小さな単位（パケット）に分割し、異なる宛先のパケットが同じ回線を効率的に共有できます。回線交換方式のように専有しないため、回線利用効率が向上します。
+      - id: c
+        text: "通信費用が無料"
+        isCorrect: false
+        explanation: パケット交換でも通信費用はかかります。
+      - id: d
+        text: "セキュリティが完璧"
+        isCorrect: false
+        explanation: セキュリティは別途対策が必要で、方式による違いではありません。
+    explanation: パケット交換により、電話が混雑している場合でもSNSやメールは利用できる可能性が高くなります。
+    difficulty: medium
+    tags:
+      - パケット交換
+      - 回線効率
+      - ネットワーク
+    points: 2
