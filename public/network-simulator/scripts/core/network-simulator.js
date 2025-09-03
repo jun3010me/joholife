@@ -37,7 +37,7 @@ class NetworkSimulator {
         this.isPaletteScrolling = false;
         this.paletteScrollStartX = 0;
         this.paletteScrollStartY = 0;
-        this.paletteScrollThreshold = 10;
+        this.paletteScrollThreshold = 6; // より敏感な横スクロール検出
         this.paletteScrollStartScrollLeft = 0;
         this.pendingDeviceDrag = null;
         this.pendingDevice = null;
@@ -172,9 +172,10 @@ class NetworkSimulator {
             primaryTouch: window.matchMedia('(hover: none) and (pointer: coarse)').matches
         });
         
-        // タッチデバイス＋狭い画面の場合のみスクロール処理を追加
-        if (isTouchDevice && isNarrowScreen) {
-            console.log('Setting up touch scroll handlers (touch device + narrow screen)');
+        // モバイルデバイスの場合はスクロール処理を追加（条件を緩和）
+        const hasTouchCapability = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        if (hasTouchCapability && isNarrowScreen) {
+            console.log('Setting up touch scroll handlers (has touch + narrow screen)');
             const paletteContent = document.querySelector('.palette-content');
             if (paletteContent) {
                 paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
@@ -222,8 +223,8 @@ class NetworkSimulator {
                         this.pendingDeviceDrag = null;
                         return; // スクロール処理は実行しない
                     }
-                    // 横方向の移動が大きい場合は常にスクロール優先
-                    else if (deltaX > 8) { // スクロール検出範囲を緩く
+                    // 横方向の移動が大きい場合は常にスクロール優先（閾値をさらに下げる）
+                    else if (deltaX > 4) { // スクロール検出範囲をより敏感に
                         this.isPaletteScrolling = true;
                         console.log('◀️▶️ Palette scroll activated (horizontal movement)! deltaX:', deltaX);
                         this.pendingDeviceDrag = null;
