@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統計量とデータ分析 - 情報Ⅰ第5章テーマ3</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .reveal p, .reveal li {
+        font-size: 0.9em;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+
+      .reveal ul, .reveal ol {
+        display: block;
+        margin: 12px 0;
+      }
+
+      /* 統計表 */
+      .stat-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.75em;
+      }
+      
+      .stat-table th,
+      .stat-table td {
+        border: 1px solid #bdc3c7;
+        padding: 8px 6px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .stat-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+      
+      .stat-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      /* 分布図 */
+      .distribution-diagram {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+
+      .distribution-item {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 8px;
+        text-align: center;
+        min-width: 120px;
+        font-size: 0.8em;
+      }
+
+      .distribution-item h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 1em;
+      }
+
+      /* 数式表示 */
+      .formula-box {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Times New Roman', serif;
+        font-size: 1.1em;
+        text-align: center;
+        margin: 15px 0;
+      }
+
+      /* 尺度表 */
+      .scale-comparison {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .scale-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: left;
+      }
+
+      .scale-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+      }
+
+      .scale-card .example {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 0.85em;
+        margin: 5px 0;
+      }
+
+      /* 検定プロセス */
+      .test-process {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .test-process::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .test-step {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 100px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .test-step.current {
+        background: #3498db;
+        color: white;
+      }
+
+      /* 相関図 */
+      .correlation-examples {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .correlation-card {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+      }
+
+      .correlation-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+      }
+
+      .correlation-card .value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #3498db;
+        margin: 8px 0;
+      }
+
+      /* データ例 */
+      .data-example {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8em;
+        text-align: left;
+      }
+
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+
+        .concept-diagram,
+        .correlation-examples,
+        .scale-comparison {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .stat-table {
+          font-size: 0.65em;
+        }
+        
+        .stat-table th,
+        .stat-table td {
+          padding: 6px 4px;
+        }
+
+        .test-process {
+          flex-direction: column;
+        }
+
+        .test-process::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .test-step {
+          margin: 10px 0;
+        }
+
+        .distribution-diagram {
+          flex-direction: column;
+        }
+
+        .distribution-item {
+          margin: 8px 0;
+          min-width: 200px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>統計量とデータ分析</h1>
+          <h2>第5章 問題解決 - テーマ3</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            データの特徴を数値で表現し、科学的に分析する手法
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>基本統計量</h4>
+              <p>意味と計算方法の理解</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>データ分布</h4>
+              <p>分布の特徴と把握方法</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>尺度水準</h4>
+              <p>データの分類と適用統計量</p>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>相関関係</h4>
+              <p>変数間の関係性分析</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📉</span>
+              <h4>回帰分析</h4>
+              <p>予測モデルの基本</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧪</span>
+              <h4>検定</h4>
+              <p>統計的判断の基本的考え方</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- おもな統計量 -->
+        <section>
+          <h1>おもな統計量</h1>
+          
+          <table class="stat-table">
+            <thead>
+              <tr>
+                <th>特徴</th>
+                <th>統計量</th>
+                <th>関数名</th>
+                <th>意味</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td rowspan="2"><strong>全体的な大きさ</strong></td>
+                <td>データ数</td>
+                <td>COUNT</td>
+                <td>データの個数</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>合計値</td>
+                <td>SUM</td>
+                <td>すべての値の合計</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td rowspan="5"><strong>分布の概況</strong></td>
+                <td>平均値</td>
+                <td>AVERAGE</td>
+                <td>データの平均</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>中央値</td>
+                <td>MEDIAN</td>
+                <td>順序の真ん中の値</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>最頻値</td>
+                <td>MODE</td>
+                <td>最も頻繁に出現する値</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>最大値</td>
+                <td>MAX</td>
+                <td>最も大きい値</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>最小値</td>
+                <td>MIN</td>
+                <td>最も小さい値</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td rowspan="2"><strong>散らばり具合</strong></td>
+                <td>分散</td>
+                <td>VAR.P</td>
+                <td>データの散らばりの指標</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>標準偏差</td>
+                <td>STDEV.P</td>
+                <td>分散の平方根</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 度数分布とヒストグラム -->
+        <section>
+          <h1>度数分布とヒストグラム</h1>
+          
+          <div class="highlight-box important">
+            <h3>度数分布表</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              データの値または階級ごとにデータ数（度数）を整理
+            </p>
+          </div>
+
+          <table class="stat-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>階級</th>
+                <th>度数</th>
+                <th>相対度数</th>
+                <th>累積度数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>0以上10未満</td>
+                <td>5</td>
+                <td>0.25</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>10以上20未満</td>
+                <td>8</td>
+                <td>0.40</td>
+                <td>13</td>
+              </tr>
+              <tr>
+                <td>20以上30未満</td>
+                <td>4</td>
+                <td>0.20</td>
+                <td>17</td>
+              </tr>
+              <tr>
+                <td>30以上40未満</td>
+                <td>3</td>
+                <td>0.15</td>
+                <td>20</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📊</span>
+              <h4>ヒストグラム</h4>
+              <p>度数分布表を棒グラフで表現</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">🔍</span>
+              <h4>用途</h4>
+              <p>分布形状の把握<br>正規分布・偏りの確認</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">⚠️</span>
+              <h4>異常値発見</h4>
+              <p>通常と異なる値の特定</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 箱ひげ図 -->
+        <section>
+          <h1>箱ひげ図</h1>
+          
+          <div class="highlight-box">
+            <h3>四分位数</h3>
+            <p>データを小さい順に並べた時の位置による区分</p>
+          </div>
+
+          <div class="distribution-diagram fragment fade-in">
+            <div class="distribution-item">
+              <h4>第1四分位数 (Q1)</h4>
+              <p>下位25%の位置</p>
+            </div>
+            <div class="distribution-item">
+              <h4>第2四分位数 (Q2)</h4>
+              <p>下位50%の位置（中央値）</p>
+            </div>
+            <div class="distribution-item">
+              <h4>第3四分位数 (Q3)</h4>
+              <p>下位75%の位置</p>
+            </div>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📦</span>
+              <h4>箱</h4>
+              <p>Q1からQ3までの範囲<br>四分位範囲</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">📏</span>
+              <h4>ひげ</h4>
+              <p>最大値・最小値までの線<br>外れ値を除く</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">🎯</span>
+              <h4>中央線</h4>
+              <p>中央値（Q2）を表示<br>分布の中心</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>利点</h3>
+            <p>複数の箱ひげ図を並べてデータを比較できる</p>
+          </div>
+        </section>
+
+        <!-- 平均値・中央値・最頻値 -->
+        <section>
+          <h1>平均値・中央値・最頻値</h1>
+          
+          <div class="scale-comparison">
+            <div class="scale-card fragment fade-in">
+              <h4>平均値（Mean）</h4>
+              <p><strong>計算:</strong> 全データの合計÷データ数</p>
+              <p><strong>特徴:</strong> 外れ値の影響を受けやすい</p>
+              <p><strong>用途:</strong> 一般的な代表値</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>中央値（Median）</h4>
+              <p><strong>計算:</strong> データを順序付けして中央の値</p>
+              <p><strong>特徴:</strong> 外れ値の影響を受けにくい</p>
+              <p><strong>用途:</strong> 所得分布など偏りのあるデータ</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>最頻値（Mode）</h4>
+              <p><strong>計算:</strong> 最も頻繁に出現する値</p>
+              <p><strong>特徴:</strong> 名義尺度でも計算可能</p>
+              <p><strong>用途:</strong> カテゴリデータの代表値</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>分布形状による関係</h4>
+              <p><strong>正規分布:</strong> 平均値＝中央値≒最頻値</p>
+              <p><strong>右に偏る:</strong> 平均値＞中央値＞最頻値</p>
+              <p><strong>左に偏る:</strong> 平均値＜中央値＜最頻値</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 分散と標準偏差 -->
+        <section>
+          <h1>分散と標準偏差</h1>
+          
+          <div class="formula-box fragment fade-in">
+            <h3>分散の計算式</h3>
+            <p>σ² = Σ(xᵢ - x̄)² / n</p>
+            <p>偏差（各データ-平均値）の二乗の平均</p>
+          </div>
+
+          <div class="formula-box fragment fade-in">
+            <h3>標準偏差の計算式</h3>
+            <p>σ = √σ²</p>
+            <p>分散の正の平方根</p>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📏</span>
+              <h4>分散</h4>
+              <p>データの散らばりの指標<br>（単位は元データの二乗）</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">📐</span>
+              <h4>標準偏差</h4>
+              <p>元データと同じ単位<br>での散らばり</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">🎯</span>
+              <h4>解釈</h4>
+              <p>小さい値：集中<br>大きい値：分散</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 偏差値 -->
+        <section>
+          <h1>偏差値</h1>
+          
+          <div class="formula-box fragment fade-in">
+            <h3>偏差値の計算式</h3>
+            <p>偏差値 = 50 + (得点-平均点)/標準偏差 × 10</p>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">🎯</span>
+              <h4>基準値</h4>
+              <p>平均点の偏差値は50<br>標準的な位置</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">⬆️</span>
+              <h4>上位</h4>
+              <p>標準偏差分上：偏差値60<br>上位約16%</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">⬇️</span>
+              <h4>下位</h4>
+              <p>標準偏差分下：偏差値40<br>下位約16%</p>
+            </div>
+          </div>
+
+          <div class="data-example fragment fade-in">
+平均点60点、標準偏差10点のテストで80点を取った場合：
+偏差値 = 50 + (80-60)/10 × 10 = 70
+          </div>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>注意点</h3>
+            <p>標準偏差が小さい場合、偏差値は100を超えることもある</p>
+          </div>
+        </section>
+
+        <!-- 尺度水準 -->
+        <section>
+          <h1>尺度水準</h1>
+          
+          <div class="highlight-box important">
+            <h3>データの分類基準</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              データの値を決める際の基準による分類
+            </p>
+          </div>
+
+          <table class="stat-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>尺度</th>
+                <th>順序性</th>
+                <th>等間隔</th>
+                <th>正比例</th>
+                <th>例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>名義尺度</strong></td>
+                <td>×</td>
+                <td>×</td>
+                <td>×</td>
+                <td>性別、血液型、好きな色</td>
+              </tr>
+              <tr>
+                <td><strong>順序尺度</strong></td>
+                <td>○</td>
+                <td>×</td>
+                <td>×</td>
+                <td>成績評価、満足度、服のサイズ</td>
+              </tr>
+              <tr>
+                <td><strong>間隔尺度</strong></td>
+                <td>○</td>
+                <td>○</td>
+                <td>×</td>
+                <td>気温（摂氏）、西暦、学年</td>
+              </tr>
+              <tr>
+                <td><strong>比率尺度</strong></td>
+                <td>○</td>
+                <td>○</td>
+                <td>○</td>
+                <td>身長、体重、年収、距離</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>適用可能な統計量</h3>
+            <p><strong>名義尺度:</strong> データ数、最頻値</p>
+            <p><strong>順序尺度:</strong> 上記 + 最大値、最小値、中央値</p>
+            <p><strong>間隔尺度:</strong> 上記 + 平均値、分散</p>
+            <p><strong>比率尺度:</strong> すべての統計量が適用可能</p>
+          </div>
+        </section>
+
+        <!-- 各尺度の詳細 -->
+        <section>
+          <h1>各尺度の詳細</h1>
+          
+          <div class="scale-comparison">
+            <div class="scale-card fragment fade-in">
+              <h4>名義尺度（Nominal Scale）</h4>
+              <p><strong>特徴:</strong> 分類のみに意味がある</p>
+              <div class="example">A型を1、B型を2としても数量的意味はない</div>
+              <p><strong>演算:</strong> 四則演算は意味をなさない</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>順序尺度（Ordinal Scale）</h4>
+              <p><strong>特徴:</strong> 順序に意味があるが間隔は不等</p>
+              <div class="example">S・M・Lサイズの平均はMサイズではない</div>
+              <p><strong>注意:</strong> 加減乗除の計算は適切でない</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>間隔尺度（Interval Scale）</h4>
+              <p><strong>特徴:</strong> 間隔に意味があるが比は意味なし</p>
+              <div class="example">20℃は10℃の2倍の暖かさではない</div>
+              <p><strong>演算:</strong> 加減は可能、乗除は意味なし</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>比率尺度（Ratio Scale）</h4>
+              <p><strong>特徴:</strong> 絶対零点があり、比に意味がある</p>
+              <div class="example">200cmは100cmの2倍の長さ</div>
+              <p><strong>演算:</strong> すべての演算が意味を持つ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 時系列分析 -->
+        <section>
+          <h1>時系列分析</h1>
+          
+          <div class="highlight-box important">
+            <h3>移動平均法</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              一定期間のデータの平均値をその期間の代表値とする
+            </p>
+          </div>
+
+          <table class="stat-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>年</th>
+                <th>気温</th>
+                <th>5年移動平均</th>
+                <th>傾向</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2018</td>
+                <td>15.2℃</td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>2019</td>
+                <td>15.8℃</td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>2020</td>
+                <td>14.9℃</td>
+                <td>15.3℃</td>
+                <td>平均的</td>
+              </tr>
+              <tr>
+                <td>2021</td>
+                <td>15.6℃</td>
+                <td>15.4℃</td>
+                <td>上昇傾向</td>
+              </tr>
+              <tr>
+                <td>2022</td>
+                <td>16.0℃</td>
+                <td>15.5℃</td>
+                <td>上昇継続</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📊</span>
+              <h4>平滑化</h4>
+              <p>短期的な変動を除去<br>ノイズの軽減</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">📈</span>
+              <h4>傾向把握</h4>
+              <p>長期的な変動傾向が明確<br>トレンドの発見</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">🔮</span>
+              <h4>予測</h4>
+              <p>将来の動向予測の基礎<br>意思決定の支援</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 回帰分析 -->
+        <section>
+          <h1>回帰分析</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>散布図</h4>
+              <p>2つの変数の関係を<br>点で表現したグラフ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>回帰直線</h4>
+              <p>データの分布に<br>最も適合する直線</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>最小二乗法</h4>
+              <p>残差の二乗和を<br>最小にする直線</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>回帰式の利用</h3>
+            <p><strong>予測:</strong> x値から対応するy値を推定</p>
+            <p><strong>関係把握:</strong> 2変数間の関係を数式で表現</p>
+          </div>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>重要な注意点</h3>
+            <p>相関関係があっても必ずしも因果関係があるとは限らない</p>
+          </div>
+        </section>
+
+        <!-- 相関係数 -->
+        <section>
+          <h1>相関係数</h1>
+          
+          <div class="formula-box fragment fade-in">
+            <h3>相関係数の定義</h3>
+            <p>r = 共分散 / (xの標準偏差 × yの標準偏差)</p>
+            <p>2つの変数間の直線的関係の強さを表す指標</p>
+          </div>
+
+          <div class="correlation-examples fragment fade-in">
+            <div class="correlation-card">
+              <h4>強い正の相関</h4>
+              <div class="value">r ≥ +0.7</div>
+              <p>一方が増加すると他方も増加</p>
+            </div>
+            
+            <div class="correlation-card">
+              <h4>無相関</h4>
+              <div class="value">r ≈ 0</div>
+              <p>2つの変数に関係性なし</p>
+            </div>
+            
+            <div class="correlation-card">
+              <h4>強い負の相関</h4>
+              <div class="value">r ≤ -0.7</div>
+              <p>一方が増加すると他方は減少</p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>相関の強さの目安</h3>
+            <p><strong>|r| ≥ 0.7:</strong> 強い相関</p>
+            <p><strong>0.4 ≤ |r| < 0.7:</strong> 中程度の相関</p>
+            <p><strong>|r| < 0.4:</strong> 弱い相関</p>
+          </div>
+        </section>
+
+        <!-- 母集団と標本 -->
+        <section>
+          <h1>母集団と標本</h1>
+          
+          <div class="scale-comparison">
+            <div class="scale-card fragment fade-in">
+              <h4>用語の定義</h4>
+              <p><strong>母集団:</strong> 調査対象とする全体</p>
+              <p><strong>標本:</strong> 母集団から抽出された一部</p>
+              <p><strong>標本抽出:</strong> 母集団から標本を選ぶ過程</p>
+              <p><strong>サンプルサイズ:</strong> 標本に含まれるデータ数</p>
+            </div>
+            
+            <div class="scale-card fragment fade-in">
+              <h4>統計量の区別</h4>
+              <p><strong>母平均（μ）:</strong> 母集団の平均</p>
+              <p><strong>標本平均（x̄）:</strong> 標本の平均</p>
+              <p><strong>母分散（σ²）:</strong> 母集団の分散</p>
+              <p><strong>標本分散（s²）:</strong> 標本の分散</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>統計的推測</h3>
+            <p>標本から母集団の特徴を推測することが統計的推測の目的</p>
+          </div>
+        </section>
+
+        <!-- 正規分布 -->
+        <section>
+          <h1>正規分布</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>対称性</h4>
+              <p>平均値を中心とした<br>左右対称</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔔</span>
+              <h4>釣鐘型</h4>
+              <p>ベル型の曲線<br>中央が最も高い</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>パラメータ</h4>
+              <p>平均μと標準偏差σで決定<br>N(μ,σ²)で表記</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>経験則（68-95-99.7ルール）</h3>
+            <p><strong>μ±σ:</strong> 約68%のデータが含まれる</p>
+            <p><strong>μ±2σ:</strong> 約95%のデータが含まれる</p>
+            <p><strong>μ±3σ:</strong> 約99.7%のデータが含まれる</p>
+          </div>
+
+          <div class="scale-card fragment fade-in">
+            <h4>標準正規分布</h4>
+            <p><strong>平均:</strong> μ = 0</p>
+            <p><strong>標準偏差:</strong> σ = 1</p>
+            <p><strong>記号:</strong> N(0,1)</p>
+          </div>
+        </section>
+
+        <!-- 検定の基本概念 -->
+        <section>
+          <h1>検定の基本概念</h1>
+          
+          <div class="test-process">
+            <div class="test-step fragment fade-in">
+              <strong>帰無仮説</strong><br>
+              <small>否定したい仮説(H₀)</small>
+            </div>
+            <div class="test-step fragment fade-in">
+              <strong>対立仮説</strong><br>
+              <small>支持したい仮説(H₁)</small>
+            </div>
+            <div class="test-step fragment fade-in">
+              <strong>有意水準</strong><br>
+              <small>判定の基準（5%）</small>
+            </div>
+            <div class="test-step fragment fade-in">
+              <strong>検定統計量</strong><br>
+              <small>データから計算</small>
+            </div>
+            <div class="test-step fragment fade-in">
+              <strong>臨界値</strong><br>
+              <small>判定の境界値</small>
+            </div>
+            <div class="test-step current fragment fade-in">
+              <strong>結論</strong><br>
+              <small>棄却か採択か</small>
+            </div>
+          </div>
+
+          <div class="scale-comparison fragment fade-in">
+            <div class="scale-card">
+              <h4>有意水準と判定</h4>
+              <p><strong>5%有意水準:</strong> 20回に1回の確率で誤判定を許容</p>
+              <p><strong>1%有意水準:</strong> 100回に1回の確率で誤判定を許容</p>
+              <p><strong>p値:</strong> 帰無仮説が正しいとした時の確率</p>
+            </div>
+            
+            <div class="scale-card">
+              <h4>判定ルール</h4>
+              <p><strong>p値 < 有意水準:</strong> 帰無仮説を棄却</p>
+              <p><strong>p値 ≥ 有意水準:</strong> 帰無仮説を採択</p>
+              <p><strong>注意:</strong> 有意水準は検定前に設定</p>
+            </div>
+          </div>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>重要な原則</h3>
+            <p>有意水準は検定前に設定し、結果を見て変更してはいけない</p>
+          </div>
+        </section>
+
+        <!-- 区間推定 -->
+        <section>
+          <h1>区間推定</h1>
+          
+          <div class="highlight-box important">
+            <h3>信頼区間</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              母数が含まれると予想される範囲
+            </p>
+          </div>
+
+          <div class="formula-box fragment fade-in">
+            <h3>95%信頼区間の計算</h3>
+            <p>標本平均 ± 1.96 × 標準誤差</p>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📊</span>
+              <h4>95%信頼区間の意味</h4>
+              <p>同じ方法で100回推定すれば<br>95回は真の値を含む</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">📏</span>
+              <h4>区間の幅</h4>
+              <p>サンプルサイズが<br>大きいほど狭くなる</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">⚖️</span>
+              <h4>トレードオフ</h4>
+              <p>確実性と精度の<br>バランス</p>
+            </div>
+          </div>
+
+          <div class="scale-comparison fragment fade-in">
+            <div class="scale-card">
+              <h4>信頼度と区間の関係</h4>
+              <p><strong>高い信頼度:</strong> 区間が広くなる</p>
+              <p><strong>低い信頼度:</strong> 区間が狭くなる</p>
+            </div>
+            
+            <div class="scale-card">
+              <h4>実用例</h4>
+              <p><strong>世論調査:</strong> 支持率○○%±△△%</p>
+              <p><strong>品質管理:</strong> 製品の性能範囲</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>統計量とデータ分析の要点</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>記述統計学</h4>
+              <p>基本統計量でデータの特徴を数値で要約<br>視覚化と関係性の分析</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>推測統計学</h4>
+              <p>標本から母集団を推測<br>区間推定と仮説検定</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>注意点</h4>
+              <p>尺度水準に応じた適切な分析<br>因果関係の慎重な判断</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              平均値、中央値、最頻値、分散、標準偏差、偏差値、<br>
+              四分位数、箱ひげ図、尺度水準、相関係数、回帰分析、<br>
+              母集団、標本、正規分布、仮説検定、信頼区間
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：モデル化とシミュレーション
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            現実問題のモデル化手法と<br>
+            シミュレーションによる解決策の検証を学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

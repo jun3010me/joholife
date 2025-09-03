@@ -1,0 +1,1180 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プレゼンテーション - 情報Ⅰ第2章</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 12px 10px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 100px);
+        min-height: calc(100vh - 100px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.4em;
+        text-align: center;
+        margin-bottom: 8px;
+        margin-top: 2px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+      }
+      
+      .reveal h3 {
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin: 8px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 8px;
+        border-radius: 0 6px 6px 0;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 5px;
+        font-size: 0.9em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.75em;
+        line-height: 1.2;
+        margin-bottom: 3px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+      }
+      
+      .info-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.volume { background: #e74c3c; }
+      .info-circle.variety { background: #f39c12; }
+      .info-circle.velocity { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      
+      .info-circle p {
+        margin: 5px 0 0 0;
+        font-size: 0.8em;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        padding: 8px;
+        margin: 6px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>プレゼンテーション</h1>
+          <h2>情報Ⅰ第2章 - ADVANCE</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            論文の書き方と効果的な<br>
+            プレゼンテーション技法を学ぼう
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>論文と感想文の違い</h4>
+              <p>客観的事実に基づく論理的構成を理解</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>論文の構成要素</h4>
+              <p>表題、要約、序論、本論、結論、文献表</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎤</span>
+              <h4>プレゼンテーション企画</h4>
+              <p>聴き手を意識した効果的な発表方法</p>
+            </div>
+          </div>
+          
+          <div class="concept-card fragment fade-in" style="margin-top: 20px; max-width: 400px;">
+            <span class="icon">🎯</span>
+            <h4>発表技法</h4>
+            <p>声、身振り、質疑応答の効果的な技法</p>
+          </div>
+        </section>
+
+        <!-- 論文と感想文の違い -->
+        <section>
+          <h1>論文と感想文の違い</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>論文</th>
+                <th>感想文</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>基盤</strong></td>
+                <td>客観的な事実</td>
+                <td>書き手の主観</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>記述内容</strong></td>
+                <td>論理的な過程</td>
+                <td>「〜と思った」「〜と感じた」</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>結論への到達</strong></td>
+                <td>論理が正しければ必ず同じ結論</td>
+                <td>価値観によって人それぞれ</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>目的</strong></td>
+                <td>相手を納得させる</td>
+                <td>感情や印象を伝える</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>重要ポイント</h3>
+            <p>自分の主張を相手に納得してもらうには、論文形式で記述することが大切</p>
+          </div>
+        </section>
+
+        <!-- 論文の構成 -->
+        <section>
+          <h1>論文の構成</h1>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>表題</strong><br>
+              <small>主題を端的に</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>要約</strong><br>
+              <small>内容を簡潔に</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>序論</strong><br>
+              <small>本論への導入</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>本論</strong><br>
+              <small>中心となる部分</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>結論</strong><br>
+              <small>結果のまとめ</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>文献表</strong><br>
+              <small>引用・参考文献</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- 論文構成要素の詳細1 -->
+        <section>
+          <h1>各構成要素の詳細（前半）</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>表題</h4>
+              <p>論文の主題を端的に表現</p>
+              <p>研究の目的や特徴的な手法をキーワードとして記述</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📄</span>
+              <h4>要約</h4>
+              <p>論文の内容を簡単に述べたもの</p>
+              <p>読み手に興味をもってもらうための重要な部分</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚪</span>
+              <h4>序論</h4>
+              <p>本論への導入部分</p>
+              <p>問題の背景、現在の課題、研究目的・方法を記述</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 論文構成要素の詳細2 -->
+        <section>
+          <h1>各構成要素の詳細（後半）</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>本論</h4>
+              <p>論文の中心となる部分</p>
+              <p>研究の経過や結果など、客観的な事実を記述</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>結論</h4>
+              <p>研究結果のまとめの部分</p>
+              <p>本論の結果をまとめ、これまでの研究との比較、今後の課題を記述</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📚</span>
+              <h4>文献表</h4>
+              <p>引用文献：論文中で引用したもの</p>
+              <p>参考文献：論文を書く上で参考にしたもの</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 論の構築 -->
+        <section>
+          <h1>論の構築</h1>
+          
+          <div class="highlight-box important">
+            <h3>論文全体の構造</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              理由と結論からなる論の積み重ね
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>注意すべきポイント</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>根拠の確実性</strong><br>
+                <small>理由に確かな根拠があるか</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">+</div>
+              <div class="flow-item fragment fade-in">
+                <strong>結論の合理性</strong><br>
+                <small>理由に対して結論が合理的か</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">=</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>信頼性</strong><br>
+                <small>全体の信頼性確保</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>重要な注意点</h3>
+            <p>もとになる論に1つでも不合理があると、全体の信頼性が失われる</p>
+          </div>
+        </section>
+
+        <!-- 論理展開の基本構造 -->
+        <section>
+          <h1>論理展開の基本構造</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⬇️</span>
+              <h4>頭括式（演繹型）</h4>
+              <p><strong>結論 → 理由</strong></p>
+              <p>短時間で情報を伝える</p>
+              <p>論文や報告書に向いている</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⬆️</span>
+              <h4>尾括式（帰納型）</h4>
+              <p><strong>理由 → 結論</strong></p>
+              <p>日本語で一般的</p>
+              <p>じっくり読んでもらう場合</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>双括式</h4>
+              <p><strong>結論 → 理由 → 結論</strong></p>
+              <p>プレゼンテーションで使用</p>
+              <p>印象に残りやすい</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 論理展開と接続詞 -->
+        <section>
+          <h1>論理展開と接続詞</h1>
+          
+          <div class="fragment fade-in">
+            <h3>論理を展開させる接続詞</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>帰結</strong><br>
+                <small>だから、したがって、よって</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">vs</div>
+              <div class="flow-item fragment fade-in">
+                <strong>理由</strong><br>
+                <small>なぜなら、というのは</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>論理に広がりや具体性をもたせる接続詞</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">➕</span>
+                <h4>付加</h4>
+                <p>さらに、しかも、また</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">⚖️</span>
+                <h4>対比</h4>
+                <p>これに対して、一方で</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🔄</span>
+                <h4>逆接</h4>
+                <p>しかし、だが、ところが</p>
+              </div>
+            </div>
+            
+            <div class="concept-card fragment fade-in" style="margin-top: 20px; max-width: 300px;">
+              <span class="icon">💡</span>
+              <h4>例示</h4>
+              <p>例えば、具体的には</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- プレゼンテーションとは -->
+        <section>
+          <h1>プレゼンテーションとは</h1>
+          
+          <div class="highlight-box important">
+            <h3>定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              聴き手の心を動かし、目的とする行動を起こさせるために行う情報伝達
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>プレゼンテーションの形式</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">💻</span>
+                <h4>スライド発表</h4>
+                <p>PowerPointなどを使用</p>
+                <p>視覚的な表現が可能</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📋</span>
+                <h4>ポスター発表</h4>
+                <p>大きなポスターを使用</p>
+                <p>詳細な情報を表示</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔧</span>
+                <h4>実演・実物提示</h4>
+                <p>デモンストレーション</p>
+                <p>体験型の説明</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- プレゼンテーションの企画 -->
+        <section>
+          <h1>プレゼンテーションの企画</h1>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>主題・目標設定</strong><br>
+              <small>何を伝えるか</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>伝達内容・方法</strong><br>
+              <small>どう伝えるか</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>論理構成・展開</strong><br>
+              <small>どう組み立てるか</small>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>プランニングシート</h3>
+            <p>これらをまとめたプランニングシートを作成すると効率的</p>
+          </div>
+        </section>
+
+        <!-- 主題および目標の設定 -->
+        <section>
+          <h1>主題および目標の設定</h1>
+          
+          <div class="fragment fade-in">
+            <h3>主題の明確化</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>何について話すのか</strong><br>
+                <small>テーマの特定</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>伝えたいこと</strong><br>
+                <small>メッセージの明確化</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>目標の設定</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">🧠</span>
+                <h4>理解レベル</h4>
+                <p>どこまで理解してもらうか</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🎯</span>
+                <h4>行動目標</h4>
+                <p>どのように行動してもらうか</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">📏</span>
+                <h4>測定可能性</h4>
+                <p>具体的で測定可能な目標</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 伝達内容および方法の決定 -->
+        <section>
+          <h1>伝達内容および方法の決定</h1>
+          
+          <div class="fragment fade-in">
+            <h3>聴き手の分析</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">❤️</span>
+                <h4>関心度</h4>
+                <p>どの程度興味があるか</p>
+                <p>興味を引く工夫が必要</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎓</span>
+                <h4>知識・経験</h4>
+                <p>予備知識のレベル</p>
+                <p>専門用語の使用程度</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🏢</span>
+                <h4>会場や人数</h4>
+                <p>物理的な環境</p>
+                <p>機材や資料の準備</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>効果的な伝達方法</h3>
+            <p>聴き手に合わせた内容 • 適切な表現方法 • 使用する機材の選択</p>
+          </div>
+        </section>
+
+        <!-- 論理構成と展開の工夫 -->
+        <section>
+          <h1>論理構成と展開の工夫</h1>
+          
+          <div class="fragment fade-in">
+            <h3>基本構成</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>導入</strong><br>
+                <small>関心を引く</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>展開</strong><br>
+                <small>主要内容を説明</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>まとめ</strong><br>
+                <small>要点を整理</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>アウトライン作成のポイント</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">📝</span>
+                <h4>中項目・小項目</h4>
+                <p>階層的な構成</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">⏰</span>
+                <h4>時間配分</h4>
+                <p>各部分の時間を工夫</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🔗</span>
+                <h4>論理的な流れ</h4>
+                <p>筋道の確認</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>目標</h3>
+            <p>聴き手にスムーズに納得してもらうための論理構成や話の流れを工夫する</p>
+          </div>
+        </section>
+
+        <!-- スライド作成のポイント -->
+        <section>
+          <h1>スライド作成のポイント</h1>
+          
+          <div class="fragment fade-in">
+            <h3>統一感のあるデザイン</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>デザインテンプレート</strong><br>
+                <small>一貫したスタイル</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">+</div>
+              <div class="flow-item fragment fade-in">
+                <strong>スライドマスター</strong><br>
+                <small>統一された設定</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">=</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>プロフェッショナル</strong><br>
+                <small>色・フォントの統一</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>ストーリーボード</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">🎬</span>
+                <h4>事前計画</h4>
+                <p>各スライドの内容を事前に計画</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🎨</span>
+                <h4>絵コンテ</h4>
+                <p>説明内容を含む視覚的計画</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">👥</span>
+                <h4>グループ作業</h4>
+                <p>分担して作成する場合に有効</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 効果的なスライドデザイン -->
+        <section>
+          <h1>効果的なスライドデザイン</h1>
+          
+          <div class="fragment fade-in">
+            <h3>文字・色・画像の使い方</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔤</span>
+                <h4>フォント</h4>
+                <p>読みやすいサイズ</p>
+                <p>適切な書体選択</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎨</span>
+                <h4>色の組み合わせ</h4>
+                <p>コントラストの確保</p>
+                <p>アクセシビリティ配慮</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🖼️</span>
+                <h4>高品質な画像</h4>
+                <p>解像度の適切さ</p>
+                <p>内容との関連性</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>1スライド1メッセージ</h3>
+            <p>情報を詰め込みすぎない • 重要なポイントを強調 • 聴衆が理解しやすい分量</p>
+          </div>
+        </section>
+
+        <!-- 発表技法 -->
+        <section>
+          <h1>発表技法</h1>
+          
+          <div class="fragment fade-in">
+            <h3>声・話し方</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔊</span>
+                <h4>適切な音量</h4>
+                <p>会場の広さに応じて</p>
+                <p>後ろまで聞こえる声</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⏱️</span>
+                <h4>話す速度</h4>
+                <p>ゆっくりと明瞭に</p>
+                <p>理解しやすいペース</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⏸️</span>
+                <h4>間の取り方</h4>
+                <p>重要な部分の前後で間を取る</p>
+                <p>聴き手の理解を促進</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>身振り・表情</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">👀</span>
+                <h4>アイコンタクト</h4>
+                <p>聴衆と目を合わせる</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">👋</span>
+                <h4>身振り・手振り</h4>
+                <p>内容に合わせた動作</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">😊</span>
+                <h4>表情</h4>
+                <p>内容に適した表情</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 質疑応答への対応 -->
+        <section>
+          <h1>質疑応答への対応</h1>
+          
+          <div class="fragment fade-in">
+            <h3>事前準備：5W1Hの観点</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⏰</span>
+                <h4>When（いつ）</h4>
+                <p>時期・タイミング</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📍</span>
+                <h4>Where（どこで）</h4>
+                <p>場所・環境</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">👤</span>
+                <h4>Who（だれが）</h4>
+                <p>主体・対象者</p>
+              </div>
+            </div>
+            
+            <div class="concept-diagram fragment fade-in">
+              <div class="concept-card">
+                <span class="icon">❓</span>
+                <h4>What（なにを）</h4>
+                <p>内容・対象</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🤔</span>
+                <h4>Why（なぜ）</h4>
+                <p>理由・目的</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">⚙️</span>
+                <h4>How（どのように）</h4>
+                <p>方法・手段</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>質疑応答のマナー</h3>
+            <p>質問を最後まで聞く • 分からない場合は正直に答える • 簡潔で的確な回答を心がける</p>
+          </div>
+        </section>
+
+        <!-- プレゼンテーションの評価 -->
+        <section>
+          <h1>プレゼンテーションの評価</h1>
+          
+          <div class="fragment fade-in">
+            <h3>ルーブリックによる評価</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>評価の観点</strong><br>
+                <small>何を評価するか</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">+</div>
+              <div class="flow-item fragment fade-in">
+                <strong>評価の基準</strong><br>
+                <small>どの程度で評価するか</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">=</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>4段階評価</strong><br>
+                <small>S・A・B・C</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主な評価項目</h3>
+            <div class="concept-diagram">
+              <div class="concept-card">
+                <span class="icon">📝</span>
+                <h4>内容</h4>
+                <p>主張と根拠の明確さ</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🏗️</span>
+                <h4>構成</h4>
+                <p>導入・展開・まとめの流れ</p>
+              </div>
+              
+              <div class="concept-card">
+                <span class="icon">🎤</span>
+                <h4>発表</h4>
+                <p>声の大きさ、アイコンタクト、身振り</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>プレゼンテーションの要素</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>論文作成</h4>
+              <p>論理的構成と接続詞活用</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>企画・準備</h4>
+              <p>聴き手意識と論理構成</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>発表技法</h4>
+              <p>声・身振り・アイコンタクト</p>
+            </div>
+          </div>
+          
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              論文、プレゼンテーション、論理展開、接続詞、<br>
+              ルーブリック、アウトライン、ストーリーボード
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：Webページと情報デザイン
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

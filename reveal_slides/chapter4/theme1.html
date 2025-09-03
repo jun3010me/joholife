@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4章 テーマ1: ネットワークとプロトコル</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        position: relative;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 8px 6px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 70px;
+        max-width: 90px;
+        font-size: 0.65em;
+        line-height: 1.1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        flex-shrink: 1;
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 12px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .info-circle {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        flex-shrink: 1;
+      }
+      
+      .info-circle.lan { background: #e74c3c; }
+      .info-circle.wan { background: #f39c12; }
+      .info-circle.protocol { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 0.9em;
+      }
+      
+      .info-circle p {
+        margin: 2px 0 0 0;
+        font-size: 0.65em;
+        line-height: 1.0;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>ネットワークとプロトコル</h1>
+          <h2>第4章 ネットワーク - テーマ1</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            情報通信ネットワークの発展と<br>
+            プロトコルの重要性を学ぶ
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📶</span>
+              <h4>ネットワークの進展</h4>
+              <p>情報通信ネットワークの歴史的発展を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>LANとWAN</h4>
+              <p>ローカルネットワークと広域ネットワークの違いを学ぶ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>処理方式</h4>
+              <p>集中処理と分散処理の特徴を知る</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>プロトコル</h4>
+              <p>通信プロトコルの重要性を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>TCP/IP</h4>
+              <p>インターネットの基盤となる階層構造を学ぶ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 情報通信ネットワークの進展 -->
+        <section>
+          <h1>情報通信ネットワークの進展</h1>
+          
+          <div class="highlight-box important">
+            <h3>基本的な目標</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              遠方の人により早くより多くの情報を伝える
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>歴史的な発展</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>1837年</strong><br>
+                <small>モールス電信機</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>1876年</strong><br>
+                <small>ベル電話機</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>近年</strong><br>
+                <small>コンピュータ</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>現在</strong><br>
+                <small>ネットワーク</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LANとWAN -->
+        <section>
+          <h1>LANとWAN</h1>
+          
+          <div class="infographic">
+            <div class="info-circle lan fragment fade-in">
+              <h4>LAN</h4>
+              <p>Local Area</p>
+              <p><strong>狭い範囲</strong></p>
+            </div>
+            
+            <div class="info-circle wan fragment fade-in">
+              <h4>WAN</h4>
+              <p>Wide Area</p>
+              <p><strong>広い範囲</strong></p>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>LAN（ローカルエリアネットワーク）</th>
+                <th>WAN（広域ネットワーク）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>範囲</strong></td>
+                <td>同一建物や敷地内</td>
+                <td>離れたLANどうしを接続</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>接続方法</strong></td>
+                <td>有線LAN（ハブ）、無線LAN</td>
+                <td>通信事業会社の回線</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>例</strong></td>
+                <td>会社、工場、学校内</td>
+                <td>光ファイバ、CATV回線</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>こうしたネットワークが相互に接続され、世界的に発展したのがインターネット</p>
+          </div>
+        </section>
+
+        <!-- 集中処理システム -->
+        <section>
+          <h1>集中処理システム</h1>
+          
+          <div class="flow-chart">
+            <div class="flow-item highlight fragment fade-in">
+              <strong>ホストコンピュータ</strong><br>
+              <small>すべての処理を実行</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">↓</div>
+            <div class="flow-item fragment fade-in">
+              <strong>端末1</strong><br>
+              <small>入出力のみ</small>
+            </div>
+            <div class="flow-item fragment fade-in">
+              <strong>端末2</strong><br>
+              <small>入出力のみ</small>
+            </div>
+            <div class="flow-item fragment fade-in">
+              <strong>端末3</strong><br>
+              <small>入出力のみ</small>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>メリット</th>
+                <th>デメリット</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>一元管理が容易</td>
+                <td>ホスト障害で全体停止</td>
+              </tr>
+              <tr>
+                <td>セキュリティ管理しやすい</td>
+                <td>処理能力の限界</td>
+              </tr>
+              <tr>
+                <td>データの整合性保持</td>
+                <td>端末の機能が限定的</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 分散処理システム -->
+        <section>
+          <h1>分散処理システム</h1>
+          
+          <div class="highlight-box important">
+            <h3>基本概念</h3>
+            <p>ネットワークを利用してそれぞれの端末で処理を分担するシステム</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖥️</span>
+              <h4>クライアントサーバシステム</h4>
+              <p>サーバ（提供側）とクライアント（要求側）が明確に分離</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>ピアツーピアシステム</h4>
+              <p>コンピュータがすべて対等な関係で相互通信</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- サーバの種類 -->
+        <section>
+          <h1>サーバの種類と機能</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📁</span>
+              <h4>ファイルサーバ</h4>
+              <p>ファイル共有・データの一元管理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖨️</span>
+              <h4>プリントサーバ</h4>
+              <p>印刷要求処理・プリンタ共有</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗄️</span>
+              <h4>データベースサーバ</h4>
+              <p>データベース情報提供・整合性管理</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>Webサーバ</h4>
+              <p>Webページの閲覧を提供</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📧</span>
+              <h4>メールサーバ</h4>
+              <p>メールの送受信を提供</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔐</span>
+              <h4>認証サーバ</h4>
+              <p>正規利用者判別・セキュリティ管理</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- プロトコルとは -->
+        <section>
+          <h1>プロトコルとは</h1>
+          
+          <div class="highlight-box important">
+            <h3>定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              異なるコンピュータどうしをネットワークに接続して<br>
+              データをやり取りする場合の通信に関する取り決め（約束事）
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>プロトコルに含まれる内容</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📋</span>
+                <h4>手順</h4>
+                <p>情報を伝達し処理するための手順</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📊</span>
+                <h4>データ形式</h4>
+                <p>データの構造と表現方法</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎛️</span>
+                <h4>制御方法</h4>
+                <p>通信の制御と管理</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>プロトコルはもともと外交儀礼、礼儀作法などの意味を持つ</p>
+          </div>
+        </section>
+
+        <!-- TCP/IP -->
+        <section>
+          <h1>インターネットのプロトコル - TCP/IP</h1>
+          
+          <div class="highlight-box important">
+            <h3>TCP/IP</h3>
+            <p>Transmission Control Protocol / Internet Protocol<br>
+            インターネットで使用される統一されたプロトコル</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>TCP/IPの特徴</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>異種システム</strong><br>
+                <small>さまざまな種類のコンピュータ</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>TCP/IP</strong><br>
+                <small>統一プロトコル</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>相互接続</strong><br>
+                <small>インターネットサービス利用</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>標準化の重要性</h3>
+            <p>OSI参照モデル：体系的にまとめた通信の仕組み<br>
+            階層モデル化により効率的に制御</p>
+          </div>
+        </section>
+
+        <!-- TCP/IPの4階層構造 -->
+        <section>
+          <h1>TCP/IPの4階層構造</h1>
+          
+          <div class="flow-chart" style="flex-direction: column;">
+            <div class="flow-item highlight fragment fade-in">
+              <strong>第4層：アプリケーション層</strong><br>
+              <small>HTTP, HTTPS, SMTP, POP, IMAP</small>
+            </div>
+            <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>第3層：トランスポート層</strong><br>
+              <small>TCP, UDP</small>
+            </div>
+            <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>第2層：インターネット層</strong><br>
+              <small>IP</small>
+            </div>
+            <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>第1層：リンク層</strong><br>
+              <small>イーサネット、無線LAN</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- プロトコル階層化のメリット -->
+        <section>
+          <h1>プロトコル階層化のメリット</h1>
+          
+          <div class="highlight-box important">
+            <h3>電話での会話を例に</h3>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>送信側</th>
+                <th>受信側</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>① 日本語の言葉で表す</td>
+                <td>⑥ 日本語の言葉を解釈する</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>② 声（音）に出す</td>
+                <td>⑤ 声（音）を聞く</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>③ 電話で伝える</td>
+                <td>④ 電話で伝わる</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌍</span>
+              <h4>条件変更への対応</h4>
+              <p>相手が英国人：①⑥を「英語」に変更</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📱</span>
+              <h4>手段変更への対応</h4>
+              <p>SNS：②⑤を「文字」、③④を「メッセージ」に変更</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>効率性</h4>
+              <p>一部の階層のみ変更で対応可能</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 集中処理と分散処理の比較 -->
+        <section>
+          <h1>集中処理と分散処理の比較</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>集中処理システム</th>
+                <th>分散処理システム</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>メリット</strong></td>
+                <td>一元管理・セキュリティ管理・データ整合性</td>
+                <td>処理能力分散・冗長性・拡張性</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>デメリット</strong></td>
+                <td>単一障害点・処理能力限界・機能限定</td>
+                <td>管理複雑・セキュリティ困難・一貫性確保難</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>適用例</strong></td>
+                <td>メインフレーム・基幹システム</td>
+                <td>クライアントサーバ・クラウド</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>ネットワークとプロトコルの重要ポイント</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>ネットワークの発展</h4>
+              <p>電信・電話からコンピュータネットワークへ</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>規模の拡大</h4>
+              <p>LANからWAN、そしてインターネットへ</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>処理方式の進化</h4>
+              <p>集中処理から分散処理への移行</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              LAN、WAN、TCP/IP、プロトコル、<br>
+              集中処理、分散処理、クライアントサーバ、<br>
+              階層化、標準化、インターネット
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：インターネットの仕組み<br>
+            IPアドレス、DNS、パケット交換について学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ構造と配列 - 情報Ⅰ第6章テーマ3</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .array-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+
+      .array-element {
+        background: #3498db;
+        color: white;
+        border: 2px solid #2c3e50;
+        padding: 10px 15px;
+        margin: 2px;
+        text-align: center;
+        font-size: 0.9em;
+        min-width: 50px;
+        border-radius: 4px;
+      }
+
+      .array-index {
+        background: #ecf0f1;
+        color: #2c3e50;
+        border: 1px solid #bdc3c7;
+        padding: 5px 15px;
+        margin: 2px;
+        text-align: center;
+        font-size: 0.8em;
+        min-width: 50px;
+        border-radius: 4px;
+      }
+
+      .reveal pre {
+        font-size: 0.7em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      .matrix-visual {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin: 20px 0;
+        max-width: 300px;
+      }
+
+      .matrix-cell {
+        background: #3498db;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .array-visual {
+          flex-direction: column;
+        }
+
+        .matrix-visual {
+          max-width: 200px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>データ構造と配列</h1>
+          <h2>Data Structures and Arrays</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            データを効率的に管理する仕組みを学びます
+          </p>
+        </section>
+
+        <!-- データ構造とは -->
+        <section>
+          <h1>データ構造とは</h1>
+          <h2>What is Data Structure?</h2>
+          
+          <div class="highlight-box important">
+            <h3>データ構造 (Data Structure)</h3>
+            <p>データを効率的に格納、アクセス、操作するための組織化された形式や仕組み。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>効率的な格納</h4>
+              <p>データを整理して保存</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>高速アクセス</h4>
+              <p>必要なデータを素早く取得</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>性能向上</h4>
+              <p>プログラムの実行効率を改善</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 基本的なデータ型 -->
+        <section>
+          <h1>基本的なデータ型</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ型 (Data Type)</h3>
+            <p>データの種類を表す分類。整数、文字列、真偽値など。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>整数型 (int)</h4>
+              <p>123, -45, 0</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>浮動小数点型 (float)</h4>
+              <p>3.14, -0.5, 2.0</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>文字列型 (str)</h4>
+              <p>"Hello", '世界', "123"</p>
+            </div>
+          </div>
+
+          <div class="concept-card fragment fade-in" style="margin: 20px auto; max-width: 300px;">
+            <span class="icon">✅</span>
+            <h4>真偽値型 (bool)</h4>
+            <p>True, False</p>
+          </div>
+        </section>
+
+        <!-- データ型の例 -->
+        <section>
+          <h1>データ型の例</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># データ型の例
+age = 20          # int (整数型)
+height = 170.5    # float (浮動小数点型)
+name = "太郎"     # str (文字列型)
+passed = True     # bool (真偽値型)</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>型の重要性</h4>
+              <p>適切な型を選択することで効率的な処理が可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>型変換</h4>
+              <p>int(), float(), str()で型を変換</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>型安全性</h4>
+              <p>型エラーを防ぐことで信頼性向上</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 配列（リスト）の概念 -->
+        <section>
+          <h1>配列（リスト）の概念</h1>
+          <h2>Array Concepts</h2>
+          
+          <div class="highlight-box important">
+            <h3>配列 (Array)</h3>
+            <p>同じデータ型の要素を順序付けて並べたデータ構造。Pythonではリストとして実装。</p>
+          </div>
+
+          <div class="array-visual fragment fade-in">
+            <div class="array-index">0</div>
+            <div class="array-index">1</div>
+            <div class="array-index">2</div>
+            <div class="array-index">3</div>
+            <div class="array-index">4</div>
+          </div>
+          <div class="array-visual">
+            <div class="array-element">apple</div>
+            <div class="array-element">banana</div>
+            <div class="array-element">orange</div>
+            <div class="array-element">grape</div>
+            <div class="array-element">melon</div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>インデックス (Index)</h3>
+            <p>配列の各要素の位置を示す番号。通常0から始まる。</p>
+          </div>
+        </section>
+
+        <!-- Pythonにおけるリスト -->
+        <section>
+          <h1>Pythonにおけるリスト</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># リストの作成
+empty_list = []                           # 空のリスト
+numbers = [1, 2, 3, 4, 5]                # 数値のリスト
+fruits = ["apple", "banana", "orange"]    # 文字列のリスト
+mixed = [1, "hello", 3.14, True]         # 混合型のリスト</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>柔軟性</h4>
+              <p>異なるデータ型を同じリストに格納可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>可変長</h4>
+              <p>要素の追加・削除で長さが変化</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>順序保持</h4>
+              <p>要素の順序が維持される</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- リストへのアクセス -->
+        <section>
+          <h1>リストへのアクセス</h1>
+          
+          <pre class="fragment fade-in"><code class="python">fruits = ["apple", "banana", "orange"]
+
+print(fruits[0])    # "apple" (最初の要素)
+print(fruits[1])    # "banana"
+print(fruits[-1])   # "orange" (最後の要素)
+print(fruits[-2])   # "banana" (後ろから2番目)</code></pre>
+
+          <div class="array-visual fragment fade-in">
+            <div class="array-index">0</div>
+            <div class="array-index">1</div>
+            <div class="array-index">2</div>
+          </div>
+          <div class="array-visual">
+            <div class="array-element">apple</div>
+            <div class="array-element">banana</div>
+            <div class="array-element">orange</div>
+          </div>
+          <div class="array-visual">
+            <div class="array-index">-3</div>
+            <div class="array-index">-2</div>
+            <div class="array-index">-1</div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>負のインデックス</h3>
+            <p>リストの後ろから数えるインデックス。-1が最後の要素を表す。</p>
+          </div>
+        </section>
+
+        <!-- リストのスライシング -->
+        <section>
+          <h1>リストのスライシング</h1>
+          
+          <pre class="fragment fade-in"><code class="python">numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+print(numbers[2:5])    # [2, 3, 4] (2番目から4番目まで)
+print(numbers[:3])     # [0, 1, 2] (最初から2番目まで)
+print(numbers[7:])     # [7, 8, 9] (7番目から最後まで)
+print(numbers[::2])    # [0, 2, 4, 6, 8] (2つおき)</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>スライシング (Slicing)</h3>
+            <p>リストの一部分を切り出す操作。[開始:終了:ステップ]の形式で指定。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✂️</span>
+              <h4>部分取得</h4>
+              <p>必要な部分だけを抜き出し</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>範囲指定</h4>
+              <p>開始と終了位置を指定</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👣</span>
+              <h4>ステップ指定</h4>
+              <p>取得間隔を設定可能</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- リストの操作 -->
+        <section>
+          <h1>リストの操作</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">➕</span>
+              <h4>要素の追加</h4>
+              <pre><code class="python">fruits.append("orange")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📍</span>
+              <h4>位置指定挿入</h4>
+              <pre><code class="python">fruits.insert(1, "grape")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>要素の変更</h4>
+              <pre><code class="python">numbers[2] = 10</code></pre>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>append() メソッド</h3>
+            <p>リストの末尾に新しい要素を追加するメソッド。</p>
+          </div>
+        </section>
+
+        <!-- 要素の削除 -->
+        <section>
+          <h1>要素の削除と便利な操作</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗑️</span>
+              <h4>値による削除</h4>
+              <pre><code class="python">fruits.remove("banana")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>長さの取得</h4>
+              <pre><code class="python">len(fruits)  # 3</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>存在確認</h4>
+              <pre><code class="python">"apple" in fruits  # True</code></pre>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>len() 関数</h3>
+            <p>リストやその他のシーケンスの要素数を返す組み込み関数。</p>
+          </div>
+        </section>
+
+        <!-- 2次元配列 -->
+        <section>
+          <h1>2次元配列（リストのリスト）</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 3x3の行列
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+print(matrix[0][0])  # 1 (1行1列目)
+print(matrix[1][2])  # 6 (2行3列目)</code></pre>
+
+          <div class="matrix-visual fragment fade-in">
+            <div class="matrix-cell">1</div>
+            <div class="matrix-cell">2</div>
+            <div class="matrix-cell">3</div>
+            <div class="matrix-cell">4</div>
+            <div class="matrix-cell">5</div>
+            <div class="matrix-cell">6</div>
+            <div class="matrix-cell">7</div>
+            <div class="matrix-cell">8</div>
+            <div class="matrix-cell">9</div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>2次元配列 (Two-dimensional Array)</h3>
+            <p>配列の配列。行と列を持つ表形式のデータ構造。</p>
+          </div>
+        </section>
+
+        <!-- リストの反復処理 -->
+        <section>
+          <h1>リストの反復処理</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>要素を直接取得</h4>
+              <pre><code class="python">fruits = ["apple", "banana", "orange"]
+
+for fruit in fruits:
+    print(fruit)</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>インデックスも取得</h4>
+              <pre><code class="python">for i, fruit in enumerate(fruits):
+    print(f"{i}: {fruit}")
+# 0: apple
+# 1: banana
+# 2: orange</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>enumerate() 関数</h4>
+              <p>リストの要素とそのインデックスを同時に取得</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- リスト内包表記 -->
+        <section>
+          <h1>リスト内包表記</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>従来の方法</h4>
+              <pre><code class="python">for i in range(5):
+    squares.append(i ** 2)</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>リスト内包表記</h4>
+              <pre><code class="python">[i ** 2 for i in range(5)]</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>条件付き</h4>
+              <pre><code class="python">[i for i in range(10) if i % 2 == 0]</code></pre>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>リスト内包表記 (List Comprehension)</h3>
+            <p>既存のリストから新しいリストを簡潔に作成する構文。</p>
+          </div>
+        </section>
+
+        <!-- その他のデータ構造 -->
+        <section>
+          <h1>その他のデータ構造</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>タプル (Tuple)</h4>
+              <pre><code class="python"># 変更不可能なシーケンス
+coordinates = (10, 20)
+rgb = (255, 128, 0)
+
+print(coordinates[0])  # 10
+# coordinates[0] = 15  # エラー！</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗂️</span>
+              <h4>辞書 (Dictionary)</h4>
+              <pre><code class="python"># キーと値のペア
+student = {
+    "name": "田中太郎",
+    "age": 18,
+    "grade": "A"
+}
+print(student["name"])  # "田中太郎"</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>用途の違い</h4>
+              <p>タプル：不変データ<br>辞書：キー検索</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ構造と配列の基本</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>データ型</h4>
+              <p>int, float, str, bool</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>リスト操作</h4>
+              <p>アクセス、スライシング、追加、削除</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>高度な機能</h4>
+              <p>内包表記、2次元配列、タプル、辞書</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              データ構造、データ型、配列、インデックス、<br>
+              スライシング、append()、len()、enumerate()、<br>
+              リスト内包表記、タプル、辞書
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: 関数とスコープ
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

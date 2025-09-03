@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音と画像の表現 - 情報Ⅰ第3章</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+      }
+      
+      .info-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.sampling { background: #e74c3c; }
+      .info-circle.quantization { background: #f39c12; }
+      .info-circle.encoding { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      
+      .info-circle p {
+        margin: 5px 0 0 0;
+        font-size: 0.8em;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* 計算ボックス */
+      .calc-box {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+      
+      /* 波形表示 */
+      .waveform {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 10px 0;
+        font-family: 'Courier New', monospace;
+        text-align: left;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>音と画像の表現</h1>
+          <h2>第3章 デジタル - テーマ4</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            アナログ音声・画像のデジタル化と<br>
+            圧縮技術について学びましょう
+          </p>
+        </section>
+
+        <!-- 音の基本的性質 -->
+        <section>
+          <h1>音の基本的性質</h1>
+          
+          <div class="highlight-box important">
+            <h3>音とは</h3>
+            <p>空気の振動が耳に伝わることで感じる現象</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎵</span>
+              <h4>周波数（ピッチ）</h4>
+              <p>音の高低</p>
+              <p>単位：Hz（ヘルツ）</p>
+              <p>1秒間の振動回数</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔊</span>
+              <h4>振幅（音量）</h4>
+              <p>音の大きさ</p>
+              <p>単位：dB（デシベル）</p>
+              <p>波の振れ幅</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎼</span>
+              <h4>波形（音色）</h4>
+              <p>音の質感</p>
+              <p>楽器の特徴</p>
+              <p>倍音成分</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>人間の可聴域</h3>
+            <p>20Hz～20,000Hz（年齢により個人差あり）</p>
+          </div>
+        </section>
+
+        <!-- デジタル音声への変換 -->
+        <section>
+          <h1>デジタル音声への変換</h1>
+          
+          <div class="highlight-box important">
+            <h3>アナログからデジタルへの3段階</h3>
+            <p>連続的な音の波形を離散的なデジタルデータに変換</p>
+          </div>
+          
+          <div class="infographic">
+            <div class="info-circle sampling fragment fade-in">
+              <h4>標本化</h4>
+              <p>サンプリング</p>
+              <p><strong>一定間隔で測定</strong></p>
+            </div>
+            
+            <div class="flow-arrow fragment fade-in">→</div>
+            
+            <div class="info-circle quantization fragment fade-in">
+              <h4>量子化</h4>
+              <p>決められた段階数</p>
+              <p><strong>値を区切る</strong></p>
+            </div>
+            
+            <div class="flow-arrow fragment fade-in">→</div>
+            
+            <div class="info-circle encoding fragment fade-in">
+              <h4>符号化</h4>
+              <p>2進数表現</p>
+              <p><strong>0と1で記録</strong></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- サンプリング周波数 -->
+        <section>
+          <h1>標本化（サンプリング）</h1>
+          
+          <div class="highlight-box important">
+            <h3>ナイキスト定理</h3>
+            <p>記録したい最高周波数の2倍以上のサンプリング周波数が必要</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>用途</th>
+                <th>サンプリング周波数</th>
+                <th>対象周波数</th>
+                <th>品質</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>電話</strong></td>
+                <td>8,000Hz</td>
+                <td>～4,000Hz</td>
+                <td>通話可能</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>CD</strong></td>
+                <td>44,100Hz</td>
+                <td>～22,050Hz</td>
+                <td>高品質</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>DVD</strong></td>
+                <td>48,000Hz</td>
+                <td>～24,000Hz</td>
+                <td>業務用</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>ハイレゾ</strong></td>
+                <td>96,000Hz</td>
+                <td>～48,000Hz</td>
+                <td>超高品質</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>CD品質の根拠</h3>
+            <p>人間の可聴域20kHzの2倍以上 → 44.1kHz</p>
+          </div>
+        </section>
+
+        <!-- 量子化ビット数 -->
+        <section>
+          <h1>量子化</h1>
+          
+          <div class="highlight-box important">
+            <h3>量子化ビット数</h3>
+            <p>1つのサンプルを何ビットで表現するかを決定</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>ビット数</th>
+                <th>段階数</th>
+                <th>用途</th>
+                <th>品質</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>8ビット</strong></td>
+                <td>256段階</td>
+                <td>古いPC音源</td>
+                <td>低品質</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>16ビット</strong></td>
+                <td>65,536段階</td>
+                <td>CD品質</td>
+                <td>高品質</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>24ビット</strong></td>
+                <td>16,777,216段階</td>
+                <td>プロ用録音</td>
+                <td>超高品質</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>32ビット</strong></td>
+                <td>浮動小数点</td>
+                <td>デジタル処理</td>
+                <td>業務用</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>量子化ノイズ</h3>
+            <p>連続値を離散値で近似することで生じる誤差</p>
+          </div>
+        </section>
+
+        <!-- 音声データ量の計算 -->
+        <section>
+          <h1>音声データ量の計算</h1>
+          
+          <div class="highlight-box important">
+            <h3>計算式</h3>
+            <p>データ量 = サンプリング周波数 × 量子化ビット数 × チャンネル数 × 時間</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>例：CD品質（ステレオ、1分間）</h3>
+            <div class="calc-box">
+              <p><strong>条件：</strong></p>
+              <p>サンプリング周波数：44,100Hz</p>
+              <p>量子化ビット数：16ビット</p>
+              <p>チャンネル数：2（ステレオ）</p>
+              <p>時間：60秒</p>
+              
+              <p><strong>計算：</strong></p>
+              <p>44,100 × 16 × 2 × 60 = 84,672,000ビット</p>
+              <p>= 10,584,000バイト ≈ <strong>10.6MB</strong></p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>データ量の特徴</h3>
+            <p>高品質な音声は大容量 → 圧縮技術が必要</p>
+          </div>
+        </section>
+
+        <!-- 音声圧縮技術 -->
+        <section>
+          <h1>音声圧縮技術</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>可逆圧縮</h4>
+              <p>元の音質を完全保持</p>
+              <p>FLAC、ALAC</p>
+              <p>圧縮率：50-60%</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>非可逆圧縮</h4>
+              <p>知覚できない部分を削除</p>
+              <p>MP3、AAC</p>
+              <p>圧縮率：90%以上</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎧</span>
+              <h4>心理音響モデル</h4>
+              <p>人間の聴覚特性を利用</p>
+              <p>マスキング効果</p>
+              <p>聞こえない成分を除去</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>用途による使い分け</h3>
+            <p>配信・携帯用は高圧縮、保存・編集用は低圧縮または無圧縮</p>
+          </div>
+        </section>
+
+        <!-- MP3の仕組み -->
+        <section>
+          <h1>MP3圧縮の仕組み</h1>
+          
+          <div class="highlight-box important">
+            <h3>心理音響モデルの活用</h3>
+            <p>人間の耳の特性を利用した効率的な圧縮</p>
+          </div>
+          
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>周波数解析</strong><br>
+              <small>FFT変換</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>心理音響モデル</strong><br>
+              <small>マスキング判定</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>不要成分除去</strong><br>
+              <small>聞こえない音削除</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>エントロピー符号化</strong><br>
+              <small>効率的な符号化</small>
+            </div>
+          </div>
+          
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">🎯</span>
+              <h4>マスキング効果</h4>
+              <p>大きな音で小さな音が聞こえなくなる現象</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">📊</span>
+              <h4>ビットレート</h4>
+              <p>128kbps：一般的品質</p>
+              <p>320kbps：高品質</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">💾</span>
+              <h4>圧縮効果</h4>
+              <p>元サイズの約1/10</p>
+              <p>品質と容量の最適化</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 画像の基本概念 -->
+        <section>
+          <h1>デジタル画像とは</h1>
+          
+          <div class="highlight-box important">
+            <h3>画素（ピクセル）の集合</h3>
+            <p>小さな点（画素）を格子状に配列して画像を表現</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>空間解像度</h4>
+              <p>画素数（例：1920×1080）</p>
+              <p>画像の細かさ</p>
+              <p>高解像度ほど鮮明</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎨</span>
+              <h4>階調解像度</h4>
+              <p>1画素あたりのビット数</p>
+              <p>色の表現能力</p>
+              <p>多ビットほど豊かな色</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌈</span>
+              <h4>色空間</h4>
+              <p>RGB：赤・緑・青</p>
+              <p>CMYK：印刷用4色</p>
+              <p>HSV：色相・彩度・明度</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- RGB色空間 -->
+        <section>
+          <h1>RGB色空間</h1>
+          
+          <div class="highlight-box important">
+            <h3>加法混色</h3>
+            <p>光の三原色（赤・緑・青）を組み合わせて色を表現</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>ビット深度</th>
+                <th>色数</th>
+                <th>用途</th>
+                <th>特徴</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>1ビット</strong></td>
+                <td>2色</td>
+                <td>白黒画像</td>
+                <td>文書・線画</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>8ビット</strong></td>
+                <td>256色</td>
+                <td>インデックスカラー</td>
+                <td>GIF、古いPC</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>16ビット</strong></td>
+                <td>65,536色</td>
+                <td>ハイカラー</td>
+                <td>携帯機器</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>24ビット</strong></td>
+                <td>1,677万色</td>
+                <td>フルカラー</td>
+                <td>一般的な画像</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>32ビット</strong></td>
+                <td>+透明度</td>
+                <td>RGBA</td>
+                <td>合成・Web用</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="calc-box fragment fade-in">
+            <p><strong>RGB値の例：</strong></p>
+            <p>赤：(255, 0, 0)　緑：(0, 255, 0)　青：(0, 0, 255)</p>
+            <p>白：(255, 255, 255)　黒：(0, 0, 0)</p>
+          </div>
+        </section>
+
+        <!-- 画像ファイル形式 -->
+        <section>
+          <h1>画像ファイル形式</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📷</span>
+              <h4>JPEG</h4>
+              <p>非可逆圧縮</p>
+              <p>写真に適している</p>
+              <p>高い圧縮率</p>
+              <p>透明度非対応</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖼️</span>
+              <h4>PNG</h4>
+              <p>可逆圧縮</p>
+              <p>透明度対応</p>
+              <p>イラスト・図形向け</p>
+              <p>Web標準</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎬</span>
+              <h4>GIF</h4>
+              <p>256色まで</p>
+              <p>アニメーション対応</p>
+              <p>透明度1色のみ</p>
+              <p>古い形式</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">🖥️</span>
+              <h4>BMP</h4>
+              <p>無圧縮</p>
+              <p>Windows標準</p>
+              <p>大容量</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">🖨️</span>
+              <h4>TIFF</h4>
+              <p>印刷・業務用</p>
+              <p>高品質保存</p>
+              <p>多様な圧縮</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">📸</span>
+              <h4>RAW</h4>
+              <p>カメラ生データ</p>
+              <p>現像前の状態</p>
+              <p>最大情報量</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- JPEG圧縮の仕組み -->
+        <section>
+          <h1>JPEG圧縮の仕組み</h1>
+          
+          <div class="highlight-box important">
+            <h3>人間の視覚特性を利用した圧縮</h3>
+            <p>色の変化に対する感度の違いを活用</p>
+          </div>
+          
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>色空間変換</strong><br>
+              <small>RGB→YCbCr</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>8×8ブロック分割</strong><br>
+              <small>小さな領域に分ける</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>DCT変換</strong><br>
+              <small>周波数成分に変換</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>量子化・符号化</strong><br>
+              <small>圧縮と符号化</small>
+            </div>
+          </div>
+          
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">👁️</span>
+              <h4>YCbCr色空間</h4>
+              <p>Y：輝度（明るさ）</p>
+              <p>Cb：青色度</p>
+              <p>Cr：赤色度</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">⚖️</span>
+              <h4>圧縮率調整</h4>
+              <p>品質70-80%：Web用</p>
+              <p>品質90-95%：印刷用</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">⚠️</span>
+              <h4>ブロックノイズ</h4>
+              <p>高圧縮時の劣化</p>
+              <p>8×8の格子状パターン</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 画像データ量の計算 -->
+        <section>
+          <h1>画像データ量の計算</h1>
+          
+          <div class="highlight-box important">
+            <h3>計算式（非圧縮）</h3>
+            <p>データ量 = 横画素数 × 縦画素数 × 色深度（ビット）</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>例：フルHD画像（24ビットカラー）</h3>
+            <div class="calc-box" style="font-size: 0.8em; padding: 12px;">
+              <p><strong>条件：</strong></p>
+              <p>解像度：1920 × 1080ピクセル</p>
+              <p>色深度：24ビット（RGB各8ビット）</p>
+              
+              <p><strong>計算：</strong></p>
+              <p>1920 × 1080 × 24 = 49,766,400ビット</p>
+              <p>= 6,220,800バイト ≈ <strong>6.2MB</strong></p>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in" style="font-size: 0.7em; margin: 15px 0;">
+            <thead>
+              <tr>
+                <th style="padding: 8px 6px;">解像度</th>
+                <th style="padding: 8px 6px;">画素数</th>
+                <th style="padding: 8px 6px;">24ビット時のサイズ</th>
+                <th style="padding: 8px 6px;">用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding: 6px 4px;">VGA</td><td style="padding: 6px 4px;">640×480</td><td style="padding: 6px 4px;">0.9MB</td><td style="padding: 6px 4px;">古いPC</td></tr>
+              <tr><td style="padding: 6px 4px;">HD</td><td style="padding: 6px 4px;">1280×720</td><td style="padding: 6px 4px;">2.8MB</td><td style="padding: 6px 4px;">デジタル放送</td></tr>
+              <tr><td style="padding: 6px 4px;">Full HD</td><td style="padding: 6px 4px;">1920×1080</td><td style="padding: 6px 4px;">6.2MB</td><td style="padding: 6px 4px;">一般的</td></tr>
+              <tr><td style="padding: 6px 4px;">4K</td><td style="padding: 6px 4px;">3840×2160</td><td style="padding: 6px 4px;">24.8MB</td><td style="padding: 6px 4px;">高精細</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 動画の表現 -->
+        <section>
+          <h1>動画の表現</h1>
+          
+          <div class="highlight-box important">
+            <h3>静止画の連続表示</h3>
+            <p>フレーム（静止画）を高速で切り替えて動きを表現</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎬</span>
+              <h4>フレームレート</h4>
+              <p>1秒間のフレーム数（fps）</p>
+              <p>映画：24fps</p>
+              <p>TV：30fps</p>
+              <p>ゲーム：60fps以上</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📺</span>
+              <h4>解像度規格</h4>
+              <p>SD：720×480</p>
+              <p>HD：1280×720</p>
+              <p>Full HD：1920×1080</p>
+              <p>4K：3840×2160</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗜️</span>
+              <h4>圧縮の必要性</h4>
+              <p>Full HD：約1.5GB/分</p>
+              <p>4K：約6GB/分</p>
+              <p>効率的な圧縮が必須</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 動画圧縮技術 -->
+        <section>
+          <h1>動画圧縮技術</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖼️</span>
+              <h4>空間的冗長性</h4>
+              <p>1フレーム内の類似性</p>
+              <p>JPEG類似の技術</p>
+              <p>隣接画素の相関</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏰</span>
+              <h4>時間的冗長性</h4>
+              <p>フレーム間の類似性</p>
+              <p>変化部分のみ記録</p>
+              <p>動き補償予測</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>主要なコーデック</h4>
+              <p>H.264：現在の主流</p>
+              <p>H.265：次世代高効率</p>
+              <p>VP9、AV1：オープン規格</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>圧縮効果</h3>
+            <p>効率的な圧縮により、元サイズの1/100以下に削減可能</p>
+          </div>
+        </section>
+
+        <!-- メタデータ -->
+        <section>
+          <h1>メタデータ</h1>
+          
+          <div class="highlight-box important">
+            <h3>データについてのデータ</h3>
+            <p>ファイルの内容以外の付加情報</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎵</span>
+              <h4>音声メタデータ</h4>
+              <p>ID3タグ（MP3）</p>
+              <p>アーティスト、タイトル</p>
+              <p>アルバム、ジャンル</p>
+              <p>歌詞情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📷</span>
+              <h4>画像メタデータ</h4>
+              <p>EXIF情報</p>
+              <p>撮影日時、機種</p>
+              <p>撮影設定</p>
+              <p>GPS位置情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>プライバシー注意</h4>
+              <p>個人情報が含まれる場合</p>
+              <p>SNS投稿時は注意</p>
+              <p>位置情報の削除</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実習例 -->
+        <section>
+          <h1>データ量計算の実習</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎵</span>
+              <h4>問題1：音声データ</h4>
+              <p>22,050Hz、8ビット</p>
+              <p>モノラル、1分間</p>
+              <p class="fragment fade-in"><strong>答：1.32MB</strong></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖼️</span>
+              <h4>問題2：画像データ</h4>
+              <p>800×600ピクセル</p>
+              <p>24ビットカラー</p>
+              <p class="fragment fade-in"><strong>答：1.44MB</strong></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎬</span>
+              <h4>問題3：動画データ</h4>
+              <p>HD解像度、30fps</p>
+              <p>24ビット、10秒間</p>
+              <p class="fragment fade-in"><strong>答：約828MB</strong></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>音と画像のデジタル化</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎵</span>
+              <h4>音声</h4>
+              <p>標本化・量子化・符号化</p>
+              <p>サンプリング定理</p>
+              <p>心理音響モデル</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖼️</span>
+              <h4>画像</h4>
+              <p>画素とRGB色空間</p>
+              <p>解像度と色深度</p>
+              <p>用途別ファイル形式</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗜️</span>
+              <h4>圧縮技術</h4>
+              <p>品質と容量のトレードオフ</p>
+              <p>可逆・非可逆の使い分け</p>
+              <p>人間の感覚特性活用</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              サンプリング、量子化、符号化、RGB、JPEG、PNG、<br>
+              MP3、圧縮、メタデータ、解像度、フレームレート
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：コンピュータの構成と動作
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            CPUの基本構造とメモリの階層構造について学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

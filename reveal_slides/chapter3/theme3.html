@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>演算の仕組みと論理回路 - 情報Ⅰ第3章</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+      }
+      
+      .info-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.and { background: #e74c3c; }
+      .info-circle.or { background: #27ae60; }
+      .info-circle.not { background: #f39c12; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      
+      .info-circle p {
+        margin: 5px 0 0 0;
+        font-size: 0.8em;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* 回路表示 */
+      .circuit-box {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+      
+      /* 真理値表 */
+      .truth-table {
+        width: auto;
+        margin: 20px auto;
+        border-collapse: collapse;
+        font-size: 0.9em;
+      }
+      
+      .truth-table th,
+      .truth-table td {
+        border: 2px solid #3498db;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 40px;
+      }
+      
+      .truth-table th {
+        background: #3498db;
+        color: white;
+        font-weight: bold;
+      }
+      
+      .truth-table .result {
+        background: #e8f5e8;
+        font-weight: bold;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>演算の仕組みと論理回路</h1>
+          <h2>第3章 デジタル - テーマ3</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            論理演算の基本と<br>
+            コンピュータの演算回路について学びましょう
+          </p>
+        </section>
+
+        <!-- 論理演算の基本 -->
+        <section>
+          <h1>論理演算とは</h1>
+          
+          <div class="highlight-box important">
+            <h3>デジタルの基本</h3>
+            <p>0（偽、False）と1（真、True）の2つの値に対する演算</p>
+          </div>
+          
+          <div class="infographic">
+            <div class="info-circle and fragment fade-in">
+              <h4>AND</h4>
+              <p>論理積</p>
+              <p><strong>すべて真</strong></p>
+            </div>
+            
+            <div class="info-circle or fragment fade-in">
+              <h4>OR</h4>
+              <p>論理和</p>
+              <p><strong>1つでも真</strong></p>
+            </div>
+            
+            <div class="info-circle not fragment fade-in">
+              <h4>NOT</h4>
+              <p>論理否定</p>
+              <p><strong>真偽を反転</strong></p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>すべてのデジタル処理の基礎</h3>
+            <p>これらの基本演算の組み合わせで複雑な処理を実現</p>
+          </div>
+        </section>
+
+        <!-- AND演算 -->
+        <section>
+          <h1>AND演算（論理積）</h1>
+          
+          <div class="highlight-box important">
+            <h3>すべての入力が1の時だけ1を出力</h3>
+          </div>
+          
+          <table class="truth-table">
+            <thead>
+              <tr>
+                <th>A</th>
+                <th>B</th>
+                <th class="result">A AND B</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>0</td>
+                <td class="result">0</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>1</td>
+                <td class="result">0</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>0</td>
+                <td class="result">0</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>1</td>
+                <td class="result">1</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔐</span>
+              <h4>身近な例</h4>
+              <p>「IDカードがある」AND「パスワードが正しい」</p>
+              <p>→ ログイン可能</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>記号表現</h4>
+              <p>A ∧ B（数学）</p>
+              <p>A · B（回路）</p>
+              <p>A & B（プログラム）</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>回路記号</h4>
+              <div class="circuit-box">
+                A ──┐<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;│ ──── A·B<br>
+                B ──┘
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- OR演算 -->
+        <section>
+          <h1>OR演算（論理和）</h1>
+          
+          <div class="highlight-box important">
+            <h3>1つでも入力が1なら1を出力</h3>
+          </div>
+          
+          <table class="truth-table">
+            <thead>
+              <tr>
+                <th>A</th>
+                <th>B</th>
+                <th class="result">A OR B</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>0</td>
+                <td class="result">0</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>1</td>
+                <td class="result">1</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>0</td>
+                <td class="result">1</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>1</td>
+                <td class="result">1</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💳</span>
+              <h4>身近な例</h4>
+              <p>「現金がある」OR「カードがある」</p>
+              <p>→ 支払い可能</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>記号表現</h4>
+              <p>A ∨ B（数学）</p>
+              <p>A + B（回路）</p>
+              <p>A | B（プログラム）</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>回路記号</h4>
+              <div class="circuit-box">
+                A ──┐<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;│ ──── A+B<br>
+                B ──┘
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- NOT演算 -->
+        <section>
+          <h1>NOT演算（論理否定）</h1>
+          
+          <div class="highlight-box important">
+            <h3>入力の真偽を反転して出力</h3>
+          </div>
+          
+          <table class="truth-table">
+            <thead>
+              <tr>
+                <th>A</th>
+                <th class="result">NOT A</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td class="result">1</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td class="result">0</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌧️</span>
+              <h4>身近な例</h4>
+              <p>NOT「雨が降っている」</p>
+              <p>→「雨が降っていない」</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>記号表現</h4>
+              <p>¬A（数学）</p>
+              <p>Ā（回路、バー記号）</p>
+              <p>!A（プログラム）</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>回路記号</h4>
+              <div class="circuit-box">
+                A ──○── Ā
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- XOR演算 -->
+        <section>
+          <h1>XOR演算（排他的論理和）</h1>
+          
+          <div class="highlight-box important">
+            <h3>入力が異なる場合のみ1を出力</h3>
+          </div>
+          
+          <table class="truth-table">
+            <thead>
+              <tr>
+                <th>A</th>
+                <th>B</th>
+                <th class="result">A XOR B</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>0</td>
+                <td class="result">0</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>0</td>
+                <td>1</td>
+                <td class="result">1</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>0</td>
+                <td class="result">1</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>1</td>
+                <td>1</td>
+                <td class="result">0</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔐</span>
+              <h4>暗号化</h4>
+              <p>同じキーでXORすると</p>
+              <p>暗号化・復号化が可能</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>エラー検出</h4>
+              <p>パリティチェック</p>
+              <p>データの整合性確認</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>加算回路</h4>
+              <p>桁上がりなしの加算</p>
+              <p>半加算器の和部分</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 加算回路 -->
+        <section>
+          <h1>半加算器と全加算器</h1>
+          
+          <div class="highlight-box important">
+            <h3>1ビット同士の加算を行う回路</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">➕</span>
+              <h4>半加算器</h4>
+              <p>桁上がり入力なし</p>
+              <p>和：A XOR B</p>
+              <p>桁上がり：A AND B</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>全加算器</h4>
+              <p>桁上がり入力あり</p>
+              <p>A、B、Cinを加算</p>
+              <p>和とCoutを出力</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>多ビット加算</h4>
+              <p>全加算器を縦続接続</p>
+              <p>桁上がりを次の桁へ</p>
+              <p>リップルキャリー方式</p>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>A</th>
+                <th>B</th>
+                <th>Cin</th>
+                <th>和(S)</th>
+                <th>桁上がり(Cout)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ALUの構成 -->
+        <section>
+          <h1>ALU（算術論理演算装置）</h1>
+          
+          <div class="highlight-box important">
+            <h3>CPUの心臓部</h3>
+            <p>すべての算術・論理演算を担当する回路</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>算術演算</h4>
+              <p>加算、減算</p>
+              <p>乗算、除算</p>
+              <p>シフト演算</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>論理演算</h4>
+              <p>AND、OR、NOT</p>
+              <p>XOR、NAND、NOR</p>
+              <p>ビット操作</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>比較演算</h4>
+              <p>等号判定</p>
+              <p>大小関係</p>
+              <p>フラグ設定</p>
+            </div>
+          </div>
+          
+          <div class="flow-chart fragment fade-in">
+            <div class="flow-item">
+              <strong>オペランド1</strong><br>
+              <small>演算データ</small>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item highlight">
+              <strong>ALU</strong><br>
+              <small>演算回路</small>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">
+              <strong>結果</strong><br>
+              <small>+ フラグ</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- CPUでの演算処理 -->
+        <section>
+          <h1>CPUでの演算処理</h1>
+          
+          <div class="highlight-box important">
+            <h3>命令実行サイクル</h3>
+            <p>フェッチ → デコード → 実行の繰り返し</p>
+          </div>
+          
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>命令フェッチ</strong><br>
+              <small>メモリから命令読み取り</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>命令デコード</strong><br>
+              <small>命令の内容を解析</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>オペランド取得</strong><br>
+              <small>演算データを準備</small>
+            </div>
+          </div>
+          
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>演算実行</strong><br>
+              <small>ALUで計算処理</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>結果格納</strong><br>
+              <small>レジスタに保存</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- パイプライン処理 -->
+        <section>
+          <h1>パイプライン処理</h1>
+          
+          <div class="highlight-box important">
+            <h3>複数命令の並行処理</h3>
+            <p>処理段階を分割して効率化</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>段階</th>
+                <th>機能</th>
+                <th>処理内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>IF</strong></td>
+                <td>命令フェッチ</td>
+                <td>メモリから命令読み取り</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>ID</strong></td>
+                <td>命令デコード</td>
+                <td>命令の解析・準備</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>EX</strong></td>
+                <td>実行</td>
+                <td>ALUでの演算処理</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>MEM</strong></td>
+                <td>メモリアクセス</td>
+                <td>データの読み書き</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>WB</strong></td>
+                <td>書き戻し</td>
+                <td>結果をレジスタに格納</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>スループット向上</h3>
+            <p>同時に5つの命令を異なる段階で処理</p>
+          </div>
+        </section>
+
+        <!-- 論理回路の最適化 -->
+        <section>
+          <h1>論理回路の設計と最適化</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>カルノー図</h4>
+              <p>論理式の視覚的簡略化</p>
+              <p>隣接項のまとめ</p>
+              <p>ゲート数削減</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>ド・モルガン法則</h4>
+              <p>¬(A∧B) = ¬A∨¬B</p>
+              <p>¬(A∨B) = ¬A∧¬B</p>
+              <p>回路の等価変換</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>万能ゲート</h4>
+              <p>NANDのみですべて実現</p>
+              <p>NORのみでも可能</p>
+              <p>製造コスト削減</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>設計目標</h3>
+            <p>回路規模削減・消費電力削減・処理速度向上</p>
+          </div>
+        </section>
+
+        <!-- 実習例 -->
+        <section>
+          <h1>論理回路設計の実習</h1>
+          
+          <div class="highlight-box important">
+            <h3>3入力多数決回路</h3>
+            <p>3つの入力のうち2個以上が1の時に1を出力</p>
+          </div>
+          
+          <table class="truth-table fragment fade-in" style="margin: 15px auto;">
+            <thead>
+              <tr>
+                <th style="padding: 6px 8px;">A</th>
+                <th style="padding: 6px 8px;">B</th>
+                <th style="padding: 6px 8px;">C</th>
+                <th class="result" style="padding: 6px 8px;">出力</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">0</td><td class="result" style="padding: 4px 6px;">0</td></tr>
+              <tr><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">1</td><td class="result" style="padding: 4px 6px;">0</td></tr>
+              <tr><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">0</td><td class="result" style="padding: 4px 6px;">0</td></tr>
+              <tr><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">1</td><td class="result" style="padding: 4px 6px;">1</td></tr>
+              <tr><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">0</td><td class="result" style="padding: 4px 6px;">0</td></tr>
+              <tr><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">0</td><td style="padding: 4px 6px;">1</td><td class="result" style="padding: 4px 6px;">1</td></tr>
+              <tr><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">0</td><td class="result" style="padding: 4px 6px;">1</td></tr>
+              <tr><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">1</td><td style="padding: 4px 6px;">1</td><td class="result" style="padding: 4px 6px;">1</td></tr>
+            </tbody>
+          </table>
+          
+          <div class="circuit-box fragment fade-in" style="font-size: 0.8em; padding: 12px;">
+            <p><strong>論理式：</strong></p>
+            <p>出力 = (A AND B) OR (B AND C) OR (A AND C)</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>論理演算と回路設計</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>基本論理演算</h4>
+              <p>AND、OR、NOTが基礎</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>演算回路</h4>
+              <p>加算器からALUへの発展</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>高速化技術</h4>
+              <p>パイプライン・並列処理</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              AND、OR、NOT、XOR、真理値表、半加算器、<br>
+              全加算器、ALU、パイプライン処理、論理回路
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：音と画像の表現
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            アナログ信号のデジタル化と圧縮技術について学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

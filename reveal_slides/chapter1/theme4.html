@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 情報社会 - テーマ4：個人情報とその扱い</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+        text-align: center;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* ベン図風の図 */
+      .venn-diagram {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 30px 0;
+        position: relative;
+        height: 200px;
+      }
+      
+      .venn-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-size: 0.8em;
+        font-weight: bold;
+        position: absolute;
+      }
+      
+      .venn-personal {
+        background: rgba(52, 152, 219, 0.6);
+        left: 20px;
+      }
+      
+      .venn-privacy {
+        background: rgba(231, 76, 60, 0.6);
+        right: 20px;
+      }
+      
+      .venn-overlap {
+        background: rgba(155, 89, 182, 0.8);
+        color: white;
+        width: 100px;
+        height: 100px;
+        z-index: 2;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box.privacy {
+        background: #e8f6f3;
+        border-color: #27ae60;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .venn-diagram {
+          flex-direction: column;
+          height: 300px;
+        }
+        
+        .venn-circle {
+          position: relative;
+          margin: 10px 0;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 30px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>第1章 情報社会</h1>
+          <h2>テーマ4：個人情報とその扱い</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            個人情報保護とプライバシーを理解しよう
+          </p>
+        </section>
+
+        <!-- 個人情報とは -->
+        <section>
+          <h1>個人情報とは</h1>
+          
+          <div class="highlight-box important">
+            <h3>個人情報の定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              生存する個人に関する情報であって、次のいずれかに該当するもの
+            </p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👤</span>
+              <h4>基本的事項</h4>
+              <p>氏名、住所、生年月日、性別、年齢、国籍など</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>個人識別符号</h4>
+              <p>DNA、指紋、マイナンバー、運転免許証番号など</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧩</span>
+              <h4>組み合わせ情報</h4>
+              <p>いくつか組み合わせると個人を特定できるもの</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>基本四情報</h3>
+            <p>氏名、住所、生年月日、性別</p>
+            <p><small>行政などで個人を特定する場合に必要</small></p>
+          </div>
+        </section>
+
+        <!-- 個人情報の例 -->
+        <section>
+          <h1>個人情報の例</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>分類</th>
+                <th>具体例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>基本的事項</strong></td>
+                <td>氏名、住所、生年月日、性別、年齢、国籍</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>家庭生活など</strong></td>
+                <td>親族関係、婚姻歴、家族構成、居住状況など</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>社会生活など</strong></td>
+                <td>職業・職歴、学業・学歴、資格、賞罰、成績・評価など</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>経済活動など</strong></td>
+                <td>資産・収入・借金・預金などの信用情報、納税額など</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- プライバシーとは -->
+        <section>
+          <h1>プライバシーとは</h1>
+          
+          <div class="highlight-box privacy">
+            <h3>プライバシーの定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              むやみに他人に知られたくない私生活上の個人的な情報
+            </p>
+          </div>
+          
+          <div class="venn-diagram">
+            <div class="venn-circle venn-personal fragment fade-in">
+              個人情報<br><small>（住所・氏名）</small>
+            </div>
+            <div class="venn-circle venn-privacy fragment fade-in">
+              プライバシー<br><small>（手紙の内容）</small>
+            </div>
+            <div class="venn-overlap fragment fade-in">
+              重複<br>部分
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>プライバシー権</h3>
+            <p>プライバシーの公開を制限、管理する権利</p>
+          </div>
+        </section>
+
+        <!-- 肖像権とパブリシティ権 -->
+        <section>
+          <h1>肖像権とパブリシティ権</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>権利</th>
+                <th>対象</th>
+                <th>内容</th>
+                <th>性質</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>肖像権</strong></td>
+                <td>すべての人</td>
+                <td>自らの肖像を許可なく撮影されたり、利用されたりしない権利</td>
+                <td>人格的な権利</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>パブリシティ権</strong></td>
+                <td>有名人</td>
+                <td>名前や肖像を商品化したり宣伝に使用したりする権利</td>
+                <td>財産的な権利</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要なポイント</h3>
+            <p>肖像権は誰にでも認められている</p>
+            <p>パブリシティ権は有名人特有の権利</p>
+          </div>
+        </section>
+
+        <!-- 要配慮個人情報 -->
+        <section>
+          <h1>要配慮個人情報</h1>
+          
+          <div class="highlight-box warning">
+            <h3>特に配慮が必要な個人情報</h3>
+            <p>本人に対する不当な差別、偏見が生じないように、その取り扱いに特に配慮を要する個人情報</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🩺</span>
+              <h4>医療関連</h4>
+              <p>病歴、健康診断結果、身体・精神の障がいに関する情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⛪</span>
+              <h4>思想・信条</h4>
+              <p>人種、信条、社会的身分に関する情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>犯罪関連</h4>
+              <p>犯罪歴、犯罪による被害を受けた事実</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>取り扱いルール</h3>
+            <p>本人の同意を得て取得することが義務</p>
+            <p>本人の同意なしの第三者提供は禁止</p>
+          </div>
+        </section>
+
+        <!-- 個人情報の活用 -->
+        <section>
+          <h1>個人情報の活用</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛒</span>
+              <h4>パーソナライゼーション</h4>
+              <p>個人の関心や好みに合わせた商品・サービスの推薦</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>ビッグデータ分析</h4>
+              <p>検索履歴や購買履歴と組み合わせた特徴の類推</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚀</span>
+              <h4>新産業創出</h4>
+              <p>個人情報の適正かつ効果的な活用による新たな産業の創出</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>オプトイン方式</h3>
+            <p>あらかじめ「受け取りたい」と承諾した人にのみ広告などを提供する方式</p>
+          </div>
+        </section>
+
+        <!-- 匿名加工情報 -->
+        <section>
+          <h1>匿名加工情報</h1>
+          
+          <div class="highlight-box">
+            <h3>匿名加工情報とは</h3>
+            <p>特定の個人を識別できないように個人情報を加工し、当該の個人情報を復元できないようにしたもの</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>加工ルール</h4>
+              <p>特定個人を識別できる記述の削除、個人識別符号の全部削除</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚗</span>
+              <h4>活用事例</h4>
+              <p>車のナビから収集される走行位置履歴を活用した渋滞予測</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💊</span>
+              <h4>医療活用</h4>
+              <p>医療情報を活用した創薬・臨床分野の研究開発</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>本人の同意を得ることなく第三者に提供することができる</p>
+          </div>
+        </section>
+
+        <!-- アクセスログ -->
+        <section>
+          <h1>アクセスログ</h1>
+          
+          <div class="highlight-box">
+            <h3>アクセスログとは</h3>
+            <p>携帯電話事業者やインターネット接続サービス会社に記録される通信記録</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>日時</th>
+                <th>送信元</th>
+                <th>宛先</th>
+                <th>サービス</th>
+                <th>結果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>8/8 8:30:01</td>
+                <td>123.56.7.xx</td>
+                <td>192.168.1.xxx</td>
+                <td>電子メール</td>
+                <td>通過</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>8/9 9:04:31</td>
+                <td>111.222.33.xx</td>
+                <td>192.168.1.xxx</td>
+                <td>ファイル転送</td>
+                <td>拒否</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>プライバシーへの配慮</h3>
+            <p>状況と照合して個人を類推できる場合がある</p>
+            <p>サーバ管理者以外は簡単に閲覧できない</p>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>個人情報保護の重要性</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>個人情報の理解</h4>
+              <p>個人情報とプライバシーの違いと関係</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>権利の保護</h4>
+              <p>肖像権、パブリシティ権、プライバシー権</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>適切な活用</h4>
+              <p>匿名加工情報による新たな価値創造</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              個人情報、プライバシー、プライバシー権、肖像権、<br>
+              パブリシティ権、要配慮個人情報、匿名加工情報、<br>
+              オプトイン方式、アクセスログ
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            🎓 次回は知的財産権の概要と産業財産権について学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

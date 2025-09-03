@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4章 テーマ2: インターネットの仕組み</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* IPアドレス表示用 */
+      .ip-display {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-size: 0.9em;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        position: relative;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 8px 6px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 70px;
+        max-width: 90px;
+        font-size: 0.65em;
+        line-height: 1.1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        flex-shrink: 1;
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 12px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .info-circle {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        flex-shrink: 1;
+      }
+      
+      .info-circle.ipv4 { background: #e74c3c; }
+      .info-circle.ipv6 { background: #27ae60; }
+      .info-circle.dns { background: #f39c12; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 0.9em;
+      }
+      
+      .info-circle p {
+        margin: 2px 0 0 0;
+        font-size: 0.65em;
+        line-height: 1.0;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* コードブロック風 */
+      .code-block {
+        background: #2c3e50;
+        color: #ecf0f1;
+        font-family: 'Courier New', monospace;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        font-size: 0.8em;
+        text-align: left;
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>インターネットの仕組み</h1>
+          <h2>第4章 ネットワーク - テーマ2</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            IPアドレス、DNS、パケット交換方式を学ぶ
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>IPアドレス</h4>
+              <p>インターネット上の住所の仕組みを理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🆔</span>
+              <h4>IPv4とIPv6</h4>
+              <p>現在と将来のアドレス体系の違いを学ぶ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📖</span>
+              <h4>ドメイン名とDNS</h4>
+              <p>わかりやすい名前と名前解決の役割を知る</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗺️</span>
+              <h4>経路制御</h4>
+              <p>インターネットでの経路選択を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>パケット交換</h4>
+              <p>効率的なデータ伝送方式の詳細を学ぶ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- IPアドレス -->
+        <section>
+          <h1>IPアドレス</h1>
+          
+          <div class="highlight-box important">
+            <h3>IPアドレスとは</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              TCP/IPを利用して通信しているコンピュータが持つ個別の番号<br>
+              インターネット上での「住所」のような役割
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>IPv4の特徴</h3>
+            <div class="infographic">
+              <div class="info-circle ipv4 fragment fade-in">
+                <h4>IPv4</h4>
+                <p>32ビット</p>
+                <p><strong>43億個</strong></p>
+              </div>
+            </div>
+            
+            <div class="ip-display fragment fade-in">
+              <strong>表記例：</strong><br>
+              2進数：11000000 10101000 00000000 01100101<br>
+              10進数：192.168.0.101
+            </div>
+          </div>
+        </section>
+
+        <!-- グローバルアドレスとプライベートアドレス -->
+        <section>
+          <h1>グローバルアドレスとプライベートアドレス</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>グローバルアドレス</th>
+                <th>プライベートアドレス</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>用途</strong></td>
+                <td>インターネットに直接接続</td>
+                <td>LAN内で使用</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>特徴</strong></td>
+                <td>世界で唯一のアドレス</td>
+                <td>各ネットワークで独自割り当て</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>管理</strong></td>
+                <td>ICANN（アイキャン）が一元管理</td>
+                <td>DHCPで自動割り当て可能</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="fragment fade-in">
+            <h3>NAT（Network Address Translation）</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>プライベートアドレス</strong><br>
+                <small>192.168.1.100</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>ルータ（NAT）</strong><br>
+                <small>アドレス変換</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>グローバルアドレス</strong><br>
+                <small>203.0.113.10</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- IPv6 -->
+        <section>
+          <h1>IPv6（IP version 6）</h1>
+          
+          <div class="highlight-box warning">
+            <h3>IPv4アドレス枯渇問題</h3>
+            <p>急速に普及するインターネット・接続機器の増大<br>
+            IPv4で表現できるIPアドレス数では足りなくなる</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <div class="infographic">
+              <div class="info-circle ipv4 fragment fade-in">
+                <h4>IPv4</h4>
+                <p>32ビット</p>
+                <p><strong>43億個</strong></p>
+              </div>
+              
+              <div class="info-circle ipv6 fragment fade-in">
+                <h4>IPv6</h4>
+                <p>128ビット</p>
+                <p><strong>340澗個</strong></p>
+              </div>
+            </div>
+            
+            <div class="ip-display fragment fade-in">
+              <strong>IPv6表記例：</strong><br>
+              省略前：2001:0db8:0000:3456:308c:0000:0000:0000<br>
+              省略後：2001:db8:0:3456:308c::
+            </div>
+          </div>
+        </section>
+
+        <!-- ドメイン名とホスト名 -->
+        <section>
+          <h1>ドメイン名とホスト名</h1>
+          
+          <div class="highlight-box important">
+            <h3>IPアドレスの課題</h3>
+            <p>数字の列は覚えにくく、それ自体には意味がない</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>ドメイン名の階層構造</h3>
+            <div class="ip-display">
+              <strong>例：https://www.jma.go.jp/jma/index.html</strong><br><br>
+              www（ホスト名）. jma（組織名）. go（組織区分）. jp（国名）
+            </div>
+            
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>jp</strong><br>
+                <small>日本</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>go</strong><br>
+                <small>政府関係機関</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>jma</strong><br>
+                <small>気象庁</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>www</strong><br>
+                <small>ホスト名</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- DNS -->
+        <section>
+          <h1>名前解決の仕組み（DNS）</h1>
+          
+          <div class="highlight-box important">
+            <h3>DNS（Domain Name System）</h3>
+            <p>ドメイン名をIPアドレスに変換する仕組み<br>
+            分散型データベースとして構成</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>名前解決の手順</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>①</strong><br>
+                <small>DNSサーバに問い合わせ</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>②</strong><br>
+                <small>jpドメインサーバ</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>③</strong><br>
+                <small>goドメインサーバ</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>④</strong><br>
+                <small>jmaドメインサーバ</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>⑤</strong><br>
+                <small>IPアドレス取得</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>実際には途中結果がキャッシュされ、効率的に処理される</p>
+          </div>
+        </section>
+
+        <!-- パケット交換方式 -->
+        <section>
+          <h1>インターネットでのデータ通信</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>回線交換方式（従来の電話）</th>
+                <th>パケット交換方式（インターネット）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>接続方法</strong></td>
+                <td>通話する二点間を直接接続</td>
+                <td>データを小さな単位に分割</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>回線利用</strong></td>
+                <td>回線を占有するため効率悪い</td>
+                <td>同じ回線に異なる宛先のパケット混在</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>特徴</strong></td>
+                <td>情報が流れていない時も占有</td>
+                <td>効率的な回線利用</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box important fragment fade-in">
+            <p>パケット交換方式により、電話利用が集中するような場合でも<br>
+            SNSやメールは使える可能性が高い</p>
+          </div>
+        </section>
+
+        <!-- インターネットの経路 -->
+        <section>
+          <h1>インターネットの経路</h1>
+          
+          <div class="highlight-box important">
+            <h3>ルータの役割</h3>
+            <p>ネットワークどうしを網の目のように接続<br>
+            パケットを目的の宛先までルーティング（経路選択）</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>パケット送信の流れ</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>①データ分割</strong><br>
+                <small>ヘッダ付きパケット</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>②経路選択</strong><br>
+                <small>様々な経路を通る</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>③宛先到達</strong><br>
+                <small>順番入れ替わり可能</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>④データ復元</strong><br>
+                <small>ヘッダ情報で復元</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>経路の特徴</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔄</span>
+                <h4>複数経路</h4>
+                <p>常に同じ経路とは限らない</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🛡️</span>
+                <h4>冗長性</h4>
+                <p>一部が切断されても宛先に届く</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚖️</span>
+                <h4>負荷分散</h4>
+                <p>必ずしも最短距離とは限らない</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実習：ネットワーク疎通確認 -->
+        <section>
+          <h1>実習：ネットワーク疎通確認</h1>
+          
+          <div class="fragment fade-in">
+            <h3>pingコマンド</h3>
+            <p>パソコン同士がネットワークでつながっているか確認</p>
+            
+            <div class="code-block fragment fade-in">
+C:\> ping 192.168.0.1
+192.168.1.1 に ping を送信しています 32 バイトのデータ:
+192.168.1.1 からの応答: バイト数=32 時間=1ms TTL=64
+192.168.1.1 からの応答: バイト数=32 時間=1ms TTL=64
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>nslookupコマンド</h3>
+            <p>ドメイン名からWebサーバのIPアドレスを調べる</p>
+            
+            <div class="code-block fragment fade-in">
+C:\> nslookup www.example.com
+Server: dns1.provider.com
+Address: 192.168.100.1
+
+Non-authoritative answer:
+Name: www.example.com
+Address: 203.0.113.100
+            </div>
+          </div>
+        </section>
+
+        <!-- インターネットへの接続 -->
+        <section>
+          <h1>インターネットへの接続</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>家庭・企業</h4>
+              <p>LANを構築してISP経由でインターネット接続</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📱</span>
+              <h4>モバイル機器</h4>
+              <p>SIMカードを使用して携帯電話網経由</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>IoT機器</h4>
+              <p>IPv6により家電・自動車なども接続</p>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>スマートフォンの接続方法比較</h3>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>項目</th>
+                  <th>携帯電話網経由</th>
+                  <th>無線LAN経由</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fragment fade-in">
+                  <td><strong>長所</strong></td>
+                  <td>どこでも接続可能</td>
+                  <td>通信料無料、高速・安定</td>
+                </tr>
+                <tr class="fragment fade-in">
+                  <td><strong>短所</strong></td>
+                  <td>料金高、容量制限</td>
+                  <td>電波範囲限定、セキュリティ課題</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 公衆無線LAN -->
+        <section>
+          <h1>公衆無線LAN</h1>
+          
+          <div class="highlight-box important">
+            <h3>設置場所</h3>
+            <p>駅、コンビニエンスストア、カフェなど</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>長所</th>
+                <th>短所</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>無料で利用できるものがある</td>
+                <td>電波が届く範囲に場所が限定</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>回線の契約なしで利用可能</td>
+                <td>通信が不安定になる場合がある</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>登録のみで誰でも利用</td>
+                <td>通信速度が遅くなることがある</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>-</td>
+                <td>盗聴、ウイルス感染、乗っ取りの危険</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <p>公衆無線LANは便利だが、セキュリティリスクがあることを<br>
+            理解して利用することが重要</p>
+          </div>
+        </section>
+
+        <!-- IPアドレスの需要 -->
+        <section>
+          <h1>IPアドレスの需要</h1>
+          
+          <div class="fragment fade-in">
+            <h3>現在接続されているもの</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">💻</span>
+                <h4>コンピュータ</h4>
+                <p>PC、サーバ</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📱</span>
+                <h4>モバイル機器</h4>
+                <p>スマホ、タブレット</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🏠</span>
+                <h4>家電製品</h4>
+                <p>TV、冷蔵庫、エアコン</p>
+              </div>
+            </div>
+            
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🚗</span>
+                <h4>自動車</h4>
+                <p>コネクテッドカー</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📹</span>
+                <h4>IoTデバイス</h4>
+                <p>監視カメラ、センサー</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="infographic fragment fade-in">
+            <div class="info-circle ipv6">
+              <h4>IPv6</h4>
+              <p>約3.4×10³⁸個</p>
+              <p><strong>340兆×1兆×1兆個</strong></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>インターネットの仕組み</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>IPアドレス</h4>
+              <p>IPv4（43億個）からIPv6（340澗個）へ</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📖</span>
+              <h4>ドメイン名とDNS</h4>
+              <p>覚えやすい名前と階層的管理</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>パケット交換</h4>
+              <p>効率的通信と複数経路による信頼性</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              IPアドレス、IPv4、IPv6、ドメイン名、DNS、<br>
+              NAT、パケット交換、ルーティング、<br>
+              グローバルアドレス、プライベートアドレス
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：Webページとメール<br>
+            HTTP、HTML、メールプロトコルについて学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

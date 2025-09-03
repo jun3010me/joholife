@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データの収集と整理 - 情報Ⅰ第5章テーマ1</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .reveal p, .reveal li {
+        font-size: 0.9em;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+
+      .reveal ul, .reveal ol {
+        display: block;
+        margin: 12px 0;
+      }
+
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+      }
+      
+      .info-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.volume { background: #e74c3c; }
+      .info-circle.variety { background: #f39c12; }
+      .info-circle.velocity { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      
+      .info-circle p {
+        margin: 5px 0 0 0;
+        font-size: 0.8em;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .data-sources {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .data-source-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: left;
+      }
+
+      .data-source-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+      }
+
+      .data-source-card p {
+        font-size: 0.8em;
+        margin-bottom: 5px;
+      }
+
+      /* コードブロック */
+      .code-block {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8em;
+        text-align: left;
+        margin: 15px 0;
+        overflow-x: auto;
+      }
+
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .data-sources {
+          grid-template-columns: 1fr;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>データの収集と整理</h1>
+          <h2>第5章 問題解決 - テーマ1</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            ICTを活用した現代の問題解決手法を学ぼう
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>ICT活用</h4>
+              <p>問題解決手法の理解</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>オープンデータ</h4>
+              <p>種類と活用方法</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>品質管理</h4>
+              <p>データの信頼性確保</p>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📄</span>
+              <h4>データ形式</h4>
+              <p>多様な形式の特徴</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>データ結合</h4>
+              <p>リレーションシップ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🤖</span>
+              <h4>AI活用</h4>
+              <p>非構造化データ処理</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ICTを活用した問題解決 -->
+        <section>
+          <h1>ICTを活用した問題解決</h1>
+          
+          <div class="highlight-box important">
+            <h3>現代の問題解決の特徴</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              データに基づく客観的で信頼できる情報による問題解決
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>必要な技術要素</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>大量データ</strong><br>
+                <small>情報機器とネットワークの発達</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>客観的分析</strong><br>
+                <small>統計学と情報技術を活用</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>効果的解決</strong><br>
+                <small>シミュレーションと検証</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- オープンデータとは -->
+        <section>
+          <h1>オープンデータとは</h1>
+          
+          <div class="highlight-box important">
+            <h3>定義</h3>
+            <p>広く多くの人が利用できるように公開されたデータ</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👁️</span>
+              <h4>透明性</h4>
+              <p>公的機関の活動が見える</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💡</span>
+              <h4>イノベーション</h4>
+              <p>新しいサービスの創出</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>効率化</h4>
+              <p>重複作業の削減</p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>対比：クローズドデータ</h3>
+            <p>一部の組織や業界の内部だけで利用されるアクセス制限されたデータ</p>
+          </div>
+        </section>
+
+        <!-- 主要な情報提供機関 -->
+        <section>
+          <h1>主要な情報提供機関</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>分野</th>
+                <th>提供機関</th>
+                <th>主な情報内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>防災</strong></td>
+                <td>国土交通省</td>
+                <td>ハザードマップ、河川水位、雨量</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>気象</strong></td>
+                <td>気象庁</td>
+                <td>天気予報、警報・注意報、気温・降水量</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>エネルギー</strong></td>
+                <td>資源エネルギー庁</td>
+                <td>電力需給、石油価格、再生可能エネルギー</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>人口・経済</strong></td>
+                <td>総務省統計局</td>
+                <td>国勢調査、家計調査、労働力調査</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>地理情報</strong></td>
+                <td>国土地理院</td>
+                <td>地図、標高、土地利用</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- データ形式の種類 -->
+        <section>
+          <h1>データ形式の種類</h1>
+          
+          <div class="data-sources">
+            <div class="data-source-card fragment fade-in">
+              <h4>CSV形式</h4>
+              <p><strong>特徴:</strong> カンマで区切られたシンプルな形式</p>
+              <p><strong>利点:</strong> 表計算ソフトで直接利用可能</p>
+              <p><strong>用途:</strong> 数値データ、統計情報</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>XML形式</h4>
+              <p><strong>特徴:</strong> タグでデータの種類を明示</p>
+              <p><strong>利点:</strong> データの構造と意味を明確に表現</p>
+              <p><strong>用途:</strong> 複雑な構造データ、メタデータ</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>JSON形式</h4>
+              <p><strong>特徴:</strong> キーと値のペアで表現</p>
+              <p><strong>利点:</strong> 軽量でWeb APIに最適</p>
+              <p><strong>用途:</strong> プログラム間のデータ交換</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>Excel形式</h4>
+              <p><strong>特徴:</strong> 複数シート、書式設定対応</p>
+              <p><strong>利点:</strong> 数式や書式の保存可能</p>
+              <p><strong>注意:</strong> 特定ソフトウェアに依存</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CSV形式の詳細 -->
+        <section>
+          <h1>CSV形式の詳細</h1>
+          
+          <div class="highlight-box">
+            <h3>基本構造</h3>
+            <p>1行目：列名（ヘッダー）、2行目以降：データレコード</p>
+          </div>
+
+          <div class="code-block fragment fade-in">
+年月日時,気温（℃）,降水量（mm）
+2018/6/10 1:00,23.9,0
+2018/6/10 2:00,23.2,0
+2018/6/10 3:00,23.1,2.5
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>利点</h4>
+              <p>シンプルで人間が読みやすい<br>多くのソフトで対応</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>注意点</h4>
+              <p>文字コード、改行コード<br>カンマを含む場合の引用符</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💾</span>
+              <h4>特徴</h4>
+              <p>軽量でファイルサイズ小<br>汎用性が高い</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- XML形式の詳細 -->
+        <section>
+          <h1>XML形式の詳細</h1>
+          
+          <div class="code-block fragment fade-in">
+&lt;Information type="気象警報・注意報（市町村等）"&gt;
+  &lt;Item&gt;
+    &lt;Kind&gt;
+      &lt;Name&gt;大雨警報&lt;/Name&gt;
+      &lt;Code&gt;03&lt;/Code&gt;
+      &lt;Condition&gt;土砂災害&lt;/Condition&gt;
+    &lt;/Kind&gt;
+    &lt;Areas codeType="気象・地震・火山情報／市町村等"&gt;
+      &lt;Area&gt;
+        &lt;Name&gt;千代田区&lt;/Name&gt;
+        &lt;Code&gt;1310100&lt;/Code&gt;
+      &lt;/Area&gt;
+    &lt;/Areas&gt;
+  &lt;/Item&gt;
+&lt;/Information&gt;
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>階層構造</h4>
+              <p>入れ子でデータを表現</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>属性</h4>
+              <p>タグに追加情報を付与</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>自己記述型</h4>
+              <p>データの意味が明確</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- データの結合 -->
+        <section>
+          <h1>データの結合</h1>
+          
+          <div class="highlight-box important">
+            <h3>結合の必要性</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              多くのデータを組み合わせることで新しい情報が生まれる
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>河川の水位と雨量データの結合例</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>川の水位</strong><br>
+                <small>A点の測定データ</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">+</div>
+              <div class="flow-item fragment fade-in">
+                <strong>雨量A点</strong><br>
+                <small>A点の雨量データ</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">+</div>
+              <div class="flow-item fragment fade-in">
+                <strong>雨量B点</strong><br>
+                <small>B点の雨量データ</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>統合データ</strong><br>
+                <small>時刻をキーとした結合</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>リレーションシップ</h3>
+            <p>結合キーを基準に複数のデータテーブルを関連付ける概念</p>
+          </div>
+        </section>
+
+        <!-- データの品質管理 -->
+        <section>
+          <h1>データの品質管理</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>精密さ (Precision)</h4>
+              <p>測定値のばらつきの小ささ<br>統計処理により向上可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>正確さ (Accuracy)</h4>
+              <p>測定値と真の値の近さ<br>測定方法の改善により向上</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>データクリーニング</h4>
+              <p>外れ値・欠損値の処理<br>データ品質を高める処理全般</p>
+            </div>
+          </div>
+
+          <div class="timeline fragment fade-in">
+            <div class="timeline-item fragment fade-in">
+              <strong>高精密<br>高正確</strong><br>
+              <small>理想的な測定</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>高精密<br>低正確</strong><br>
+              <small>系統的な偏り</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>低精密<br>高正確</strong><br>
+              <small>ランダムな誤差</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>低精密<br>低正確</strong><br>
+              <small>測定方法に問題</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- 非構造化データの処理 -->
+        <section>
+          <h1>非構造化データの処理</h1>
+          
+          <div class="data-sources">
+            <div class="data-source-card fragment fade-in">
+              <h4>テキストマイニング</h4>
+              <p><strong>形態素解析:</strong> 文章を単語に分割</p>
+              <p><strong>頻度分析:</strong> 重要語句の出現頻度</p>
+              <p><strong>感情分析:</strong> ポジティブ・ネガティブ判定</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>画像認識技術</h4>
+              <p><strong>物体検出:</strong> 画像内の特定物体の識別</p>
+              <p><strong>顔認識:</strong> 人物の特定</p>
+              <p><strong>OCR:</strong> 文字認識</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>音声処理</h4>
+              <p><strong>音声認識:</strong> 音声→テキスト変換</p>
+              <p><strong>多言語対応:</strong> 数千種類の言語</p>
+              <p><strong>AI技術:</strong> 機械学習・深層学習</p>
+            </div>
+            
+            <div class="data-source-card fragment fade-in">
+              <h4>機械学習の活用</h4>
+              <p><strong>教師データ:</strong> 正解付きの学習用データ</p>
+              <p><strong>学習モデル:</strong> パターンの傾向を学習</p>
+              <p><strong>推論:</strong> 新しいデータの意味を予測</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>重要ポイント</h3>
+            <p>大量の画像データとその意味の組み合わせを学習することで、新しいデータの処理が可能になる</p>
+          </div>
+        </section>
+
+        <!-- ビッグデータとデータベース -->
+        <section>
+          <h1>ビッグデータとデータベース</h1>
+          
+          <div class="infographic">
+            <div class="info-circle volume fragment fade-in">
+              <h4>Volume</h4>
+              <p>大容量</p>
+              <p><strong>データ量</strong></p>
+            </div>
+            
+            <div class="info-circle variety fragment fade-in">
+              <h4>Variety</h4>
+              <p>多様性</p>
+              <p><strong>データ種類</strong></p>
+            </div>
+            
+            <div class="info-circle velocity fragment fade-in">
+              <h4>Velocity</h4>
+              <p>高速生成</p>
+              <p><strong>処理速度</strong></p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>従来の課題と解決策</h3>
+            <p><strong>課題:</strong> 表形式の限界、欠損値による容量増大</p>
+            <p><strong>解決策:</strong> キーバリュー型データベース - すべてのデータの値に属性（キー）を付与</p>
+          </div>
+
+          <div class="code-block fragment fade-in">
+{
+  "測定値": [
+    {
+      "時刻": "2018-08-31T05:00:00.000Z",
+      "気温": 34.7,
+      "降水確率": 50
+    },
+    {
+      "時刻": "2018-08-31T05:10:00.000Z", 
+      "気温": 34.2
+    }
+  ]
+}
+          </div>
+        </section>
+
+        <!-- 時刻表記の標準化 -->
+        <section>
+          <h1>時刻表記の標準化</h1>
+          
+          <div class="highlight-box important">
+            <h3>ISO 8601形式</h3>
+            <p style="font-family: 'Courier New', monospace; font-size: 1.2em;">
+              2018-08-31T05:00:00.000Z
+            </p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">T</span>
+              <h4>T</h4>
+              <p>時刻の開始を示す区切り文字</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">Z</span>
+              <h4>Z</h4>
+              <p>協定世界時（UTC）を表す</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🕘</span>
+              <h4>+09:00</h4>
+              <p>日本標準時（JST）の場合の表記</p>
+            </div>
+          </div>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>重要な注意点</h3>
+            <p>国際的なデータ交換では、データの時刻情報は必ず時間帯を明確にする必要がある</p>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ収集と整理の要点</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>多様なソース</h4>
+              <p>オープンデータの積極活用で透明性とイノベーションを促進</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>適切な形式</h4>
+              <p>用途に応じたデータ形式選択と結合技術の習得</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✨</span>
+              <h4>品質管理</h4>
+              <p>精密さと正確さの確保、異常値処理の実施</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              オープンデータ、CSV形式、XML形式、JSON形式、<br>
+              データ結合、リレーションシップ、精密さ、正確さ、<br>
+              テキストマイニング、画像認識、ビッグデータ、キーバリュー型DB
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：ソフトウェアを利用したデータの処理
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            表計算ソフトウェアの活用法と<br>
+            効率的なデータ分析手法を学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 情報社会 - テーマ6：知的財産権とライセンス</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 12px 10px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 100px);
+        min-height: calc(100vh - 100px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.4em;
+        text-align: center;
+        margin-bottom: 8px;
+        margin-top: 2px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+      }
+      
+      .reveal h3 {
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+        text-align: center;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* 知的財産権の分類図 */
+      .ip-hierarchy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+        max-width: 600px;
+      }
+      
+      .ip-root {
+        background: #3498db;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .ip-branches {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        gap: 20px;
+      }
+      
+      .ip-branch {
+        flex: 1;
+        text-align: center;
+      }
+      
+      .ip-branch-title {
+        background: #e74c3c;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+      }
+      
+      .ip-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .ip-item {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        padding: 8px 10px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        line-height: 1.2;
+      }
+      
+      /* ライセンス種類の比較 */
+      .license-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 8px 0;
+      }
+      
+      .license-card {
+        background: #fff;
+        border: 2px solid #3498db;
+        border-radius: 4px;
+        padding: 8px;
+        text-align: left;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+      
+      .license-card.proprietary {
+        border-color: #e74c3c;
+      }
+      
+      .license-card.open {
+        border-color: #27ae60;
+      }
+      
+      .license-card h4 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+        text-align: center;
+        font-size: 0.9em;
+      }
+      
+      .license-card .icon {
+        font-size: 1.2em;
+        margin-right: 8px;
+      }
+      
+      .license-card ul {
+        margin: 5px 0;
+        padding-left: 15px;
+        font-size: 0.75em;
+        line-height: 1.2;
+      }
+      
+      /* CC ライセンス表示 */
+      .cc-licenses {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin: 8px 0;
+      }
+      
+      .cc-license {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 6px;
+        text-align: center;
+        font-size: 0.7em;
+      }
+      
+      .cc-license .cc-symbol {
+        font-size: 1.2em;
+        margin-bottom: 3px;
+        display: block;
+      }
+      
+      .cc-license h5 {
+        margin: 3px 0;
+        font-size: 0.8em;
+        color: #2c3e50;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 4px;
+        padding: 8px;
+        margin: 6px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box.copyright {
+        background: #d1ecf1;
+        border-color: #3498db;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .ip-branches {
+          flex-direction: column;
+          gap: 15px;
+        }
+        
+        .license-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .cc-licenses {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 30px 15px !important;
+        }
+        
+        .cc-licenses {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>第1章 情報社会</h1>
+          <h2>テーマ6：知的財産権とライセンス</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            創作物の権利保護と活用を理解しよう
+          </p>
+        </section>
+
+        <!-- 知的財産権とは -->
+        <section>
+          <h1>知的財産権とは</h1>
+          
+          <div class="highlight-box important">
+            <h3>知的財産権の定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              人間の知的創造活動によって生み出されたアイデア、創作物、営業上の標識などに関する権利
+            </p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💡</span>
+              <h4>創作の保護</h4>
+              <p>知的創造活動の成果を適切に保護し、創作者の権利を守る</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>公正な利用</h4>
+              <p>社会全体の利益も考慮し、適切な条件での利用を可能にする</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>イノベーション促進</h4>
+              <p>創作意欲を高め、新しい技術・文化の発展を促進する</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>創作者の権利保護と社会の発展のバランスを取ることが重要</p>
+          </div>
+        </section>
+
+        <!-- 知的財産権の分類 -->
+        <section>
+          <h1>知的財産権の分類</h1>
+          
+          <div class="ip-hierarchy">
+            <div class="ip-root fragment fade-in">
+              知的財産権
+            </div>
+            
+            <div class="ip-branches">
+              <div class="ip-branch fragment fade-in">
+                <div class="ip-branch-title">産業財産権</div>
+                <div class="ip-items">
+                  <div class="ip-item">特許権</div>
+                  <div class="ip-item">実用新案権</div>
+                  <div class="ip-item">意匠権</div>
+                  <div class="ip-item">商標権</div>
+                </div>
+              </div>
+              
+              <div class="ip-branch fragment fade-in">
+                <div class="ip-branch-title">著作権</div>
+                <div class="ip-items">
+                  <div class="ip-item">文芸・学術</div>
+                  <div class="ip-item">音楽・美術</div>
+                  <div class="ip-item">映画・写真</div>
+                  <div class="ip-item">プログラム</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>特徴</h3>
+            <p><strong>産業財産権</strong>：特許庁への出願・登録が必要</p>
+            <p><strong>著作権</strong>：創作と同時に自動的に発生</p>
+          </div>
+        </section>
+
+        <!-- 産業財産権の詳細 -->
+        <section>
+          <h1>産業財産権の詳細</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>権利</th>
+                <th>保護対象</th>
+                <th>保護期間</th>
+                <th>例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>特許権</strong></td>
+                <td>発明（技術的アイデア）</td>
+                <td>出願から20年</td>
+                <td>新技術、製造方法</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>実用新案権</strong></td>
+                <td>物品の形状・構造の工夫</td>
+                <td>出願から10年</td>
+                <td>日用品の改良</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>意匠権</strong></td>
+                <td>物品のデザイン</td>
+                <td>登録から25年</td>
+                <td>製品の外観</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>商標権</strong></td>
+                <td>商品・サービスの標識</td>
+                <td>登録から10年<br>（更新可能）</td>
+                <td>ブランド名、ロゴ</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>重要なポイント</h3>
+            <p>すべて特許庁への出願・審査・登録が必要</p>
+            <p>先願主義：先に出願した人が権利を取得</p>
+          </div>
+        </section>
+
+        <!-- 著作権について -->
+        <section>
+          <h1>著作権について</h1>
+          
+          <div class="highlight-box copyright">
+            <h3>著作権の特徴</h3>
+            <p>創作と同時に自動的に発生し、出願・登録は不要</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📚</span>
+              <h4>文芸・学術</h4>
+              <p>小説、論文、記事、講演、プログラムなど</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎨</span>
+              <h4>芸術作品</h4>
+              <p>音楽、絵画、彫刻、建築、地図、図形など</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎬</span>
+              <h4>映像・写真</h4>
+              <p>映画、TV番組、写真、アニメーションなど</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>保護期間</h3>
+            <p><strong>個人</strong>：著作者の死後70年</p>
+            <p><strong>法人</strong>：公表後70年（無名・変名は公表後70年）</p>
+          </div>
+        </section>
+
+        <!-- 著作権の制限 -->
+        <section>
+          <h1>著作権の制限</h1>
+          
+          <div class="highlight-box">
+            <h3>著作権の制限とは</h3>
+            <p>著作権者の許諾なしに利用できる場合があることを規定</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>制限</th>
+                <th>内容</th>
+                <th>条件</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>私的使用</strong></td>
+                <td>個人的・家庭内での複製</td>
+                <td>営利目的でない</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>引用</strong></td>
+                <td>批評・研究などでの部分使用</td>
+                <td>出所明示、主従関係明確</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>教育利用</strong></td>
+                <td>学校での授業利用</td>
+                <td>必要最小限、営利目的でない</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>図書館利用</strong></td>
+                <td>図書館での複製・貸出</td>
+                <td>調査研究目的、一部のみ</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>注意</h3>
+            <p>制限があっても著作者人格権（同一性保持権など）は尊重する必要がある</p>
+          </div>
+        </section>
+
+        <!-- ライセンスとは -->
+        <section>
+          <h1>ライセンスとは</h1>
+          
+          <div class="highlight-box important">
+            <h3>ライセンスの定義</h3>
+            <p style="font-style: italic; font-size: 0.95em; line-height: 1.3;">
+              知的財産権の所有者が、他者に対してその利用を許可すること
+            </p>
+          </div>
+          
+          <div class="license-grid">
+            <div class="license-card proprietary fragment fade-in">
+              <h4><span class="icon">🔒</span>プロプライエタリライセンス</h4>
+              <ul>
+                <li>厳格管理・有償</li>
+                <li>制限多・非公開</li>
+              </ul>
+              <p><strong>例：</strong>Microsoft Office、Photoshop</p>
+            </div>
+            
+            <div class="license-card open fragment fade-in">
+              <h4><span class="icon">🔓</span>オープンソースライセンス</h4>
+              <ul>
+                <li>ソース公開・自由利用</li>
+                <li>条件あり・共同開発</li>
+              </ul>
+              <p><strong>例：</strong>Linux、Apache、WordPress</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>利用目的と条件に応じて適切なライセンスを選択することが重要</p>
+          </div>
+        </section>
+
+        <!-- クリエイティブ・コモンズ -->
+        <section>
+          <h1>クリエイティブ・コモンズ</h1>
+          
+          <div class="highlight-box copyright">
+            <h3>Creative Commons（CC）とは</h3>
+            <p>著作者が作品を他者に利用しやすくするライセンス</p>
+          </div>
+          
+          <div class="cc-licenses">
+            <div class="cc-license fragment fade-in">
+              <span class="cc-symbol">👤</span>
+              <h5>BY<br>（表示）</h5>
+            </div>
+            
+            <div class="cc-license fragment fade-in">
+              <span class="cc-symbol">🚫</span>
+              <h5>NC<br>（非営利）</h5>
+            </div>
+            
+            <div class="cc-license fragment fade-in">
+              <span class="cc-symbol">🔄</span>
+              <h5>SA<br>（継承）</h5>
+            </div>
+            
+            <div class="cc-license fragment fade-in">
+              <span class="cc-symbol">⚠️</span>
+              <h5>ND<br>（改変禁止）</h5>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>組み合わせ例</h3>
+            <p><strong>CC BY</strong>：自由利用　<strong>CC BY-NC-SA</strong>：非営利・継承　<strong>CC BY-ND</strong>：改変禁止</p>
+          </div>
+        </section>
+
+        <!-- 知的財産権の侵害 -->
+        <section>
+          <h1>知的財産権の侵害</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>特許権侵害</h4>
+              <p>特許技術の無断実施、製造・販売・使用</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>著作権侵害</h4>
+              <p>無断複製、アップロード、ダウンロード</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>商標権侵害</h4>
+              <p>類似商標の使用、偽造品の販売</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>侵害の影響</h3>
+            <p><strong>民事責任</strong>：損害賠償、差止請求</p>
+            <p><strong>刑事責任</strong>：罰金、懲役（著作権法など）</p>
+            <p><strong>社会的責任</strong>：信用失墜、事業停止</p>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>対策</h3>
+            <p>事前の権利調査、適切なライセンス取得</p>
+            <p>オリジナル作品の創作、引用ルールの遵守</p>
+          </div>
+        </section>
+
+        <!-- 情報社会での知的財産権 -->
+        <section>
+          <h1>情報社会での知的財産権</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💻</span>
+              <h4>デジタルコンテンツ</h4>
+              <p>音楽、動画、電子書籍、ソフトウェア、ゲームの著作権保護</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>インターネット</h4>
+              <p>Webサイト、SNS投稿、ブログ記事の権利関係</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🤖</span>
+              <h4>AI・IoT</h4>
+              <p>アルゴリズム、データベース、特許技術の保護</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>新しい課題</h3>
+            <p>AI生成コンテンツの著作権</p>
+            <p>国際的な権利管理の複雑化</p>
+            <p>デジタル著作権管理（DRM）技術</p>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>適切な利用</h3>
+            <p>ライセンス条件の確認、出典の明示</p>
+            <p>創作活動の奨励と権利者の保護のバランス</p>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>知的財産権とライセンスの理解</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>権利の種類</h4>
+              <p>産業財産権と著作権の違い、保護対象と期間</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>ライセンス活用</h4>
+              <p>プロプライエタリ、オープンソース、CCライセンス</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>適切な利用</h4>
+              <p>権利侵害の防止と創作活動の促進</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              知的財産権、産業財産権、著作権、特許権、商標権、<br>
+              ライセンス、オープンソース、クリエイティブ・コモンズ、<br>
+              著作権侵害、引用、私的使用、DRM
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            🎓 第1章「情報社会」の学習が完了しました
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            次章では「コミュニケーションと情報デザイン」について学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

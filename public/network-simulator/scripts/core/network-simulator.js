@@ -359,58 +359,6 @@ class NetworkSimulator {
         }
     }
 
-    // パレットスクロール処理（論理回路シミュレータと同じ）
-    handlePaletteScrollStart(e) {
-        if (e.touches.length === 1) {
-            const touch = e.touches[0];
-            this.paletteScrollStartX = touch.clientX;
-            this.paletteScrollStartY = touch.clientY;
-            this.paletteScrollStartScrollLeft = e.currentTarget.scrollLeft;
-            this.isPaletteScrolling = false;
-            this.pendingDeviceDrag = null;
-        }
-    }
-
-    handlePaletteScrollMove(e) {
-        if (e.touches.length === 1) {
-            const touch = e.touches[0];
-            const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
-            const deltaY = Math.abs(touch.clientY - this.paletteScrollStartY);
-            
-            // 移動判定の改善：縦方向の移動が大きい場合はデバイスドラッグを優先
-            if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
-                // デバイスドラッグ待機中の場合
-                if (this.pendingDeviceDrag) {
-                    console.log('Evaluating movement: deltaY:', deltaY, 'deltaX:', deltaX, 'deltaY > deltaX:', deltaY > deltaX);
-                    // デバイスドラッグ判定を緩く（斜め移動も含む）
-                    if ((deltaY > 12 || deltaX > 12) && deltaY > 8) {
-                        console.log('🔽 Starting device drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
-                        this.startActualDeviceDrag(this.pendingDeviceDrag.type, e);
-                        this.pendingDeviceDrag = null;
-                        return; // スクロール処理は実行しない
-                    }
-                    // 横方向の移動が大きい場合は常にスクロール優先（閾値をさらに下げる）
-                    else if (deltaX > 4) { // スクロール検出範囲をより敏感に
-                        this.isPaletteScrolling = true;
-                        console.log('◀️▶️ Palette scroll activated (horizontal movement)! deltaX:', deltaX);
-                        this.pendingDeviceDrag = null;
-                    }
-                }
-            }
-            
-            // パレットスクロール処理
-            if (this.isPaletteScrolling) {
-                const scrollDelta = this.paletteScrollStartX - touch.clientX;
-                e.currentTarget.scrollLeft = this.paletteScrollStartScrollLeft + scrollDelta;
-                e.preventDefault();
-            }
-        }
-    }
-
-    handlePaletteScrollEnd(e) {
-        this.isPaletteScrolling = false;
-        this.pendingDeviceDrag = null;
-    }
 
     // スマート動作判定デバイスドラッグ（タップ後の動きで判定）
     startDeviceDragDelayed(e) {

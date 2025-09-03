@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ活用プログラミング - 情報Ⅰ第6章テーマ6</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .data-stack {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        gap: 20px;
+      }
+
+      .data-layer {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        min-width: 150px;
+        text-align: center;
+        position: relative;
+      }
+
+      .data-layer.highlight {
+        background: #3498db;
+        color: white;
+      }
+
+      .gui-mockup {
+        background: #f8f9fa;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 20px 0;
+        max-width: 400px;
+        font-family: monospace;
+        font-size: 0.8em;
+        text-align: left;
+      }
+
+      .gui-title-bar {
+        background: #34495e;
+        color: white;
+        padding: 5px 10px;
+        margin: -10px -10px 10px -10px;
+        border-radius: 6px 6px 0 0;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .gui-button {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        margin: 5px;
+        font-size: 0.9em;
+        cursor: pointer;
+      }
+
+      .gui-textbox {
+        border: 1px solid #bdc3c7;
+        padding: 5px;
+        margin: 5px 0;
+        width: 90%;
+        background: white;
+      }
+
+      .reveal pre {
+        font-size: 0.65em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .data-stack {
+          flex-direction: column;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .gui-mockup {
+          max-width: 300px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>データ活用プログラミング</h1>
+          <h2>Data Utilization Programming</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            データを活用したプログラムとGUIアプリケーションの作成を学びます
+          </p>
+        </section>
+
+        <!-- データ活用プログラミングとは -->
+        <section>
+          <h1>データ活用プログラミングとは</h1>
+          <h2>What is Data Utilization Programming?</h2>
+          
+          <div class="highlight-box important">
+            <h3>データ活用 (Data Utilization)</h3>
+            <p>収集したデータを分析・処理して、有用な情報や知見を得て活用すること。</p>
+          </div>
+
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>データ収集</strong><br>
+              <small>センサー・Web・ファイル</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>データ処理</strong><br>
+              <small>分析・集計・可視化</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>価値創造</strong><br>
+              <small>意思決定支援・問題解決</small>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>情報社会のスキル</h4>
+              <p>現代において重要なデジタル技能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💎</span>
+              <h4>価値抽出</h4>
+              <p>大量データから有用な情報を発見</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>意思決定支援</h4>
+              <p>データに基づく合理的な判断</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- オープンデータとは -->
+        <section>
+          <h1>オープンデータとは</h1>
+          <h2>What is Open Data?</h2>
+          
+          <div class="highlight-box important">
+            <h3>オープンデータ (Open Data)</h3>
+            <p>誰でも自由にアクセス、使用、再配布できる公開データ。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🆓</span>
+              <h4>無料アクセス</h4>
+              <p>誰でも制限なく利用可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🤖</span>
+              <h4>機械読み取り可能</h4>
+              <p>プログラムで処理しやすい形式</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>明確なライセンス</h4>
+              <p>利用条件が明確に定義</p>
+            </div>
+          </div>
+
+          <div class="data-stack fragment fade-in">
+            <div class="data-layer">
+              <strong>政府・自治体</strong><br>
+              <small>人口統計・予算・交通</small>
+            </div>
+            <div class="data-layer highlight">
+              <strong>研究機関</strong><br>
+              <small>学術データ・実験結果</small>
+            </div>
+            <div class="data-layer">
+              <strong>企業</strong><br>
+              <small>API・オープンAPI</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- オープンデータの例 -->
+        <section>
+          <h1>オープンデータの例</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏛️</span>
+              <h4>政府・自治体データ</h4>
+              <p>• 人口統計<br>
+              • 気象データ<br>
+              • 交通データ<br>
+              • 予算・決算情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>研究データ</h4>
+              <p>• 学術研究結果<br>
+              • 実験データ<br>
+              • 調査データ<br>
+              • 統計情報</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📄</span>
+              <h4>CSV形式</h4>
+              <p>データをカンマで区切って表現するファイル形式</p>
+              <p>表計算ソフトで扱いやすい</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- データの取得と読み込み -->
+        <section>
+          <h1>データの取得と読み込み</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import csv
+
+def read_csv_file(filename):
+    data = []
+    with open(filename, 'r', encoding='utf-8') as file:
+        csv_reader = csv.reader(file)
+        header = next(csv_reader)
+        for row in csv_reader:
+            data.append(row)
+    return header, data
+
+# 使用例
+header, data = read_csv_file('population.csv')</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📁</span>
+              <h4>ファイル読み込み</h4>
+              <p>CSVファイルからデータを取得</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>ヘッダー処理</h4>
+              <p>列名を適切に管理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>繰り返し処理</h4>
+              <p>全行を順次読み込み</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pandasライブラリの活用 -->
+        <section>
+          <h1>Pandasライブラリの活用</h1>
+          
+          <div class="highlight-box important">
+            <h3>Pandas</h3>
+            <p>Pythonのデータ分析ライブラリ。DataFrameという表形式のデータ構造を提供する。</p>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">import pandas as pd
+
+# CSVファイルの読み込み
+df = pd.read_csv('population.csv')
+
+# データの基本情報
+print(df.head())     # 最初の5行
+print(df.info())     # データ型情報
+print(df.describe()) # 統計サマリー</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>DataFrame</h4>
+              <p>表形式データ構造。行と列を持つ2次元データ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>高速処理</h4>
+              <p>大量データの効率的な処理が可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>豊富な機能</h4>
+              <p>分析・集計・可視化機能を内蔵</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- データの基本操作 -->
+        <section>
+          <h1>データの基本操作</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import pandas as pd
+
+# データフレームの作成
+df = pd.DataFrame({
+    '名前': ['太郎', '花子', '次郎', '美子'],
+    '年齢': [20, 19, 21, 18],
+    '点数': [85, 92, 78, 96]
+})
+
+# 列の選択
+print(df['名前'])
+
+# 条件による抽出
+high_score = df[df['点数'] >= 90]
+print(high_score)
+
+# 複数条件
+young_high_score = df[(df['年齢'] < 20) & (df['点数'] >= 90)]
+print(young_high_score)</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>列選択</h4>
+              <p>特定の列のデータを取得</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>条件抽出</h4>
+              <p>条件に合致するデータのみ選択</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>複数条件</h4>
+              <p>&（AND）、|（OR）で条件を組み合わせ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- データの集計と統計 -->
+        <section>
+          <h1>データの集計と統計</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 基本統計量の計算
+print(f"平均点: {df['点数'].mean()}")
+print(f"最高点: {df['点数'].max()}")
+print(f"最低点: {df['点数'].min()}")
+print(f"標準偏差: {df['点数'].std()}")
+
+# グループ化による集計
+# 年齢別の平均点
+age_groups = df.groupby('年齢')['点数'].mean()
+print(age_groups)</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>統計量 (Statistical Measure)</h3>
+            <p>データの特徴を数値で表したもの。平均、分散、標準偏差など。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>基本統計</h4>
+              <p>平均・最大・最小・標準偏差</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👥</span>
+              <h4>グループ化</h4>
+              <p>カテゴリ別の集計処理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>データ理解</h4>
+              <p>数値でデータの傾向を把握</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- GUI プログラミング -->
+        <section>
+          <h1>GUI プログラミング</h1>
+          <h2>GUI Programming</h2>
+          
+          <div class="highlight-box important">
+            <h3>GUI (Graphical User Interface)</h3>
+            <p>グラフィカルな要素（ボタン、メニューなど）を使用したユーザーインターフェース。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖱️</span>
+              <h4>視覚的操作</h4>
+              <p>マウスやタッチで直感的に操作</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👤</span>
+              <h4>ユーザーフレンドリー</h4>
+              <p>専門知識がなくても使いやすい</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎨</span>
+              <h4>視覚的フィードバック</h4>
+              <p>操作結果が即座に表示される</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tkinterによる基本的なGUI -->
+        <section>
+          <h1>Tkinterによる基本的なGUI</h1>
+          
+          <div class="highlight-box important">
+            <h3>Tkinter</h3>
+            <p>Pythonの標準GUIライブラリ。ウィンドウ、ボタンなどのGUI要素を作成できる。</p>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">import tkinter as tk
+
+# メインウィンドウの作成
+root = tk.Tk()
+root.title("データ表示アプリ")
+root.geometry("400x300")
+
+# ラベルの追加
+label = tk.Label(root, text="データ分析結果", font=("Arial", 16))
+label.pack(pady=20)
+
+# ボタンの追加
+def show_data():
+    label.config(text="データを読み込みました！")
+
+button = tk.Button(root, text="データ読み込み", command=show_data)
+button.pack(pady=10)
+
+# ウィンドウの表示
+root.mainloop()</code></pre>
+        </section>
+
+        <!-- GUIアプリケーションの構成 -->
+        <section>
+          <h1>GUIアプリケーションの構成</h1>
+          
+          <div class="gui-mockup fragment fade-in">
+            <div class="gui-title-bar">データ表示アプリ</div>
+            <div style="padding: 10px;">
+              <p>データ分析結果</p>
+              <div class="gui-textbox">population.csv</div>
+              <button class="gui-button">データ読み込み</button>
+              <button class="gui-button">分析実行</button>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>ウィンドウ</h4>
+              <p>アプリケーションの基本枠組み</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>ラベル</h4>
+              <p>テキストや説明を表示</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔘</span>
+              <h4>ボタン</h4>
+              <p>クリックで処理を実行</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- データ表示GUI の作成 -->
+        <section>
+          <h1>データ表示GUI の作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import tkinter as tk
+from tkinter import ttk
+import pandas as pd
+
+class DataViewerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("データビューア")
+        
+        # データフレームの作成
+        self.df = pd.DataFrame({
+            '商品名': ['りんご', 'バナナ', 'オレンジ'],
+            '価格': [100, 80, 120],
+            '在庫': [50, 30, 25]
+        })
+        
+        self.create_widgets()
+    
+    def create_widgets(self):
+        # ツリービューウィジェット（表の表示）
+        tree = ttk.Treeview(self.root, columns=list(self.df.columns), show='headings')
+        
+        # ヘッダーの設定
+        for col in self.df.columns:
+            tree.heading(col, text=col)
+            tree.column(col, width=100)
+        
+        # データの挿入
+        for _, row in self.df.iterrows():
+            tree.insert('', tk.END, values=list(row))
+        
+        tree.pack(expand=True, fill='both', padx=10, pady=10)</code></pre>
+        </section>
+
+        <!-- ファイル操作とGUI -->
+        <section>
+          <h1>ファイル操作とGUI</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import tkinter as tk
+from tkinter import filedialog, messagebox
+import pandas as pd
+
+def open_csv_file():
+    # ファイル選択ダイアログ
+    file_path = filedialog.askopenfilename(
+        title="CSVファイルを選択",
+        filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+    )
+    
+    if file_path:
+        try:
+            # CSVファイルの読み込み
+            df = pd.read_csv(file_path)
+            
+            # 結果の表示
+            result_text = f"読み込み成功！\n"
+            result_text += f"行数: {len(df)}\n"
+            result_text += f"列数: {len(df.columns)}\n"
+            result_text += f"列名: {', '.join(df.columns)}"
+            
+            messagebox.showinfo("読み込み結果", result_text)
+            
+        except Exception as e:
+            messagebox.showerror("エラー", f"ファイル読み込みエラー: {e}")
+
+# GUI要素の作成
+root = tk.Tk()
+root.title("CSVファイル読み込みアプリ")
+
+button = tk.Button(root, text="CSVファイルを開く", command=open_csv_file)
+button.pack(pady=20)
+
+root.mainloop()</code></pre>
+        </section>
+
+        <!-- データの可視化準備 -->
+        <section>
+          <h1>データの可視化準備</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import pandas as pd
+
+def process_sales_data(filename):
+    """売上データの処理"""
+    try:
+        # データの読み込み
+        df = pd.read_csv(filename)
+        
+        # 日付列の変換
+        df['日付'] = pd.to_datetime(df['日付'])
+        
+        # 月別売上の集計
+        monthly_sales = df.groupby(df['日付'].dt.month)['売上'].sum()
+        
+        # 商品別売上の集計
+        product_sales = df.groupby('商品名')['売上'].sum()
+        
+        return monthly_sales, product_sales
+        
+    except Exception as e:
+        print(f"データ処理エラー: {e}")
+        return None, None</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📅</span>
+              <h4>日付処理</h4>
+              <p>pd.to_datetime()で日付型に変換</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>グループ集計</h4>
+              <p>期間や分類ごとに集計</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>エラー処理</h4>
+              <p>try-except文で例外に対応</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実用的なデータ活用例 -->
+        <section>
+          <h1>実用的なデータ活用例</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class GradeManager:
+    def __init__(self):
+        self.df = pd.DataFrame(columns=[
+            '学籍番号', '名前', '数学', '英語', '国語', '平均'
+        ])
+    
+    def add_student(self, student_id, name, math, eng, jpn):
+        """学生データの追加"""
+        average = (math + eng + jpn) / 3
+        new_row = {
+            '学籍番号': student_id, '名前': name,
+            '数学': math, '英語': eng, '国語': jpn,
+            '平均': round(average, 1)
+        }
+        self.df = pd.concat([self.df, pd.DataFrame([new_row])], 
+                           ignore_index=True)</code></pre>
+        </section>
+
+        <!-- 成績管理システムの機能 -->
+        <section>
+          <h1>成績管理システムの機能</h1>
+          
+          <pre class="fragment fade-in"><code class="python">    def get_class_average(self):
+        """クラス平均の計算"""
+        return {
+            '数学': self.df['数学'].mean(),
+            '英語': self.df['英語'].mean(),
+            '国語': self.df['国語'].mean(),
+            '総合': self.df['平均'].mean()
+        }
+    
+    def save_to_csv(self, filename):
+        """ＣＳＶファイルに保存"""
+        self.df.to_csv(filename, index=False, encoding='utf-8')
+
+# 使用例
+gm = GradeManager()
+gm.add_student("S001", "太郎", 85, 78, 92)</code></pre>
+        </section>
+
+        <!-- データ活用の実践ポイント -->
+        <section>
+          <h1>データ活用の実践ポイント</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>データ品質確認</h4>
+              <p>• 欠損値のチェック<br>
+              • 異常値の検出<br>
+              • データ型の確認</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>適切な処理手法</h4>
+              <p>• 集計方法の決定<br>
+              • グループ化の基準<br>
+              • 計算方法の選択</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧠</span>
+              <h4>結果の解釈</h4>
+              <p>• 統計的な意味の理解<br>
+              • ビジネス的な価値の評価<br>
+              • 限界と注意点の認識</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>データ品質 (Data Quality)</h3>
+            <p>データの正確性、完全性、一貫性、適時性などの品質要素。</p>
+          </div>
+        </section>
+
+        <!-- Key-Value データ構造 -->
+        <section>
+          <h1>Key-Value データ構造</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 設定データの管理
+app_config = {
+    "database_url": "localhost:5432",
+    "max_connections": 100,
+    "timeout": 30,
+    "debug_mode": True
+}
+
+# JSONファイルとの連携
+import json
+
+def save_config(config, filename):
+    """設定をJSONファイルに保存"""
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
+
+def load_config(filename):
+    """JSONファイルから設定を読み込み"""
+    with open(filename, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+# 使用例
+save_config(app_config, 'config.json')
+loaded_config = load_config('config.json')</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗂️</span>
+              <h4>Key-Value</h4>
+              <p>キーと値のペアでデータを格納する構造</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📄</span>
+              <h4>JSON</h4>
+              <p>軽量なデータ交換形式。JavaScript Object Notation</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>設定管理</h4>
+              <p>アプリケーションの設定を外部ファイルで管理</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ活用プログラミングの核心</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>データ活用</h4>
+              <p>オープンデータ、CSV処理、Pandas</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖥️</span>
+              <h4>GUI開発</h4>
+              <p>Tkinter、ウィンドウ、イベント処理</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>実践応用</h4>
+              <p>データ品質、統計処理、JSON連携</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              データ活用、オープンデータ、CSV形式、Pandas、DataFrame、<br>
+              統計量、GUI、Tkinter、Key-Value、JSON、データ品質
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: データ可視化
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

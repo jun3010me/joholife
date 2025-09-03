@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 情報社会 - テーマ1：情報と情報社会</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 20px 15px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 15px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 0.75em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 8px 6px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.2;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 15px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 12px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+      }
+      
+      .info-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.volume { background: #e74c3c; }
+      .info-circle.variety { background: #f39c12; }
+      .info-circle.velocity { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      
+      .info-circle p {
+        margin: 5px 0 0 0;
+        font-size: 0.8em;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 10px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>第1章 情報社会</h1>
+          <h2>テーマ1：情報と情報社会</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            現代社会の情報技術を理解しよう
+          </p>
+        </section>
+
+        <!-- アリストテレスと論理学 -->
+        <section>
+          <h1>アリストテレスと論理学</h1>
+          
+          <div class="highlight-box">
+            <h3>論理学の父：アリストテレス（紀元前384-322）</h3>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>三段論法の例</h3>
+            <div style="text-align: left; max-width: 500px; margin: 0 auto; font-size: 0.9em;">
+              <p class="fragment">🐦 大前提：鳥は卵を産む</p>
+              <p class="fragment">🐓 小前提：ニワトリは鳥である</p>
+              <p class="fragment" style="color: #e74c3c; font-weight: bold;">🥚 結論：ゆえにニワトリは卵を産む</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <p style="font-style: italic;">
+              論理学はあらゆる学問における「道具（オルガノン）」である
+            </p>
+            <p style="margin-top: 15px;">
+              論理学 → コンピュータ・プログラミングの基盤
+            </p>
+          </div>
+        </section>
+
+        <!-- 情報とは何か -->
+        <section>
+          <h1>情報とは何か</h1>
+          
+          <div class="highlight-box important">
+            <h3>情報の定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              人間が判断をしたり、行動を起こしたりする際に必要なもの
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>データから知恵への変換プロセス</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>DATA</strong><br>
+                <small>データ</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>INFORMATION</strong><br>
+                <small>情報</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>KNOWLEDGE</strong><br>
+                <small>知識</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>WISDOM</strong><br>
+                <small>知恵</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- データ・情報・知識・知恵の詳細比較 -->
+        <section>
+          <h1>データ・情報・知識・知恵の関係</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>段階</th>
+                <th>特徴</th>
+                <th>例</th>
+                <th>価値</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>データ</strong></td>
+                <td>事実・数値の羅列</td>
+                <td>気温25℃<br>湿度60%</td>
+                <td>低</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>情報</strong></td>
+                <td>整理され<br>意味を持つ</td>
+                <td>今日は暑い日に<br>なりそう</td>
+                <td>中</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>知識</strong></td>
+                <td>経験と結びついた<br>理解</td>
+                <td>この気候では<br>熱中症注意</td>
+                <td>高</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>知恵</strong></td>
+                <td>価値創造と<br>問題解決</td>
+                <td>適切な対策を<br>実行する</td>
+                <td>最高</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 情報の特性 -->
+        <section>
+          <h1>情報の特性</h1>
+          <h2>「もの」と比べた情報の特性</h2>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">♻️</span>
+              <h4>残存性</h4>
+              <p>「もの」は他者に渡すとなくなるが、<strong>情報は他者に与えてもなくならない</strong></p>
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <circle cx="25" cy="50" r="15" fill="#3498db" opacity="0.8"/>
+                <circle cx="75" cy="50" r="15" fill="#3498db" opacity="0.8"/>
+                <path d="M 40 50 Q 50 30 60 50" stroke="#27ae60" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                <text x="50" y="70" text-anchor="middle" font-size="8">コピー</text>
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#27ae60"/>
+                  </marker>
+                </defs>
+              </svg>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>複製性</h4>
+              <p><strong>デジタル情報は劣化せずに大量複製可能</strong></p>
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <rect x="20" y="20" width="25" height="35" fill="#3498db" opacity="0.8"/>
+                <rect x="35" y="30" width="25" height="35" fill="#3498db" opacity="0.6"/>
+                <rect x="50" y="40" width="25" height="35" fill="#3498db" opacity="0.4"/>
+                <text x="50" y="85" text-anchor="middle" font-size="8">完全複製</text>
+              </svg>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌊</span>
+              <h4>伝播性</h4>
+              <p><strong>情報は短時間に広く伝播可能</strong></p>
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="8" fill="#e74c3c"/>
+                <circle cx="50" cy="50" r="20" fill="none" stroke="#e74c3c" stroke-width="1" opacity="0.6"/>
+                <circle cx="50" cy="50" r="35" fill="none" stroke="#e74c3c" stroke-width="1" opacity="0.3"/>
+                <text x="50" y="85" text-anchor="middle" font-size="8">瞬時拡散</text>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- 情報拡散のリスク -->
+        <section>
+          <h1>情報拡散のリスク</h1>
+          
+          <div class="highlight-box warning">
+            <h3>例：写真のインターネット流出</h3>
+            <div style="text-align: left; max-width: 500px; margin: 20px auto;">
+              <p class="fragment">📱 短時間に広く伝播</p>
+              <p class="fragment">❓ 誰が複製しているかわからない</p>
+              <p class="fragment" style="color: #d63031; font-weight: bold;">🚫 完全な消去は困難</p>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in" style="margin-top: 40px;">
+            <h3 style="color: #3498db;">忘れられる権利</h3>
+            <div class="highlight-box">
+              <p>インターネットから過去の情報を削除できる権利</p>
+              <p><small>EU司法裁判所で認められている</small></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 情報の分類 -->
+        <section>
+          <h1>情報の分類</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>種類</th>
+                <th>特徴</th>
+                <th>例</th>
+                <th>性質</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>🧬 生命情報</strong></td>
+                <td>生物にとって<br>個別の意味</td>
+                <td>痛み、喜び<br>感情</td>
+                <td>主観的<br>個人的</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>👥 社会情報</strong></td>
+                <td>コミュニケーション<br>で用いられる</td>
+                <td>言語、文字<br>ジェスチャー</td>
+                <td>文脈依存</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>🤖 機械情報</strong></td>
+                <td>記号だけが独立</td>
+                <td>0と1の<br>デジタル信号</td>
+                <td>客観的<br>普遍的</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>包含関係</h3>
+            <p style="font-size: 1.3em;">
+              <strong>生命情報 ⊃ 社会情報 ⊃ 機械情報</strong>
+            </p>
+          </div>
+        </section>
+
+        <!-- 情報の包含関係の例 -->
+        <section>
+          <h1>情報の包含関係の例</h1>
+          
+          <div class="highlight-box">
+            <h3>「ありがとう」という言葉の3つの側面</h3>
+          </div>
+          
+          <div style="display: flex; justify-content: space-around; margin: 25px 0;">
+            <div class="concept-card fragment fade-in" style="width: 200px;">
+              <span class="icon">🤖</span>
+              <h4>機械情報</h4>
+              <p>画面に表示される文字</p>
+              <p><small>デジタル信号の集合</small></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in" style="width: 200px;">
+              <span class="icon">👥</span>
+              <h4>社会情報</h4>
+              <p>感謝の意味を表す言葉</p>
+              <p><small>社会的約束事</small></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in" style="width: 200px;">
+              <span class="icon">🧬</span>
+              <h4>生命情報</h4>
+              <p>うれしいという感情</p>
+              <p><small>個人的な体験</small></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Society 1.0から5.0への発展 -->
+        <section>
+          <h1>Society 1.0から5.0への発展</h1>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>Society 1.0</strong><br>
+              <small>狩猟社会</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>Society 2.0</strong><br>
+              <small>農耕社会</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>Society 3.0</strong><br>
+              <small>工業社会</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>Society 4.0</strong><br>
+              <small>情報社会</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>Society 5.0</strong><br>
+              <small>超スマート社会</small>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>Society 5.0の特徴</h3>
+            <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+              <div>🤖 AI搭載ロボット</div>
+              <div>🚗 自動走行車</div>
+              <div>🔗 IoTでつながる社会</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ビッグデータの3V -->
+        <section>
+          <h1>ビッグデータの3V</h1>
+          
+          <div class="infographic">
+            <div class="info-circle volume fragment fade-in">
+              <h4>Volume</h4>
+              <p>データ量</p>
+              <p><strong>膨大</strong></p>
+            </div>
+            
+            <div class="info-circle variety fragment fade-in">
+              <h4>Variety</h4>
+              <p>種類</p>
+              <p><strong>多様</strong></p>
+            </div>
+            
+            <div class="info-circle velocity fragment fade-in">
+              <h4>Velocity</h4>
+              <p>処理速度</p>
+              <p><strong>高速</strong></p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>ICT (Information and Communication Technology)</h3>
+            <p>情報通信技術により実現</p>
+          </div>
+        </section>
+
+        <!-- ICT技術の例 -->
+        <section>
+          <h1>ICT技術の例</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <circle cx="50" cy="30" r="8" fill="#3498db"/>
+                <rect x="30" y="45" width="40" height="25" fill="#ecf0f1" stroke="#3498db" stroke-width="2"/>
+                <circle cx="20" cy="70" r="6" fill="#27ae60"/>
+                <circle cx="80" cy="70" r="6" fill="#27ae60"/>
+                <circle cx="50" cy="85" r="6" fill="#27ae60"/>
+                <path d="M 50 38 L 50 45" stroke="#3498db" stroke-width="2"/>
+                <path d="M 45 70 L 35 60" stroke="#27ae60" stroke-width="2"/>
+                <path d="M 55 70 L 65 60" stroke="#27ae60" stroke-width="2"/>
+                <path d="M 50 70 L 50 60" stroke="#27ae60" stroke-width="2"/>
+              </svg>
+              <h4>IoT</h4>
+              <p>Internet of Things</p>
+              <p><small>あらゆるモノがインターネットに接続</small></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="25" fill="#f39c12" opacity="0.3"/>
+                <circle cx="40" cy="40" r="3" fill="#2c3e50"/>
+                <circle cx="60" cy="40" r="3" fill="#2c3e50"/>
+                <path d="M 35 60 Q 50 75 65 60" stroke="#2c3e50" stroke-width="3" fill="none"/>
+                <rect x="35" y="20" width="30" height="8" fill="#e74c3c" rx="4"/>
+              </svg>
+              <h4>AI</h4>
+              <p>Artificial Intelligence</p>
+              <p><small>人工知能による自動化・最適化</small></p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <svg class="svg-icon" viewBox="0 0 100 100">
+                <rect x="20" y="30" width="15" height="40" fill="#3498db"/>
+                <rect x="40" y="20" width="15" height="50" fill="#27ae60"/>
+                <rect x="60" y="35" width="15" height="35" fill="#e74c3c"/>
+                <text x="50" y="85" text-anchor="middle" font-size="8">ビッグデータ</text>
+              </svg>
+              <h4>データ分析</h4>
+              <p>Big Data Analytics</p>
+              <p><small>大量データから価値ある情報を抽出</small></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 技術革新の例：支払い方法の変化 -->
+        <section>
+          <h1>技術革新の例：支払い方法の変化</h1>
+          
+          <div style="display: flex; justify-content: space-around; margin: 25px 0;">
+            <div class="concept-card fragment fade-in" style="width: 280px;">
+              <h4>🛒 POSシステム</h4>
+              <p>Point Of Sales system</p>
+              <ul style="text-align: left; font-size: 0.8em;">
+                <li>バーコード読み取り</li>
+                <li>在庫管理連携</li>
+                <li>売上データ分析</li>
+              </ul>
+            </div>
+            
+            <div class="concept-card fragment fade-in" style="width: 280px;">
+              <h4>📱 キャッシュレス決済</h4>
+              <ul style="text-align: left; font-size: 0.8em;">
+                <li>QRコード決済</li>
+                <li>バーコード決済</li>
+                <li>非接触型ICカード</li>
+                <li>電子マネー</li>
+                <li>スマートフォン決済</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p style="font-style: italic;">
+              技術革新により社会は大きく変化し続けている
+            </p>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>情報社会の一員として身につけるべき力</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>理解力</h4>
+              <p>情報と情報技術の正しい理解</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>活用力</h4>
+              <p>適切に扱う力の習得</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>対応力</h4>
+              <p>超スマート社会への対応</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              情報、データ、知識、知恵、ICT、AI、IoT、<br>
+              残存性、複製性、伝播性、Society 5.0、ビッグデータ
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            🎓 次回は情報デザインについて学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

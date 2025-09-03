@@ -1,0 +1,476 @@
+/* 
+==========================================
+16:9画面対応 専用CSSテンプレート
+==========================================
+このテンプレートをベースに使用することで
+16:9画面からのはみ出しを防ぐことができます
+*/
+
+:root {
+  --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+  --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+  --r-main-color: #333;
+  --r-heading-color: #2c3e50;
+  --r-background-color: #fff;
+  --r-link-color: #3498db;
+  --r-selection-background-color: #3498db;
+}
+
+/* ==========================================
+   基本設定 - 16:9対応
+   ========================================== */
+.reveal {
+  font-family: var(--r-main-font);
+  font-size: 24px;
+}
+
+.reveal .slides section {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 18px 12px !important;  /* 縮小パディング */
+  box-sizing: border-box;
+  max-height: calc(100vh - 60px);  /* 重要: 最大高さ制限 */
+  min-height: calc(100vh - 60px);
+  overflow-y: auto;
+  text-align: center;
+}
+
+/* ==========================================
+   見出し - サイズ調整済み
+   ========================================== */
+.reveal h1, .reveal h2, .reveal h3 {
+  color: var(--r-heading-color);
+  margin-top: 0;
+}
+
+.reveal h1 {
+  font-size: 1.5em;          /* 縮小: 1.7em → 1.5em */
+  text-align: center;
+  margin-bottom: 15px;       /* 縮小: 20px → 15px */
+  margin-top: 8px;           /* 縮小: 10px → 8px */
+}
+
+.reveal h2 {
+  font-size: 1.25em;
+  margin-bottom: 15px;
+}
+
+.reveal h3 {
+  font-size: 1.05em;
+  margin-bottom: 12px;
+}
+
+/* ==========================================
+   タイムライン - 16:9対応版
+   ========================================== */
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;           /* 縮小: 20px → 15px */
+  position: relative;
+  flex-wrap: wrap;          /* 重要: 折り返し対応 */
+  gap: 8px;                 /* 重要: 間隔調整 */
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #3498db;
+  z-index: 1;
+}
+
+.timeline-item {
+  background: white;
+  border: 2px solid #3498db;
+  border-radius: 50%;
+  padding: 8px 6px;         /* 重要: 縮小パディング */
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  min-width: 70px;          /* 重要: 最小幅 */
+  max-width: 90px;          /* 重要: 最大幅制限 */
+  font-size: 0.65em;        /* 重要: フォントサイズ縮小 */
+  line-height: 1.1;         /* 重要: 行間縮小 */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex-shrink: 1;           /* 重要: 収縮可能 */
+}
+
+.timeline-item.current {
+  background: #3498db;
+  color: white;
+}
+
+/* ==========================================
+   フローチャート - 16:9対応版
+   ========================================== */
+.flow-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  flex-wrap: wrap;          /* 重要: 折り返し対応 */
+}
+
+.flow-item {
+  background: #ecf0f1;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px;
+  text-align: center;
+  min-width: 100px;
+  font-size: 0.85em;
+  line-height: 1.3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.flow-item.highlight {
+  background: #3498db;
+  color: white;
+}
+
+.flow-arrow {
+  font-size: 20px;
+  color: #3498db;
+  margin: 0 10px;
+}
+
+/* ==========================================
+   比較表 - 16:9対応版
+   ========================================== */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 0.8em;         /* 重要: フォントサイズ制限 */
+}
+
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid #bdc3c7;
+  padding: 8px 6px;         /* 重要: パディング縮小 */
+  text-align: center;
+  vertical-align: top;
+  line-height: 1.3;
+}
+
+.comparison-table th {
+  background: #34495e;
+  color: white;
+  font-weight: bold;
+  font-size: 0.85em;
+}
+
+.comparison-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+/* ==========================================
+   概念図 - 16:9対応版
+   ========================================== */
+.concept-diagram {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;                /* 縮小: 15px → 12px */
+  margin: 20px 0;
+}
+
+.concept-card {
+  background: #ecf0f1;
+  border-left: 4px solid #3498db;
+  padding: 12px;            /* 重要: パディング縮小 */
+  border-radius: 0 8px 8px 0;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.concept-card h4 {
+  color: #2c3e50;
+  margin-bottom: 8px;       /* 縮小: 10px → 8px */
+  font-size: 0.9em;         /* 重要: フォントサイズ縮小 */
+}
+
+.concept-card .icon {
+  font-size: 1.3em;         /* 縮小: 1.5em → 1.3em */
+  margin-bottom: 8px;
+  display: block;
+}
+
+.concept-card p {
+  font-size: 0.75em;        /* 重要: フォントサイズ縮小 */
+  line-height: 1.3;
+  margin-bottom: 5px;
+}
+
+/* ==========================================
+   インフォグラフィック - 16:9対応版
+   ========================================== */
+.infographic {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 15px 0;
+  gap: 6px;                 /* 重要: 間隔縮小 */
+  flex-wrap: wrap;          /* 重要: 折り返し対応 */
+}
+
+.info-circle {
+  width: 110px;             /* 重要: サイズ縮小 */
+  height: 110px;            /* 重要: サイズ縮小 */
+  border-radius: 50%;
+  background: #3498db;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  flex-shrink: 1;           /* 重要: 収縮可能 */
+}
+
+.info-circle.cpu { background: #e74c3c; }
+.info-circle.memory { background: #f39c12; }
+.info-circle.storage { background: #27ae60; }
+.info-circle.sampling { background: #e74c3c; }
+.info-circle.quantization { background: #f39c12; }
+.info-circle.encoding { background: #27ae60; }
+.info-circle.and { background: #e74c3c; }
+.info-circle.or { background: #27ae60; }
+.info-circle.not { background: #f39c12; }
+
+.info-circle h4 {
+  margin: 0;
+  font-size: 0.9em;         /* 重要: フォントサイズ縮小 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+.info-circle p {
+  margin: 2px 0 0 0;        /* 縮小: 5px → 2px */
+  font-size: 0.65em;        /* 重要: フォントサイズ縮小 */
+  line-height: 1.0;         /* 重要: 行間縮小 */
+}
+
+/* ==========================================
+   強調ボックス - 16:9対応版
+   ========================================== */
+.highlight-box {
+  background: #ecf0f1;
+  border: 1px solid #bdc3c7;
+  border-radius: 8px;
+  padding: 12px;            /* 縮小: 15px → 12px */
+  margin: 12px 0;
+  text-align: center;
+}
+
+.highlight-box.important {
+  background: #ffeaa7;
+  border-color: #fdcb6e;
+}
+
+.highlight-box.warning {
+  background: #fab1a0;
+  border-color: #e17055;
+}
+
+.highlight-box h3 {
+  margin-bottom: 8px;       /* 縮小: 10px → 8px */
+  font-size: 0.9em;         /* 重要: フォントサイズ縮小 */
+}
+
+.highlight-box p {
+  margin-bottom: 6px;       /* 縮小: 8px → 6px */
+  font-size: 0.8em;         /* 重要: フォントサイズ縮小 */
+  line-height: 1.3;         /* 縮小: 1.4 → 1.3 */
+}
+
+/* ==========================================
+   計算ボックス・回路ボックス - 16:9対応版
+   ========================================== */
+.calc-box, .circuit-box {
+  background: #f8f9fa;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 12px;            /* 縮小: 15px → 12px */
+  margin: 15px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8em;         /* 重要: フォントサイズ縮小 */
+}
+
+/* ==========================================
+   真理値表 - 16:9対応版
+   ========================================== */
+.truth-table {
+  width: auto;
+  margin: 15px auto;        /* 縮小: 20px → 15px */
+  border-collapse: collapse;
+  font-size: 0.8em;         /* 重要: フォントサイズ縮小 */
+}
+
+.truth-table th,
+.truth-table td {
+  border: 2px solid #3498db;
+  padding: 6px 8px;         /* 重要: パディング縮小 */
+  text-align: center;
+  min-width: 35px;          /* 縮小: 40px → 35px */
+}
+
+.truth-table th {
+  background: #3498db;
+  color: white;
+  font-weight: bold;
+}
+
+.truth-table .result {
+  background: #e8f5e8;
+  font-weight: bold;
+}
+
+/* ==========================================
+   メモリ階層 - 16:9対応版
+   ========================================== */
+.memory-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.memory-level {
+  background: #ecf0f1;
+  border: 2px solid #3498db;
+  border-radius: 8px;
+  padding: 6px 12px;        /* 縮小: 8px 16px → 6px 12px */
+  margin: 3px 0;            /* 縮小: 4px → 3px */
+  text-align: center;
+  font-size: 0.75em;        /* 重要: フォントサイズ縮小 */
+  min-width: 120px;
+}
+
+.memory-level:nth-child(1) { width: 80px; background: #e74c3c; color: white; }
+.memory-level:nth-child(2) { width: 120px; background: #f39c12; color: white; }
+.memory-level:nth-child(3) { width: 160px; background: #27ae60; color: white; }
+.memory-level:nth-child(4) { width: 200px; }
+.memory-level:nth-child(5) { width: 240px; }
+.memory-level:nth-child(6) { width: 280px; }
+
+/* ==========================================
+   レスポンシブ対応 - 16:9向け最適化
+   ========================================== */
+@media (max-width: 768px) {
+  .reveal {
+    font-size: 20px;
+  }
+  
+  .reveal h1 {
+    font-size: 1.4em;        /* さらに縮小 */
+  }
+  
+  .reveal h2 {
+    font-size: 1.2em;
+  }
+  
+  .reveal h3 {
+    font-size: 1em;
+  }
+  
+  .flow-chart,
+  .infographic {
+    flex-direction: column;
+  }
+  
+  .timeline {
+    flex-direction: column;
+  }
+  
+  .timeline::before {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+  }
+  
+  .timeline-item {
+    margin: 8px 0;           /* 縮小: 10px → 8px */
+  }
+  
+  .concept-diagram {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .comparison-table {
+    font-size: 0.65em;
+  }
+  
+  .comparison-table th,
+  .comparison-table td {
+    padding: 4px 2px;        /* 縮小 */
+  }
+  
+  .info-circle {
+    width: 100px;            /* さらに縮小 */
+    height: 100px;
+    margin: 8px 0;           /* 縮小: 10px → 8px */
+  }
+  
+  .flow-item {
+    margin: 6px 0;           /* 縮小: 8px → 6px */
+    min-width: 80px;
+  }
+  
+  .flow-arrow {
+    transform: rotate(90deg);
+    margin: 4px 0;           /* 縮小: 5px → 4px */
+  }
+  
+  .memory-level {
+    width: 85% !important;   /* 縮小: 90% → 85% */
+  }
+}
+
+/* ==========================================
+   超小画面対応
+   ========================================== */
+@media (max-width: 480px) {
+  .reveal {
+    font-size: 18px;
+  }
+  
+  .reveal .slides section {
+    padding: 15px 10px !important;  /* 縮小 */
+  }
+  
+  .comparison-table {
+    font-size: 0.6em;
+  }
+  
+  .comparison-table th,
+  .comparison-table td {
+    padding: 3px 2px;       /* さらに縮小 */
+  }
+  
+  .info-circle {
+    width: 90px;             /* さらに縮小 */
+    height: 90px;
+  }
+}
+
+/* ==========================================
+   デバッグ用 - 開発時のみ使用
+   ========================================== */
+/* 
+.reveal .slides section {
+  border: 2px solid red;   // 画面サイズ確認用
+}
+*/

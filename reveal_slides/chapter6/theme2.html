@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プログラムの基本構造 - 情報Ⅰ第6章テーマ2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .reveal pre {
+        font-size: 0.7em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart {
+          flex-direction: column;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>プログラムの基本構造</h1>
+          <h2>Basic Program Structures</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            プログラムを構成する3つの基本構造を学びます
+          </p>
+        </section>
+
+        <!-- 3つの基本構造 -->
+        <section>
+          <h1>プログラムの3つの基本構造</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⬇️</span>
+              <h4>順次構造</h4>
+              <p>Sequential Structure</p>
+              <p>上から下へ順番に実行</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔀</span>
+              <h4>選択構造</h4>
+              <p>Selection Structure</p>
+              <p>条件によって処理を分岐</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>反復構造</h4>
+              <p>Iteration Structure</p>
+              <p>同じ処理を繰り返し実行</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>構造化プログラミングの基本原理</h3>
+            <p>これらの組み合わせで、あらゆるプログラムを構築できる</p>
+          </div>
+        </section>
+
+        <!-- 順次構造 -->
+        <section>
+          <h1>順次構造</h1>
+          <h2>Sequential Structure</h2>
+          
+          <div class="highlight-box important">
+            <h3>順次構造 (Sequential Structure)</h3>
+            <p>プログラムの命令が上から下へ順番に実行される基本的な制御構造。</p>
+          </div>
+
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>処理1</strong><br>
+              <small>name = input()</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">↓</div>
+            <div class="flow-item fragment fade-in">
+              <strong>処理2</strong><br>
+              <small>age = int(input())</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">↓</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>処理3</strong><br>
+              <small>print(f"こんにちは")</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- 順次構造の例 -->
+        <section>
+          <h1>順次構造の例</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 順次構造の例
+name = input("お名前を入力してください: ")
+age = int(input("年齢を入力してください: "))
+print(f"こんにちは、{name}さん")
+print(f"あなたは{age}歳ですね")</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>特徴</h4>
+              <p>最も基本的な処理の流れ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>線形処理</h4>
+              <p>条件分岐や繰り返しがない</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>予測可能</h4>
+              <p>実行順序が明確</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 選択構造 -->
+        <section>
+          <h1>選択構造</h1>
+          <h2>Selection Structure</h2>
+          
+          <div class="highlight-box important">
+            <h3>選択構造 (Selection Structure)</h3>
+            <p>条件式の真偽によって実行する処理を選択する制御構造。分岐処理とも呼ばれる。</p>
+          </div>
+
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>条件判定</strong><br>
+              <small>score >= 60</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">↙️↘️</div>
+            <div class="flow-item fragment fade-in">
+              <strong>真の場合</strong><br>
+              <small>print("合格")</small>
+            </div>
+            <div class="flow-item fragment fade-in">
+              <strong>偽の場合</strong><br>
+              <small>print("不合格")</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- if文の基本形 -->
+        <section>
+          <h1>if文の基本形</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">❓</span>
+              <h4>単純なif文</h4>
+              <pre><code class="python">score = 85
+if score >= 60:
+    print("合格です")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔀</span>
+              <h4>if-else文</h4>
+              <pre><code class="python">score = 45
+if score >= 60:
+    print("合格です")
+else:
+    print("不合格です")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>条件式</h4>
+              <p>真（True）または偽（False）の値を返す式</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 複数条件の判定 -->
+        <section>
+          <h1>複数条件の判定 (elif文)</h1>
+          
+          <pre class="fragment fade-in"><code class="python">score = 92
+
+if score >= 90:
+    print("秀")
+elif score >= 80:
+    print("優")
+elif score >= 70:
+    print("良")
+elif score >= 60:
+    print("可")
+else:
+    print("不可")</code></pre>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>elif文</h3>
+            <p>「else if」の略。複数の条件を順次判定する際に使用する構文。</p>
+          </div>
+        </section>
+
+        <!-- 論理演算子 -->
+        <section>
+          <h1>論理演算子</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">➕</span>
+              <h4>AND演算子 (and)</h4>
+              <pre><code class="python">age = 20
+license = True
+
+if age >= 18 and license:
+    print("運転できます")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔀</span>
+              <h4>OR演算子 (or)</h4>
+              <pre><code class="python">weather = "雨"
+if weather == "雨" or weather == "雪":
+    print("傘が必要です")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚫</span>
+              <h4>NOT演算子 (not)</h4>
+              <pre><code class="python">online = False
+if not online:
+    print("オフラインです")</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- 反復構造 -->
+        <section>
+          <h1>反復構造</h1>
+          <h2>Iteration Structure</h2>
+          
+          <div class="highlight-box important">
+            <h3>反復構造 (Iteration Structure)</h3>
+            <p>同じ処理を条件が満たされる間、繰り返し実行する制御構造。ループ処理とも呼ばれる。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>for文</h4>
+              <p>決まった回数や範囲での繰り返し</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏰</span>
+              <h4>while文</h4>
+              <p>条件が真の間の繰り返し</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>効率性</h4>
+              <p>同じコードを何度も書く必要がない</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- for文による反復 -->
+        <section>
+          <h1>for文による反復</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>基本的なfor文</h4>
+              <pre><code class="python"># 1から5まで表示
+for i in range(1, 6):
+    print(f"数値: {i}")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>リストの処理</h4>
+              <pre><code class="python">fruits = ["りんご", "バナナ", "オレンジ"]
+for fruit in fruits:
+    print(f"好きな果物: {fruit}")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>range関数</h4>
+              <p>指定した範囲の数値を生成する組み込み関数</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- while文による反復 -->
+        <section>
+          <h1>while文による反復</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>基本的なwhile文</h4>
+              <pre><code class="python">count = 1
+while count <= 5:
+    print(f"カウント: {count}")
+    count += 1  # インクリメント</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>無限ループの防止</h4>
+              <pre><code class="python">while True:
+    age = input("年齢を入力: ")
+    if age.isdigit() and 0 <= int(age) <= 120:
+        break  # ループを抜ける
+    print("正しい年齢を入力してください")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⬆️</span>
+              <h4>インクリメント</h4>
+              <p>変数の値を1増加させること。count += 1</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ループ制御文 -->
+        <section>
+          <h1>ループ制御文</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛑</span>
+              <h4>break文</h4>
+              <pre><code class="python"># ループを強制終了
+for i in range(10):
+    if i == 5:
+        break  # i=5でループ終了
+    print(i)</code></pre>
+              <p>ループを強制的に終了させる</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏭️</span>
+              <h4>continue文</h4>
+              <pre><code class="python"># 現在の反復をスキップ
+for i in range(5):
+    if i == 2:
+        continue  # i=2をスキップ
+    print(i)</code></pre>
+              <p>現在の反復をスキップし、次の反復に進む</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>制御の流れ</h4>
+              <p>プログラムの実行を細かく制御</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 入れ子構造 -->
+        <section>
+          <h1>入れ子構造</h1>
+          <h2>Nested Structure</h2>
+          
+          <div class="highlight-box important">
+            <h3>入れ子構造 (Nested Structure)</h3>
+            <p>制御構造の中に別の制御構造を記述する構造。ネスト構造とも呼ばれる。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>if文の入れ子</h4>
+              <pre><code class="python">score = 85
+attendance = 90
+
+if score >= 60:
+    if attendance >= 80:
+        print("合格")
+    else:
+        print("出席不足")
+else:
+    print("点数不足")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>ループの入れ子</h4>
+              <pre><code class="python"># 九九表
+for i in range(1, 10):
+    for j in range(1, 10):
+        print(f"{i} × {j} = {i*j}")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>複雑な処理</h4>
+              <p>より高度な処理を実現</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>プログラムの基本構造</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⬇️</span>
+              <h4>順次構造</h4>
+              <p>上から下への順番実行</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔀</span>
+              <h4>選択構造</h4>
+              <p>条件による処理の分岐</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>反復構造</h4>
+              <p>繰り返し処理とループ制御</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              順次構造、選択構造、反復構造、<br>
+              条件式、elif文、論理演算子、<br>
+              range関数、break文、continue文、入れ子構造
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: データ構造と配列
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

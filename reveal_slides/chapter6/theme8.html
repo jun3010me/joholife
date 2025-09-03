@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計測・制御プログラミング - 情報Ⅰ第6章テーマ8</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .system-diagram {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        background: #f8f9fa;
+        border: 2px solid #bdc3c7;
+        border-radius: 10px;
+        padding: 20px;
+        font-family: monospace;
+        font-size: 0.8em;
+        text-align: center;
+      }
+
+      .control-loop {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        gap: 15px;
+        position: relative;
+      }
+
+      .control-component {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        min-width: 120px;
+        text-align: center;
+        font-size: 0.9em;
+        position: relative;
+      }
+
+      .control-component.sensor {
+        border-color: #27ae60;
+        background: #d5f4e6;
+      }
+
+      .control-component.processor {
+        border-color: #e74c3c;
+        background: #fdf2f2;
+      }
+
+      .control-component.actuator {
+        border-color: #f39c12;
+        background: #fef9e7;
+      }
+
+      .feedback-arrow {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        height: 2px;
+        background: #3498db;
+        z-index: -1;
+        border-radius: 2px;
+      }
+
+      .feedback-arrow::after {
+        content: '→';
+        position: absolute;
+        right: -10px;
+        top: -10px;
+        font-size: 20px;
+        color: #3498db;
+      }
+
+      .pid-visual {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 20px 0;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .pid-component {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.8em;
+      }
+
+      .pid-component.p { border-color: #e74c3c; }
+      .pid-component.i { border-color: #f39c12; }
+      .pid-component.d { border-color: #27ae60; }
+
+      .iot-stack {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .iot-layer {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        min-width: 150px;
+        text-align: center;
+        position: relative;
+      }
+
+      .iot-layer.device { border-color: #27ae60; background: #d5f4e6; }
+      .iot-layer.network { border-color: #f39c12; background: #fef9e7; }
+      .iot-layer.cloud { border-color: #9b59b6; background: #f4ecf7; }
+
+      .reveal pre {
+        font-size: 0.6em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      .greenhouse-mockup {
+        background: #f8f9fa;
+        border: 2px solid #27ae60;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px 0;
+        max-width: 400px;
+        font-family: monospace;
+        font-size: 0.8em;
+        text-align: left;
+      }
+
+      .greenhouse-header {
+        background: #27ae60;
+        color: white;
+        padding: 5px 10px;
+        margin: -15px -15px 10px -15px;
+        border-radius: 8px 8px 0 0;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .sensor-value {
+        background: #d5f4e6;
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+
+      .control-status {
+        background: #fef9e7;
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .control-loop,
+        .pid-visual,
+        .iot-stack {
+          flex-direction: column;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .greenhouse-mockup {
+          max-width: 300px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>計測・制御プログラミング</h1>
+          <h2>Measurement and Control Programming</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            センサーとアクチュエーターを活用した制御システムの構築を学びます
+          </p>
+        </section>
+
+        <!-- 計測・制御プログラミングとは -->
+        <section>
+          <h1>計測・制御プログラミングとは</h1>
+          <h2>What is Measurement and Control Programming?</h2>
+          
+          <div class="highlight-box important">
+            <h3>計測・制御プログラミング</h3>
+            <p>センサーでデータを計測し、その結果に基づいてアクチュエーターなどを制御するプログラミング手法。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📡</span>
+              <h4>センサー</h4>
+              <p>物理量（温度、光、音、圧力など）を電気信号に変換する装置</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>アクチュエーター</h4>
+              <p>電気信号を物理的な動作（回転、移動、発光など）に変換する装置</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>リアルタイム応答</h4>
+              <p>即座の判断と制御が重要</p>
+            </div>
+          </div>
+
+          <div class="concept-card fragment fade-in" style="margin: 20px auto; max-width: 350px;">
+            <span class="icon">🌐</span>
+            <h4>応用分野</h4>
+            <p>IoT、ロボティクス、自動制御システムの基盤技術</p>
+          </div>
+        </section>
+
+        <!-- 計測・制御システムの基本構成 -->
+        <section>
+          <h1>計測・制御システムの基本構成</h1>
+          
+          <div class="control-loop">
+            <div class="control-component sensor fragment fade-in">
+              <strong>センサー</strong><br>
+              <small>データ計測</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="control-component processor fragment fade-in">
+              <strong>マイコン/コンピュータ</strong><br>
+              <small>データ処理・判断</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="control-component actuator fragment fade-in">
+              <strong>アクチュエーター</strong><br>
+              <small>制御実行</small>
+            </div>
+          </div>
+
+          <div class="system-diagram fragment fade-in">
+            [物理世界] ←→ [センサー] → [プログラム] → [アクチュエーター] ←→ [物理世界]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──────── フィードバック ←────────┘
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>フィードバック制御 (Feedback Control)</h3>
+            <p>制御結果をセンサーで監視し、目標値との差を修正する制御方式。</p>
+          </div>
+        </section>
+
+        <!-- 動的シミュレーション -->
+        <section>
+          <h1>動的シミュレーション</h1>
+          <h2>Dynamic Simulation</h2>
+          
+          <div class="highlight-box important">
+            <h3>動的シミュレーション (Dynamic Simulation)</h3>
+            <p>時間とともに変化するシステムの動作をコンピュータ上で模擬すること。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>事前検証</h4>
+              <p>実システム構築前の動作確認</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💰</span>
+              <h4>コスト削減</h4>
+              <p>リスク軽減と開発効率向上</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>最適化</h4>
+              <p>パラメータの調整と最適化</p>
+            </div>
+          </div>
+
+          <div class="concept-card fragment fade-in" style="margin: 20px auto; max-width: 300px;">
+            <span class="icon">🎓</span>
+            <h4>教育・学習</h4>
+            <p>安全で効果的な学習環境を提供</p>
+          </div>
+        </section>
+
+        <!-- Pythonによる基本的なシミュレーション -->
+        <section>
+          <h1>Pythonによる基本的なシミュレーション</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+import numpy as np
+
+class TemperatureController:
+    def __init__(self, target_temp=25.0):
+        self.target_temp = target_temp
+        self.current_temp = 20.0
+        self.heater_power = 0.0
+        self.room_temp = 15.0
+        
+    def update_temperature(self, dt=0.1):
+        """温度の更新（物理モデル）"""
+        heat_input = self.heater_power * 0.01
+        heat_loss = (self.current_temp - self.room_temp) * 0.02
+        temp_change = (heat_input - heat_loss) * dt
+        self.current_temp += temp_change
+        return self.current_temp
+    
+    def control_heater(self):
+        """比例制御（P制御）"""
+        error = self.target_temp - self.current_temp
+        Kp = 5.0
+        self.heater_power = max(0, min(100, Kp * error))
+        return self.heater_power</code></pre>
+        </section>
+
+        <!-- シミュレーション実行と可視化 -->
+        <section>
+          <h1>シミュレーション実行と可視化</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def run_temperature_simulation():
+    controller = TemperatureController(target_temp=30.0)
+    
+    # シミュレーション設定
+    time_steps, dt = 1000, 0.1
+    times, temperatures, powers, targets = [], [], [], []
+    
+    # シミュレーション実行
+    for i in range(time_steps):
+        current_time = i * dt
+        power = controller.control_heater()
+        temp = controller.update_temperature(dt)
+        
+        # データ記録
+        times.append(current_time)
+        temperatures.append(temp)
+        powers.append(power)
+        targets.append(controller.target_temp)
+    
+    return times, temperatures, powers, targets
+
+# 結果の可視化
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
+
+ax1.plot(times, temps, 'b-', label='実際の温度')
+ax1.plot(times, targets, 'r--', label='目標温度')
+ax1.set_ylabel('温度 (°C)')
+ax1.set_title('温度制御シミュレーション')
+ax1.legend()
+ax1.grid(True, alpha=0.3)
+
+# ヒーター出力のグラフ
+ax2.plot(times, powers, 'g-', label='ヒーター出力', linewidth=2)
+ax2.set_xlabel('時間 (秒)')
+ax2.set_ylabel('出力 (%)')
+ax2.set_title('制御信号')
+ax2.legend()
+ax2.grid(True, alpha=0.3)</code></pre>
+        </section>
+
+        <!-- PID制御の実装 -->
+        <section>
+          <h1>PID制御の実装</h1>
+          
+          <div class="pid-visual">
+            <div class="pid-component p fragment fade-in">
+              <strong>P: 比例</strong><br>
+              <small>現在の誤差に比例</small><br>
+              <small>Kp × error</small>
+            </div>
+            <div class="pid-component i fragment fade-in">
+              <strong>I: 積分</strong><br>
+              <small>過去の誤差の蓄積</small><br>
+              <small>Ki × ∫error dt</small>
+            </div>
+            <div class="pid-component d fragment fade-in">
+              <strong>D: 微分</strong><br>
+              <small>誤差の変化率</small><br>
+              <small>Kd × derror/dt</small>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>PID制御 (PID Control)</h3>
+            <p>比例(P)・積分(I)・微分(D)の3つの要素を組み合わせた制御手法。</p>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">class PIDController:
+    def __init__(self, Kp=1.0, Ki=0.0, Kd=0.0):
+        self.Kp = Kp  # 比例ゲイン
+        self.Ki = Ki  # 積分ゲイン
+        self.Kd = Kd  # 微分ゲイン
+        
+        self.previous_error = 0.0
+        self.integral = 0.0
+        
+    def calculate(self, error, dt):
+        """PID制御計算"""
+        # 比例項
+        proportional = self.Kp * error
+        
+        # 積分項
+        self.integral += error * dt
+        integral_term = self.Ki * self.integral
+        
+        # 微分項
+        derivative = (error - self.previous_error) / dt
+        derivative_term = self.Kd * derivative
+        
+        # PID出力
+        output = proportional + integral_term + derivative_term
+        
+        # 次回計算用に誤差を保存
+        self.previous_error = error
+        
+        return output</code></pre>
+        </section>
+
+        <!-- センサーデータの処理 -->
+        <section>
+          <h1>センサーデータの処理</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class SensorDataProcessor:
+    def __init__(self, filter_size=5):
+        self.filter_size = filter_size
+        self.data_buffer = []
+        
+    def moving_average_filter(self, new_data):
+        """移動平均フィルタ"""
+        self.data_buffer.append(new_data)
+        
+        # バッファサイズの制限
+        if len(self.data_buffer) > self.filter_size:
+            self.data_buffer.pop(0)
+        
+        # 移動平均の計算
+        return sum(self.data_buffer) / len(self.data_buffer)
+    
+    def low_pass_filter(self, new_data, alpha=0.1):
+        """ローパスフィルタ（指数移動平均）"""
+        if not hasattr(self, 'filtered_value'):
+            self.filtered_value = new_data
+        
+        self.filtered_value = alpha * new_data + (1 - alpha) * self.filtered_value
+        return self.filtered_value</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>ノイズフィルタ (Noise Filter)</h3>
+            <p>センサーデータに含まれるノイズ（雑音）を除去するためのデジタル処理。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>移動平均</h4>
+              <p>過去N個のデータの平均値を計算</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔽</span>
+              <h4>ローパスフィルタ</h4>
+              <p>高周波ノイズを除去</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>データ品質向上</h4>
+              <p>信頼性の高い制御を実現</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- リアルタイム制御システム -->
+        <section>
+          <h1>リアルタイム制御システム</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import time
+import threading
+from collections import deque
+
+class RealTimeController:
+    def __init__(self, control_period=0.1):
+        self.control_period = control_period  # 制御周期（秒）
+        self.running = False
+        self.sensor_data = deque(maxlen=100)
+        self.control_outputs = deque(maxlen=100)
+        
+    def read_sensor(self):
+        """センサーデータの読み込み（模擬）"""
+        # 実際のシステムではセンサーAPIを呼び出し
+        return 25.0 + np.random.normal(0, 0.5)
+    
+    def control_actuator(self, output_value):
+        """アクチュエーター制御（模擬）"""
+        # 実際のシステムではアクチュエーターAPIを呼び出し
+        print(f"アクチュエーター出力: {output_value:.2f}")
+    
+    def control_loop(self):
+        """メイン制御ループ"""
+        target_value = 30.0
+        pid = PIDController(Kp=2.0, Ki=0.1, Kd=0.5)
+        
+        while self.running:
+            start_time = time.time()
+            
+            # センサー読み込み
+            sensor_value = self.read_sensor()
+            self.sensor_data.append(sensor_value)
+            
+            # 制御計算
+            error = target_value - sensor_value
+            control_output = pid.calculate(error, self.control_period)
+            
+            # アクチュエーター制御
+            self.control_actuator(control_output)
+            self.control_outputs.append(control_output)
+            
+            # 制御周期の維持
+            elapsed_time = time.time() - start_time
+            sleep_time = max(0, self.control_period - elapsed_time)
+            time.sleep(sleep_time)</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>リアルタイム制御 (Real-time Control)</h3>
+            <p>決められた時間内での応答を保証する制御システム。</p>
+          </div>
+        </section>
+
+        <!-- IoTシステムとの連携 -->
+        <section>
+          <h1>IoTシステムとの連携</h1>
+          
+          <div class="iot-stack">
+            <div class="iot-layer device fragment fade-in">
+              <strong>デバイス層</strong><br>
+              <small>センサー・アクチュエーター</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="iot-layer network fragment fade-in">
+              <strong>ネットワーク層</strong><br>
+              <small>通信・データ送信</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="iot-layer cloud fragment fade-in">
+              <strong>クラウド層</strong><br>
+              <small>データ蓄積・分析</small>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>IoT (Internet of Things)</h3>
+            <p>モノのインターネット。様々な機器がネットワークに接続されてデータを交換するシステム。</p>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">import json
+import datetime
+
+class IoTDataCollector:
+    def __init__(self, device_id="sensor_001"):
+        self.device_id = device_id
+        self.data_log = []
+        
+    def collect_sensor_data(self):
+        """センサーデータの収集"""
+        timestamp = datetime.datetime.now().isoformat()
+        
+        # 複数センサーのデータ（模擬）
+        sensor_data = {
+            "device_id": self.device_id,
+            "timestamp": timestamp,
+            "temperature": 25.0 + np.random.normal(0, 1),
+            "humidity": 60.0 + np.random.normal(0, 5),
+            "pressure": 1013.25 + np.random.normal(0, 2),
+            "light": np.random.uniform(0, 1000)
+        }
+        
+        self.data_log.append(sensor_data)
+        return sensor_data
+    
+    def save_data_to_file(self, filename="sensor_data.json"):
+        """データをJSONファイルに保存"""
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(self.data_log, f, ensure_ascii=False, indent=2)</code></pre>
+        </section>
+
+        <!-- 機械学習との組み合わせ -->
+        <section>
+          <h1>機械学習との組み合わせ</h1>
+          
+          <pre class="fragment fade-in"><code class="python">from sklearn.linear_model import LinearRegression
+
+class PredictiveController:
+    def __init__(self):
+        self.model = LinearRegression()
+        self.training_data = []
+        self.is_trained = False
+        
+    def add_training_data(self, inputs, output):
+        """学習データの追加"""
+        self.training_data.append((inputs, output))
+        
+        # 一定量のデータが蓄積されたら学習
+        if len(self.training_data) >= 50 and not self.is_trained:
+            self.train_model()
+    
+    def train_model(self):
+        """機械学習モデルの訓練"""
+        if len(self.training_data) < 10:
+            return False
+            
+        X = np.array([data[0] for data in self.training_data])
+        y = np.array([data[1] for data in self.training_data])
+        
+        self.model.fit(X, y)
+        self.is_trained = True
+        return True
+    
+    def predict_output(self, current_inputs):
+        """出力の予測"""
+        if not self.is_trained:
+            return None
+            
+        prediction = self.model.predict([current_inputs])
+        return prediction[0]
+    
+    def adaptive_control(self, target, current_state):
+        """適応制御"""
+        if self.is_trained:
+            # 機械学習による予測制御
+            predicted_output = self.predict_output(current_state)
+            control_signal = target - predicted_output
+        else:
+            # 従来制御
+            control_signal = (target - current_state[0]) * 0.5
+            
+        return control_signal</code></pre>
+        </section>
+
+        <!-- 実用的な応用例 -->
+        <section>
+          <h1>実用的な応用例: 自動温室制御システム</h1>
+          
+          <div class="greenhouse-mockup fragment fade-in">
+            <div class="greenhouse-header">温室制御システム</div>
+            <div style="padding: 10px;">
+              <div class="sensor-value">温度: 23.5°C (目標: 25°C)</div>
+              <div class="sensor-value">湿度: 72% (目標: 70%)</div>
+              <div class="sensor-value">土壌水分: 65%</div>
+              <div class="sensor-value">照度: 850 lux</div>
+              <hr>
+              <div class="control-status">ヒーター: ON</div>
+              <div class="control-status">クーラー: OFF</div>
+              <div class="control-status">加湿器: OFF</div>
+              <div class="control-status">換気扇: OFF</div>
+            </div>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">class GreenhouseController:
+    def __init__(self):
+        self.target_temperature = 25.0
+        self.target_humidity = 70.0
+        
+        # 制御機器の状態
+        self.heater_on = False
+        self.cooler_on = False
+        self.humidifier_on = False
+        self.ventilator_on = False
+    
+    def control_environment(self, env_data):
+        """環境制御判断"""
+        temp = env_data["temperature"]
+        humidity = env_data["humidity"]
+        
+        # 温度制御
+        if temp < self.target_temperature - 2:
+            self.heater_on = True
+            self.cooler_on = False
+        elif temp > self.target_temperature + 2:
+            self.heater_on = False
+            self.cooler_on = True
+        
+        # 湿度制御
+        if humidity < self.target_humidity - 5:
+            self.humidifier_on = True
+        
+        # 換気制御
+        if temp > self.target_temperature + 3 or humidity > self.target_humidity + 10:
+            self.ventilator_on = True
+        
+        return {
+            "heater": self.heater_on,
+            "cooler": self.cooler_on,
+            "humidifier": self.humidifier_on,
+            "ventilator": self.ventilator_on
+        }</code></pre>
+        </section>
+
+        <!-- システムの利点と課題 -->
+        <section>
+          <h1>計測・制御システムの利点と課題</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>利点</h4>
+              <p>• 自動化による効率化<br>
+              • 24時間監視可能<br>
+              • 精密な制御<br>
+              • データ蓄積・分析</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>課題</h4>
+              <p>• センサー故障への対応<br>
+              • ネットワーク障害<br>
+              • セキュリティ問題<br>
+              • 初期導入コスト</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚀</span>
+              <h4>今後の発展</h4>
+              <p>• AI・機械学習の活用<br>
+              • エッジコンピューティング<br>
+              • 5G通信の利用<br>
+              • より高度な予測制御</p>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>自動制御システム (Automatic Control System)</h3>
+            <p>人間の介入なしに、設定された目標値に向けて自動的に制御を行うシステム。</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>計測・制御プログラミングの核心技術</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>基本システム</h4>
+              <p>センサー、制御プログラム、アクチュエーター、フィードバック</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>制御技術</h4>
+              <p>PID制御、シミュレーション、ノイズフィルタ、リアルタイム処理</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>実践応用</h4>
+              <p>IoTシステム、機械学習、温室制御、自動化システム</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              計測・制御プログラミング、センサー、アクチュエーター、フィードバック制御、<br>
+              動的シミュレーション、PID制御、ノイズフィルタ、リアルタイム制御、<br>
+              IoT、自動制御システム、機械学習、予測制御
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            情報Ⅰ第6章「プログラミング」完了
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            これで全ての章の学習が完了しました！
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ可視化 - 情報Ⅰ第6章テーマ7</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .chart-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .bar-chart {
+        display: flex;
+        align-items: flex-end;
+        height: 150px;
+        gap: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #bdc3c7;
+      }
+
+      .bar {
+        background: #3498db;
+        min-width: 30px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        color: white;
+        font-size: 0.8em;
+        font-weight: bold;
+        border-radius: 4px 4px 0 0;
+        position: relative;
+      }
+
+      .bar-label {
+        position: absolute;
+        bottom: -20px;
+        font-size: 0.7em;
+        color: #2c3e50;
+        text-align: center;
+        width: 100%;
+      }
+
+      .pie-chart {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: conic-gradient(
+          #e74c3c 0 30%, 
+          #f39c12 30% 50%, 
+          #27ae60 50% 75%, 
+          #3498db 75% 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      .line-chart {
+        width: 200px;
+        height: 100px;
+        background: #f8f9fa;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .line-chart::after {
+        content: '';
+        position: absolute;
+        top: 70%;
+        left: 10%;
+        width: 80%;
+        height: 2px;
+        background: #3498db;
+        border-radius: 2px;
+        transform: rotate(-10deg);
+      }
+
+      .scatter-plot {
+        width: 120px;
+        height: 100px;
+        background: #f8f9fa;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        position: relative;
+      }
+
+      .scatter-dot {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #3498db;
+        border-radius: 50%;
+      }
+
+      .matplotlib-features {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .feature-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+      }
+
+      .reveal pre {
+        font-size: 0.65em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      .best-practices {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .practice-item {
+        background: #ecf0f1;
+        border-left: 4px solid #27ae60;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        max-width: 200px;
+        text-align: center;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .chart-visual {
+          flex-direction: column;
+        }
+
+        .matplotlib-features {
+          grid-template-columns: 1fr;
+        }
+
+        .best-practices {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .bar-chart {
+          height: 100px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>データ可視化</h1>
+          <h2>Data Visualization</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            データを視覚的に表現し、パターンや傾向を発見する技術を学びます
+          </p>
+        </section>
+
+        <!-- データ可視化とは -->
+        <section>
+          <h1>データ可視化とは</h1>
+          <h2>What is Data Visualization?</h2>
+          
+          <div class="highlight-box important">
+            <h3>データ可視化 (Data Visualization)</h3>
+            <p>数値やテキストデータを図表やグラフなどの視覚的な形式で表現すること。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👁️</span>
+              <h4>視覚的表現</h4>
+              <p>数値を図表で分かりやすく表示</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>パターン発見</h4>
+              <p>データの傾向や関係性を発見</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💬</span>
+              <h4>効果的な伝達</h4>
+              <p>情報を直感的に理解しやすく</p>
+            </div>
+          </div>
+
+          <div class="concept-card fragment fade-in" style="margin: 20px auto; max-width: 300px;">
+            <span class="icon">🎯</span>
+            <h4>意思決定支援</h4>
+            <p>データに基づく合理的な判断を促進</p>
+          </div>
+        </section>
+
+        <!-- グラフの種類と用途 -->
+        <section>
+          <h1>グラフの種類と用途</h1>
+          
+          <div class="chart-visual">
+            <div class="fragment fade-in">
+              <div class="bar-chart">
+                <div class="bar" style="height: 80px;">85
+                  <div class="bar-label">数学</div>
+                </div>
+                <div class="bar" style="height: 100px;">92
+                  <div class="bar-label">英語</div>
+                </div>
+                <div class="bar" style="height: 70px;">78
+                  <div class="bar-label">国語</div>
+                </div>
+              </div>
+              <p style="font-size: 0.8em; margin-top: 25px;"><strong>棒グラフ</strong><br>カテゴリ別の数値比較</p>
+            </div>
+            
+            <div class="fragment fade-in">
+              <div class="line-chart">
+                <div style="position: absolute; top: 10px; left: 10px; font-size: 0.7em; color: #2c3e50;">売上推移</div>
+              </div>
+              <p style="font-size: 0.8em;"><strong>折れ線グラフ</strong><br>時系列データの変化</p>
+            </div>
+            
+            <div class="fragment fade-in">
+              <div class="pie-chart">
+                <span style="font-size: 0.8em;">割合</span>
+              </div>
+              <p style="font-size: 0.8em;"><strong>円グラフ</strong><br>全体に対する割合</p>
+            </div>
+            
+            <div class="fragment fade-in">
+              <div class="scatter-plot">
+                <div class="scatter-dot" style="top: 20%; left: 30%;"></div>
+                <div class="scatter-dot" style="top: 40%; left: 50%;"></div>
+                <div class="scatter-dot" style="top: 60%; left: 70%;"></div>
+                <div class="scatter-dot" style="top: 30%; left: 80%;"></div>
+                <div class="scatter-dot" style="top: 70%; left: 40%;"></div>
+              </div>
+              <p style="font-size: 0.8em;"><strong>散布図</strong><br>2つの変数の相関関係</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Matplotlibライブラリ -->
+        <section>
+          <h1>Matplotlibライブラリ</h1>
+          
+          <div class="highlight-box important">
+            <h3>Matplotlib</h3>
+            <p>Pythonの標準的なデータ可視化ライブラリ。様々な種類のグラフを作成できる。</p>
+          </div>
+
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
+# 日本語フォントの設定
+plt.rcParams['font.family'] = 'DejaVu Sans'</code></pre>
+
+          <div class="matplotlib-features">
+            <div class="feature-box fragment fade-in">
+              <span class="icon" style="font-size: 2em;">📊</span>
+              <h4>多様なグラフ</h4>
+              <p>棒グラフ、折れ線、円グラフ、散布図など豊富な種類</p>
+            </div>
+            
+            <div class="feature-box fragment fade-in">
+              <span class="icon" style="font-size: 2em;">🎨</span>
+              <h4>高品質な出力</h4>
+              <p>出版レベルの図表作成が可能</p>
+            </div>
+            
+            <div class="feature-box fragment fade-in">
+              <span class="icon" style="font-size: 2em;">⚙️</span>
+              <h4>細かなカスタマイズ</h4>
+              <p>色、フォント、レイアウトを詳細に設定可能</p>
+            </div>
+            
+            <div class="feature-box fragment fade-in">
+              <span class="icon" style="font-size: 2em;">🔧</span>
+              <h4>他ライブラリ連携</h4>
+              <p>Pandas、NumPyとシームレスに連携</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 基本的なグラフの作成 -->
+        <section>
+          <h1>基本的なグラフの作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+
+# データの準備
+subjects = ['数学', '英語', '国語', '理科', '社会']
+scores = [85, 92, 78, 88, 82]
+
+# 棒グラフの作成
+plt.figure(figsize=(10, 6))
+plt.bar(subjects, scores, color='skyblue')
+plt.title('科目別成績', fontsize=16)
+plt.xlabel('科目', fontsize=12)
+plt.ylabel('点数', fontsize=12)
+plt.ylim(0, 100)</code></pre>
+        </section>
+
+        <!-- グラフのスタイリング -->
+        <section>
+          <h1>グラフのスタイリング</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># グリッドの表示
+plt.grid(axis='y', alpha=0.3)
+
+# グラフの表示
+plt.tight_layout()
+plt.show()</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📐</span>
+              <h4>figure設定</h4>
+              <p>グラフのサイズと全体設定</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>ラベル設定</h4>
+              <p>タイトル、軸ラベル、フォントサイズ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎨</span>
+              <h4>視覚的改善</h4>
+              <p>色、グリッド、レイアウト調整</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 折れ線グラフの作成 -->
+        <section>
+          <h1>折れ線グラフの作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+
+# 月別売上データ
+months = ['1月', '2月', '3月', '4月', '5月', '6月']
+sales = [120, 135, 145, 158, 162, 175]
+
+# 折れ線グラフの作成
+plt.figure(figsize=(10, 6))
+plt.plot(months, sales, marker='o', linewidth=2, markersize=8)
+plt.title('月別売上推移', fontsize=16)
+plt.xlabel('月', fontsize=12)
+plt.ylabel('売上（万円）', fontsize=12)
+plt.grid(True, alpha=0.3)
+
+# データポイントに値を表示
+for i, value in enumerate(sales):
+    plt.annotate(f'{value}万円', (i, value), 
+                textcoords="offset points", xytext=(0,10), ha='center')
+
+plt.tight_layout()
+plt.show()</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>時系列表現</h4>
+              <p>時間の経過に伴う変化を表現</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>マーカー設定</h4>
+              <p>データポイントを視覚的に強調</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💬</span>
+              <h4>注釈追加</h4>
+              <p>annotateで具体的な値を表示</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 円グラフの作成 -->
+        <section>
+          <h1>円グラフの作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+
+# データの準備
+categories = ['食費', '住居費', '交通費', '教育費', 'その他']
+amounts = [30, 40, 10, 15, 5]
+colors = ['#ff9999', '#66b3ff', '#99ff99', '#ffcc99', '#ff99cc']
+
+# 円グラフの作成
+plt.figure(figsize=(8, 8))
+plt.pie(amounts, labels=categories, colors=colors, autopct='%1.1f%%', 
+        startangle=90, textprops={'fontsize': 12})
+plt.title('家計支出の割合', fontsize=16)
+plt.axis('equal')  # 円を正円にする
+plt.show()</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>構成比 (Composition Ratio)</h3>
+            <p>全体に対する各部分の割合。円グラフで効果的に表現できる。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎨</span>
+              <h4>色の設定</h4>
+              <p>各カテゴリを色で区別</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>パーセント表示</h4>
+              <p>autopctで割合を自動表示</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⭕</span>
+              <h4>正円形状</h4>
+              <p>axis('equal')で形状を整える</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 散布図の作成 -->
+        <section>
+          <h1>散布図の作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+import numpy as np
+
+# データの準備（身長と体重の例）
+np.random.seed(42)
+height = np.random.normal(170, 10, 50)  # 身長（平均170cm）
+weight = 0.8 * height + np.random.normal(0, 5, 50) - 80  # 体重
+
+# 散布図の作成
+plt.figure(figsize=(10, 8))
+plt.scatter(height, weight, alpha=0.6, s=50)
+plt.title('身長と体重の関係', fontsize=16)
+plt.xlabel('身長 (cm)', fontsize=12)
+plt.ylabel('体重 (kg)', fontsize=12)
+plt.grid(True, alpha=0.3)
+
+# 近似直線の追加
+z = np.polyfit(height, weight, 1)
+p = np.poly1d(z)
+plt.plot(height, p(height), "r--", alpha=0.8)
+
+plt.tight_layout()
+plt.show()</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>散布図 (Scatter Plot)</h3>
+            <p>2つの変数の値をプロットして相関関係を視覚化するグラフ。</p>
+          </div>
+        </section>
+
+        <!-- 複数グラフの配置 -->
+        <section>
+          <h1>複数グラフの配置</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+import numpy as np
+
+# データの準備
+x = np.linspace(0, 10, 100)
+y1, y2, y3 = np.sin(x), np.cos(x), np.tan(x)
+
+# 2x2のサブプロット
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))</code></pre>
+        </section>
+
+        <!-- サブプロットの設定 -->
+        <section>
+          <h1>サブプロットの設定</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 各グラフの設定
+axes[0, 0].plot(x, y1, 'b-')
+axes[0, 0].set_title('sin(x)')
+axes[0, 0].grid(True)
+
+axes[0, 1].plot(x, y2, 'r-')
+axes[0, 1].set_title('cos(x)')
+axes[0, 1].grid(True)
+
+axes[1, 0].plot(x, y3, 'g-')
+axes[1, 0].set_title('tan(x)')
+axes[1, 0].set_ylim(-5, 5)
+axes[1, 0].grid(True)
+
+axes[1, 1].text(0.5, 0.5, '予備', ha='center', va='center')
+
+plt.tight_layout()
+plt.show()</code></pre>
+        </section>
+
+        <!-- データ分析と可視化の統合 -->
+        <section>
+          <h1>データ分析と可視化の統合</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import pandas as pd
+import matplotlib.pyplot as plt
+
+# サンプルデータの作成
+data = {
+    '月': ['1月', '2月', '3月', '4月', '5月', '6月'],
+    '売上': [120, 135, 145, 158, 162, 175],
+    '利益': [30, 35, 40, 45, 48, 52]
+}
+
+df = pd.DataFrame(data)</code></pre>
+        </section>
+
+        <!-- 複数系列棒グラフの作成 -->
+        <section>
+          <h1>複数系列棒グラフの作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># DataFrameから直接グラフを作成
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# 複数系列の棒グラフ
+x = range(len(df))
+width = 0.35
+
+ax.bar([i - width/2 for i in x], df['売上'], width, 
+       label='売上', alpha=0.8)
+ax.bar([i + width/2 for i in x], df['利益'], width, 
+       label='利益', alpha=0.8)
+
+ax.set_xlabel('月')
+ax.set_ylabel('金額（万円）')
+ax.set_title('月別売上・利益推移')
+ax.set_xticks(x)
+ax.set_xticklabels(df['月'])
+ax.legend()
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()</code></pre>
+        </section>
+
+        <!-- インタラクティブな可視化 -->
+        <section>
+          <h1>インタラクティブな可視化</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import tkinter as tk
+from tkinter import ttk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
+
+class GraphApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("データ可視化アプリ")
+        self.create_widgets()
+        self.update_graph()</code></pre>
+        </section>
+
+        <!-- GUIウィジェットの作成 -->
+        <section>
+          <h1>GUIウィジェットの作成</h1>
+          
+          <pre class="fragment fade-in"><code class="python">    def create_widgets(self):
+        # コントロールフレーム
+        control_frame = ttk.Frame(self.root)
+        control_frame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+        
+        # グラフ選択
+        ttk.Label(control_frame, text="グラフタイプ:").pack(side=tk.LEFT)
+        self.graph_type = ttk.Combobox(control_frame, 
+                                     values=['sin', 'cos', 'tan'])
+        self.graph_type.pack(side=tk.LEFT, padx=5)
+        self.graph_type.set('sin')
+        
+        # 更新ボタン
+        update_btn = ttk.Button(control_frame, text="更新", 
+                               command=self.update_graph)
+        update_btn.pack(side=tk.LEFT, padx=5)</code></pre>
+        </section>
+
+        <!-- グラフ更新機能 -->
+        <section>
+          <h1>グラフ更新機能</h1>
+          
+          <pre class="fragment fade-in"><code class="python">        # グラフ領域の作成
+        self.fig, self.ax = plt.subplots(figsize=(8, 6))
+        self.canvas = FigureCanvasTkAgg(self.fig, self.root)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    
+    def update_graph(self):
+        self.ax.clear()
+        x = np.linspace(0, 2*np.pi, 100)
+        
+        graph_type = self.graph_type.get()
+        if graph_type == 'sin':
+            y = np.sin(x)
+        elif graph_type == 'cos':
+            y = np.cos(x)
+        else:
+            y = np.clip(np.tan(x), -5, 5)
+        
+        self.ax.plot(x, y)
+        self.ax.set_title(f'{graph_type}(x)')
+        self.ax.grid(True)
+        self.canvas.draw()</code></pre>
+        </section>
+
+        <!-- 可視化のベストプラクティス -->
+        <section>
+          <h1>可視化のベストプラクティス</h1>
+          
+          <div class="best-practices">
+            <div class="practice-item fragment fade-in">
+              <span class="icon" style="font-size: 2em;">📊</span>
+              <h4>適切なグラフ選択</h4>
+              <p>• 比較 → 棒グラフ<br>
+              • 時系列 → 折れ線グラフ<br>
+              • 構成比 → 円グラフ<br>
+              • 相関 → 散布図</p>
+            </div>
+            
+            <div class="practice-item fragment fade-in">
+              <span class="icon" style="font-size: 2em;">🎨</span>
+              <h4>色とデザイン</h4>
+              <p>• 色覚に配慮した色選択<br>
+              • 適切なコントラスト<br>
+              • 統一されたデザイン<br>
+              • 視覚的階層</p>
+            </div>
+            
+            <div class="practice-item fragment fade-in">
+              <span class="icon" style="font-size: 2em;">🏷️</span>
+              <h4>軸とラベル</h4>
+              <p>• 明確な軸ラベル<br>
+              • 適切な目盛り間隔<br>
+              • 単位の明記<br>
+              • 分かりやすいタイトル</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 高度な可視化技術 -->
+        <section>
+          <h1>高度な可視化技術</h1>
+          
+          <pre class="fragment fade-in"><code class="python">import matplotlib.pyplot as plt
+import numpy as np
+
+# データの準備（相関行列の例）
+data = np.random.rand(5, 5)
+labels = ['A', 'B', 'C', 'D', 'E']
+
+# ヒートマップの作成
+fig, ax = plt.subplots(figsize=(8, 6))
+im = ax.imshow(data, cmap='coolwarm')
+
+# 軸の設定
+ax.set_xticks(np.arange(len(labels)))
+ax.set_yticks(np.arange(len(labels)))
+ax.set_xticklabels(labels)
+ax.set_yticklabels(labels)
+
+# 値の表示
+for i in range(len(labels)):
+    for j in range(len(labels)):
+        text = ax.text(j, i, f'{data[i, j]:.2f}',
+                      ha="center", va="center", color="black")
+
+ax.set_title("相関行列")
+plt.colorbar(im)
+plt.tight_layout()
+plt.show()</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>ヒートマップ (Heatmap)</h3>
+            <p>データの値を色の濃淡で表現する可視化手法。相関行列などでよく使用される。</p>
+          </div>
+        </section>
+
+        <!-- 実用的な可視化例 -->
+        <section>
+          <h1>実用的な可視化例</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>学校成績分析</h4>
+              <p>• 科目別平均点<br>
+              • 成績分布ヒストグラム<br>
+              • 上位学生ランキング<br>
+              • 科目間相関分析</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💼</span>
+              <h4>ビジネス分析</h4>
+              <p>• 売上推移グラフ<br>
+              • 地域別売上比較<br>
+              • 季節性分析<br>
+              • 予測トレンド</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>科学データ分析</h4>
+              <p>• 実験結果の可視化<br>
+              • 統計的検定結果<br>
+              • 時系列データ分析<br>
+              • 多変量解析</p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>ダッシュボード (Dashboard)</h3>
+            <p>複数の重要な情報やグラフを一画面にまとめた表示画面。</p>
+          </div>
+        </section>
+
+        <!-- ダッシュボード作成例 -->
+        <section>
+          <h1>ダッシュボード作成例</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 学校の成績分析ダッシュボード
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+# 1. 科目別平均点
+subject_means = df.mean()
+axes[0, 0].bar(subjects, subject_means, color='skyblue')
+axes[0, 0].set_title('科目別平均点')
+axes[0, 0].set_ylabel('平均点')
+axes[0, 0].set_ylim(0, 100)
+
+# 2. 成績分布（ヒストグラム）
+all_scores = df.values.flatten()
+axes[0, 1].hist(all_scores, bins=10, color='lightgreen', alpha=0.7)
+axes[0, 1].set_title('成績分布')
+axes[0, 1].set_xlabel('点数')
+axes[0, 1].set_ylabel('頻度')</code></pre>
+        </section>
+
+        <!-- ダッシュボードの完成 -->
+        <section>
+          <h1>ダッシュボードの完成</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># 3. 上位5名の成績
+df['総合'] = df.mean(axis=1)
+top5 = df.nlargest(5, '総合')
+axes[1, 0].barh(top5.index, top5['総合'], color='gold')
+axes[1, 0].set_title('総合成績上位5名')
+axes[1, 0].set_xlabel('総合平均')
+
+# 4. 科目間相関
+correlation = df[subjects].corr()
+im = axes[1, 1].imshow(correlation, cmap='coolwarm', vmin=-1, vmax=1)
+axes[1, 1].set_xticks(range(len(subjects)))
+axes[1, 1].set_yticks(range(len(subjects)))
+axes[1, 1].set_xticklabels(subjects)
+axes[1, 1].set_yticklabels(subjects)
+axes[1, 1].set_title('科目間相関')
+
+plt.tight_layout()
+plt.show()</code></pre>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ可視化の核心技術</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>基本グラフ</h4>
+              <p>棒グラフ、折れ線、円グラフ、散布図</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>Matplotlib活用</h4>
+              <p>高品質なグラフ作成とカスタマイズ</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>実践応用</h4>
+              <p>ダッシュボード、インタラクティブ、ベストプラクティス</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              データ可視化、棒グラフ、折れ線グラフ、円グラフ、散布図、<br>
+              Matplotlib、構成比、ヒートマップ、ダッシュボード、<br>
+              サブプロット、インタラクティブ、ベストプラクティス
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: 計測・制御プログラミング
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

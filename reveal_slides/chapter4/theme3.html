@@ -1,0 +1,1230 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4章 テーマ3: Webページとメール</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* HTMLコード表示用 */
+      .html-display {
+        font-family: 'Courier New', monospace;
+        background: #2c3e50;
+        color: #ecf0f1;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-size: 0.8em;
+        text-align: left;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        position: relative;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 8px 6px;
+        line-height: 1.1;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 70px;
+        max-width: 90px;
+        font-size: 0.65em;
+        flex-shrink: 1;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .info-circle {
+        width: 110px;
+        height: 110px;
+        flex-shrink: 1;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.html { background: #e74c3c; }
+      .info-circle.http { background: #f39c12; }
+      .info-circle.email { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 0.9em;
+      }
+      
+      .info-circle p {
+        margin: 2px 0 0 0;
+        font-size: 0.65em;
+        line-height: 1.0;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>Webページとメール</h1>
+          <h2>第4章 ネットワーク - テーマ3</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            WWW、HTML、HTTP、メールプロトコルを学ぶ
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>Web仕組み</h4>
+              <p>Webページ閲覧の詳細な仕組みを理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>HTML基本</h4>
+              <p>HTMLとHTTPの基本概念を学ぶ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📧</span>
+              <h4>メール技術</h4>
+              <p>メール送受信のプロトコルを知る</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏢</span>
+              <h4>情報システム</h4>
+              <p>情報システムの種類を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗄️</span>
+              <h4>データベース</h4>
+              <p>データベースの基本概念を学ぶ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- World Wide Web -->
+        <section>
+          <h1>World Wide Web（WWW）</h1>
+          
+          <div class="highlight-box important">
+            <h3>WWWとは</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              インターネット上の情報システムの一つ<br>
+              1989年にティム・バーナーズ=リーが考案
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>3つの基本技術</h3>
+            <div class="infographic">
+              <div class="info-circle html fragment fade-in">
+                <h4>HTML</h4>
+                <p>文書の</p>
+                <p><strong>構造記述</strong></p>
+              </div>
+              
+              <div class="info-circle http fragment fade-in">
+                <h4>URL</h4>
+                <p>資源の</p>
+                <p><strong>所在地指定</strong></p>
+              </div>
+              
+              <div class="info-circle email fragment fade-in">
+                <h4>HTTP</h4>
+                <p>通信手順の</p>
+                <p><strong>統一規定</strong></p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>ハイパーテキストによる情報の関連付け</p>
+          </div>
+        </section>
+
+        <!-- URL -->
+        <section>
+          <h1>URL（Uniform Resource Locator）</h1>
+          
+          <div class="highlight-box important">
+            <h3>URLの構成</h3>
+            <p>プロトコル://サーバ名/パス/ファイル名</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <div class="html-display">
+https://www.example.com/news/index.html</div>
+            
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>https</strong><br>
+                <small>プロトコル（暗号化通信）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>www.example.com</strong><br>
+                <small>サーバ名（ドメイン名）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>/news/</strong><br>
+                <small>パス（ディレクトリ）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>index.html</strong><br>
+                <small>ファイル名</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HTML -->
+        <section>
+          <h1>HTML（HyperText Markup Language）</h1>
+          
+          <div class="highlight-box important">
+            <h3>HTMLの役割</h3>
+            <p>Webページの構造と内容を記述する言語</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>基本的な構造</h3>
+            <div class="html-display">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ja"&gt;
+&lt;head&gt;
+    &lt;title&gt;ページタイトル&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;見出し&lt;/h1&gt;
+    &lt;p&gt;段落&lt;/p&gt;
+    &lt;a href="link.html"&gt;リンク&lt;/a&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+            </div>
+          </div>
+        </section>
+
+        <!-- 主要なHTMLタグ -->
+        <section>
+          <h1>主要なHTMLタグ</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>構造系タグ</h4>
+              <p>&lt;html&gt;, &lt;head&gt;, &lt;body&gt;, &lt;div&gt;</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📄</span>
+              <h4>内容系タグ</h4>
+              <p>&lt;h1&gt;-&lt;h6&gt;, &lt;p&gt;, &lt;a&gt;, &lt;img&gt;</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>表・リスト</h4>
+              <p>&lt;table&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;</p>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>ハイパーリンクの例</h3>
+            <div class="html-display">
+&lt;a href="https://www.example.com"&gt;外部サイト&lt;/a&gt;
+&lt;a href="page.html"&gt;同一サイト内&lt;/a&gt;
+&lt;a href="#section1"&gt;ページ内リンク&lt;/a&gt;
+            </div>
+          </div>
+        </section>
+
+        <!-- HTTP -->
+        <section>
+          <h1>HTTP（HyperText Transfer Protocol）</h1>
+          
+          <div class="highlight-box important">
+            <h3>HTTPの仕組み</h3>
+            <p>クライアント-サーバモデルによる通信</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>通信の流れ</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>①リクエスト</strong><br>
+                <small>クライアントがサーバに送信</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>②処理</strong><br>
+                <small>サーバがリクエストを処理</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>③レスポンス</strong><br>
+                <small>サーバが結果を返送</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>④表示</strong><br>
+                <small>クライアントが受信・表示</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>ステートレス</h3>
+            <p>各リクエストは独立（前の状態を保持しない）</p>
+          </div>
+        </section>
+
+        <!-- HTTPメソッドとステータスコード -->
+        <section>
+          <h1>HTTPメソッドとステータスコード</h1>
+          
+          <div class="fragment fade-in">
+            <h3>主要なHTTPメソッド</h3>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>メソッド</th>
+                  <th>機能</th>
+                  <th>用途</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fragment fade-in">
+                  <td><strong>GET</strong></td>
+                  <td>データの取得</td>
+                  <td>ページ表示、検索</td>
+                </tr>
+                <tr class="fragment fade-in">
+                  <td><strong>POST</strong></td>
+                  <td>データの送信</td>
+                  <td>フォーム送信、ファイルアップロード</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主要なステータスコード</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✅</span>
+                <h4>200 OK</h4>
+                <p>正常な処理</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">❌</span>
+                <h4>404 Not Found</h4>
+                <p>ページが見つからない</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚠️</span>
+                <h4>500 Internal Server Error</h4>
+                <p>サーバ内部エラー</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HTTPS -->
+        <section>
+          <h1>HTTPS（HTTP Secure）</h1>
+          
+          <div class="highlight-box important">
+            <h3>HTTPSとは</h3>
+            <p>HTTPに暗号化機能を追加したプロトコル</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>使用技術と利点</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔐</span>
+                <h4>SSL/TLS</h4>
+                <p>暗号化プロトコル・公開鍵暗号方式</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🛡️</span>
+                <h4>通信保護</h4>
+                <p>通信内容の暗号化・データ改ざん検出</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✋</span>
+                <h4>身元確認</h4>
+                <p>デジタル証明書によるサーバ正当性確認</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>現在はHTTPSが標準。GoogleもHTTPS化を推奨</p>
+          </div>
+        </section>
+
+        <!-- Webブラウザの動作 -->
+        <section>
+          <h1>Webブラウザの動作</h1>
+          
+          <div class="fragment fade-in">
+            <h3>ページ表示の流れ</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>①URL入力</strong><br>
+                <small>リンククリック</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>②DNS名前解決</strong><br>
+                <small>ドメイン→IP</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>③TCP接続</strong><br>
+                <small>接続確立</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>④HTTP通信</strong><br>
+                <small>リクエスト・レスポンス</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>⑤レンダリング</strong><br>
+                <small>HTML解析・表示</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主要なレンダリングエンジン</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🌐</span>
+                <h4>Webkit</h4>
+                <p>Safari、旧Chrome</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚡</span>
+                <h4>Blink</h4>
+                <p>Chrome、Edge、Opera</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔥</span>
+                <h4>Gecko</h4>
+                <p>Firefox</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 電子メールの仕組み -->
+        <section>
+          <h1>電子メールの仕組み</h1>
+          
+          <div class="highlight-box important">
+            <h3>メールシステムの構成</h3>
+          </div>
+          
+          <div class="fragment fade-in">
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>MUA</strong><br>
+                <small>Mail User Agent<br>（メールクライアント）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>MSA</strong><br>
+                <small>Mail Submission Agent<br>（送信エージェント）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>MTA</strong><br>
+                <small>Mail Transfer Agent<br>（転送エージェント）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>MDA</strong><br>
+                <small>Mail Delivery Agent<br>（配送エージェント）</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- メールのプロトコル -->
+        <section>
+          <h1>メールのプロトコル</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>プロトコル</th>
+                <th>機能</th>
+                <th>ポート番号</th>
+                <th>暗号化</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>SMTP</strong></td>
+                <td>メール送信・転送</td>
+                <td>25, 587</td>
+                <td>STARTTLS</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>POP3</strong></td>
+                <td>メール受信</td>
+                <td>110</td>
+                <td>POP3S (995)</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>IMAP</strong></td>
+                <td>メール受信</td>
+                <td>143</td>
+                <td>IMAPS (993)</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>SMTPの特徴</h3>
+            <p>Simple Mail Transfer Protocol<br>
+            テキストベースのプロトコル・リレー機能により複数サーバ経由で配送</p>
+          </div>
+        </section>
+
+        <!-- POP3とIMAPの違い -->
+        <section>
+          <h1>POP3とIMAPの違い</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>POP3</th>
+                <th>IMAP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>保存場所</strong></td>
+                <td>メールをローカルにダウンロード</td>
+                <td>メールをサーバに保存</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>利用形態</strong></td>
+                <td>単一デバイスでの利用に適している</td>
+                <td>複数デバイスでの同期</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>オフライン</strong></td>
+                <td>オフラインでメール閲覧可能</td>
+                <td>オンラインでの利用が前提</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>管理機能</strong></td>
+                <td>サーバ容量を節約</td>
+                <td>フォルダ管理・高性能検索</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box important fragment fade-in">
+            <p>現在の主流：IMAPが一般的（スマートフォン普及により）</p>
+          </div>
+        </section>
+
+        <!-- MIME -->
+        <section>
+          <h1>MIME（Multipurpose Internet Mail Extensions）</h1>
+          
+          <div class="highlight-box important">
+            <h3>MIMEの目的</h3>
+            <p>テキスト以外のデータをメールで送信</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主な機能</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📎</span>
+                <h4>添付ファイル</h4>
+                <p>ファイルの送信</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎨</span>
+                <h4>HTML形式</h4>
+                <p>リッチなメール表現</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔤</span>
+                <h4>文字エンコーディング</h4>
+                <p>多言語対応</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主要なContent-Type</h3>
+            <div class="html-display">
+text/plain     - プレーンテキスト
+text/html      - HTML形式
+image/jpeg     - JPEG画像
+application/pdf - PDFファイル
+            </div>
+          </div>
+        </section>
+
+        <!-- 情報システムの種類 -->
+        <section>
+          <h1>情報システムの種類</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏢</span>
+              <h4>基幹系システム</h4>
+              <p>ERP、CRM、SCM、会計システム</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>情報系システム</h4>
+              <p>BI、DWH、グループウェア</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>Webアプリケーション</h4>
+              <p>ECサイト、SNS、CMS</p>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>Webアプリケーションのアーキテクチャ</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>プレゼンテーション層</strong><br>
+                <small>UI（HTML、CSS、JavaScript）</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">↓</div>
+              <div class="flow-item fragment fade-in">
+                <strong>アプリケーション層</strong><br>
+                <small>ビジネスロジック</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">↓</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>データ層</strong><br>
+                <small>データベース</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- データベースの基本概念 -->
+        <section>
+          <h1>データベースの基本概念</h1>
+          
+          <div class="highlight-box important">
+            <h3>データベースとは</h3>
+            <p>大量のデータを効率的に管理するシステム</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>データベースの利点</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎯</span>
+                <h4>一元管理</h4>
+                <p>データの統合管理</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✅</span>
+                <h4>整合性確保</h4>
+                <p>データの矛盾防止</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">👥</span>
+                <h4>同時アクセス</h4>
+                <p>複数ユーザの同時利用</p>
+              </div>
+            </div>
+            
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔒</span>
+                <h4>セキュリティ</h4>
+                <p>アクセス制御・権限管理</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">💾</span>
+                <h4>バックアップ</h4>
+                <p>データ保護・復旧機能</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- リレーショナルデータベース -->
+        <section>
+          <h1>リレーショナルデータベース</h1>
+          
+          <div class="fragment fade-in">
+            <h3>基本概念</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📋</span>
+                <h4>テーブル</h4>
+                <p>データの集合</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📝</span>
+                <h4>レコード（行）</h4>
+                <p>個々のデータ</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📊</span>
+                <h4>フィールド（列）</h4>
+                <p>データの項目</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>顧客テーブルの例</h3>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>顧客ID</th>
+                  <th>氏名</th>
+                  <th>住所</th>
+                  <th>電話番号</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="fragment fade-in">
+                  <td>001</td>
+                  <td>田中太郎</td>
+                  <td>東京都...</td>
+                  <td>03-1234-5678</td>
+                </tr>
+                <tr class="fragment fade-in">
+                  <td>002</td>
+                  <td>佐藤花子</td>
+                  <td>大阪府...</td>
+                  <td>06-9876-5432</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SQL -->
+        <section>
+          <h1>SQL（Structured Query Language）</h1>
+          
+          <div class="fragment fade-in">
+            <h3>SQLの基本操作</h3>
+            
+            <div class="html-display fragment fade-in">
+<strong>データ検索（SELECT）</strong>
+SELECT 氏名, 住所 FROM 顧客テーブル 
+WHERE 住所 LIKE '%東京都%';
+
+<strong>データ挿入（INSERT）</strong>
+INSERT INTO 顧客テーブル (顧客ID, 氏名, 住所) 
+VALUES ('003', '山田次郎', '神奈川県...');
+
+<strong>データ更新（UPDATE）</strong>
+UPDATE 顧客テーブル SET 住所 = '新住所' 
+WHERE 顧客ID = '001';
+
+<strong>データ削除（DELETE）</strong>
+DELETE FROM 顧客テーブル WHERE 顧客ID = '002';
+            </div>
+          </div>
+        </section>
+
+        <!-- トランザクション -->
+        <section>
+          <h1>トランザクション</h1>
+          
+          <div class="highlight-box important">
+            <h3>トランザクションとは</h3>
+            <p>一連の処理を一つの単位として扱う</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>ACID特性</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚛️</span>
+                <h4>Atomicity</h4>
+                <p>原子性（全て実行or全て取り消し）</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔗</span>
+                <h4>Consistency</h4>
+                <p>整合性（データの矛盾なし）</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔒</span>
+                <h4>Isolation</h4>
+                <p>独立性（他の処理の影響なし）</p>
+              </div>
+            </div>
+            
+            <div class="concept-card fragment fade-in" style="margin: 0 auto; max-width: 300px;">
+              <span class="icon">💾</span>
+              <h4>Durability</h4>
+              <p>持続性（処理結果の永続化）</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>銀行の振込処理例</h3>
+            <p>① 引き落とし口座から金額を減算<br>
+            ② 振込先口座に金額を加算<br>
+            ③ 取引記録を作成<br>
+            → すべて成功するか、すべて取り消される</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>Webページとメールの技術</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌐</span>
+              <h4>Web技術</h4>
+              <p>HTML/CSS/JavaScript、HTTP/HTTPS、URL</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📧</span>
+              <h4>メール技術</h4>
+              <p>SMTP送信、POP3/IMAP受信、MIME</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🗄️</span>
+              <h4>情報システム</h4>
+              <p>3層構造、データベース、トランザクション</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              WWW、HTML、HTTP、HTTPS、URL、<br>
+              SMTP、POP3、IMAP、MIME、<br>
+              データベース、SQL、トランザクション
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：情報セキュリティ<br>
+            サイバー攻撃、暗号化、個人情報保護について学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

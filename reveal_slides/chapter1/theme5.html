@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1章 情報社会 - テーマ5：情報技術が社会に及ぼす影響</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 15px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 80px);
+        min-height: calc(100vh - 80px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 12px;
+        margin-top: 5px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.2em;
+        margin-bottom: 12px;
+      }
+      
+      .reveal h3 {
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+        text-align: center;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 12px 0;
+        gap: 6px;
+      }
+      
+      .info-circle {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.volume { background: #e74c3c; }
+      .info-circle.variety { background: #f39c12; }
+      .info-circle.velocity { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 1.1em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 90%;
+      }
+      
+      .info-circle p {
+        margin: 3px 0 0 0;
+        font-size: 0.75em;
+        line-height: 1.1;
+      }
+      
+      /* Society 5.0専用レイアウト */
+      .society-layers {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        margin: 12px 0;
+        max-width: 500px;
+      }
+      
+      .society-layer {
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 6px;
+        text-align: left;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        position: relative;
+      }
+      
+      .society-layer.cyber {
+        background: linear-gradient(90deg, #9b59b6, #8e44ad);
+      }
+      
+      .society-layer.physical {
+        background: linear-gradient(90deg, #27ae60, #229954);
+      }
+      
+      .society-layer h4 {
+        margin: 0 0 5px 0;
+        font-size: 1em;
+      }
+      
+      .society-layer p {
+        margin: 0;
+        font-size: 0.8em;
+        line-height: 1.2;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 6px;
+        padding: 10px;
+        margin: 8px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box.future {
+        background: #d1ecf1;
+        border-color: #3498db;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .timeline {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .info-circle {
+          width: 120px;
+          height: 120px;
+          margin: 10px 0;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 30px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>第1章 情報社会</h1>
+          <h2>テーマ5：情報技術が社会に及ぼす影響</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            ICTが変革する現代社会を理解しよう
+          </p>
+        </section>
+
+        <!-- ICTの社会浸透 -->
+        <section>
+          <h1>ICTの社会浸透</h1>
+          
+          <div class="highlight-box important">
+            <h3>ICT（Information and Communication Technology）</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              情報通信技術が社会のあらゆる分野に浸透し、私たちの生活を大きく変化させている
+            </p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📱</span>
+              <h4>個人生活</h4>
+              <p>スマートフォン、SNS、オンラインショッピング、デジタル決済</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏢</span>
+              <h4>企業活動</h4>
+              <p>クラウドサービス、IoT、AI活用、リモートワーク</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏛️</span>
+              <h4>社会インフラ</h4>
+              <p>電子政府、スマートシティ、遠隔医療、オンライン教育</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>ICTは単なる道具ではなく、社会構造そのものを変革する力</p>
+          </div>
+        </section>
+
+        <!-- ICT利用の発展段階 -->
+        <section>
+          <h1>ICT利用の発展段階</h1>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>第1段階</strong><br>
+              <small>コンピュータ<br>の登場</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>第2段階</strong><br>
+              <small>インターネット<br>の普及</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>第3段階</strong><br>
+              <small>モバイル<br>デバイス</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>第4段階</strong><br>
+              <small>IoT・AI<br>の時代</small>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>現在の特徴</h3>
+            <p>あらゆるモノがインターネットに接続される「IoT」</p>
+            <p>人工知能（AI）による自動化と最適化</p>
+            <p>データを活用した新しいサービスの創出</p>
+          </div>
+        </section>
+
+        <!-- ビッグデータとは -->
+        <section>
+          <h1>ビッグデータとは</h1>
+          
+          <div class="highlight-box">
+            <h3>ビッグデータの定義</h3>
+            <p>従来のデータベース管理システムでは処理が困難な巨大で複雑なデータ集合</p>
+          </div>
+          
+          <div class="infographic">
+            <div class="info-circle volume fragment fade-in">
+              <h4>Volume</h4>
+              <p>データ量</p>
+              <p><strong>大容量</strong></p>
+            </div>
+            
+            <div class="info-circle variety fragment fade-in">
+              <h4>Variety</h4>
+              <p>データ種類</p>
+              <p><strong>多様性</strong></p>
+            </div>
+            
+            <div class="info-circle velocity fragment fade-in">
+              <h4>Velocity</h4>
+              <p>データ速度</p>
+              <p><strong>高速性</strong></p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>ビッグデータの3V</h3>
+            <p>膨大な量（Volume）、多様な種類（Variety）、高速な生成・処理（Velocity）</p>
+          </div>
+        </section>
+
+        <!-- ビッグデータ活用例 -->
+        <section>
+          <h1>ビッグデータの活用例</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>分野</th>
+                <th>データ源</th>
+                <th>活用例</th>
+                <th>効果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>交通</strong></td>
+                <td>GPS、センサー</td>
+                <td>渋滞予測、最適ルート案内</td>
+                <td>移動時間短縮</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>医療</strong></td>
+                <td>電子カルテ、検査結果</td>
+                <td>疾病予測、治療法最適化</td>
+                <td>医療の質向上</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>小売</strong></td>
+                <td>購買履歴、行動データ</td>
+                <td>需要予測、商品推薦</td>
+                <td>売上向上</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>防災</strong></td>
+                <td>気象データ、地震計</td>
+                <td>災害予測、避難誘導</td>
+                <td>被害軽減</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Society 5.0とは -->
+        <section>
+          <h1>Society 5.0とは</h1>
+          
+          <div class="highlight-box future">
+            <h3>Society 5.0の定義</h3>
+            <p style="font-style: italic; font-size: 0.95em; line-height: 1.3;">
+              サイバー空間とフィジカル空間を高度に融合させ、<br>
+              人間中心の社会を実現
+            </p>
+          </div>
+          
+          <div class="society-layers">
+            <div class="society-layer cyber fragment fade-in">
+              <h4>🌐 サイバー空間</h4>
+              <p>AI、IoT、ビッグデータ、クラウド等のデジタル技術による仮想空間</p>
+            </div>
+            <div class="society-layer fragment fade-in" style="text-align: center; background: linear-gradient(90deg, #34495e, #2c3e50); padding: 8px;">
+              <h4>⬆️⬇️ 高度な融合</h4>
+              <p>リアルタイム相互連携</p>
+            </div>
+            <div class="society-layer physical fragment fade-in">
+              <h4>🏙️ フィジカル空間</h4>
+              <p>現実世界（都市、工場、家庭、人間など）</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>目指す社会</h3>
+            <p>必要なモノ・サービスを必要な人に、必要な時に、必要なだけ提供</p>
+          </div>
+        </section>
+
+        <!-- Society 1.0～5.0の発展 -->
+        <section>
+          <h1>Society 1.0〜5.0の発展</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>社会</th>
+                <th>特徴</th>
+                <th>主要技術</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>Society 1.0</strong></td>
+                <td>狩猟社会</td>
+                <td>道具の使用</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>Society 2.0</strong></td>
+                <td>農耕社会</td>
+                <td>農業技術</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>Society 3.0</strong></td>
+                <td>工業社会</td>
+                <td>蒸気機関、電力</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>Society 4.0</strong></td>
+                <td>情報社会</td>
+                <td>コンピュータ、インターネット</td>
+              </tr>
+              <tr class="fragment fade-in" style="background: #e8f6f3;">
+                <td><strong>Society 5.0</strong></td>
+                <td>超スマート社会</td>
+                <td>AI、IoT、ビッグデータ</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>各段階で技術革新が社会構造を大きく変革</p>
+          </div>
+        </section>
+
+        <!-- Society 5.0が解決する課題 -->
+        <section>
+          <h1>Society 5.0が解決する課題</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👴</span>
+              <h4>少子高齢化</h4>
+              <p>介護ロボット、遠隔医療、AI診断による医療・介護サービスの効率化</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌱</span>
+              <h4>環境・エネルギー</h4>
+              <p>スマートグリッド、AI制御による省エネルギー、再生可能エネルギー最適化</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚗</span>
+              <h4>地方の過疎化</h4>
+              <p>自動運転、ドローン配送、遠隔教育による地域格差の解消</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💼</span>
+              <h4>労働力不足</h4>
+              <p>RPA、AI、ロボットによる業務自動化と生産性向上</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏥</span>
+              <h4>医療費増大</h4>
+              <p>予防医療、個別化医療、AI診断による医療の効率化</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌍</span>
+              <h4>都市問題</h4>
+              <p>スマートシティ、交通最適化、エネルギー管理システム</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ICTがもたらす社会変化の課題 -->
+        <section>
+          <h1>ICTがもたらす社会変化の課題</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>デジタルデバイド</h4>
+              <p>ICT利用の格差による社会参加の機会不平等</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>プライバシー問題</h4>
+              <p>個人データの収集・活用における個人情報保護</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚖️</span>
+              <h4>AI・アルゴリズム</h4>
+              <p>自動化による判断の公平性・透明性の確保</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <h3>求められる対応</h3>
+            <p>技術的解決だけでなく、制度・倫理・教育面での総合的な取り組み</p>
+            <p>誰もが恩恵を受けられる包括的な社会づくり</p>
+          </div>
+        </section>
+
+        <!-- 情報技術と持続可能な社会 -->
+        <section>
+          <h1>情報技術と持続可能な社会</h1>
+          
+          <div class="highlight-box future">
+            <h3>SDGs（持続可能な開発目標）との関連</h3>
+            <p>ICTを活用して環境・社会・経済の課題を同時解決</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>目標</th>
+                <th>ICT活用例</th>
+                <th>期待効果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>品質教育</strong></td>
+                <td>オンライン学習、VR/AR教材</td>
+                <td>教育機会の平等化</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>気候変動対策</strong></td>
+                <td>エネルギー管理、排出量監視</td>
+                <td>CO2削減</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>働きがい</strong></td>
+                <td>テレワーク、業務自動化</td>
+                <td>労働環境改善</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>産業イノベーション</strong></td>
+                <td>スマート工場、IoT活用</td>
+                <td>生産性向上</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box important fragment fade-in">
+            <p>テクノロジーを人間中心の持続可能な発展に活用することが重要</p>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>情報技術が社会に及ぼす影響</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>社会変革の推進</h4>
+              <p>ICTの浸透とビッグデータ活用による社会システムの変革</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>Society 5.0</h4>
+              <p>サイバー・フィジカル空間の融合による超スマート社会</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✅</span>
+              <h4>課題と対応</h4>
+              <p>技術発展の恩恵を誰もが享受できる持続可能な社会の実現</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              ICT、ビッグデータ、3V（Volume・Variety・Velocity）、<br>
+              Society 5.0、サイバー空間、フィジカル空間、<br>
+              IoT、AI、デジタルデバイド、SDGs
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            🎓 次回は知的財産権とライセンスについて学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

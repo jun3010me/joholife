@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オブジェクト指向プログラミング - 情報Ⅰ第6章テーマ5</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .class-diagram {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .class-box {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        min-width: 200px;
+        text-align: left;
+      }
+
+      .class-header {
+        background: #3498db;
+        color: white;
+        padding: 8px;
+        margin: -15px -15px 10px -15px;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+      }
+
+      .class-section {
+        margin-bottom: 10px;
+        padding: 5px 0;
+        border-bottom: 1px solid #bdc3c7;
+      }
+
+      .class-section:last-child {
+        border-bottom: none;
+      }
+
+      .class-section h5 {
+        margin: 0 0 5px 0;
+        font-size: 0.9em;
+        color: #2c3e50;
+        font-weight: bold;
+      }
+
+      .class-section ul {
+        margin: 0;
+        padding-left: 15px;
+        list-style: none;
+      }
+
+      .class-section li {
+        font-size: 0.8em;
+        margin: 2px 0;
+        color: #34495e;
+      }
+
+      .inheritance-arrow {
+        font-size: 24px;
+        color: #3498db;
+        margin: 10px;
+        align-self: center;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      .reveal pre {
+        font-size: 0.65em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .class-diagram {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .class-box {
+          min-width: 150px;
+        }
+
+        .inheritance-arrow {
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>オブジェクト指向プログラミング</h1>
+          <h2>Object-Oriented Programming</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            現実世界のモノをプログラムで表現する手法を学びます
+          </p>
+        </section>
+
+        <!-- オブジェクト指向とは -->
+        <section>
+          <h1>オブジェクト指向とは</h1>
+          <h2>What is Object-Oriented Programming?</h2>
+          
+          <div class="highlight-box important">
+            <h3>オブジェクト指向プログラミング (OOP)</h3>
+            <p>データとそれを操作する手続きをオブジェクトとしてまとめ、オブジェクト同士の相互作用でプログラムを構築する手法。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌍</span>
+              <h4>現実世界モデル</h4>
+              <p>モノ（オブジェクト）をプログラムで表現</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>データと処理の統合</h4>
+              <p>属性（データ）とメソッド（処理）をまとめて管理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧠</span>
+              <h4>直感的設計</h4>
+              <p>より理解しやすく保守しやすいプログラム</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- オブジェクト指向の基本概念 -->
+        <section>
+          <h1>オブジェクト指向の基本概念</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>クラス (Class)</h4>
+              <p>オブジェクトの設計図</p>
+              <p>属性とメソッドの定義</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>オブジェクト (Object)</h4>
+              <p>クラスから作られた実体</p>
+              <p>インスタンスとも呼ばれる</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>属性 (Attribute)</h4>
+              <p>オブジェクトが持つデータ</p>
+              <p>状態を表現する</p>
+            </div>
+          </div>
+
+          <div class="concept-card fragment fade-in" style="margin: 20px auto; max-width: 300px;">
+            <span class="icon">⚙️</span>
+            <h4>メソッド (Method)</h4>
+            <p>オブジェクトが実行できる処理</p>
+            <p>振る舞いを定義する</p>
+          </div>
+        </section>
+
+        <!-- クラスの定義 -->
+        <section>
+          <h1>クラスの定義</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Student:
+    """学生クラス"""
+    
+    def __init__(self, name, age, student_id):
+        """コンストラクタ（初期化メソッド）"""
+        self.name = name        # 属性
+        self.age = age          # 属性
+        self.student_id = student_id  # 属性
+    
+    def introduce(self):
+        """自己紹介メソッド"""
+        return f"私は{self.name}です。{self.age}歳、学籍番号は{self.student_id}です。"</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>クラス (Class)</h4>
+              <p>オブジェクトの設計図。属性とメソッドを定義したテンプレート</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>コンストラクタ</h4>
+              <p>オブジェクトを初期化するための特殊なメソッド。Pythonでは __init__</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👤</span>
+              <h4>self</h4>
+              <p>オブジェクト自身を参照するキーワード</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- オブジェクトの生成と使用 -->
+        <section>
+          <h1>オブジェクトの生成と使用</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># オブジェクト（インスタンス）の生成
+student1 = Student("田中太郎", 18, "S001")
+student2 = Student("佐藤花子", 19, "S002")
+
+# メソッドの呼び出し
+print(student1.introduce())
+print(student2.introduce())
+
+# 属性へのアクセス
+print(f"学生名: {student1.name}")
+print(f"年齢: {student1.age}")</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏭</span>
+              <h4>インスタンス化</h4>
+              <p>クラスから実際のオブジェクトを作成</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>インスタンス</h4>
+              <p>クラスから作成されたオブジェクトの実体</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>メソッド呼び出し</h4>
+              <p>オブジェクト.メソッド名()で実行</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- カプセル化 -->
+        <section>
+          <h1>カプセル化</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class BankAccount:
+    def __init__(self, owner, initial_balance):
+        self.owner = owner
+        self.__balance = initial_balance  # プライベート属性（__で始まる）
+    
+    def deposit(self, amount):
+        """入金"""
+        if amount > 0:
+            self.__balance += amount
+            return True
+        return False
+    
+    def withdraw(self, amount):
+        """出金"""
+        if 0 < amount <= self.__balance:
+            self.__balance -= amount
+            return True
+        return False
+    
+    def get_balance(self):
+        """残高の取得"""
+        return self.__balance</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>カプセル化 (Encapsulation)</h3>
+            <p>オブジェクトの内部データを隠蔽し、外部からの直接アクセスを制御する仕組み。</p>
+          </div>
+        </section>
+
+        <!-- 継承 -->
+        <section>
+          <h1>継承 (Inheritance)</h1>
+          
+          <div class="class-diagram">
+            <div class="class-box fragment fade-in">
+              <div class="class-header">Animal (基本クラス)</div>
+              <div class="class-section">
+                <h5>属性</h5>
+                <ul>
+                  <li>name</li>
+                  <li>age</li>
+                </ul>
+              </div>
+              <div class="class-section">
+                <h5>メソッド</h5>
+                <ul>
+                  <li>speak()</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="inheritance-arrow fragment fade-in">↓</div>
+            
+            <div class="class-box fragment fade-in">
+              <div class="class-header">Dog (派生クラス)</div>
+              <div class="class-section">
+                <h5>追加属性</h5>
+                <ul>
+                  <li>breed</li>
+                </ul>
+              </div>
+              <div class="class-section">
+                <h5>オーバーライド</h5>
+                <ul>
+                  <li>speak() → "ワンワン"</li>
+                </ul>
+              </div>
+              <div class="class-section">
+                <h5>新規メソッド</h5>
+                <ul>
+                  <li>fetch()</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>継承 (Inheritance)</h3>
+            <p>既存のクラスの属性とメソッドを引き継いで新しいクラスを作成する仕組み。</p>
+          </div>
+        </section>
+
+        <!-- 継承の実装例 -->
+        <section>
+          <h1>継承の実装例</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Animal:
+    """動物クラス（基本クラス）"""
+    
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+    def speak(self):
+        return "何らかの音"
+
+class Dog(Animal):
+    """犬クラス（派生クラス）"""
+    
+    def __init__(self, name, age, breed):
+        super().__init__(name, age)  # 親クラスの初期化
+        self.breed = breed
+    
+    def speak(self):
+        return "ワンワン"
+    
+    def fetch(self):
+        return f"{self.name}がボールを取ってきました"</code></pre>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>super() 関数</h3>
+            <p>親クラスのメソッドを呼び出すための組み込み関数。</p>
+          </div>
+        </section>
+
+        <!-- ポリモーフィズム -->
+        <section>
+          <h1>ポリモーフィズム</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Cat(Animal):
+    def speak(self):
+        return "ニャーニャー"
+
+class Bird(Animal):
+    def speak(self):
+        return "チュンチュン"
+
+# ポリモーフィズムの例
+animals = [
+    Dog("ポチ", 3, "柴犬"),
+    Cat("タマ", 2),
+    Bird("ピーちゃん", 1)
+]
+
+for animal in animals:
+    print(f"{animal.name}: {animal.speak()}")
+# ポチ: ワンワン
+# タマ: ニャーニャー
+# ピーちゃん: チュンチュン</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>ポリモーフィズム (Polymorphism)</h3>
+            <p>同じインターフェースを持つ異なるオブジェクトが、それぞれ独自の動作をする仕組み。</p>
+          </div>
+        </section>
+
+        <!-- クラス変数とインスタンス変数 -->
+        <section>
+          <h1>クラス変数とインスタンス変数</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Student:
+    school_name = "〇〇高校"  # クラス変数（すべてのインスタンスで共有）
+    student_count = 0
+    
+    def __init__(self, name):
+        self.name = name  # インスタンス変数
+        Student.student_count += 1  # クラス変数を更新
+    
+    @classmethod
+    def get_student_count(cls):
+        return cls.student_count
+
+# 使用例
+student1 = Student("太郎")
+student2 = Student("花子")
+
+print(Student.school_name)  # "〇〇高校"
+print(Student.get_student_count())  # 2</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏫</span>
+              <h4>クラス変数</h4>
+              <p>クラスに属する変数。すべてのインスタンスで共有される</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👤</span>
+              <h4>インスタンス変数</h4>
+              <p>各インスタンス固有の変数。オブジェクトごとに独立した値</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>@classmethod</h4>
+              <p>クラスメソッドを定義するデコレータ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 特殊メソッド -->
+        <section>
+          <h1>特殊メソッド</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
+    def __str__(self):
+        """文字列表現"""
+        return f"Point({self.x}, {self.y})"
+    
+    def __eq__(self, other):
+        """等価判定"""
+        return self.x == other.x and self.y == other.y
+    
+    def __add__(self, other):
+        """加算演算"""
+        return Point(self.x + other.x, self.y + other.y)
+
+# 使用例
+p1 = Point(1, 2)
+p2 = Point(3, 4)
+
+print(p1)           # "Point(1, 2)"
+print(p1 + p2)      # "Point(4, 6)"
+print(p1 == p2)     # False</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>特殊メソッド (Special Method)</h3>
+            <p>Pythonが提供する特別な動作を定義するメソッド。__で囲まれた名前を持つ。</p>
+          </div>
+        </section>
+
+        <!-- プログラム設計手法 -->
+        <section>
+          <h1>プログラム設計手法</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>設計手順</h4>
+              <p>1. 問題領域の分析<br>
+              2. オブジェクトの特定<br>
+              3. クラスの設計<br>
+              4. 関係性の定義<br>
+              5. 実装</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📏</span>
+              <h4>設計原則</h4>
+              <p>• 単一責任の原則<br>
+              • 開放閉鎖の原則<br>
+              • 継承よりも委譲</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>品質向上</h4>
+              <p>• 再利用性<br>
+              • 保守性<br>
+              • 拡張性<br>
+              • 理解しやすさ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実用的な例: 図書管理システム -->
+        <section>
+          <h1>実用的な例: 図書管理システム</h1>
+          
+          <pre class="fragment fade-in"><code class="python">class Book:
+    def __init__(self, title, author, isbn):
+        self.title = title
+        self.author = author
+        self.isbn = isbn
+        self.is_borrowed = False
+    
+    def borrow(self):
+        if not self.is_borrowed:
+            self.is_borrowed = True
+            return True
+        return False
+    
+    def return_book(self):
+        if self.is_borrowed:
+            self.is_borrowed = False
+            return True
+        return False
+
+class Library:
+    def __init__(self, name):
+        self.name = name
+        self.books = []
+    
+    def add_book(self, book):
+        self.books.append(book)
+    
+    def find_book(self, title):
+        for book in self.books:
+            if book.title == title:
+                return book
+        return None
+    
+    def borrow_book(self, title):
+        book = self.find_book(title)
+        if book and book.borrow():
+            return f"'{title}'を貸し出しました"
+        return f"'{title}'は貸し出しできません"</code></pre>
+        </section>
+
+        <!-- オブジェクト指向の利点 -->
+        <section>
+          <h1>オブジェクト指向の利点</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>利点</th>
+                <th>説明</th>
+                <th>具体例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>再利用性</strong></td>
+                <td>一度作ったクラスを別のプログラムでも使用可能</td>
+                <td>Studentクラスを複数のシステムで活用</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>保守性</strong></td>
+                <td>変更が必要な部分が局所化される</td>
+                <td>Bookクラスの修正が他に影響しない</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>拡張性</strong></td>
+                <td>継承により機能を段階的に追加可能</td>
+                <td>AnimalからDog, Catクラスを派生</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>理解しやすさ</strong></td>
+                <td>現実世界のモデルに近い設計</td>
+                <td>図書館、本という概念をそのまま表現</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>オブジェクト指向プログラミングの核心</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>基本概念</h4>
+              <p>クラス、オブジェクト、属性、メソッド</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>主要機能</h4>
+              <p>カプセル化、継承、ポリモーフィズム</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>実践的活用</h4>
+              <p>設計手法、特殊メソッド、実用例</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              オブジェクト指向プログラミング、クラス、オブジェクト、インスタンス、<br>
+              属性、メソッド、コンストラクタ、self、カプセル化、<br>
+              継承、super()、ポリモーフィズム、特殊メソッド
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: データ活用プログラミング
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プログラミングの基礎 - 情報Ⅰ第6章テーマ1</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.75em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .timeline {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>プログラミングの基礎</h1>
+          <h2>Programming Fundamentals</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            コンピュータプログラミングの歴史と基本概念を学びます
+          </p>
+        </section>
+
+        <!-- 歴史的背景 -->
+        <section>
+          <h1>歴史的背景</h1>
+          <h2>Historical Background</h2>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>1791-1871</strong><br>
+              <small>チャールズ・バベッジ</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>1815-1852</strong><br>
+              <small>エイダ・ラブレス</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>現代</strong><br>
+              <small>プログラミング</small>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>解析機関 (Analytical Engine)</h3>
+            <p>現代のコンピュータの原型となった機械的計算機の設計。プログラムによって制御される初の機械として考案された。</p>
+          </div>
+        </section>
+
+        <!-- チャールズ・バベッジ -->
+        <section>
+          <h1>チャールズ・バベッジ</h1>
+          <h2>Charles Babbage (1791-1871)</h2>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>解析機関の考案</h4>
+              <p>現代コンピュータの原型となる設計</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💡</span>
+              <h4>プログラム可能</h4>
+              <p>機械をプログラムで制御する概念を提唱</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>計算の自動化</h4>
+              <p>手動計算からの革新的な転換</p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>重要な貢献</h3>
+            <p>バベッジの解析機関は、入力・処理・出力・記憶という現代コンピュータの基本構造を持っていました。</p>
+          </div>
+        </section>
+
+        <!-- エイダ・ラブレス -->
+        <section>
+          <h1>エイダ・ラブレス</h1>
+          <h2>Ada Lovelace (1815-1852)</h2>
+          
+          <div class="highlight-box important">
+            <h3>世界初のプログラマー</h3>
+            <p>バベッジの解析機関用のアルゴリズムを作成し、プログラミングの概念を初めて体系化</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>アルゴリズム作成</h4>
+              <p>解析機関で実行可能な手順を記述</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>プログラミング概念</h4>
+              <p>機械への指示を体系的に整理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔮</span>
+              <h4>未来予見</h4>
+              <p>数値計算以外の可能性を示唆</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- アルゴリズムとは -->
+        <section>
+          <h1>アルゴリズムとは</h1>
+          <h2>What is an Algorithm?</h2>
+          
+          <div class="highlight-box important">
+            <h3>アルゴリズムの定義</h3>
+            <p>問題を解決するための明確で有限な手順。コンピュータが実行できる形で表現された処理の流れ。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>明確性</h4>
+              <p>各ステップが曖昧さなく定義されている</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏹️</span>
+              <h4>有限性</h4>
+              <p>必ず終了する処理の流れ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>再現性</h4>
+              <p>誰が実行しても同じ結果が得られる</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- プログラムとアルゴリズムの関係 -->
+        <section>
+          <h1>プログラムとアルゴリズムの関係</h1>
+          
+          <div class="highlight-box important">
+            <h3>プログラム = アルゴリズム + データ構造</h3>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>アルゴリズム</h4>
+              <p>処理の手順と論理</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>データ構造</h4>
+              <p>情報の格納と組織化</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💻</span>
+              <h4>プログラム</h4>
+              <p>実行可能な形で実装されたもの</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- プログラミング言語の分類 -->
+        <section>
+          <h1>プログラミング言語の分類</h1>
+          <h2>Programming Language Classification</h2>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>言語レベル</th>
+                <th>特徴</th>
+                <th>例</th>
+                <th>理解しやすさ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>機械語</strong></td>
+                <td>0と1のバイナリコード</td>
+                <td>01001000 01100101</td>
+                <td>困難</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>アセンブリ言語</strong></td>
+                <td>ニーモニック記号</td>
+                <td>MOV, ADD, JMP</td>
+                <td>やや困難</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>高級言語</strong></td>
+                <td>人間の言語に近い</td>
+                <td>Python, Java, C</td>
+                <td>容易</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 機械語 -->
+        <section>
+          <h1>機械語</h1>
+          <h2>Machine Language</h2>
+          
+          <div class="highlight-box important">
+            <h3>機械語 (Machine Language)</h3>
+            <p>コンピュータのCPUが直接実行できる0と1で表現されたプログラム言語。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>バイナリコード</h4>
+              <p>0と1の組み合わせのみで表現</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>直接実行</h4>
+              <p>CPUが変換なしで実行可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">😰</span>
+              <h4>理解困難</h4>
+              <p>人間には非常に理解しにくい</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- アセンブリ言語 -->
+        <section>
+          <h1>アセンブリ言語</h1>
+          <h2>Assembly Language</h2>
+          
+          <div class="highlight-box important">
+            <h3>ニーモニック (Mnemonic)</h3>
+            <p>人間が理解しやすいように、機械語命令に対応する記号や短縮語。例: ADD, MOV, JMP</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>記号化</h4>
+              <p>機械語に記号を対応させた</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>アセンブラ</h4>
+              <p>機械語に変換するソフトウェア</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👀</span>
+              <h4>可読性向上</h4>
+              <p>機械語より理解しやすい</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 高級言語 -->
+        <section>
+          <h1>高級言語</h1>
+          <h2>High-Level Language</h2>
+          
+          <div class="highlight-box important">
+            <h3>高級言語 (High-Level Language)</h3>
+            <p>人間が理解しやすい形で記述できるプログラミング言語。機械語から抽象化されている。</p>
+          </div>
+
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>言語</th>
+                <th>特徴</th>
+                <th>主な用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>C言語</strong></td>
+                <td>システムレベル</td>
+                <td>OS、組み込みシステム</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>Java</strong></td>
+                <td>オブジェクト指向</td>
+                <td>企業システム、Android</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>Python</strong></td>
+                <td>シンプルで読みやすい</td>
+                <td>データ分析、AI、Web</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- コンパイラとインタープリター -->
+        <section>
+          <h1>コンパイラとインタープリター</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>コンパイラ</th>
+                <th>インタープリター</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>変換方式</strong></td>
+                <td>一括で機械語に変換</td>
+                <td>1行ずつ実行時に変換</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>実行速度</strong></td>
+                <td>高速</td>
+                <td>やや低速</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>開発効率</strong></td>
+                <td>変換時間が必要</td>
+                <td>即座に実行可能</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>デバッグ</strong></td>
+                <td>やや困難</td>
+                <td>容易</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>プログラミングの基礎概念</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📚</span>
+              <h4>歴史的発展</h4>
+              <p>バベッジからラブレスへの系譜</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>アルゴリズム</h4>
+              <p>問題解決の明確な手順</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💻</span>
+              <h4>言語の進化</h4>
+              <p>機械語から高級言語への発展</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              解析機関、プログラミング、アルゴリズム、<br>
+              機械語、ニーモニック、アセンブラ、<br>
+              高級言語、コンパイラ、インタープリター
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: プログラムの基本構造
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ソフトウェアを利用したデータの処理 - 情報Ⅰ第5章テーマ2</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .reveal p, .reveal li {
+        font-size: 0.9em;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+
+      .reveal ul, .reveal ol {
+        display: block;
+        margin: 12px 0;
+      }
+
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      /* 関数表 */
+      .function-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.75em;
+      }
+      
+      .function-table th,
+      .function-table td {
+        border: 1px solid #bdc3c7;
+        padding: 8px 6px;
+        text-align: left;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .function-table th {
+        background: #3498db;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .function-table .formula {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      /* 計算例 */
+      .calculation-example {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        text-align: left;
+      }
+
+      .calculation-example h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+
+      .calculation-example .formula {
+        font-family: 'Courier New', monospace;
+        background: #e9ecef;
+        padding: 5px 8px;
+        border-radius: 4px;
+        display: block;
+        margin: 5px 0;
+      }
+
+      /* グラフ種類 */
+      .graph-types {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .graph-card {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+      }
+
+      .graph-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 1em;
+      }
+
+      .graph-card .icon {
+        font-size: 2em;
+        margin-bottom: 10px;
+        display: block;
+        color: #3498db;
+      }
+
+      .graph-card ul {
+        font-size: 0.8em;
+        text-align: left;
+        margin: 8px 0;
+      }
+
+      /* データ処理ステップ */
+      .process-steps {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .process-steps::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .process-step {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 15px 10px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 100px;
+        font-size: 0.8em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .process-step.current {
+        background: #3498db;
+        color: white;
+      }
+
+      /* 参照例 */
+      .reference-examples {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .reference-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: left;
+      }
+
+      .reference-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+      }
+
+      .reference-card .example {
+        font-family: 'Courier New', monospace;
+        background: #e9ecef;
+        padding: 5px 8px;
+        border-radius: 4px;
+        margin: 5px 0;
+        font-size: 0.85em;
+      }
+
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+
+        .concept-diagram,
+        .graph-types,
+        .reference-examples {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table,
+        .function-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td,
+        .function-table th,
+        .function-table td {
+          padding: 6px 4px;
+        }
+
+        .process-steps {
+          flex-direction: column;
+        }
+
+        .process-steps::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .process-step {
+          margin: 10px 0;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>ソフトウェアを利用したデータの処理</h1>
+          <h2>第5章 問題解決 - テーマ2</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            表計算ソフトウェアを活用した効率的なデータ分析手法
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>基本機能</h4>
+              <p>表計算ソフトの理解</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>セル参照</h4>
+              <p>相対・絶対参照の使い分け</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>関数活用</h4>
+              <p>各種関数の適切な利用</p>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>グラフ化</h4>
+              <p>情報の可視化技術</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>データ操作</h4>
+              <p>並べ替えと抽出技術</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">✨</span>
+              <h4>品質管理</h4>
+              <p>エラーチェックと検証</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 表計算ソフトウェアの役割 -->
+        <section>
+          <h1>表計算ソフトウェアの役割</h1>
+          
+          <div class="highlight-box important">
+            <h3>データ処理の必要性</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              分析を行うには新たな情報を作り出す必要がある
+            </p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>特徴の把握</h4>
+              <p>データの傾向を理解<br>比較分析による相対評価</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>自動計算</h4>
+              <p>数式による連動計算<br>効率的な処理の実現</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>可視化機能</h4>
+              <p>グラフ作成による表現<br>データ管理と集計</p>
+            </div>
+          </div>
+
+          <div class="process-steps fragment fade-in">
+            <div class="process-step fragment fade-in">
+              <strong>データ入力</strong><br>
+              <small>セル単位の編集</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>数式作成</strong><br>
+              <small>計算の自動化</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>分析実行</strong><br>
+              <small>統計・集計処理</small>
+            </div>
+            <div class="process-step current fragment fade-in">
+              <strong>結果表現</strong><br>
+              <small>グラフ化・報告</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- セル参照の基本 -->
+        <section>
+          <h1>セル参照の基本</h1>
+          
+          <div class="reference-examples">
+            <div class="reference-card fragment fade-in">
+              <h4>セルアドレス</h4>
+              <div class="example">列: A, B, C, ... (英字)</div>
+              <div class="example">行: 1, 2, 3, ... (数字)</div>
+              <div class="example">例: A1, B5, Z100</div>
+            </div>
+            
+            <div class="reference-card fragment fade-in">
+              <h4>数式の基本</h4>
+              <div class="example">=A1+B1</div>
+              <div class="example">=SUM(A1:A10)</div>
+              <p>必ず「=」で始める</p>
+            </div>
+          </div>
+
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>演算</th>
+                <th>数学記号</th>
+                <th>表計算ソフト</th>
+                <th>例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>加算</td>
+                <td>+</td>
+                <td>+</td>
+                <td>=A1+B1</td>
+              </tr>
+              <tr>
+                <td>減算</td>
+                <td>-</td>
+                <td>-</td>
+                <td>=A1-B1</td>
+              </tr>
+              <tr>
+                <td>乗算</td>
+                <td>×</td>
+                <td>*</td>
+                <td>=A1*B1</td>
+              </tr>
+              <tr>
+                <td>除算</td>
+                <td>÷</td>
+                <td>/</td>
+                <td>=A1/B1</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- 相対参照と絶対参照 -->
+        <section>
+          <h1>相対参照と絶対参照</h1>
+          
+          <div class="reference-examples">
+            <div class="reference-card fragment fade-in">
+              <h4>相対参照</h4>
+              <div class="example">A1 → B1 (右に1列)</div>
+              <div class="example">A1 → A2 (下に1行)</div>
+              <p>コピー時に参照先が自動変更</p>
+            </div>
+            
+            <div class="reference-card fragment fade-in">
+              <h4>絶対参照</h4>
+              <div class="example">$A$1 → $A$1 (固定)</div>
+              <div class="example">$A1 → $A1 (列固定)</div>
+              <div class="example">A$1 → A$1 (行固定)</div>
+            </div>
+          </div>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>使い分けのポイント</h3>
+            <p>コピー先にかかわらず同じセルを参照する場合は絶対参照を使用</p>
+          </div>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>実践例：税込価格計算</h4>
+            <div class="formula">税率: $B$1 = 1.1</div>
+            <div class="formula">商品価格: =A2*$B$1</div>
+            <p>税率セルは絶対参照、商品価格は相対参照で下にコピー</p>
+          </div>
+        </section>
+
+        <!-- 基本関数の活用 -->
+        <section>
+          <h1>基本関数の活用</h1>
+          
+          <table class="function-table">
+            <thead>
+              <tr>
+                <th>関数名</th>
+                <th>書式</th>
+                <th>機能</th>
+                <th>例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>SUM</strong></td>
+                <td class="formula">=SUM(範囲)</td>
+                <td>範囲内の数値の合計</td>
+                <td class="formula">=SUM(A1:A10)</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>AVERAGE</strong></td>
+                <td class="formula">=AVERAGE(範囲)</td>
+                <td>範囲内の数値の平均</td>
+                <td class="formula">=AVERAGE(B1:B5)</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>COUNT</strong></td>
+                <td class="formula">=COUNT(範囲)</td>
+                <td>範囲内の数値の個数</td>
+                <td class="formula">=COUNT(C1:C20)</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>MAX</strong></td>
+                <td class="formula">=MAX(範囲)</td>
+                <td>範囲内の最大値</td>
+                <td class="formula">=MAX(D1:D10)</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>MIN</strong></td>
+                <td class="formula">=MIN(範囲)</td>
+                <td>範囲内の最小値</td>
+                <td class="formula">=MIN(E1:E10)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>範囲指定の方法</h3>
+            <p><strong>連続範囲:</strong> A1:A10 (A1からA10まで)</p>
+            <p><strong>複数範囲:</strong> A1:A5,C1:C5 (カンマで区切り)</p>
+          </div>
+        </section>
+
+        <!-- 条件付き関数 -->
+        <section>
+          <h1>条件付き関数</h1>
+          
+          <table class="function-table">
+            <thead>
+              <tr>
+                <th>関数名</th>
+                <th>書式</th>
+                <th>機能</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>IF</strong></td>
+                <td class="formula">=IF(論理式,真の場合,偽の場合)</td>
+                <td>条件による値の切り替え</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>COUNTIF</strong></td>
+                <td class="formula">=COUNTIF(範囲,検索条件)</td>
+                <td>条件に合うセルの個数</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>SUMIF</strong></td>
+                <td class="formula">=SUMIF(範囲,検索条件,合計範囲)</td>
+                <td>条件に合うセルの合計</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>IF関数の例</h4>
+            <div class="formula">=IF(A1>80,"合格","不合格")</div>
+            <p>A1が80より大きければ「合格」、そうでなければ「不合格」</p>
+          </div>
+
+          <div class="reference-examples fragment fade-in">
+            <div class="reference-card">
+              <h4>検索条件の指定</h4>
+              <div class="example">数値: ">80", "<=60", "=100"</div>
+              <div class="example">文字: "A", "合格"</div>
+              <div class="example">セル参照: ">"&B1</div>
+            </div>
+            
+            <div class="reference-card">
+              <h4>比較演算子</h4>
+              <div class="example">等しい: =</div>
+              <div class="example">等しくない: <></div>
+              <div class="example">以上/以下: >=, <=</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実践例：成績評価 -->
+        <section>
+          <h1>実践例：成績評価</h1>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>学生</th>
+                <th>数学</th>
+                <th>英語</th>
+                <th>理科</th>
+                <th>平均</th>
+                <th>評価</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>A</td>
+                <td>85</td>
+                <td>78</td>
+                <td>92</td>
+                <td>85.0</td>
+                <td>優</td>
+              </tr>
+              <tr>
+                <td>B</td>
+                <td>72</td>
+                <td>85</td>
+                <td>68</td>
+                <td>75.0</td>
+                <td>良</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>計算式</h4>
+            <div class="formula">平均: =AVERAGE(B2:D2)</div>
+            <div class="formula">評価: =IF(E2>=80,"優",IF(E2>=70,"良",IF(E2>=60,"可","不可")))</div>
+          </div>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>集計</h4>
+            <div class="formula">優の人数: =COUNTIF(F2:F10,"優")</div>
+            <div class="formula">全体平均: =AVERAGE(E2:E10)</div>
+          </div>
+        </section>
+
+        <!-- 情報の可視化 -->
+        <section>
+          <h1>情報の可視化</h1>
+          
+          <div class="graph-types">
+            <div class="graph-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>棒グラフ</h4>
+              <ul>
+                <li>量の比較</li>
+                <li>カテゴリ別データ</li>
+                <li>時系列データ</li>
+              </ul>
+            </div>
+            
+            <div class="graph-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>折れ線グラフ</h4>
+              <ul>
+                <li>変化の傾向</li>
+                <li>時系列データ</li>
+                <li>複数系列の比較</li>
+              </ul>
+            </div>
+            
+            <div class="graph-card fragment fade-in">
+              <span class="icon">🥧</span>
+              <h4>円グラフ</h4>
+              <ul>
+                <li>構成比</li>
+                <li>割合の表示</li>
+                <li>全体に対する部分</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="process-steps fragment fade-in">
+            <div class="process-step fragment fade-in">
+              <strong>データ選択</strong><br>
+              <small>グラフ化する範囲</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>グラフ挿入</strong><br>
+              <small>種類を選択</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>書式設定</strong><br>
+              <small>タイトル・軸ラベル</small>
+            </div>
+            <div class="process-step current fragment fade-in">
+              <strong>調整</strong><br>
+              <small>色・フォント・配置</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- 効果的なグラフ作成 -->
+        <section>
+          <h1>効果的なグラフ作成</h1>
+          
+          <div class="highlight-box important">
+            <h3>複数軸の活用</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              異なる尺度のデータを同時表示できる
+            </p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>第1軸</h4>
+              <p>主要なデータ系列<br>（例：雨量 mm）</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📈</span>
+              <h4>第2軸</h4>
+              <p>異なる単位のデータ<br>（例：水位 m）</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔍</span>
+              <h4>読み取りポイント</h4>
+              <p>全体的傾向、特徴的変化<br>相関関係、異常値</p>
+            </div>
+          </div>
+
+          <div class="highlight-box fragment fade-in">
+            <h3>グラフの重要性</h3>
+            <p>グラフは情報の特徴や傾向を視覚的に把握するための強力なツール</p>
+          </div>
+        </section>
+
+        <!-- データの並べ替え -->
+        <section>
+          <h1>データの並べ替え</h1>
+          
+          <div class="reference-examples">
+            <div class="reference-card fragment fade-in">
+              <h4>並べ替えの種類</h4>
+              <p><strong>昇順:</strong> 小さい値から大きい値へ</p>
+              <p><strong>降順:</strong> 大きい値から小さい値へ</p>
+              <p><strong>文字列:</strong> 五十音順、アルファベット順</p>
+              <p><strong>日付:</strong> 古い順、新しい順</p>
+            </div>
+            
+            <div class="reference-card fragment fade-in">
+              <h4>複数キーでの並べ替え</h4>
+              <p><strong>第1キー:</strong> 主要な並べ替え基準</p>
+              <p><strong>第2キー:</strong> 第1キーが同じ場合の基準</p>
+              <p><strong>例:</strong> 部署別 → 成績順</p>
+            </div>
+          </div>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>注意点</h3>
+            <p><strong>読み仮名:</strong> 日本語は入力時の読みが基準</p>
+            <p><strong>データ形式:</strong> 数値と文字列で並び順が異なる</p>
+          </div>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>並べ替え例</h4>
+            <div class="formula">元データ: 田中, 佐藤, 山田</div>
+            <div class="formula">五十音順: 佐藤, 田中, 山田</div>
+          </div>
+        </section>
+
+        <!-- データの抽出 -->
+        <section>
+          <h1>データの抽出（フィルタリング）</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>抽出の目的</h4>
+              <p>条件に合うデータのみ表示<br>分析対象の絞り込み</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>フィルタの種類</h4>
+              <p>オートフィルタ<br>詳細フィルタ、スライサー</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>抽出条件</h4>
+              <p>数値範囲、文字列パターン<br>日付期間、複数条件</p>
+            </div>
+          </div>
+
+          <div class="reference-examples fragment fade-in">
+            <div class="reference-card">
+              <h4>抽出条件の例</h4>
+              <div class="example">数値: 80以上、100未満</div>
+              <div class="example">文字列: 特定の文字を含む</div>
+              <div class="example">日付: 特定期間内</div>
+            </div>
+            
+            <div class="reference-card">
+              <h4>複数条件の組み合わせ</h4>
+              <div class="example">AND: すべての条件を満たす</div>
+              <div class="example">OR: いずれかの条件を満たす</div>
+              <p>論理演算子で複雑な条件設定</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- オートフィル機能 -->
+        <section>
+          <h1>オートフィル機能</h1>
+          
+          <div class="highlight-box important">
+            <h3>自動入力パターン</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              広い範囲にコピーする場合はオートフィルが効率的
+            </p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔢</span>
+              <h4>連続数値</h4>
+              <p>1,2,3,... または<br>10,20,30,...</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📅</span>
+              <h4>日付</h4>
+              <p>2024/1/1, 2024/1/2, ...<br>自動的に日付が進む</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>曜日</h4>
+              <p>月,火,水,... または<br>Mon,Tue,Wed,...</p>
+            </div>
+          </div>
+
+          <div class="process-steps fragment fade-in">
+            <div class="process-step fragment fade-in">
+              <strong>初期値入力</strong><br>
+              <small>開始となる値</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>範囲選択</strong><br>
+              <small>フィル元とフィル先</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>ドラッグ</strong><br>
+              <small>セル右下の■</small>
+            </div>
+            <div class="process-step current fragment fade-in">
+              <strong>自動完成</strong><br>
+              <small>パターンを認識</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- データ検証と品質管理 -->
+        <section>
+          <h1>データ検証と品質管理</h1>
+          
+          <div class="reference-examples">
+            <div class="reference-card fragment fade-in">
+              <h4>入力規則の設定</h4>
+              <p><strong>数値範囲:</strong> 0以上100以下</p>
+              <p><strong>リスト選択:</strong> 定義した選択肢</p>
+              <p><strong>日付範囲:</strong> 特定期間内</p>
+              <p><strong>文字数制限:</strong> 最大文字数設定</p>
+            </div>
+            
+            <div class="reference-card fragment fade-in">
+              <h4>エラーチェック</h4>
+              <div class="example">#DIV/0! : 0で割った場合</div>
+              <div class="example">#VALUE! : 数値以外を数値計算</div>
+              <div class="example">#NAME? : 関数名の誤り</div>
+              <div class="example">#REF! : 参照先セルの削除</div>
+            </div>
+          </div>
+
+          <div class="calculation-example fragment fade-in">
+            <h4>エラー対処法</h4>
+            <div class="formula">IFERROR関数: =IFERROR(A1/B1,"計算不可")</div>
+            <div class="formula">条件分岐: =IF(B1=0,"エラー",A1/B1)</div>
+            <p>事前にエラーを回避する仕組みを構築</p>
+          </div>
+        </section>
+
+        <!-- 実践的なデータ処理手順 -->
+        <section>
+          <h1>実践的なデータ処理手順</h1>
+          
+          <div class="process-steps">
+            <div class="process-step fragment fade-in">
+              <strong>データ準備</strong><br>
+              <small>形式統一・欠損値確認</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>計算式設計</strong><br>
+              <small>段階的構築・参照選択</small>
+            </div>
+            <div class="process-step fragment fade-in">
+              <strong>結果検証</strong><br>
+              <small>論理チェック・範囲確認</small>
+            </div>
+            <div class="process-step current fragment fade-in">
+              <strong>完成・報告</strong><br>
+              <small>グラフ化・文書作成</small>
+            </div>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">📋</span>
+              <h4>1. データの準備</h4>
+              <p>形式統一、欠損値確認<br>データ範囲の確認</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">🧮</span>
+              <h4>2. 計算式の設計</h4>
+              <p>段階的構築、参照の選択<br>エラー対策の実装</p>
+            </div>
+            
+            <div class="concept-card">
+              <span class="icon">✅</span>
+              <h4>3. 結果の検証</h4>
+              <p>論理チェック、範囲チェック<br>比較検証の実施</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- まとめ -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>表計算ソフトウェアの活用ポイント</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>セル参照</h4>
+              <p>相対・絶対参照の使い分けで効率的な計算</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>関数活用</h4>
+              <p>基本関数から条件付き関数まで適切に利用</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>可視化</h4>
+              <p>グラフによる情報の効果的な表現</p>
+            </div>
+          </div>
+
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">🔍</span>
+              <h4>データ操作</h4>
+              <p>並べ替え・抽出による多角的分析</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">⚡</span>
+              <h4>自動化活用</h4>
+              <p>オートフィルや関数の効率的利用</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">✨</span>
+              <h4>品質確保</h4>
+              <p>エラーチェックと結果の妥当性確認</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              セル参照、相対参照、絶対参照、SUM関数、AVERAGE関数、<br>
+              IF関数、COUNTIF関数、棒グラフ、折れ線グラフ、円グラフ、<br>
+              並べ替え、フィルタリング、オートフィル、データ検証
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回：統計量とデータ分析
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            基本統計量の計算と意味、<br>
+            データの分布と特徴を学びます
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

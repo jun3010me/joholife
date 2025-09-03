@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コンピュータの構成と動作 - 情報Ⅰ第3章</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 12px 8px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 80px;
+        font-size: 0.75em;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .info-circle {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        flex-shrink: 1;
+      }
+      
+      .info-circle.cpu { background: #e74c3c; }
+      .info-circle.memory { background: #f39c12; }
+      .info-circle.storage { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 0.9em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 90%;
+      }
+      
+      .info-circle p {
+        margin: 2px 0 0 0;
+        font-size: 0.65em;
+        line-height: 1.0;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* 計算ボックス */
+      .calc-box {
+        background: #f8f9fa;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+      }
+      
+      /* メモリ階層 */
+      .memory-pyramid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px 0;
+      }
+      
+      .memory-level {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 8px 16px;
+        margin: 4px 0;
+        text-align: center;
+        font-size: 0.8em;
+        min-width: 120px;
+      }
+      
+      .memory-level:nth-child(1) { width: 100px; background: #e74c3c; color: white; }
+      .memory-level:nth-child(2) { width: 150px; background: #f39c12; color: white; }
+      .memory-level:nth-child(3) { width: 200px; background: #27ae60; color: white; }
+      .memory-level:nth-child(4) { width: 250px; }
+      .memory-level:nth-child(5) { width: 300px; }
+      .memory-level:nth-child(6) { width: 350px; }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 120px;
+          height: 120px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+        
+        .memory-level {
+          width: 90% !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>コンピュータの構成と動作</h1>
+          <h2>第3章 デジタル - テーマ5</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            コンピュータの基本構成と<br>
+            性能向上技術について学びましょう
+          </p>
+        </section>
+
+        <!-- コンピュータの5大装置 -->
+        <section>
+          <h1>コンピュータの5大装置</h1>
+          
+          <div class="highlight-box important">
+            <h3>フォン・ノイマン型コンピュータ</h3>
+            <p>現在のコンピュータの基本アーキテクチャ</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎛️</span>
+              <h4>制御装置</h4>
+              <p>プログラムの実行を制御</p>
+              <p>命令の解読と実行順序</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>演算装置</h4>
+              <p>算術・論理演算を実行</p>
+              <p>ALU（演算論理装置）</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💾</span>
+              <h4>記憶装置</h4>
+              <p>データとプログラムを記憶</p>
+              <p>メモリとストレージ</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⌨️</span>
+              <h4>入力装置</h4>
+              <p>外部からデータを入力</p>
+              <p>キーボード、マウス等</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖥️</span>
+              <h4>出力装置</h4>
+              <p>結果を外部に出力</p>
+              <p>ディスプレイ、プリンタ等</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔗</span>
+              <h4>統合</h4>
+              <p>CPUは制御装置と演算装置を統合</p>
+              <p>現代の処理装置</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CPUの基本構成 -->
+        <section>
+          <h1>CPU（Central Processing Unit）</h1>
+          
+          <div class="highlight-box important">
+            <h3>コンピュータの心臓部</h3>
+            <p>プログラムの命令を解釈し、実行する中央処理装置</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎛️</span>
+              <h4>制御装置</h4>
+              <p>命令の制御</p>
+              <p>プログラムカウンタ（PC）</p>
+              <p>命令レジスタ（IR）</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>演算装置（ALU）</h4>
+              <p>算術・論理演算</p>
+              <p>加減乗除</p>
+              <p>論理演算・比較</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>レジスタ</h4>
+              <p>高速な一時記憶</p>
+              <p>アキュムレータ</p>
+              <p>汎用レジスタ</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram fragment fade-in">
+            <div class="concept-card">
+              <span class="icon">⚡</span>
+              <h4>キャッシュメモリ</h4>
+              <p>頻繁に使用するデータ</p>
+              <p>L1、L2、L3キャッシュ</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">🔄</span>
+              <h4>パイプライン</h4>
+              <p>命令の並列処理</p>
+              <p>スループット向上</p>
+            </div>
+            <div class="concept-card">
+              <span class="icon">🎯</span>
+              <h4>分岐予測</h4>
+              <p>処理の先読み</p>
+              <p>効率性向上</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 命令実行サイクル -->
+        <section>
+          <h1>命令実行サイクル</h1>
+          
+          <div class="highlight-box important">
+            <h3>フェッチ・デコード・実行サイクル</h3>
+            <p>CPUが命令を処理する基本的な流れ</p>
+          </div>
+          
+          <div class="timeline">
+            <div class="timeline-item fragment fade-in">
+              <strong>フェッチ</strong><br>
+              <small>命令読み取り</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>デコード</strong><br>
+              <small>命令解析</small>
+            </div>
+            <div class="timeline-item fragment fade-in">
+              <strong>実行</strong><br>
+              <small>演算実行</small>
+            </div>
+            <div class="timeline-item current fragment fade-in">
+              <strong>格納</strong><br>
+              <small>結果保存</small>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>詳細な処理手順</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>PC参照</strong><br>
+                <small>次の命令アドレス</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>命令読み取り</strong><br>
+                <small>メモリから取得</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>命令解析</strong><br>
+                <small>操作と対象を判定</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>実行・格納</strong><br>
+                <small>ALUで処理</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- メモリの階層構造 -->
+        <section>
+          <h1>メモリの階層構造</h1>
+          
+          <div class="highlight-box important">
+            <h3>速度と容量のトレードオフ</h3>
+            <p>高速・小容量・高価 ↔ 低速・大容量・安価</p>
+          </div>
+          
+          <div class="memory-pyramid">
+            <div class="memory-level fragment fade-in">レジスタ<br><small>数十バイト、&lt;1ns</small></div>
+            <div class="memory-level fragment fade-in">L1キャッシュ<br><small>数十KB、1-2ns</small></div>
+            <div class="memory-level fragment fade-in">L2キャッシュ<br><small>数百KB、3-10ns</small></div>
+            <div class="memory-level fragment fade-in">L3キャッシュ<br><small>数MB、10-20ns</small></div>
+            <div class="memory-level fragment fade-in">メインメモリ（RAM）<br><small>数GB-数十GB、50-100ns</small></div>
+            <div class="memory-level fragment fade-in">ストレージ（SSD/HDD）<br><small>数百GB-数TB、μs-ms</small></div>
+          </div>
+        </section>
+
+        <!-- キャッシュメモリ -->
+        <section>
+          <h1>キャッシュメモリ</h1>
+          
+          <div class="highlight-box important">
+            <h3>CPU-メインメモリ間の速度差を埋める</h3>
+            <p>頻繁に使用されるデータを高速メモリに保存</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏰</span>
+              <h4>時間局所性</h4>
+              <p>最近使用したデータを</p>
+              <p>再び使用する可能性が高い</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📍</span>
+              <h4>空間局所性</h4>
+              <p>近隣のデータを</p>
+              <p>連続して使用する傾向</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>ヒット率</h4>
+              <p>キャッシュにデータが</p>
+              <p>存在する確率</p>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>キャッシュレベル</th>
+                <th>容量</th>
+                <th>アクセス時間</th>
+                <th>場所</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>L1</strong></td>
+                <td>32-64KB</td>
+                <td>1-2ns</td>
+                <td>CPU内蔵</td>
+              </tr>
+              <tr>
+                <td><strong>L2</strong></td>
+                <td>256KB-1MB</td>
+                <td>3-10ns</td>
+                <td>CPU内蔵</td>
+              </tr>
+              <tr>
+                <td><strong>L3</strong></td>
+                <td>数MB-数十MB</td>
+                <td>10-20ns</td>
+                <td>CPU外部</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- メインメモリ -->
+        <section>
+          <h1>メインメモリ（RAM）</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>DRAM</h4>
+              <p>動的RAM</p>
+              <p>コンデンサに電荷保存</p>
+              <p>リフレッシュが必要</p>
+              <p>大容量・安価</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔋</span>
+              <h4>SRAM</h4>
+              <p>静的RAM</p>
+              <p>フリップフロップで保存</p>
+              <p>リフレッシュ不要</p>
+              <p>高速・高価</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🚀</span>
+              <h4>DDR SDRAM</h4>
+              <p>現在の主流</p>
+              <p>DDR4、DDR5</p>
+              <p>二重データレート</p>
+              <p>高速転送</p>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>規格</th>
+                <th>転送速度</th>
+                <th>特徴</th>
+                <th>用途</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DDR3</strong></td>
+                <td>800-2133MHz</td>
+                <td>従来規格</td>
+                <td>旧世代PC</td>
+              </tr>
+              <tr>
+                <td><strong>DDR4</strong></td>
+                <td>2133-3200MHz</td>
+                <td>現在主流</td>
+                <td>一般的なPC</td>
+              </tr>
+              <tr>
+                <td><strong>DDR5</strong></td>
+                <td>4800-6400MHz</td>
+                <td>最新規格</td>
+                <td>高性能PC</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ストレージ装置 -->
+        <section>
+          <h1>ストレージ装置</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💽</span>
+              <h4>HDD</h4>
+              <p>ハードディスクドライブ</p>
+              <p>磁気記録</p>
+              <p>機械的動作</p>
+              <p>大容量・安価</p>
+              <p>アクセス時間：数ms</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>SSD</h4>
+              <p>ソリッドステートドライブ</p>
+              <p>フラッシュメモリ</p>
+              <p>電子的動作</p>
+              <p>高速・耐衝撃</p>
+              <p>アクセス時間：数μs</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💿</span>
+              <h4>光ディスク</h4>
+              <p>CD/DVD/Blu-ray</p>
+              <p>レーザー光で記録</p>
+              <p>長期保存向け</p>
+              <p>読み取り専用/書込可能</p>
+              <p>物理的な耐久性</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>近年の傾向</h3>
+            <p>SSDの普及により、起動時間やアプリケーション読み込みが大幅に高速化</p>
+          </div>
+        </section>
+
+        <!-- パイプライン処理 -->
+        <section>
+          <h1>パイプライン処理</h1>
+          
+          <div class="highlight-box important">
+            <h3>複数命令の並行処理</h3>
+            <p>処理段階を分割して効率化</p>
+          </div>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>段階</th>
+                <th>名称</th>
+                <th>処理内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>IF</strong></td>
+                <td>命令フェッチ</td>
+                <td>メモリから命令を読み取り</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>ID</strong></td>
+                <td>命令デコード</td>
+                <td>命令の解析・レジスタ読み取り</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>EX</strong></td>
+                <td>実行</td>
+                <td>ALUでの演算処理</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>MEM</strong></td>
+                <td>メモリアクセス</td>
+                <td>データの読み書き</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>WB</strong></td>
+                <td>書き戻し</td>
+                <td>結果をレジスタに格納</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>効果</h3>
+            <p>理想的には5倍のスループット向上（実際はハザードにより低下）</p>
+          </div>
+        </section>
+
+        <!-- 入出力装置 -->
+        <section>
+          <h1>入出力装置</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⌨️</span>
+              <h4>入力装置</h4>
+              <p>キーボード：文字入力</p>
+              <p>マウス：ポインティング</p>
+              <p>タッチパネル：直感操作</p>
+              <p>マイク・カメラ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🖥️</span>
+              <h4>出力装置</h4>
+              <p>ディスプレイ：画像表示</p>
+              <p>プリンタ：印刷出力</p>
+              <p>スピーカー：音声出力</p>
+              <p>3Dプリンタ：立体造形</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔌</span>
+              <h4>インターフェース</h4>
+              <p>USB：汎用接続</p>
+              <p>HDMI：映像・音声</p>
+              <p>Bluetooth：無線接続</p>
+              <p>Wi-Fi：ネットワーク</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- CPUの性能指標 -->
+        <section>
+          <h1>CPUの性能指標</h1>
+          
+          <div class="highlight-box important">
+            <h3>性能の計算式</h3>
+            <p>処理時間 = 命令数 × CPI ÷ クロック周波数</p>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⏱️</span>
+              <h4>クロック周波数</h4>
+              <p>1秒間の動作回数（Hz）</p>
+              <p>現在：数GHz</p>
+              <p>高いほど高速（単純比較は困難）</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>CPI</h4>
+              <p>Cycles Per Instruction</p>
+              <p>1命令あたりの実行サイクル数</p>
+              <p>命令の複雑さにより変動</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧮</span>
+              <h4>IPC</h4>
+              <p>Instructions Per Cycle</p>
+              <p>1サイクルあたりの命令数</p>
+              <p>並列処理能力の指標</p>
+            </div>
+          </div>
+          
+          <div class="calc-box fragment fade-in">
+            <p><strong>例：性能比較</strong></p>
+            <p>CPU A: 3.0GHz、CPI=2 → 1.5GIPS</p>
+            <p>CPU B: 2.5GHz、CPI=1.5 → 1.67GIPS</p>
+            <p>クロック周波数だけでは判断できない</p>
+          </div>
+        </section>
+
+        <!-- 並列処理技術 -->
+        <section>
+          <h1>並列処理技術</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧠</span>
+              <h4>マルチコア</h4>
+              <p>1つのCPUに複数のコア</p>
+              <p>独立した処理装置</p>
+              <p>デュアル・クアッド・オクタコア</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔀</span>
+              <h4>ハイパースレッディング</h4>
+              <p>1つのコアで2つのスレッド</p>
+              <p>論理プロセッサの増加</p>
+              <p>資源の有効活用</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎮</span>
+              <h4>GPU並列処理</h4>
+              <p>数千のコアによる並列計算</p>
+              <p>GPGPU：汎用GPU計算</p>
+              <p>機械学習・科学計算</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>並列処理の効果</h3>
+            <p>適切なプログラムでは大幅な性能向上が可能</p>
+          </div>
+        </section>
+
+        <!-- コンピュータの性能測定 -->
+        <section>
+          <h1>性能測定と評価</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>ベンチマークテスト</h4>
+              <p>標準的な処理による性能評価</p>
+              <p>SPEC：CPU性能</p>
+              <p>3DMark：GPU性能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">💾</span>
+              <h4>ストレージ性能</h4>
+              <p>シーケンシャル読み書き</p>
+              <p>ランダムアクセス性能</p>
+              <p>IOPS：1秒間の入出力回数</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌡️</span>
+              <h4>消費電力・発熱</h4>
+              <p>TDP：熱設計電力</p>
+              <p>性能/電力比</p>
+              <p>冷却システムの重要性</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 実習例 -->
+        <section>
+          <h1>性能計算の実習</h1>
+          
+          <div class="highlight-box important">
+            <h3>課題：CPU性能比較</h3>
+            <p>以下の2つのCPUの理論性能を比較しなさい</p>
+          </div>
+          
+          <div class="calc-box fragment fade-in">
+            <p><strong>CPU A:</strong> 3.0GHz、4コア、CPI=2</p>
+            <p><strong>CPU B:</strong> 2.5GHz、6コア、CPI=1.5</p>
+            
+            <p><strong>1コアあたりの性能：</strong></p>
+            <p>CPU A: 3.0GHz ÷ 2 = 1.5GIPS</p>
+            <p>CPU B: 2.5GHz ÷ 1.5 = 1.67GIPS</p>
+            
+            <p><strong>総合性能：</strong></p>
+            <p>CPU A: 1.5 × 4 = 6.0GIPS</p>
+            <p>CPU B: 1.67 × 6 = 10.0GIPS</p>
+            
+            <p><strong>結論：</strong>CPU Bの方が高性能</p>
+          </div>
+        </section>
+
+        <!-- 最新技術動向 -->
+        <section>
+          <h1>最新技術動向</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔬</span>
+              <h4>プロセス微細化</h4>
+              <p>7nm、5nm、3nmプロセス</p>
+              <p>トランジスタの高密度化</p>
+              <p>物理的限界への挑戦</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🧬</span>
+              <h4>新しいアーキテクチャ</h4>
+              <p>量子コンピュータ</p>
+              <p>ニューロモルフィック</p>
+              <p>光コンピューティング</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🤖</span>
+              <h4>AI専用チップ</h4>
+              <p>機械学習に特化</p>
+              <p>TPU、NPU</p>
+              <p>エッジAI処理</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>未来への展望</h3>
+            <p>従来のシリコン技術の限界を超える新技術の研究が活発</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>コンピュータの基本構成と動作原理</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>基本構成</h4>
+              <p>5大装置による構成</p>
+              <p>フォン・ノイマン型</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>性能向上技術</h4>
+              <p>パイプライン処理</p>
+              <p>並列処理技術</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>メモリ階層</h4>
+              <p>速度・容量・価格のバランス</p>
+              <p>キャッシュの重要性</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              CPU、ALU、レジスタ、キャッシュメモリ、パイプライン、<br>
+              マルチコア、メモリ階層、クロック周波数、CPI
+            </p>
+          </div>
+        </section>
+
+        <!-- 第3章全体のまとめ -->
+        <section>
+          <h1>第3章のまとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>デジタル情報の基礎から応用まで</h3>
+          </div>
+          
+          <div class="concept-diagram" style="gap: 12px;">
+            <div class="concept-card fragment fade-in" style="padding: 12px;">
+              <span class="icon" style="font-size: 1.3em;">🔢</span>
+              <h4 style="font-size: 0.9em;">情報の表現</h4>
+              <p style="font-size: 0.75em;">デジタル化の特徴</p>
+              <p style="font-size: 0.75em;">数値・文字の表現</p>
+              <p style="font-size: 0.75em;">音・画像の表現</p>
+            </div>
+            <div class="concept-card fragment fade-in" style="padding: 12px;">
+              <span class="icon" style="font-size: 1.3em;">🧮</span>
+              <h4 style="font-size: 0.9em;">演算の仕組み</h4>
+              <p style="font-size: 0.75em;">論理演算と回路</p>
+              <p style="font-size: 0.75em;">加算回路・ALU</p>
+              <p style="font-size: 0.75em;">コンピュータでの処理</p>
+            </div>
+            <div class="concept-card fragment fade-in" style="padding: 12px;">
+              <span class="icon" style="font-size: 1.3em;">🖥️</span>
+              <h4 style="font-size: 0.9em;">システム構成</h4>
+              <p style="font-size: 0.75em;">ハードウェア構成</p>
+              <p style="font-size: 0.75em;">性能向上技術</p>
+              <p style="font-size: 0.75em;">現代の技術動向</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in" style="padding: 12px; margin: 15px 0;">
+            <h3 style="font-size: 0.9em;">情報社会を支える技術基盤</h3>
+            <p style="font-size: 0.8em; line-height: 1.3;">これらの知識は現代の情報社会を理解し、<br>
+            適切に技術を活用するための重要な基盤です</p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            第3章「デジタル」完了
+          </p>
+          <p style="font-size: 1.1em; margin-top: 30px;">
+            デジタル情報の基礎から最新技術まで、<br>
+            幅広い知識を身につけることができました
+          </p>
+          <p style="font-size: 1.0em; margin-top: 30px; color: #7f8c8d;">
+            次章では、これらの知識を活用した<br>
+            実践的な情報処理について学習します
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>関数とスコープ - 情報Ⅰ第6章テーマ4</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 25px 20px !important;
+        box-sizing: border-box;
+        max-height: 100vh;
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.7em;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-top: 10px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.25em;
+        margin-bottom: 15px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 15px 0;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin: 6px;
+        text-align: center;
+        min-width: 80px;
+        max-width: 100px;
+        font-size: 0.8em;
+        line-height: 1.2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        flex-shrink: 1;
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-arrow {
+        font-size: 16px;
+        color: #3498db;
+        margin: 0 6px;
+      }
+
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .scope-visual {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        position: relative;
+      }
+
+      .scope-global {
+        background: #ecf0f1;
+        border: 3px solid #34495e;
+        border-radius: 15px;
+        padding: 30px;
+        min-width: 300px;
+        min-height: 200px;
+        position: relative;
+      }
+
+      .scope-local {
+        background: #d5dbdb;
+        border: 2px solid #2c3e50;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 10px;
+        min-width: 150px;
+        min-height: 100px;
+      }
+
+      .scope-label {
+        position: absolute;
+        top: -15px;
+        left: 10px;
+        background: white;
+        padding: 0 10px;
+        font-weight: bold;
+        font-size: 0.9em;
+        color: #2c3e50;
+      }
+
+      .reveal pre {
+        font-size: 0.7em;
+        line-height: 1.2;
+        margin: 10px 0;
+      }
+
+      .reveal code {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart {
+          flex-direction: column;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .scope-global {
+          min-width: 250px;
+          padding: 20px;
+        }
+
+        .scope-local {
+          min-width: 120px;
+          padding: 15px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>関数とスコープ</h1>
+          <h2>Functions and Scope</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            プログラムを構造化し、再利用可能にする関数の仕組みを学びます
+          </p>
+        </section>
+
+        <!-- 関数とは -->
+        <section>
+          <h1>関数とは</h1>
+          <h2>What is a Function?</h2>
+          
+          <div class="highlight-box important">
+            <h3>関数 (Function)</h3>
+            <p>特定の処理を実行する再利用可能なコードのまとまり。引数を受け取り、処理を行い、戻り値を返す。</p>
+          </div>
+
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>入力</strong><br>
+              <small>引数</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item highlight fragment fade-in">
+              <strong>処理</strong><br>
+              <small>関数の本体</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>出力</strong><br>
+              <small>戻り値</small>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>モジュール化</h4>
+              <p>機能を部品として分離</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">♻️</span>
+              <h4>再利用性</h4>
+              <p>一度書けば何度でも使用可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>保守性</h4>
+              <p>バグ修正や機能追加が容易</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 関数の基本構造 -->
+        <section>
+          <h1>関数の基本構造</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def 関数名(引数1, 引数2):
+    """
+    関数の説明（ドキュメント文字列）
+    """
+    # 処理内容
+    return 戻り値</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>def文</h4>
+              <p>Pythonで関数を定義するキーワード</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>具体例</h4>
+              <pre><code class="python">def add_numbers(a, b):
+    """
+    2つの数値を加算する関数
+    """
+    result = a + b
+    return result</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📖</span>
+              <h4>ドキュメント文字列</h4>
+              <p>関数の動作を説明するコメント</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 関数の呼び出し -->
+        <section>
+          <h1>関数の呼び出し</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def greet(name):
+    return f"こんにちは、{name}さん！"
+
+# 関数の呼び出し
+message = greet("田中")
+print(message)  # "こんにちは、田中さん！"
+
+# 直接使用
+print(greet("佐藤"))  # "こんにちは、佐藤さん！"</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>関数呼び出し (Function Call)</h3>
+            <p>定義された関数を実際に実行すること。引数を渡して結果を受け取る。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏃</span>
+              <h4>実行</h4>
+              <p>関数名()で実行開始</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📤</span>
+              <h4>引数渡し</h4>
+              <p>必要なデータを関数に送る</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📥</span>
+              <h4>結果受け取り</h4>
+              <p>戻り値を変数に格納</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 引数の種類 -->
+        <section>
+          <h1>引数の種類</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">1️⃣</span>
+              <h4>位置引数</h4>
+              <pre><code class="python">def introduce(name, age, city):
+    return f"私は{name}です。{age}歳で、{city}在住です。"
+
+result = introduce("太郎", 20, "東京")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏷️</span>
+              <h4>キーワード引数</h4>
+              <pre><code class="python"># 引数名を指定して呼び出し
+result = introduce(city="大阪", name="花子", age=22)</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📊</span>
+              <h4>引数 (Argument/Parameter)</h4>
+              <p>関数に渡されるデータ。関数の処理に必要な情報を提供</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- デフォルト引数 -->
+        <section>
+          <h1>デフォルト引数</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def greet(name, greeting="こんにちは"):
+    return f"{greeting}、{name}さん！"
+
+print(greet("太郎"))                    # "こんにちは、太郎さん！"
+print(greet("花子", "おはよう"))        # "おはよう、花子さん！"</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>デフォルト引数 (Default Argument)</h3>
+            <p>関数定義時に設定される引数の初期値。呼び出し時に省略可能。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>便利性</h4>
+              <p>よく使う値を初期値として設定</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>柔軟性</h4>
+              <p>必要に応じて値を変更可能</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📝</span>
+              <h4>コード簡潔化</h4>
+              <p>呼び出しコードがシンプルに</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 戻り値 -->
+        <section>
+          <h1>戻り値</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">↩️</span>
+              <h4>return文の使用</h4>
+              <pre><code class="python">def calculate_area(width, height):
+    area = width * height
+    return area
+
+def get_max(a, b):
+    if a > b:
+        return a
+    else:
+        return b</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📦</span>
+              <h4>複数の戻り値</h4>
+              <pre><code class="python">def get_name_age():
+    name = "太郎"
+    age = 20
+    return name, age  # タプルで返す
+
+# 受け取り方
+person_name, person_age = get_name_age()</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>戻り値 (Return Value)</h4>
+              <p>関数が処理結果として呼び出し元に返すデータ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 変数のスコープ -->
+        <section>
+          <h1>変数のスコープ</h1>
+          <h2>Variable Scope</h2>
+          
+          <div class="highlight-box important">
+            <h3>スコープ (Scope)</h3>
+            <p>変数や関数名が有効な範囲。どこからその変数にアクセスできるかを決める。</p>
+          </div>
+
+          <div class="scope-visual fragment fade-in">
+            <div class="scope-global">
+              <div class="scope-label">グローバルスコープ</div>
+              <p style="font-size: 0.8em; margin: 5px;">global_var = "どこからでもアクセス可能"</p>
+              <div class="scope-local">
+                <div class="scope-label">ローカルスコープ</div>
+                <p style="font-size: 0.8em; margin: 5px;">local_var = "関数内のみ"</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌍</span>
+              <h4>グローバルスコープ</h4>
+              <p>プログラム全体で有効</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>ローカルスコープ</h4>
+              <p>特定の関数内でのみ有効</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">📋</span>
+              <h4>名前空間</h4>
+              <p>変数名の衝突を防ぐ仕組み</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ローカルスコープ -->
+        <section>
+          <h1>ローカルスコープ</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def calculate():
+    # ローカル変数
+    x = 10
+    y = 20
+    result = x + y
+    return result
+
+print(calculate())  # 30
+# print(x)  # エラー！xは関数外では参照できない</code></pre>
+
+          <div class="highlight-box warning fragment fade-in">
+            <h3>ローカル変数 (Local Variable)</h3>
+            <p>関数内で定義される変数。その関数内でのみ参照可能。</p>
+          </div>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔒</span>
+              <h4>局所性</h4>
+              <p>関数内に閉じ込められた変数</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">♻️</span>
+              <h4>自動解放</h4>
+              <p>関数終了時に自動的に削除</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>名前の保護</h4>
+              <p>他の関数の変数と名前が重複しても問題なし</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- グローバルスコープ -->
+        <section>
+          <h1>グローバルスコープ</h1>
+          
+          <pre class="fragment fade-in"><code class="python"># グローバル変数
+count = 0
+
+def increment():
+    global count  # グローバル変数を使用
+    count += 1
+
+def get_count():
+    return count  # グローバル変数を参照
+
+increment()
+print(get_count())  # 1</code></pre>
+
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🌍</span>
+              <h4>グローバル変数</h4>
+              <p>プログラム全体で参照可能な変数</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔑</span>
+              <h4>global文</h4>
+              <p>関数内でグローバル変数を変更する際に使用</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>注意点</h4>
+              <p>過度な使用は避け、必要な場合のみ使用</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- スコープの優先順位 -->
+        <section>
+          <h1>スコープの優先順位</h1>
+          
+          <pre class="fragment fade-in"><code class="python">x = "グローバル"
+
+def test():
+    x = "ローカル"  # ローカル変数
+    print(x)
+
+test()     # "ローカル"
+print(x)   # "グローバル"</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>LEGB ルール</h3>
+            <p>変数の検索順序</p>
+          </div>
+
+          <div class="flow-chart">
+            <div class="flow-item fragment fade-in">
+              <strong>Local</strong><br>
+              <small>ローカル</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>Enclosing</strong><br>
+              <small>外側の関数</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>Global</strong><br>
+              <small>グローバル</small>
+            </div>
+            <div class="flow-arrow fragment fade-in">→</div>
+            <div class="flow-item fragment fade-in">
+              <strong>Built-in</strong><br>
+              <small>組み込み</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- 関数の入れ子 -->
+        <section>
+          <h1>関数の入れ子</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏗️</span>
+              <h4>ネストした関数</h4>
+              <pre><code class="python">def outer():
+    message = "外側の関数"
+    
+    def inner():
+        print(f"内側: {message}")  # 外側の変数を参照
+    
+    inner()
+    print("外側の関数終了")
+
+outer()</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>nonlocal文</h4>
+              <pre><code class="python">def outer():
+    count = 0
+    
+    def inner():
+        nonlocal count  # 外側の関数の変数を変更
+        count += 1
+    
+    inner()
+    print(count)  # 1
+
+outer()</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>nonlocal文</h4>
+              <p>入れ子関数で外側の関数の変数を変更する際に使用</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 関数の利点 -->
+        <section>
+          <h1>関数の利点</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">♻️</span>
+              <h4>再利用性</h4>
+              <pre><code class="python">def calculate_tax(price, tax_rate=0.1):
+    return price * (1 + tax_rate)
+
+# 複数箇所で使用可能
+book_price = calculate_tax(1000)
+pen_price = calculate_tax(500)</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>モジュール化</h4>
+              <pre><code class="python">def validate_email(email):
+    return "@" in email and "." in email
+
+def send_email(to, subject, body):
+    if validate_email(to):
+        print(f"送信: {to}")
+    else:
+        print("無効なメールアドレス")</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>保守性</h4>
+              <p>修正が必要な時は関数を修正するだけで、全ての呼び出し箇所に適用される</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ラムダ関数 -->
+        <section>
+          <h1>ラムダ関数（匿名関数）</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>lambda式</h4>
+              <pre><code class="python"># 通常の関数
+def square(x):
+    return x ** 2
+
+# ラムダ関数
+square_lambda = lambda x: x ** 2
+
+print(square(5))        # 25
+print(square_lambda(5)) # 25</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔄</span>
+              <h4>高階関数での使用</h4>
+              <pre><code class="python">numbers = [1, 2, 3, 4, 5]
+
+# map関数とlambda
+squares = list(map(lambda x: x ** 2, numbers))
+# [1, 4, 9, 16, 25]
+
+# filter関数とlambda
+evens = list(filter(lambda x: x % 2 == 0, numbers))
+# [2, 4]</code></pre>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🎯</span>
+              <h4>ラムダ関数</h4>
+              <p>名前を持たない小さな関数。lambda キーワードで定義する無名関数</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 関数の応用 -->
+        <section>
+          <h1>関数の応用</h1>
+          
+          <pre class="fragment fade-in"><code class="python">def apply_operation(numbers, operation):
+    result = []
+    for num in numbers:
+        result.append(operation(num))
+    return result
+
+def double(x):
+    return x * 2
+
+def square(x):
+    return x ** 2
+
+numbers = [1, 2, 3, 4, 5]
+print(apply_operation(numbers, double))  # [2, 4, 6, 8, 10]
+print(apply_operation(numbers, square))  # [1, 4, 9, 16, 25]</code></pre>
+
+          <div class="highlight-box important fragment fade-in">
+            <h3>高階関数 (Higher-order Function)</h3>
+            <p>他の関数を引数として受け取るか、関数を戻り値として返す関数。</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>関数とスコープの基本概念</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔧</span>
+              <h4>関数の構造</h4>
+              <p>def文、引数、戻り値、関数呼び出し</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🏠</span>
+              <h4>スコープ</h4>
+              <p>ローカル、グローバル、LEGBルール</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚡</span>
+              <h4>高度な機能</h4>
+              <p>ラムダ関数、高階関数、入れ子</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              関数、def文、引数、戻り値、関数呼び出し、<br>
+              デフォルト引数、スコープ、ローカル変数、グローバル変数、<br>
+              global文、nonlocal文、ラムダ関数、高階関数
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>お疲れさまでした！</h1>
+          <p style="font-size: 1.3em; margin-top: 50px;">
+            次回: オブジェクト指向プログラミング
+          </p>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第4章 テーマ4: 情報セキュリティ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/simple.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/monokai.css">
+    <style>
+      :root {
+        --r-main-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-heading-font: 'Noto Sans JP', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+        --r-main-color: #333;
+        --r-heading-color: #2c3e50;
+        --r-background-color: #fff;
+        --r-link-color: #3498db;
+        --r-selection-background-color: #3498db;
+      }
+      
+      .reveal {
+        font-family: var(--r-main-font);
+        font-size: 24px;
+      }
+      
+      .reveal .slides section {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 18px 12px !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 60px);
+        min-height: calc(100vh - 60px);
+        overflow-y: auto;
+        text-align: center;
+      }
+      
+      .reveal h1, .reveal h2, .reveal h3 {
+        color: var(--r-heading-color);
+        margin-top: 0;
+      }
+      
+      .reveal h1 {
+        font-size: 1.5em;
+        text-align: center;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
+      
+      .reveal h2 {
+        font-size: 1.15em;
+        margin-bottom: 12px;
+      }
+      
+      .reveal h3 {
+        font-size: 1.05em;
+        margin-bottom: 12px;
+      }
+      
+      /* セキュリティ関連の特別なスタイル */
+      .security-display {
+        font-family: 'Courier New', monospace;
+        background: #2c3e50;
+        color: #ecf0f1;
+        border: 2px solid #e74c3c;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+        font-size: 0.8em;
+        text-align: left;
+      }
+      
+      /* フローチャート */
+      .flow-chart {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      
+      .flow-item {
+        background: #ecf0f1;
+        border: 2px solid #3498db;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px;
+        text-align: center;
+        min-width: 100px;
+        font-size: 0.85em;
+        line-height: 1.3;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .flow-item.highlight {
+        background: #3498db;
+        color: white;
+      }
+      
+      .flow-item.danger {
+        background: #e74c3c;
+        color: white;
+        border-color: #c0392b;
+      }
+      
+      .flow-arrow {
+        font-size: 20px;
+        color: #3498db;
+        margin: 0 10px;
+      }
+      
+      /* 比較表 */
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.8em;
+      }
+      
+      .comparison-table th,
+      .comparison-table td {
+        border: 1px solid #bdc3c7;
+        padding: 6px 4px;
+        text-align: center;
+        vertical-align: top;
+        line-height: 1.3;
+      }
+      
+      .comparison-table th {
+        background: #34495e;
+        color: white;
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+      
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      
+      /* タイムライン */
+      .timeline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+        position: relative;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #3498db;
+        z-index: 1;
+      }
+      
+      .timeline-item {
+        background: white;
+        border: 2px solid #3498db;
+        border-radius: 50%;
+        padding: 8px 6px;
+        line-height: 1.1;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        min-width: 70px;
+        max-width: 90px;
+        font-size: 0.65em;
+        flex-shrink: 1;
+        line-height: 1.2;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      
+      .timeline-item.current {
+        background: #3498db;
+        color: white;
+      }
+      
+      /* 概念図 */
+      .concept-diagram {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+      
+      .concept-card {
+        background: #ecf0f1;
+        border-left: 4px solid #3498db;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .concept-card.danger {
+        border-left-color: #e74c3c;
+        background: #fdf2f2;
+      }
+      
+      .concept-card h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .concept-card .icon {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .concept-card p {
+        font-size: 0.85em;
+        line-height: 1.3;
+        margin-bottom: 5px;
+      }
+      
+      /* インフォグラフィック */
+      .infographic {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin: 15px 0;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      
+      .info-circle {
+        width: 110px;
+        height: 110px;
+        flex-shrink: 1;
+        border-radius: 50%;
+        background: #3498db;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .info-circle.confidentiality { background: #e74c3c; }
+      .info-circle.integrity { background: #f39c12; }
+      .info-circle.availability { background: #27ae60; }
+      
+      .info-circle h4 {
+        margin: 0;
+        font-size: 0.9em;
+      }
+      
+      .info-circle p {
+        margin: 2px 0 0 0;
+        line-height: 1.0;
+        font-size: 0.8em;
+      }
+      
+      /* SVGアイコン */
+      .svg-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+      
+      /* 強調ボックス */
+      .highlight-box {
+        background: #ecf0f1;
+        border: 1px solid #bdc3c7;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 12px 0;
+        text-align: center;
+      }
+      
+      .highlight-box.important {
+        background: #ffeaa7;
+        border-color: #fdcb6e;
+      }
+      
+      .highlight-box.warning {
+        background: #fab1a0;
+        border-color: #e17055;
+      }
+      
+      .highlight-box.danger {
+        background: #ffeaea;
+        border-color: #e74c3c;
+      }
+      
+      .highlight-box h3 {
+        margin-bottom: 10px;
+        font-size: 1em;
+      }
+      
+      .highlight-box p {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      
+      /* アニメーション */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .reveal {
+          font-size: 20px;
+        }
+        
+        .reveal h1 {
+          font-size: 1.5em;
+        }
+        
+        .reveal h2 {
+          font-size: 1.2em;
+        }
+        
+        .reveal h3 {
+          font-size: 1em;
+        }
+        
+        .flow-chart,
+        .timeline,
+        .infographic {
+          flex-direction: column;
+        }
+        
+        .timeline::before {
+          width: 2px;
+          height: 100%;
+          left: 50%;
+          top: 0;
+        }
+        
+        .timeline-item {
+          margin: 10px 0;
+        }
+        
+        .concept-diagram {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .comparison-table {
+          font-size: 0.65em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 6px 4px;
+        }
+        
+        .info-circle {
+          width: 100px;
+          height: 100px;
+          margin: 10px 0;
+        }
+        
+        .flow-item {
+          margin: 8px 0;
+          min-width: 80px;
+        }
+        
+        .flow-arrow {
+          transform: rotate(90deg);
+          margin: 5px 0;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .reveal {
+          font-size: 18px;
+        }
+        
+        .reveal .slides section {
+          padding: 20px 15px !important;
+        }
+        
+        .comparison-table {
+          font-size: 0.6em;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+          padding: 4px 2px;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        
+        <!-- タイトルスライド -->
+        <section>
+          <h1>情報セキュリティ</h1>
+          <h2>第4章 ネットワーク - テーマ4</h2>
+          <p style="margin-top: 50px; font-size: 1.2em;">
+            サイバー攻撃、暗号化技術、個人情報保護を学ぶ
+          </p>
+        </section>
+
+        <!-- 学習目標 -->
+        <section>
+          <h1>学習目標</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>セキュリティの重要性</h4>
+              <p>情報セキュリティの基本概念を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚠️</span>
+              <h4>サイバー攻撃</h4>
+              <p>攻撃の種類と対策方法を学ぶ</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔐</span>
+              <h4>暗号化技術</h4>
+              <p>暗号化の基本原理を知る</p>
+            </div>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👤</span>
+              <h4>個人情報保護</h4>
+              <p>プライバシー保護の必要性を理解する</p>
+            </div>
+            
+            <div class="concept-card fragment fade-in">
+              <span class="icon">⚙️</span>
+              <h4>実践的対策</h4>
+              <p>セキュリティ対策の実装方法を学ぶ</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 情報セキュリティとは -->
+        <section>
+          <h1>情報セキュリティとは</h1>
+          
+          <div class="highlight-box important">
+            <h3>定義</h3>
+            <p style="font-style: italic; font-size: 1.1em;">
+              情報資産を脅威から保護し、安全性を確保すること
+            </p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>情報セキュリティの3要素（CIA）</h3>
+            <div class="infographic">
+              <div class="info-circle confidentiality fragment fade-in">
+                <h4>機密性</h4>
+                <p>Confidentiality</p>
+                <p><strong>許可された者のみ</strong></p>
+              </div>
+              
+              <div class="info-circle integrity fragment fade-in">
+                <h4>完全性</h4>
+                <p>Integrity</p>
+                <p><strong>正確で改ざんなし</strong></p>
+              </div>
+              
+              <div class="info-circle availability fragment fade-in">
+                <h4>可用性</h4>
+                <p>Availability</p>
+                <p><strong>必要時に利用可能</strong></p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <p>この3要素をCIAトライアドと呼ぶ</p>
+          </div>
+        </section>
+
+        <!-- 情報セキュリティの脅威 -->
+        <section>
+          <h1>情報セキュリティの脅威</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>外部からの脅威</th>
+                <th>内部からの脅威</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td>サイバー攻撃（ハッキング、マルウェア）</td>
+                <td>内部不正（従業員による悪意ある行為）</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>不正アクセス（権限のない第三者の侵入）</td>
+                <td>操作ミス（人為的なエラー）</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>情報漏えい（機密情報の外部流出）</td>
+                <td>管理不備（セキュリティ対策の不足）</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td>サービス妨害（システムの機能停止）</td>
+                <td>物理的脅威（災害、盗難、破壊）</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- サイバー攻撃の種類 -->
+        <section>
+          <h1>サイバー攻撃の種類</h1>
+          
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>攻撃手法</th>
+                <th>概要</th>
+                <th>対策</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fragment fade-in">
+                <td><strong>マルウェア</strong></td>
+                <td>悪意あるソフトウェア</td>
+                <td>ウイルス対策ソフト</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>フィッシング</strong></td>
+                <td>偽装サイトで情報窃取</td>
+                <td>送信者・URL確認</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>DDoS攻撃</strong></td>
+                <td>大量アクセスでサービス停止</td>
+                <td>負荷分散、フィルタリング</td>
+              </tr>
+              <tr class="fragment fade-in">
+                <td><strong>SQLインジェクション</strong></td>
+                <td>不正なSQL文実行</td>
+                <td>入力値検証</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- マルウェアの種類 -->
+        <section>
+          <h1>マルウェアの種類</h1>
+          
+          <div class="concept-diagram">
+            <div class="concept-card danger fragment fade-in">
+              <span class="icon">🦠</span>
+              <h4>ウイルス</h4>
+              <p>他のプログラムに寄生して増殖・感染時に悪意ある動作</p>
+            </div>
+            
+            <div class="concept-card danger fragment fade-in">
+              <span class="icon">🐛</span>
+              <h4>ワーム</h4>
+              <p>単体で増殖可能・ネットワーク経由で感染拡大</p>
+            </div>
+            
+            <div class="concept-card danger fragment fade-in">
+              <span class="icon">🐴</span>
+              <h4>トロイの木馬</h4>
+              <p>正常なソフトに偽装・情報窃取やリモート操作</p>
+            </div>
+          </div>
+          
+          <div class="concept-card danger fragment fade-in" style="margin: 0 auto; max-width: 400px;">
+            <span class="icon">🔒</span>
+            <h4>ランサムウェア</h4>
+            <p>ファイルを暗号化して使用不能に・復旧と引き換えに金銭を要求</p>
+          </div>
+          
+          <div class="highlight-box warning fragment fade-in">
+            <p>ランサムウェア対策にはバックアップが重要</p>
+          </div>
+        </section>
+
+        <!-- フィッシング攻撃 -->
+        <section>
+          <h1>フィッシング攻撃</h1>
+          
+          <div class="highlight-box danger">
+            <h3>フィッシングとは</h3>
+            <p>正規のサイトを偽装してユーザ情報を窃取</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>攻撃の流れ</h3>
+            <div class="flow-chart">
+              <div class="flow-item danger fragment fade-in">
+                <strong>①偽装メール</strong><br>
+                <small>大量送信</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item danger fragment fade-in">
+                <strong>②偽サイト</strong><br>
+                <small>へ誘導</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item danger fragment fade-in">
+                <strong>③個人情報</strong><br>
+                <small>を入力させる</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item danger fragment fade-in">
+                <strong>④情報悪用</strong><br>
+                <small>不正利用・転売</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>見分け方</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📧</span>
+                <h4>送信者確認</h4>
+                <p>アドレスの真正性をチェック</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🌐</span>
+                <h4>URL確認</h4>
+                <p>ドメインを慎重に確認</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔒</span>
+                <h4>SSL証明書</h4>
+                <p>有無と正当性を確認</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box danger fragment fade-in">
+            <p>疑わしいメールのリンクは絶対にクリックしない</p>
+          </div>
+        </section>
+
+        <!-- DoS・DDoS攻撃 -->
+        <section>
+          <h1>DoS・DDoS攻撃</h1>
+          
+          <div class="highlight-box important">
+            <h3>DoS攻撃（Denial of Service）</h3>
+            <p>サーバに大量のリクエストを送信してサービス停止</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>DDoS攻撃（Distributed DoS）</h3>
+            <div class="flow-chart">
+              <div class="flow-item danger fragment fade-in">
+                <strong>PC1</strong><br>
+                <small>攻撃参加</small>
+              </div>
+              <div class="flow-item danger fragment fade-in">
+                <strong>PC2</strong><br>
+                <small>攻撃参加</small>
+              </div>
+              <div class="flow-item danger fragment fade-in">
+                <strong>PC3</strong><br>
+                <small>攻撃参加</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>標的サーバ</strong><br>
+                <small>サービス停止</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>対策</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚖️</span>
+                <h4>負荷バランサ</h4>
+                <p>負荷を複数サーバに分散</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🌐</span>
+                <h4>CDN活用</h4>
+                <p>コンテンツ配信ネットワーク</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🚫</span>
+                <h4>異常検出</h4>
+                <p>異常トラフィックの検出・遮断</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 暗号化技術 -->
+        <section>
+          <h1>暗号化技術</h1>
+          
+          <div class="highlight-box important">
+            <h3>暗号化の目的</h3>
+          </div>
+          
+          <div class="fragment fade-in">
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔒</span>
+                <h4>機密性の確保</h4>
+                <p>第三者による盗聴防止</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✅</span>
+                <h4>完全性の確認</h4>
+                <p>データの改ざん検出</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📝</span>
+                <h4>否認防止</h4>
+                <p>送信者の証明</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>暗号化の種類</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>共通鍵暗号</strong><br>
+                <small>同じ鍵で暗号化・復号化</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>公開鍵暗号</strong><br>
+                <small>異なる鍵で暗号化・復号化</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>ハッシュ関数</strong><br>
+                <small>一方向の変換</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 共通鍵暗号方式 -->
+        <section>
+          <h1>共通鍵暗号方式</h1>
+          
+          <div class="fragment fade-in">
+            <h3>特徴</h3>
+            <div class="flow-chart">
+              <div class="flow-item fragment fade-in">
+                <strong>送信者</strong><br>
+                <small>共通鍵で暗号化</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>暗号化データ</strong><br>
+                <small>インターネット経由</small>
+              </div>
+              <div class="flow-arrow fragment fade-in">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>受信者</strong><br>
+                <small>同じ鍵で復号化</small>
+              </div>
+            </div>
+          </div>
+          
+          <table class="comparison-table fragment fade-in">
+            <thead>
+              <tr>
+                <th>メリット</th>
+                <th>デメリット</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>高速な処理が可能</td>
+                <td>鍵の配送が課題</td>
+              </tr>
+              <tr>
+                <td>大量データの暗号化に適している</td>
+                <td>通信相手ごとに異なる鍵が必要</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>主要なアルゴリズム</h3>
+            <p>AES（Advanced Encryption Standard）：現在の標準<br>
+            128ビット（一般用途）、256ビット（高セキュリティ用途）</p>
+          </div>
+        </section>
+
+        <!-- 公開鍵暗号方式 -->
+        <section>
+          <h1>公開鍵暗号方式</h1>
+          
+          <div class="highlight-box important">
+            <h3>仕組み</h3>
+            <p>公開鍵（誰でも知ることができる）と秘密鍵（本人のみが知る）<br>
+            数学的に関連しているが一方から他方を導出困難</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>用途</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔐</span>
+                <h4>暗号化</h4>
+                <p>公開鍵で暗号化→秘密鍵で復号化</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✍️</span>
+                <h4>デジタル署名</h4>
+                <p>秘密鍵で署名→公開鍵で検証</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>主要なアルゴリズム</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔑</span>
+                <h4>RSA</h4>
+                <p>最も普及している方式</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📐</span>
+                <h4>ECC</h4>
+                <p>楕円曲線暗号・短い鍵長で高い安全性</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- デジタル署名 -->
+        <section>
+          <h1>デジタル署名</h1>
+          
+          <div class="fragment fade-in">
+            <h3>署名の流れ</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>①ハッシュ値</strong><br>
+                <small>文書の計算</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>②署名作成</strong><br>
+                <small>秘密鍵で暗号化</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>③送信</strong><br>
+                <small>文書と署名</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>④署名復号</strong><br>
+                <small>公開鍵で復号化</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>⑤検証</strong><br>
+                <small>ハッシュ値比較</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>デジタル署名の効果</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">👤</span>
+                <h4>送信者確認</h4>
+                <p>なりすましの防止</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🛡️</span>
+                <h4>改ざん検出</h4>
+                <p>データの完全性確認</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚖️</span>
+                <h4>否認防止</h4>
+                <p>後から否認できない</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SSL/TLS -->
+        <section>
+          <h1>SSL/TLS</h1>
+          
+          <div class="highlight-box important">
+            <h3>SSL/TLSとは</h3>
+            <p>インターネット通信を暗号化するプロトコル</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>機能</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔐</span>
+                <h4>通信の暗号化</h4>
+                <p>データの盗聴防止</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🏢</span>
+                <h4>サーバの認証</h4>
+                <p>正当性の確認</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">✅</span>
+                <h4>データの完全性</h4>
+                <p>改ざんの検出</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>ハンドシェイク（接続確立）</h3>
+            <div class="timeline">
+              <div class="timeline-item fragment fade-in">
+                <strong>①接続要求</strong><br>
+                <small>クライアント→サーバ</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>②証明書送信</strong><br>
+                <small>サーバ→クライアント</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>③証明書検証</strong><br>
+                <small>クライアント</small>
+              </div>
+              <div class="timeline-item fragment fade-in">
+                <strong>④鍵交換</strong><br>
+                <small>共通鍵を安全に交換</small>
+              </div>
+              <div class="timeline-item current fragment fade-in">
+                <strong>⑤暗号化通信</strong><br>
+                <small>開始</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- パスワードセキュリティ -->
+        <section>
+          <h1>パスワードセキュリティ</h1>
+          
+          <div class="fragment fade-in">
+            <h3>強固なパスワードの条件</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📏</span>
+                <h4>十分な長さ</h4>
+                <p>8文字以上（できれば12文字以上）</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔤</span>
+                <h4>複雑な組み合わせ</h4>
+                <p>大文字・小文字・数字・記号</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🚫</span>
+                <h4>推測困難</h4>
+                <p>辞書にない文字列・個人情報含まない</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>パスワードの管理</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔄</span>
+                <h4>サービス別</h4>
+                <p>サービスごとに異なるパスワード</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🛡️</span>
+                <h4>パスワードマネージャ</h4>
+                <p>安全な管理ツールの活用</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📱</span>
+                <h4>2要素認証</h4>
+                <p>知っているもの＋持っているもの</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 個人情報保護 -->
+        <section>
+          <h1>個人情報保護</h1>
+          
+          <div class="highlight-box important">
+            <h3>個人情報とは</h3>
+            <p>生存する個人を識別できる情報</p>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>個人情報の例</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">👤</span>
+                <h4>基本的な情報</h4>
+                <p>氏名、住所、電話番号、メールアドレス</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📅</span>
+                <h4>個人識別情報</h4>
+                <p>生年月日、職業、所属</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📱</span>
+                <h4>デジタル情報</h4>
+                <p>写真、音声、端末ID、Cookie</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>個人情報保護法の要点</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📋</span>
+                <h4>利用目的の特定</h4>
+                <p>明確な目的の通知</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🚫</span>
+                <h4>第三者提供の制限</h4>
+                <p>本人の同意なく提供禁止</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔒</span>
+                <h4>安全管理措置</h4>
+                <p>適切な保護対策</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- セキュリティ対策の実践 -->
+        <section>
+          <h1>セキュリティ対策の実践</h1>
+          
+          <div class="fragment fade-in">
+            <h3>多層防御</h3>
+            <div class="flow-chart" style="flex-direction: column;">
+              <div class="flow-item fragment fade-in">
+                <strong>①メールフィルタ</strong><br>
+                <small>添付ファイルのチェック</small>
+              </div>
+              <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>②Webフィルタ</strong><br>
+                <small>危険サイトのブロック</small>
+              </div>
+              <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+              <div class="flow-item fragment fade-in">
+                <strong>③エンドポイント保護</strong><br>
+                <small>端末での検知・駆除</small>
+              </div>
+              <div class="flow-arrow fragment fade-in" style="transform: rotate(90deg);">→</div>
+              <div class="flow-item highlight fragment fade-in">
+                <strong>④ネットワーク監視</strong><br>
+                <small>通信パターンの分析</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>組織的対策</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">📋</span>
+                <h4>セキュリティポリシー</h4>
+                <p>基本方針の策定・運用</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🎓</span>
+                <h4>従業員教育</h4>
+                <p>継続的なセキュリティ教育</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🚨</span>
+                <h4>インシデント対応</h4>
+                <p>事故発生時の対応体制</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 最新のセキュリティ動向 -->
+        <section>
+          <h1>最新のセキュリティ動向</h1>
+          
+          <div class="fragment fade-in">
+            <h3>新しい脅威</h3>
+            <div class="concept-diagram">
+              <div class="concept-card danger fragment fade-in">
+                <span class="icon">🤖</span>
+                <h4>AI悪用</h4>
+                <p>ディープフェイク、AI生成攻撃</p>
+              </div>
+              
+              <div class="concept-card danger fragment fade-in">
+                <span class="icon">📱</span>
+                <h4>IoT脆弱性</h4>
+                <p>大量のIoTデバイスが標的</p>
+              </div>
+              
+              <div class="concept-card danger fragment fade-in">
+                <span class="icon">☁️</span>
+                <h4>クラウドリスク</h4>
+                <p>設定ミスによる情報漏えい</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="fragment fade-in">
+            <h3>対策技術の進歩</h3>
+            <div class="concept-diagram">
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🏗️</span>
+                <h4>ゼロトラスト</h4>
+                <p>境界防御からの脱却</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">🔍</span>
+                <h4>XDR</h4>
+                <p>拡張検知・応答</p>
+              </div>
+              
+              <div class="concept-card fragment fade-in">
+                <span class="icon">⚙️</span>
+                <h4>SOAR</h4>
+                <p>セキュリティ業務自動化</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-box important fragment fade-in">
+            <h3>法規制の強化</h3>
+            <p>GDPR（EU一般データ保護規則）、改正個人情報保護法<br>
+            グローバルでプライバシー保護が重要視されている</p>
+          </div>
+        </section>
+
+        <!-- まとめスライド -->
+        <section>
+          <h1>まとめ</h1>
+          
+          <div class="highlight-box important">
+            <h3>情報セキュリティの基本</h3>
+          </div>
+          
+          <div class="concept-diagram">
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🛡️</span>
+              <h4>セキュリティの基本</h4>
+              <p>CIA（機密性・完全性・可用性）の確保</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">🔐</span>
+              <h4>技術的対策</h4>
+              <p>暗号化技術・認証・監視・検知</p>
+            </div>
+            <div class="concept-card fragment fade-in">
+              <span class="icon">👥</span>
+              <h4>組織的対策</h4>
+              <p>ポリシー策定・教育・体制整備</p>
+            </div>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要なポイント</h3>
+            <p style="line-height: 1.6;">
+              ・技術だけでなく人・組織も重要<br>
+              ・100%安全は存在しない<br>
+              ・コスト・利便性とのバランス<br>
+              ・継続的な改善が必要
+            </p>
+          </div>
+          
+          <div class="highlight-box fragment fade-in">
+            <h3>重要語句</h3>
+            <p style="line-height: 1.6;">
+              CIA、マルウェア、フィッシング、暗号化、<br>
+              公開鍵暗号、デジタル署名、SSL/TLS、<br>
+              個人情報保護、多層防御、ゼロトラスト
+            </p>
+          </div>
+        </section>
+
+        <!-- 終了スライド -->
+        <section>
+          <h1>第4章のまとめ</h1>
+          <div style="font-size: 1.2em; margin-top: 30px;">
+            <p><strong>ネットワーク技術の基礎から応用まで</strong></p>
+            <div style="text-align: left; margin: 30px auto; max-width: 600px;">
+              <p>1. <strong>ネットワークとプロトコル</strong>の基本概念</p>
+              <p>2. <strong>インターネットの仕組み</strong>（IP、DNS、ルーティング）</p>
+              <p>3. <strong>Webページとメール</strong>の技術</p>
+              <p>4. <strong>情報セキュリティ</strong>の重要性と対策</p>
+            </div>
+            <p style="margin-top: 40px;">
+              現代のデジタル社会において、これらの知識は<br>
+              安全で効率的な情報活用のために不可欠です
+            </p>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/plugin/highlight/highlight.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        touch: true,
+        loop: false,
+        rtl: false,
+        shuffle: false,
+        fragments: true,
+        fragmentInURL: false,
+        embedded: false,
+        help: true,
+        pause: true,
+        showNotes: false,
+        autoSlide: 0,
+        autoSlideStoppable: true,
+        autoSlideMethod: Reveal.navigateNext,
+        defaultTiming: null,
+        mouseWheel: false,
+        hideInactiveCursor: true,
+        hideCursorTime: 5000,
+        previewLinks: false,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        backgroundTransition: 'fade',
+        viewDistance: 3,
+        mobileViewDistance: 2,
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+      });
+    </script>
+  </body>
+</html>
