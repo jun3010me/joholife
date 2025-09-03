@@ -6506,6 +6506,9 @@ class NetworkSimulator {
                     }
                 });
 
+                // DHCPが有効なデバイスのIPアドレス表示を修正
+                this.refreshDHCPDevicesDisplay();
+                
                 this.updateControlButtons();
                 this.scheduleRender();
                 this.updateStatus('ネットワーク構成を読み込みました（全設定情報を含む）');
@@ -6518,6 +6521,74 @@ class NetworkSimulator {
 
         reader.readAsText(file);
         event.target.value = ''; // ファイル入力をリセット
+    }
+
+    // DHCPが有効なデバイスの表示を更新
+    refreshDHCPDevicesDisplay() {
+        // 全デバイスをチェック
+        Array.from(this.devices.values()).forEach(device => {
+            if (device.config && device.config.dhcpEnabled) {
+                // DHCPが有効でIPアドレスが0.0.0.0の場合、接続されたルーターから再取得を試行
+                if (device.config.ipAddress === '0.0.0.0' || !device.config.ipAddress) {
+                    this.tryDHCPRefresh(device);
+                }
+            }
+        });
+    }
+
+    // DHCP更新の試行
+    tryDHCPRefresh(device) {
+        // 接続されているルーターを検索
+        const connectedRouters = this.getConnectedRouters(device);
+        
+        for (const router of connectedRouters) {
+            // ルーターのDHCPサーバーからIPアドレスを取得を試行
+            const assignedIP = this.tryAssignDHCPAddress(device, router);
+            if (assignedIP && assignedIP !== '0.0.0.0') {
+                console.log(`DHCP refresh: ${device.name || device.id} got IP ${assignedIP} from ${router.name || router.id}`);
+                break; // 成功したら終了
+            }
+        }
+    }
+
+    // DHCPアドレス割り当てを試行
+    tryAssignDHCPAddress(device, router) {
+        if (router.type === 'router' && router.config) {
+            // 各LANポートのDHCP設定をチェック
+            const lanConfigs = ['lan1', 'lan2', 'lan3'];
+            
+            for (const lanKey of lanConfigs) {
+                const lanConfig = router.config[lanKey];
+                if (lanConfig && lanConfig.dhcpEnabled) {
+                    const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, device, router);
+                    if (assignedIP && assignedIP !== '0.0.0.0') {
+                        return assignedIP;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // デバイスに接続されたルーターを取得
+    getConnectedRouters(device) {
+        const routers = [];
+        
+        this.connections.forEach(connection => {
+            let connectedDevice = null;
+            
+            if (connection.from.device === device && connection.to.device.type === 'router') {
+                connectedDevice = connection.to.device;
+            } else if (connection.to.device === device && connection.from.device.type === 'router') {
+                connectedDevice = connection.from.device;
+            }
+            
+            if (connectedDevice && !routers.includes(connectedDevice)) {
+                routers.push(connectedDevice);
+            }
+        });
+        
+        return routers;
     }
 
     // 画像としてエクスポート
