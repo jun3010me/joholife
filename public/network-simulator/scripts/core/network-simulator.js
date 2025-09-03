@@ -254,10 +254,33 @@ class NetworkSimulator {
             if (isScrollingActive) {
                 const paletteContent = document.querySelector('.palette-content');
                 if (paletteContent) {
+                    // デバッグ情報を詳細に出力
+                    console.log('📊 Element info:', {
+                        scrollWidth: paletteContent.scrollWidth,
+                        clientWidth: paletteContent.clientWidth,
+                        scrollLeft: paletteContent.scrollLeft,
+                        overflowX: getComputedStyle(paletteContent).overflowX,
+                        touchAction: getComputedStyle(paletteContent).touchAction
+                    });
+                    
                     // 前回のタッチ位置からの差分を計算
                     const moveDelta = lastTouchX - moveTouch.clientX;
-                    paletteContent.scrollLeft += moveDelta;
-                    console.log('📜 Scrolling by:', moveDelta, 'new scrollLeft:', paletteContent.scrollLeft);
+                    const newScrollLeft = paletteContent.scrollLeft + moveDelta;
+                    
+                    // 直接設定を試す
+                    paletteContent.scrollLeft = newScrollLeft;
+                    
+                    console.log('📜 Scrolling by:', moveDelta, 'attempted:', newScrollLeft, 'actual:', paletteContent.scrollLeft);
+                    
+                    // 代替手段：scrollToも試す
+                    if (paletteContent.scrollLeft === 0 && newScrollLeft !== 0) {
+                        console.log('⚠️ scrollLeft failed, trying scrollTo');
+                        paletteContent.scrollTo({
+                            left: newScrollLeft,
+                            behavior: 'auto'
+                        });
+                        console.log('📜 After scrollTo:', paletteContent.scrollLeft);
+                    }
                 }
                 lastTouchX = moveTouch.clientX;
             }
