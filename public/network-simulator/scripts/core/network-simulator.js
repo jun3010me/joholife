@@ -3051,6 +3051,9 @@ class NetworkSimulator {
     
     // 直接接続による経路検索
     findDirectPath(sourceDevice, targetDevice) {
+        if (!sourceDevice || !targetDevice || !sourceDevice.id || !targetDevice.id) {
+            return null;
+        }
         const visited = new Set();
         const queue = [[sourceDevice]];
         visited.add(sourceDevice.id);
@@ -5122,6 +5125,7 @@ class NetworkSimulator {
 
     // IPアドレス検証
     isValidIP(ip) {
+        if (!ip || typeof ip !== 'string') return false;
         const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
         const match = ip.match(regex);
         if (!match) return false;
