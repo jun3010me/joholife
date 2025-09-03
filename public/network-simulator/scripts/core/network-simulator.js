@@ -178,15 +178,138 @@ class NetworkSimulator {
         
         // デバイスドラッグを有効化（横スクロールと競合しないよう調整）
         console.log('Setting up device drag handlers for all environments');
-        items.forEach(item => {
-            item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
-            // モバイルでは長押しでのみデバイスドラッグを有効化
-            if (isNarrowScreen) {
-                item.addEventListener('touchstart', this.startDeviceDragWithLongPress.bind(this), { passive: false });
-            } else {
-                item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
+        
+        // 論理回路シミュレータのアプローチを採用：パレット全体でタッチ処理
+        if (isNarrowScreen) {
+            console.log('🍎 Narrow screen: Setting up palette-level touch handling');
+            const paletteContent = document.querySelector('.palette-content');
+            if (paletteContent) {
+                paletteContent.addEventListener('touchstart', this.handlePaletteDeviceTouch.bind(this), { passive: false });
             }
-        });
+            
+            // 個別アイテムはマウスのみ（PCとタッチ両対応）
+            items.forEach(item => {
+                item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
+            });
+        } else {
+            console.log('🖥️ Wide screen: Setting up individual item handling');
+            // 広い画面では個別アイテムでマウス・タッチ両方
+            items.forEach(item => {
+                item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
+                item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
+            });
+        }
+    }
+
+    // パレット全体でのタッチ処理（論理回路シミュレータ方式）
+    handlePaletteDeviceTouch(event) {
+        event.preventDefault();
+        console.log('🎯 Palette touch detected');
+        
+        const touch = event.touches[0];
+        const startX = touch.clientX;
+        const startY = touch.clientY;
+        let hasMoved = false;
+        let deviceType = null;
+        
+        // タッチした要素がデバイスアイテムかチェック
+        const targetItem = event.target.closest('.device-item');
+        if (targetItem) {
+            deviceType = targetItem.dataset.deviceType;
+            console.log('📱 Device item touched:', deviceType);
+        }
+        
+        // タッチ移動ハンドラー
+        const handleMove = (moveEvent) => {
+            const moveTouch = moveEvent.touches[0];
+            const deltaX = Math.abs(moveTouch.clientX - startX);
+            const deltaY = Math.abs(moveTouch.clientY - startY);
+            
+            if (deltaX > 5 || deltaY > 5) {
+                hasMoved = true;
+            }
+            
+            // 横移動が多い場合はスクロール継続、縦移動が多い場合はデバイス配置準備
+            if (hasMoved && deviceType) {
+                if (deltaX > deltaY && deltaX > 15) {
+                    console.log('🔄 Horizontal scroll detected, allowing scroll');
+                } else if (deltaY > deltaX && deltaY > 20) {
+                    console.log('🔽 Vertical movement detected, preparing device drag');
+                    this.createDeviceFromTouch(deviceType, startX, startY);
+                    cleanup();
+                    return;
+                }
+            }
+        };
+        
+        // タッチ終了ハンドラー
+        const handleEnd = (endEvent) => {
+            if (!hasMoved && deviceType) {
+                // タップ（移動なし）の場合、長押し相当としてデバイス作成
+                console.log('📍 Tap detected, creating device');
+                this.createDeviceFromTouch(deviceType, startX, startY);
+            }
+            cleanup();
+        };
+        
+        // クリーンアップ関数
+        const cleanup = () => {
+            document.removeEventListener('touchmove', handleMove);
+            document.removeEventListener('touchend', handleEnd);
+            document.removeEventListener('touchcancel', handleEnd);
+        };
+        
+        // イベントリスナー追加
+        document.addEventListener('touchmove', handleMove, { passive: false });
+        document.addEventListener('touchend', handleEnd, { passive: false });
+        document.addEventListener('touchcancel', handleEnd, { passive: false });
+    }
+
+    // タッチからのデバイス作成
+    createDeviceFromTouch(deviceType, touchX, touchY) {
+        console.log('🎯 createDeviceFromTouch called for:', deviceType, 'at touch:', touchX, touchY);
+        
+        // キャンバス座標に変換
+        const canvasRect = this.canvas.getBoundingClientRect();
+        let x, y;
+        
+        // タッチ位置がキャンバス内かチェック
+        const isWithinCanvas = touchX >= canvasRect.left && touchX <= canvasRect.right &&
+                             touchY >= canvasRect.top && touchY <= canvasRect.bottom;
+        
+        if (isWithinCanvas) {
+            // キャンバス内の場合、その座標を使用
+            x = (touchX - canvasRect.left - this.panX) / this.scale;
+            y = (touchY - canvasRect.top - this.panY) / this.scale;
+            console.log('📍 Touch within canvas, using position:', x, y);
+        } else {
+            // キャンバス外の場合、中央に配置
+            x = (canvasRect.width / 2 - this.panX) / this.scale;
+            y = (canvasRect.height / 2 - this.panY) / this.scale;
+            console.log('📍 Touch outside canvas, using center:', x, y);
+        }
+        
+        // デバイスを作成
+        const device = this.createDevice(deviceType, x, y);
+        console.log('📦 Touch device created:', device.type, 'at:', x, y);
+        device.isNewFromPalette = true;
+        
+        // ドラッグ状態を設定
+        this.pendingDevice = device;
+        this.selectedDevice = device;
+        this.isDragging = true;
+        this.dragOffset = { x: device.width / 2, y: device.height / 2 };
+        
+        console.log('🔄 Device drag state prepared from touch');
+        
+        // グローバルタッチハンドラーを設定
+        this.setupGlobalTouchHandlers();
+        console.log('✅ Global touch handlers set up for touch drag');
+        
+        // バイブレーション
+        if (navigator.vibrate) {
+            navigator.vibrate(30);
+        }
     }
 
     // パレットスクロール処理（論理回路シミュレータと同じ）
