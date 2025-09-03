@@ -467,8 +467,8 @@ class NetworkSimulator {
             console.log('🔥 Long press timer fired! Starting drag for:', deviceType);
             longPressActivated = true;
             
-            // 長押し成功時にドラッグを開始
-            this.startDeviceDrag(event);
+            // 長押し成功時にデバイスを直接作成
+            this.createDeviceFromLongPress(deviceType, startX, startY);
             
             // 視覚的フィードバック（バイブレーション）
             if (navigator.vibrate) {
@@ -521,6 +521,48 @@ class NetworkSimulator {
             targetElement.addEventListener('touchend', handleTouchEnd, { once: true });
             targetElement.addEventListener('touchcancel', handleTouchEnd, { once: true });
         }
+    }
+
+    // 長押しからのデバイス作成
+    createDeviceFromLongPress(deviceType, touchX, touchY) {
+        console.log('🎯 createDeviceFromLongPress called for:', deviceType, 'at touch:', touchX, touchY);
+        
+        // キャンバス座標に変換
+        const canvasRect = this.canvas.getBoundingClientRect();
+        let x, y;
+        
+        // タッチ位置がキャンバス内かチェック
+        const isWithinCanvas = touchX >= canvasRect.left && touchX <= canvasRect.right &&
+                             touchY >= canvasRect.top && touchY <= canvasRect.bottom;
+        
+        if (isWithinCanvas) {
+            // キャンバス内の場合、その座標を使用
+            x = (touchX - canvasRect.left - this.panX) / this.scale;
+            y = (touchY - canvasRect.top - this.panY) / this.scale;
+            console.log('📍 Touch within canvas, using position:', x, y);
+        } else {
+            // キャンバス外の場合、中央に配置
+            x = (canvasRect.width / 2 - this.panX) / this.scale;
+            y = (canvasRect.height / 2 - this.panY) / this.scale;
+            console.log('📍 Touch outside canvas, using center:', x, y);
+        }
+        
+        // デバイスを作成
+        const device = this.createDevice(deviceType, x, y);
+        console.log('📦 Long press device created:', device.type, 'at:', x, y);
+        device.isNewFromPalette = true;
+        
+        // ドラッグ状態を設定
+        this.pendingDevice = device;
+        this.selectedDevice = device;
+        this.isDragging = true;
+        this.dragOffset = { x: device.width / 2, y: device.height / 2 };
+        
+        console.log('🔄 Device drag state prepared');
+        
+        // グローバルタッチハンドラーを設定
+        this.setupGlobalTouchHandlers();
+        console.log('✅ Global touch handlers set up for long press drag');
     }
 
     // デバイス表示名を取得
