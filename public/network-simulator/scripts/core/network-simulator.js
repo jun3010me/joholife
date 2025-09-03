@@ -182,7 +182,7 @@ class NetworkSimulator {
             item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
             // モバイルでは長押しでのみデバイスドラッグを有効化
             if (isNarrowScreen) {
-                item.addEventListener('touchstart', this.startDeviceDragWithLongPress.bind(this), { passive: true });
+                item.addEventListener('touchstart', this.startDeviceDragWithLongPress.bind(this), { passive: false });
             } else {
                 item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
             }
@@ -468,10 +468,12 @@ class NetworkSimulator {
                 clearTimeout(this.longPressTimer);
                 this.longPressTimer = null;
             }
-            // イベントリスナーを削除
-            event.currentTarget.removeEventListener('touchmove', handleTouchMove);
-            event.currentTarget.removeEventListener('touchend', handleTouchEnd);
-            event.currentTarget.removeEventListener('touchcancel', handleTouchEnd);
+            // イベントリスナーを削除（nullチェック）
+            if (event.currentTarget) {
+                event.currentTarget.removeEventListener('touchmove', handleTouchMove);
+                event.currentTarget.removeEventListener('touchend', handleTouchEnd);
+                event.currentTarget.removeEventListener('touchcancel', handleTouchEnd);
+            }
         };
         
         // イベントリスナーを追加
