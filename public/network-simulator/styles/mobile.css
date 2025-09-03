@@ -148,6 +148,10 @@
         padding-right: max(8px, env(safe-area-inset-right, 8px)) !important;
         /* JavaScriptイベントを無効化して純粋なCSSスクロールを実現 */
         pointer-events: auto !important;
+        /* 親要素の幅を画面幅に制限してスクロールを有効化 */
+        width: 100vw !important;
+        max-width: 100vw !important;
+        overflow: hidden !important;
     }
     
     .palette-content {
