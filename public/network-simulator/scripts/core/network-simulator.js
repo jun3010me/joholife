@@ -242,34 +242,100 @@ class NetworkSimulator {
         this.pendingDeviceDrag = null;
     }
 
-    // 遅延デバイスドラッグ開始処理（モバイル専用・横スクロール配慮）
+    // スマート動作判定デバイスドラッグ（タップ後の動きで判定）
     startDeviceDragDelayed(e) {
-        // パッシブイベントのため、長押しでのみドラッグを開始
         const item = e.currentTarget;
         const deviceType = item.dataset.deviceType;
+        const paletteContent = item.closest('.palette-content');
         
         console.log('startDeviceDragDelayed called for:', deviceType);
         
-        // 長押し判定のためのタイマーを設定
-        this.deviceDragTimer = setTimeout(() => {
-            console.log('Starting delayed device drag for:', deviceType);
-            // 直接ドラッグ開始
-            const rect = item.getBoundingClientRect();
-            this.createDevice(deviceType, e.touches ? e.touches[0].clientX : rect.left + rect.width/2, e.touches ? e.touches[0].clientY : rect.top + rect.height/2);
-            this.startDrag(this.draggedDevice, e.touches ? e.touches[0] : e);
-        }, 300); // 300msの長押し（より短く）
+        // タッチ開始位置を記録
+        const startX = e.touches[0].clientX;
+        const startY = e.touches[0].clientY;
+        const startScrollLeft = paletteContent ? paletteContent.scrollLeft : 0;
         
-        // touchend/touchcancel で長押しタイマーをクリア
-        const clearTimer = () => {
-            if (this.deviceDragTimer) {
-                clearTimeout(this.deviceDragTimer);
-                this.deviceDragTimer = null;
+        let actionDecided = false;
+        let isDragMode = false;
+        let isScrollMode = false;
+        
+        // タッチ移動ハンドラー
+        const handleTouchMove = (moveEvent) => {
+            if (actionDecided) return;
+            
+            const deltaX = Math.abs(moveEvent.touches[0].clientX - startX);
+            const deltaY = Math.abs(moveEvent.touches[0].clientY - startY);
+            const moveThreshold = 8; // 動き判定の閾値
+            
+            if (deltaX > moveThreshold || deltaY > moveThreshold) {
+                actionDecided = true;
+                
+                // 横方向の動きが優勢な場合はスクロールモード
+                if (deltaX > deltaY && deltaX > 12) {
+                    console.log('🔄 Switching to scroll mode (horizontal movement detected)');
+                    isScrollMode = true;
+                    
+                    // スクロール処理を開始
+                    if (paletteContent) {
+                        const scrollDelta = startX - moveEvent.touches[0].clientX;
+                        paletteContent.scrollLeft = startScrollLeft + scrollDelta;
+                    }
+                }
+                // 縦方向が優勢または縦方向に十分な動きがある場合はドラッグモード
+                else if (deltaY > 10 || (deltaY > deltaX && deltaY > 8)) {
+                    console.log('🔽 Switching to drag mode (vertical movement detected)');
+                    isDragMode = true;
+                    
+                    // デバイスドラッグを開始
+                    const rect = item.getBoundingClientRect();
+                    this.createDevice(deviceType, startX, startY);
+                    this.startDrag(this.draggedDevice, moveEvent.touches[0]);
+                }
+                
+                // 後続の移動処理を設定
+                if (isScrollMode || isDragMode) {
+                    setupContinuousHandling();
+                }
             }
         };
         
-        item.addEventListener('touchend', clearTimer, { once: true, passive: true });
-        item.addEventListener('touchcancel', clearTimer, { once: true, passive: true });
-        item.addEventListener('touchmove', clearTimer, { once: true, passive: true });
+        // 継続処理の設定
+        const setupContinuousHandling = () => {
+            const continuousMoveHandler = (moveEvent) => {
+                if (isScrollMode && paletteContent) {
+                    const scrollDelta = startX - moveEvent.touches[0].clientX;
+                    paletteContent.scrollLeft = startScrollLeft + scrollDelta;
+                    moveEvent.preventDefault();
+                }
+                // ドラッグモードの場合は既存の処理が継続
+            };
+            
+            document.addEventListener('touchmove', continuousMoveHandler, { passive: false });
+            
+            const cleanup = () => {
+                document.removeEventListener('touchmove', continuousMoveHandler);
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchend', cleanup);
+                document.removeEventListener('touchcancel', cleanup);
+            };
+            
+            document.addEventListener('touchend', cleanup, { once: true });
+            document.addEventListener('touchcancel', cleanup, { once: true });
+        };
+        
+        // 初期移動監視
+        document.addEventListener('touchmove', handleTouchMove, { passive: false });
+        
+        // クリーンアップ
+        const initialCleanup = () => {
+            if (!actionDecided) {
+                console.log('Touch ended without significant movement');
+                document.removeEventListener('touchmove', handleTouchMove);
+            }
+        };
+        
+        document.addEventListener('touchend', initialCleanup, { once: true });
+        document.addEventListener('touchcancel', initialCleanup, { once: true });
     }
 
     // デバイスドラッグ開始（論理回路シミュレータの実装を正確に模倣）
