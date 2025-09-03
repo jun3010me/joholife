@@ -193,6 +193,16 @@ class NetworkSimulator {
             const paletteContent = document.querySelector('.palette-content');
             console.log('📦 PaletteContent element:', paletteContent);
             if (paletteContent) {
+                // パレット要素の初期状態を確認
+                console.log('📏 Initial palette state:', {
+                    scrollWidth: paletteContent.scrollWidth,
+                    clientWidth: paletteContent.clientWidth,
+                    offsetWidth: paletteContent.offsetWidth,
+                    computedWidth: getComputedStyle(paletteContent).width,
+                    computedOverflowX: getComputedStyle(paletteContent).overflowX,
+                    canScrollInitially: paletteContent.scrollWidth > paletteContent.clientWidth
+                });
+                
                 console.log('✅ Adding touch event listeners to palette');
                 paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
                 paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
