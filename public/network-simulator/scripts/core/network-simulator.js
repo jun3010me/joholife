@@ -296,7 +296,8 @@ class NetworkSimulator {
                     startScrollLeft: this.paletteScrollStartScrollLeft,
                     newScrollLeft: newScrollLeft,
                     elementScrollWidth: e.currentTarget.scrollWidth,
-                    elementClientWidth: e.currentTarget.clientWidth
+                    elementClientWidth: e.currentTarget.clientWidth,
+                    canScroll: e.currentTarget.scrollWidth > e.currentTarget.clientWidth
                 });
                 
                 e.currentTarget.scrollLeft = newScrollLeft;

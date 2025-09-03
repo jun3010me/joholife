@@ -176,9 +176,9 @@
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         
-        /* 強制的にスクロール可能にする - より具体的な値 */
-        min-width: 700px !important;
-        width: max-content !important;
+        /* 強制的にスクロール可能にする - 幅を大きく設定 */
+        min-width: 1000px !important;
+        width: 1000px !important;
     }
     
     .palette-content::-webkit-scrollbar {
