@@ -28,6 +28,14 @@ class NetworkSimulator {
         this.selectedConnection = null;
         this.nextZIndex = 1;
         this.currentDeviceConfig = null;
+        
+        // 論理回路シミュレータから完全コピーした変数
+        this.isPaletteScrolling = false;
+        this.paletteScrollStartX = 0;
+        this.paletteScrollStartY = 0;
+        this.paletteScrollThreshold = 10; // スクロール判定を緩く（横スクロール優先）
+        this.paletteScrollStartScrollLeft = 0;
+        this.pendingDeviceDrag = null; // デバイスドラッグ開始待機用
         this.lastClickTime = 0;
         this.doubleClickDelay = 300;
         this.lastClickPosition = null;
@@ -184,7 +192,9 @@ class NetworkSimulator {
             console.log('🍎 Narrow screen: Setting up palette-level touch handling');
             const paletteContent = document.querySelector('.palette-content');
             if (paletteContent) {
-                paletteContent.addEventListener('touchstart', this.handlePaletteDeviceTouch.bind(this), { passive: false });
+                paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
+                paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
+                paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
             }
             
             // 個別アイテムはマウスのみ（PCとタッチ両対応）
@@ -201,85 +211,92 @@ class NetworkSimulator {
         }
     }
 
-    // パレット全体でのタッチ処理（論理回路シミュレータ方式）
-    handlePaletteDeviceTouch(event) {
-        // 最初はpreventDefault()を呼ばない（スクロールを有効に保つ）
-        console.log('🎯 Palette touch detected');
+    // 論理回路シミュレータから完全コピーしたスクロール処理
+    handlePaletteScrollStart(e) {
+        // 狭い画面でのみ動作
+        if (window.innerWidth > 1024) return;
         
-        const touch = event.touches[0];
-        const startX = touch.clientX;
-        const startY = touch.clientY;
-        let hasMoved = false;
-        let deviceType = null;
-        
-        // タッチした要素がデバイスアイテムかチェック
-        const targetItem = event.target.closest('.device-item');
-        if (targetItem) {
-            deviceType = targetItem.dataset.deviceType;
-            console.log('📱 Device item touched:', deviceType);
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            this.paletteScrollStartX = touch.clientX;
+            this.paletteScrollStartY = touch.clientY;
+            this.paletteScrollStartScrollLeft = e.currentTarget.scrollLeft;
+            this.isPaletteScrolling = false;
+            this.pendingDeviceDrag = null;
+            
+            console.log('handlePaletteScrollStart: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
+            
+            // タッチ対象がデバイスアイテムかどうかチェック
+            const targetItem = e.target.closest('.device-item');
+            if (targetItem) {
+                const deviceType = targetItem.dataset.deviceType;
+                console.log('🎯 Touch on device item:', deviceType);
+                this.pendingDeviceDrag = { type: deviceType, x: touch.clientX, y: touch.clientY };
+            } else {
+                console.log('📋 Touch on palette background, ready for scroll');
+            }
         }
+    }
+    
+    handlePaletteScrollMove(e) {
+        // 狭い画面でのみ動作
+        if (window.innerWidth > 1024) return;
         
-        // タッチ移動ハンドラー
-        let isScrollingActive = false;
-        let lastTouchX = startX;
-        const handleMove = (moveEvent) => {
-            const moveTouch = moveEvent.touches[0];
-            const deltaX = Math.abs(moveTouch.clientX - startX);
-            const deltaY = Math.abs(moveTouch.clientY - startY);
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            const deltaX = Math.abs(touch.clientX - this.paletteScrollStartX);
+            const deltaY = Math.abs(touch.clientY - this.paletteScrollStartY);
             
-            if (deltaX > 5 || deltaY > 5) {
-                hasMoved = true;
-            }
+            console.log('Palette scroll move:', {
+                deltaX: deltaX,
+                deltaY: deltaY,
+                threshold: this.paletteScrollThreshold,
+                isScrolling: this.isPaletteScrolling,
+                targetClass: e.target.classList.contains('device-item') ? 'device-item' : 'background',
+                pendingDrag: this.pendingDeviceDrag ? this.pendingDeviceDrag.type : null
+            });
             
-            // 横移動が多い場合は即座にネイティブスクロールに移行
-            if (hasMoved && deviceType && !isScrollingActive) {
-                if (deltaX > deltaY && deltaX > 15) {
-                    console.log('🔄 Horizontal scroll detected, switching to native scroll!');
-                    console.log('🚀 Removing touch handlers and allowing browser scroll');
-                    
-                    // 即座にイベントハンドラーを削除してブラウザに任せる
-                    cleanup();
-                    return;
-                } else if (deltaY > deltaX && deltaY > 20) {
-                    console.log('🔽 Vertical movement detected, preparing device drag');
-                    // デバイス配置が確定した時のみpreventDefaultを実行
-                    if (event.cancelable) {
-                        event.preventDefault();
-                        console.log('🚫 preventDefault called for device drag');
-                    }
+            if (this.pendingDeviceDrag) {
+                // デバイスドラッグ待機中の場合
+                console.log('No pending device drag, deltaX:', deltaX, 'deltaY:', deltaY);
+                
+                // デバイスドラッグ判定を緩く（斜め移動も含む）
+                if ((deltaY > 12 || deltaX > 12) && deltaY > 8) {
+                    console.log('🔽 Starting device drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
+                    const deviceType = this.pendingDeviceDrag.type;
+                    const startX = this.pendingDeviceDrag.x;
+                    const startY = this.pendingDeviceDrag.y;
                     this.createDeviceFromTouch(deviceType, startX, startY);
-                    cleanup();
-                    return;
+                    this.pendingDeviceDrag = null;
+                    return; // スクロール処理は実行しない
+                }
+                // 横方向の移動が大きい場合は常にスクロール優先（閾値をさらに下げる）
+                else if (deltaX > 4) { // スクロール検出範囲をより敏感に
+                    this.isPaletteScrolling = true;
+                    console.log('◀️▶️ Palette scroll activated (horizontal movement)! deltaX:', deltaX);
+                    this.pendingDeviceDrag = null;
                 }
             }
-        };
-        
-        // タッチ終了ハンドラー
-        const handleEnd = (endEvent) => {
-            if (!hasMoved && deviceType) {
-                // タップ（移動なし）の場合、長押し相当としてデバイス作成
-                console.log('📍 Tap detected, creating device');
-                // デバイス作成が確定した時のみpreventDefaultを実行
-                if (event.cancelable) {
-                    event.preventDefault();
-                    console.log('🚫 preventDefault called for device tap');
-                }
-                this.createDeviceFromTouch(deviceType, startX, startY);
+            
+            // スクロール状態でのスクロール実行
+            if (this.isPaletteScrolling && (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold)) {
+                console.log('Palette scroll activated!');
+                e.preventDefault();
+                
+                // スクロール実行
+                const scrollDelta = this.paletteScrollStartX - touch.clientX;
+                e.currentTarget.scrollLeft = this.paletteScrollStartScrollLeft + scrollDelta;
             }
-            cleanup();
-        };
+        }
+    }
+    
+    handlePaletteScrollEnd(e) {
+        // 狭い画面でのみ動作
+        if (window.innerWidth > 1024) return;
         
-        // クリーンアップ関数
-        const cleanup = () => {
-            document.removeEventListener('touchmove', handleMove);
-            document.removeEventListener('touchend', handleEnd);
-            document.removeEventListener('touchcancel', handleEnd);
-        };
-        
-        // イベントリスナー追加
-        document.addEventListener('touchmove', handleMove, { passive: false });
-        document.addEventListener('touchend', handleEnd, { passive: false });
-        document.addEventListener('touchcancel', handleEnd, { passive: false });
+        console.log('handlePaletteScrollEnd: clearing pendingDeviceDrag from', this.pendingDeviceDrag);
+        this.pendingDeviceDrag = null;
+        this.isPaletteScrolling = false;
     }
 
     // タッチからのデバイス作成
