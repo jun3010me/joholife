@@ -251,7 +251,18 @@ class NetworkSimulator {
                         
                         console.log('🔧 Forcing palette width:', requiredWidth, 'for', deviceItems.length, 'items');
                         
-                        // 幅を強制設定
+                        // 親要素も強制的に画面幅に制限
+                        const devicePalette = document.querySelector('.device-palette');
+                        const screenWidth = window.innerWidth;
+                        
+                        if (devicePalette) {
+                            devicePalette.style.width = screenWidth + 'px';
+                            devicePalette.style.maxWidth = screenWidth + 'px';
+                            devicePalette.style.overflow = 'hidden';
+                            console.log('🔧 Parent palette width forced to:', screenWidth, 'px');
+                        }
+                        
+                        // 子要素の幅を強制設定
                         paletteContent.style.width = requiredWidth + 'px';
                         paletteContent.style.minWidth = requiredWidth + 'px';
                         
