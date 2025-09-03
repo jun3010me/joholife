@@ -158,7 +158,7 @@
         padding: 4px 8px 4px 8px !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
-        width: 100% !important;
+        /* width: 100% を削除してJavaScript設定を有効化 */
         height: 100% !important;
         flex-wrap: nowrap !important;
         
@@ -172,8 +172,9 @@
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         
-        /* 強制的にスクロール可能にする */
-        min-width: max-content !important;
+        /* 強制的にスクロール可能にする - より具体的な値 */
+        min-width: 700px !important;
+        width: max-content !important;
     }
     
     .palette-content::-webkit-scrollbar {
