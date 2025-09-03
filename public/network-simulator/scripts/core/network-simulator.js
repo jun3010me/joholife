@@ -422,11 +422,19 @@ class NetworkSimulator {
 
     // モバイル用：長押しでデバイスドラッグを開始
     startDeviceDragWithLongPress(event) {
-        event.preventDefault();
+        // preventDefault()を安全に実行
+        try {
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+        } catch (e) {
+            console.warn('Could not prevent default:', e);
+        }
         console.log('startDeviceDragWithLongPress called');
         
         const deviceType = event.currentTarget.dataset.deviceType;
         const touch = event.touches[0];
+        const targetElement = event.currentTarget; // 参照を保存
         let longPressActivated = false;
         
         // 初期位置を記録
@@ -468,18 +476,24 @@ class NetworkSimulator {
                 clearTimeout(this.longPressTimer);
                 this.longPressTimer = null;
             }
-            // イベントリスナーを削除（nullチェック）
-            if (event.currentTarget) {
-                event.currentTarget.removeEventListener('touchmove', handleTouchMove);
-                event.currentTarget.removeEventListener('touchend', handleTouchEnd);
-                event.currentTarget.removeEventListener('touchcancel', handleTouchEnd);
+            // イベントリスナーを削除（保存した参照を使用）
+            if (targetElement) {
+                try {
+                    targetElement.removeEventListener('touchmove', handleTouchMove);
+                    targetElement.removeEventListener('touchend', handleTouchEnd);
+                    targetElement.removeEventListener('touchcancel', handleTouchEnd);
+                } catch (e) {
+                    console.warn('Error removing event listeners:', e);
+                }
             }
         };
         
         // イベントリスナーを追加
-        event.currentTarget.addEventListener('touchmove', handleTouchMove, { passive: true });
-        event.currentTarget.addEventListener('touchend', handleTouchEnd, { once: true });
-        event.currentTarget.addEventListener('touchcancel', handleTouchEnd, { once: true });
+        if (targetElement) {
+            targetElement.addEventListener('touchmove', handleTouchMove, { passive: true });
+            targetElement.addEventListener('touchend', handleTouchEnd, { once: true });
+            targetElement.addEventListener('touchcancel', handleTouchEnd, { once: true });
+        }
     }
 
     // デバイス表示名を取得
