@@ -442,8 +442,9 @@ class NetworkSimulator {
         const startY = touch.clientY;
         
         // 長押し判定用のタイマー設定（300ms）
+        console.log('Setting long press timer for:', deviceType);
         this.longPressTimer = setTimeout(() => {
-            console.log('Long press detected, starting drag for:', deviceType);
+            console.log('🔥 Long press timer fired! Starting drag for:', deviceType);
             longPressActivated = true;
             
             // 長押し成功時にドラッグを開始
@@ -454,6 +455,7 @@ class NetworkSimulator {
                 navigator.vibrate(50);
             }
         }, 300);
+        console.log('Long press timer set with ID:', this.longPressTimer);
         
         // タッチ移動処理
         const handleTouchMove = (moveEvent) => {
@@ -461,8 +463,11 @@ class NetworkSimulator {
             const deltaX = Math.abs(moveTouch.clientX - startX);
             const deltaY = Math.abs(moveTouch.clientY - startY);
             
+            console.log('Touch move detected:', deltaX, deltaY, 'longPressActivated:', longPressActivated);
+            
             // 長押し成功前に大きく動いた場合はタイマーをクリア
             if (!longPressActivated && (deltaX > 10 || deltaY > 10)) {
+                console.log('🚫 Canceling long press timer due to movement');
                 if (this.longPressTimer) {
                     clearTimeout(this.longPressTimer);
                     this.longPressTimer = null;
@@ -472,7 +477,9 @@ class NetworkSimulator {
         
         // タッチ終了処理
         const handleTouchEnd = () => {
+            console.log('🔚 Touch end detected');
             if (this.longPressTimer) {
+                console.log('🚫 Clearing long press timer on touch end');
                 clearTimeout(this.longPressTimer);
                 this.longPressTimer = null;
             }
