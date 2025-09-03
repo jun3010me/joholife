@@ -431,11 +431,26 @@ class NetworkSimulator {
             console.warn('Could not prevent default:', e);
         }
         console.log('startDeviceDragWithLongPress called');
+        console.log('Event:', event);
+        console.log('Event type:', event.type);
+        console.log('Current target:', event.currentTarget);
+        console.log('Touches:', event.touches);
+        console.log('Touches length:', event.touches ? event.touches.length : 'undefined');
         
         const deviceType = event.currentTarget.dataset.deviceType;
+        console.log('Device type:', deviceType);
+        
+        if (!event.touches || event.touches.length === 0) {
+            console.error('❌ No touches found, aborting');
+            return;
+        }
+        
         const touch = event.touches[0];
         const targetElement = event.currentTarget; // 参照を保存
         let longPressActivated = false;
+        
+        console.log('Touch object:', touch);
+        console.log('Target element:', targetElement);
         
         // 初期位置を記録
         const startX = touch.clientX;
