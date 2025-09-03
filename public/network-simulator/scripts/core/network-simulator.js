@@ -237,10 +237,32 @@ class NetworkSimulator {
                     console.log('🔄 Horizontal scroll detected, activating scroll!');
                     isScrollingActive = true;
                     
-                    // 初期スクロール位置を記録
+                    // 初期スクロール位置を記録と幅の強制設定
                     const paletteContent = document.querySelector('.palette-content');
                     if (paletteContent) {
                         console.log('📜 Palette scroll mode activated!');
+                        
+                        // デバイスアイテムの数から必要幅を計算
+                        const deviceItems = paletteContent.querySelectorAll('.device-item');
+                        const itemWidth = 80; // CSS設定値
+                        const gap = 8; // CSS設定値
+                        const padding = 16; // 左右8pxずつ
+                        const requiredWidth = (deviceItems.length * itemWidth) + ((deviceItems.length - 1) * gap) + padding;
+                        
+                        console.log('🔧 Forcing palette width:', requiredWidth, 'for', deviceItems.length, 'items');
+                        
+                        // 幅を強制設定
+                        paletteContent.style.width = requiredWidth + 'px';
+                        paletteContent.style.minWidth = requiredWidth + 'px';
+                        
+                        // 確認
+                        setTimeout(() => {
+                            console.log('📊 After width fix:', {
+                                scrollWidth: paletteContent.scrollWidth,
+                                clientWidth: paletteContent.clientWidth,
+                                actualWidth: paletteContent.getBoundingClientRect().width
+                            });
+                        }, 50);
                     }
                 } else if (deltaY > deltaX && deltaY > 20) {
                     console.log('🔽 Vertical movement detected, preparing device drag');
