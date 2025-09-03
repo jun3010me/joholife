@@ -231,91 +231,21 @@ class NetworkSimulator {
                 hasMoved = true;
             }
             
-            // 横移動が多い場合はスクロール継続、縦移動が多い場合はデバイス配置準備
+            // 横移動が多い場合は即座にネイティブスクロールに移行
             if (hasMoved && deviceType && !isScrollingActive) {
                 if (deltaX > deltaY && deltaX > 15) {
-                    console.log('🔄 Horizontal scroll detected, activating scroll!');
-                    isScrollingActive = true;
+                    console.log('🔄 Horizontal scroll detected, switching to native scroll!');
+                    console.log('🚀 Removing touch handlers and allowing browser scroll');
                     
-                    // 初期スクロール位置を記録と幅の強制設定
-                    const paletteContent = document.querySelector('.palette-content');
-                    if (paletteContent) {
-                        console.log('📜 Palette scroll mode activated!');
-                        
-                        // デバイスアイテムの数から必要幅を計算
-                        const deviceItems = paletteContent.querySelectorAll('.device-item');
-                        const itemWidth = 80; // CSS設定値
-                        const gap = 8; // CSS設定値
-                        const padding = 16; // 左右8pxずつ
-                        const requiredWidth = (deviceItems.length * itemWidth) + ((deviceItems.length - 1) * gap) + padding;
-                        
-                        console.log('🔧 Forcing palette width:', requiredWidth, 'for', deviceItems.length, 'items');
-                        
-                        // 親要素も強制的に画面幅に制限
-                        const devicePalette = document.querySelector('.device-palette');
-                        const screenWidth = window.innerWidth;
-                        
-                        if (devicePalette) {
-                            devicePalette.style.width = screenWidth + 'px';
-                            devicePalette.style.maxWidth = screenWidth + 'px';
-                            devicePalette.style.overflow = 'hidden';
-                            console.log('🔧 Parent palette width forced to:', screenWidth, 'px');
-                        }
-                        
-                        // 子要素の幅を強制設定
-                        paletteContent.style.width = requiredWidth + 'px';
-                        paletteContent.style.minWidth = requiredWidth + 'px';
-                        
-                        // 確認
-                        setTimeout(() => {
-                            console.log('📊 After width fix:', {
-                                scrollWidth: paletteContent.scrollWidth,
-                                clientWidth: paletteContent.clientWidth,
-                                actualWidth: paletteContent.getBoundingClientRect().width
-                            });
-                        }, 50);
-                    }
+                    // 即座にイベントハンドラーを削除してブラウザに任せる
+                    cleanup();
+                    return;
                 } else if (deltaY > deltaX && deltaY > 20) {
                     console.log('🔽 Vertical movement detected, preparing device drag');
                     this.createDeviceFromTouch(deviceType, startX, startY);
                     cleanup();
                     return;
                 }
-            }
-            
-            // スクロール中は差分でスクロール処理
-            if (isScrollingActive) {
-                const paletteContent = document.querySelector('.palette-content');
-                if (paletteContent) {
-                    // デバッグ情報を詳細に出力
-                    console.log('📊 Element info:', {
-                        scrollWidth: paletteContent.scrollWidth,
-                        clientWidth: paletteContent.clientWidth,
-                        scrollLeft: paletteContent.scrollLeft,
-                        overflowX: getComputedStyle(paletteContent).overflowX,
-                        touchAction: getComputedStyle(paletteContent).touchAction
-                    });
-                    
-                    // 前回のタッチ位置からの差分を計算
-                    const moveDelta = lastTouchX - moveTouch.clientX;
-                    const newScrollLeft = paletteContent.scrollLeft + moveDelta;
-                    
-                    // 直接設定を試す
-                    paletteContent.scrollLeft = newScrollLeft;
-                    
-                    console.log('📜 Scrolling by:', moveDelta, 'attempted:', newScrollLeft, 'actual:', paletteContent.scrollLeft);
-                    
-                    // 代替手段：scrollToも試す
-                    if (paletteContent.scrollLeft === 0 && newScrollLeft !== 0) {
-                        console.log('⚠️ scrollLeft failed, trying scrollTo');
-                        paletteContent.scrollTo({
-                            left: newScrollLeft,
-                            behavior: 'auto'
-                        });
-                        console.log('📜 After scrollTo:', paletteContent.scrollLeft);
-                    }
-                }
-                lastTouchX = moveTouch.clientX;
             }
         };
         
