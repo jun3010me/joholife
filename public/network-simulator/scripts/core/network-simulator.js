@@ -289,19 +289,21 @@ class NetworkSimulator {
                 // スクロール実行
                 const scrollDelta = this.paletteScrollStartX - touch.clientX;
                 const newScrollLeft = this.paletteScrollStartScrollLeft + scrollDelta;
-                console.log('📏 Scroll details:', {
-                    startX: this.paletteScrollStartX,
-                    currentX: touch.clientX,
-                    scrollDelta: scrollDelta,
-                    startScrollLeft: this.paletteScrollStartScrollLeft,
-                    newScrollLeft: newScrollLeft,
-                    elementScrollWidth: e.currentTarget.scrollWidth,
-                    elementClientWidth: e.currentTarget.clientWidth,
-                    canScroll: e.currentTarget.scrollWidth > e.currentTarget.clientWidth
-                });
+                console.log('📏 scrollWidth:', e.currentTarget.scrollWidth, 'clientWidth:', e.currentTarget.clientWidth, 'canScroll:', e.currentTarget.scrollWidth > e.currentTarget.clientWidth);
+                console.log('📏 scrollDelta:', scrollDelta, 'newScrollLeft:', newScrollLeft);
+                
+                // 強制的にスクロール可能にするためのスタイル設定
+                e.currentTarget.style.overflowX = 'auto';
+                e.currentTarget.style.width = '1200px';
+                e.currentTarget.style.minWidth = '1200px';
                 
                 e.currentTarget.scrollLeft = newScrollLeft;
                 console.log('🎯 Applied scrollLeft:', e.currentTarget.scrollLeft);
+                console.log('🎯 Element styles:', {
+                    overflowX: getComputedStyle(e.currentTarget).overflowX,
+                    width: getComputedStyle(e.currentTarget).width,
+                    minWidth: getComputedStyle(e.currentTarget).minWidth
+                });
             }
         }
     }
