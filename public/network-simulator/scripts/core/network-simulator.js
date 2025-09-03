@@ -480,9 +480,9 @@ class NetworkSimulator {
             
             console.log('Touch move detected:', deltaX, deltaY, 'longPressActivated:', longPressActivated);
             
-            // 長押し成功前に大きく動いた場合はタイマーをクリア
-            if (!longPressActivated && (deltaX > 10 || deltaY > 10)) {
-                console.log('🚫 Canceling long press timer due to movement');
+            // 長押し成功前に意図的な大きな動きがあった場合はタイマーをクリア（閾値を大幅に緩和）
+            if (!longPressActivated && (deltaX > 50 || deltaY > 50)) {
+                console.log('🚫 Canceling long press timer due to large movement (deltaX:', deltaX, 'deltaY:', deltaY, ')');
                 if (this.longPressTimer) {
                     clearTimeout(this.longPressTimer);
                     this.longPressTimer = null;
