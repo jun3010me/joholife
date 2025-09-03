@@ -288,7 +288,19 @@ class NetworkSimulator {
                 
                 // スクロール実行
                 const scrollDelta = this.paletteScrollStartX - touch.clientX;
-                e.currentTarget.scrollLeft = this.paletteScrollStartScrollLeft + scrollDelta;
+                const newScrollLeft = this.paletteScrollStartScrollLeft + scrollDelta;
+                console.log('📏 Scroll details:', {
+                    startX: this.paletteScrollStartX,
+                    currentX: touch.clientX,
+                    scrollDelta: scrollDelta,
+                    startScrollLeft: this.paletteScrollStartScrollLeft,
+                    newScrollLeft: newScrollLeft,
+                    elementScrollWidth: e.currentTarget.scrollWidth,
+                    elementClientWidth: e.currentTarget.clientWidth
+                });
+                
+                e.currentTarget.scrollLeft = newScrollLeft;
+                console.log('🎯 Applied scrollLeft:', e.currentTarget.scrollLeft);
             }
         }
     }
