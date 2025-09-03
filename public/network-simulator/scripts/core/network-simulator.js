@@ -220,6 +220,8 @@ class NetworkSimulator {
         }
         
         // タッチ移動ハンドラー
+        let isScrollingActive = false;
+        let lastTouchX = startX;
         const handleMove = (moveEvent) => {
             const moveTouch = moveEvent.touches[0];
             const deltaX = Math.abs(moveTouch.clientX - startX);
@@ -230,15 +232,34 @@ class NetworkSimulator {
             }
             
             // 横移動が多い場合はスクロール継続、縦移動が多い場合はデバイス配置準備
-            if (hasMoved && deviceType) {
+            if (hasMoved && deviceType && !isScrollingActive) {
                 if (deltaX > deltaY && deltaX > 15) {
-                    console.log('🔄 Horizontal scroll detected, allowing scroll');
+                    console.log('🔄 Horizontal scroll detected, activating scroll!');
+                    isScrollingActive = true;
+                    
+                    // 初期スクロール位置を記録
+                    const paletteContent = document.querySelector('.palette-content');
+                    if (paletteContent) {
+                        console.log('📜 Palette scroll mode activated!');
+                    }
                 } else if (deltaY > deltaX && deltaY > 20) {
                     console.log('🔽 Vertical movement detected, preparing device drag');
                     this.createDeviceFromTouch(deviceType, startX, startY);
                     cleanup();
                     return;
                 }
+            }
+            
+            // スクロール中は差分でスクロール処理
+            if (isScrollingActive) {
+                const paletteContent = document.querySelector('.palette-content');
+                if (paletteContent) {
+                    // 前回のタッチ位置からの差分を計算
+                    const moveDelta = lastTouchX - moveTouch.clientX;
+                    paletteContent.scrollLeft += moveDelta;
+                    console.log('📜 Scrolling by:', moveDelta, 'new scrollLeft:', paletteContent.scrollLeft);
+                }
+                lastTouchX = moveTouch.clientX;
             }
         };
         
