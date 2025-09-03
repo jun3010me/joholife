@@ -257,7 +257,7 @@ class NetworkSimulator {
             const rect = item.getBoundingClientRect();
             this.createDevice(deviceType, e.touches ? e.touches[0].clientX : rect.left + rect.width/2, e.touches ? e.touches[0].clientY : rect.top + rect.height/2);
             this.startDrag(this.draggedDevice, e.touches ? e.touches[0] : e);
-        }, 500); // 500msの長押し
+        }, 300); // 300msの長押し（より短く）
         
         // touchend/touchcancel で長押しタイマーをクリア
         const clearTimer = () => {

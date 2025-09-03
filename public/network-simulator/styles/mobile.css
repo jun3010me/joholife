@@ -138,8 +138,8 @@
     text-align: center;
 }
 
-/* モバイル向け横スクロール強化（全面的な対応） */
-@media (max-width: 768px) {
+/* モバイル向け横スクロール強化（より広い範囲で対応） */
+@media (max-width: 1024px) {
     /* デバイスパレットの横スクロール改善 */
     .device-palette {
         height: 110px !important;
@@ -162,10 +162,11 @@
         height: 100% !important;
         flex-wrap: nowrap !important;
         
-        /* 確実にタッチスクロールを有効にする */
-        touch-action: pan-x pan-down pinch-zoom !important;
+        /* より敏感な横スクロールを実現 */
+        touch-action: pan-x !important;
         -webkit-overflow-scrolling: touch !important;
         overscroll-behavior-x: contain !important;
+        overscroll-behavior-y: none !important;
         
         /* スクロールバー非表示（モバイル専用） */
         scrollbar-width: none !important;
@@ -192,8 +193,8 @@
         padding: 6px 4px !important;
         box-sizing: border-box !important;
         
-        /* タッチイベントの競合を回避 */
-        touch-action: none !important;
+        /* より敏感なタッチ操作を可能にする */
+        touch-action: manipulation !important;
         pointer-events: auto !important;
     }
     
