@@ -180,9 +180,9 @@ class NetworkSimulator {
         console.log('Setting up device drag handlers for all environments');
         items.forEach(item => {
             item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
-            // タッチイベントはパッシブに設定してスクロールを妨害しないようにする
+            // モバイルでは長押しでのみデバイスドラッグを有効化
             if (isNarrowScreen) {
-                item.addEventListener('touchstart', this.startDeviceDragDelayed.bind(this), { passive: true });
+                item.addEventListener('touchstart', this.startDeviceDragWithLongPress.bind(this), { passive: true });
             } else {
                 item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
             }
