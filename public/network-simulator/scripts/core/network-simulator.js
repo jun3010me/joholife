@@ -129,20 +129,32 @@ class NetworkSimulator {
         this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
         this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
 
-        // ボタンイベント
-        document.getElementById('clear-btn').addEventListener('click', this.clearAll.bind(this));
-        document.getElementById('ping-btn').addEventListener('click', this.startPing.bind(this));
-        document.getElementById('config-btn').addEventListener('click', this.showDeviceConfig.bind(this));
+        // ボタンイベント（要素存在確認）
+        const clearBtn = document.getElementById('clear-btn');
+        const pingBtn = document.getElementById('ping-btn');
+        const configBtn = document.getElementById('config-btn');
+        
+        if (clearBtn) clearBtn.addEventListener('click', this.clearAll.bind(this));
+        if (pingBtn) pingBtn.addEventListener('click', this.startPing.bind(this));
+        if (configBtn) configBtn.addEventListener('click', this.showDeviceConfig.bind(this));
 
-        // ファイル関連イベント
-        document.getElementById('save-network-btn').addEventListener('click', this.saveNetwork.bind(this));
-        document.getElementById('load-network-btn').addEventListener('click', this.loadNetwork.bind(this));
-        document.getElementById('export-network-btn').addEventListener('click', this.exportImage.bind(this));
-        document.getElementById('file-input').addEventListener('change', this.handleFileLoad.bind(this));
+        // ファイル関連イベント（要素存在確認）
+        const saveNetBtn = document.getElementById('save-network-btn');
+        const loadNetBtn = document.getElementById('load-network-btn');
+        const exportBtn = document.getElementById('export-network-btn');
+        const fileInput = document.getElementById('file-input');
+        
+        if (saveNetBtn) saveNetBtn.addEventListener('click', this.saveNetwork.bind(this));
+        if (loadNetBtn) loadNetBtn.addEventListener('click', this.loadNetwork.bind(this));
+        if (exportBtn) exportBtn.addEventListener('click', this.exportImage.bind(this));
+        if (fileInput) fileInput.addEventListener('change', this.handleFileLoad.bind(this));
 
-        // ダイアログイベント
-        document.getElementById('cancel-btn').addEventListener('click', this.hideDeviceConfig.bind(this));
-        document.getElementById('save-btn').addEventListener('click', this.saveDeviceConfig.bind(this));
+        // ダイアログイベント（要素存在確認）
+        const cancelBtn = document.getElementById('cancel-btn');
+        const saveBtn = document.getElementById('save-btn');
+        
+        if (cancelBtn) cancelBtn.addEventListener('click', this.hideDeviceConfig.bind(this));
+        if (saveBtn) saveBtn.addEventListener('click', this.saveDeviceConfig.bind(this));
         document.getElementById('dialog-overlay').addEventListener('click', this.hideDeviceConfig.bind(this));
     }
 
@@ -324,7 +336,8 @@ class NetworkSimulator {
             'switch': 'スイッチ',
             'server': 'Webサーバー',
             'dns': 'DNSサーバー',
-            'hub': 'ハブ'
+            'onu': 'ONU',
+            'internet': 'インターネット'
         };
         return names[deviceType] || deviceType;
     }
@@ -350,9 +363,13 @@ class NetworkSimulator {
                 subnets: ['192.168.1.'],
                 start: 10
             },
-            'hub': {
+            'onu': {
                 subnets: ['192.168.1.'],
                 start: 20
+            },
+            'internet': {
+                subnets: ['203.0.113.', '198.51.100.', '192.0.2.'], // RFC5737 テスト用パブリックIP
+                start: 1
             }
         };
         
@@ -414,10 +431,10 @@ class NetworkSimulator {
             },
             'router': {
                 nics: [
-                    { id: 'wan', label: 'WAN', x: 0, y: 0.3 },
-                    { id: 'lan1', label: 'LAN1', x: 0, y: 0.7 },
-                    { id: 'lan2', label: 'LAN2', x: 1, y: 0.3 },
-                    { id: 'lan3', label: 'LAN3', x: 1, y: 0.7 }
+                    { id: 'wan', label: 'WAN', x: 0, y: 0.3, isDynamic: true },
+                    { id: 'lan1', label: 'LAN1', x: 0, y: 0.7, isDynamic: true },
+                    { id: 'lan2', label: 'LAN2', x: 1, y: 0.3, isDynamic: true },
+                    { id: 'lan3', label: 'LAN3', x: 1, y: 0.7, isDynamic: true }
                 ]
             },
             'switch': {
@@ -432,21 +449,29 @@ class NetworkSimulator {
                     { id: 'port8', label: 'P8', x: 1, y: 0.75 }
                 ]
             },
-            'hub': {
+            'onu': {
                 nics: [
-                    { id: 'port1', label: 'P1', x: 0, y: 0.25 },
-                    { id: 'port2', label: 'P2', x: 0, y: 0.75 },
-                    { id: 'port3', label: 'P3', x: 1, y: 0.25 },
-                    { id: 'port4', label: 'P4', x: 1, y: 0.75 }
+                    { id: 'wan', label: 'WAN', x: 0, y: 0.5, isDynamic: true },
+                    { id: 'lan', label: 'LAN', x: 1, y: 0.5, isDynamic: true }
+                ]
+            },
+            'internet': {
+                nics: [
+                    { id: 'isp1', label: 'ISP1', x: 0, y: 0.3, isDynamic: true },
+                    { id: 'isp2', label: 'ISP2', x: 0, y: 0.7, isDynamic: true },
+                    { id: 'isp3', label: 'ISP3', x: 1, y: 0.3, isDynamic: true },
+                    { id: 'isp4', label: 'ISP4', x: 1, y: 0.7, isDynamic: true },
+                    { id: 'isp5', label: 'ISP5', x: 0.5, y: 0, isDynamic: true },
+                    { id: 'isp6', label: 'ISP6', x: 0.5, y: 1, isDynamic: true }
                 ]
             }
         };
         return portConfigs[type] || { nics: [] };
     }
 
-    // 単一NICデバイスかどうかを判定
+    // 動的NICデバイスかどうかを判定（スイッチ以外は全て動的）
     isSingleNICDevice(device) {
-        return device.type === 'pc' || device.type === 'server' || device.type === 'dns';
+        return device.type !== 'switch'; // スイッチ以外は全て動的NIC対応
     }
 
     // 線と矩形の交点を計算
@@ -501,59 +526,182 @@ class NetworkSimulator {
         if (!this.isSingleNICDevice(device)) return;
         if (!device.ports || !device.ports.nics || device.ports.nics.length === 0) return;
         
-        const nic = device.ports.nics[0];
-        if (!nic || !nic.connected) return;
+        // 複数ポートデバイス（ルーター、インターネット、ONU）は全てのNICポートを更新
+        // 単一ポートデバイス（PC、サーバー、DNS）は最初のNICのみ
+        const isMultiPortDevice = ['router', 'internet', 'onu'].includes(device.type);
+        const nicsToUpdate = isMultiPortDevice ? device.ports.nics : [device.ports.nics[0]];
         
-        const connection = nic.connected;
-        let otherDevice = null;
-        let otherPort = null;
-        
-        // 接続先デバイスとポートを特定
-        if (connection.from.device === device) {
-            otherDevice = connection.to.device;
-            otherPort = connection.to.port;
-        } else {
-            otherDevice = connection.from.device;
-            otherPort = connection.from.port;
+        for (const nic of nicsToUpdate) {
+            if (!nic || !nic.connected || !nic.isDynamic) continue;
+            
+            const connection = nic.connected;
+            let otherDevice = null;
+            let otherPort = null;
+            
+            // 接続先デバイスとポートを特定
+            if (connection.from.device === device) {
+                otherDevice = connection.to.device;
+                otherPort = connection.to.port;
+            } else {
+                otherDevice = connection.from.device;
+                otherPort = connection.from.port;
+            }
+            
+            if (!otherDevice || !otherPort) continue;
+            
+            // 接続先ポートの実際の座標を計算
+            const otherPortX = otherDevice.x + otherPort.x * otherDevice.width;
+            const otherPortY = otherDevice.y + otherPort.y * otherDevice.height;
+            
+            // デバイス中央から接続先ポートへの線と、デバイスの輪郭との交点を計算
+            const deviceCenterX = device.x + device.width / 2;
+            const deviceCenterY = device.y + device.height / 2;
+            
+            const intersections = this.getLineRectIntersection(
+                deviceCenterX, deviceCenterY,
+                otherPortX, otherPortY,
+                device.x, device.y, device.width, device.height
+            );
+            
+            if (intersections.length > 0) {
+                // 最も適切な交点を選択（接続先に近い方）
+                let bestIntersection = intersections[0];
+                let minDistance = Infinity;
+                
+                for (const intersection of intersections) {
+                    const distance = Math.sqrt(
+                        Math.pow(intersection.x - otherPortX, 2) + 
+                        Math.pow(intersection.y - otherPortY, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestIntersection = intersection;
+                    }
+                }
+                
+                // 衝突回避：他の動的ポートとの距離をチェック
+                const newRelativeX = (bestIntersection.x - device.x) / device.width;
+                const newRelativeY = (bestIntersection.y - device.y) / device.height;
+                
+                const adjustedPosition = this.avoidPortCollision(
+                    device, nic, newRelativeX, newRelativeY, bestIntersection.side
+                );
+                
+                // NICポートの位置を更新（衝突回避済み）
+                nic.x = adjustedPosition.x;
+                nic.y = adjustedPosition.y;
+                nic.side = adjustedPosition.side;
+            }
         }
+    }
+
+    // 動的ポートの衝突回避（枠上での移動）
+    avoidPortCollision(device, currentNic, targetX, targetY, targetSide) {
+        const MIN_DISTANCE = 10; // 最小間隔（ピクセル）
+        const STEP_SIZE = 0.03; // 調整ステップサイズ（相対座標）
+        const MAX_ATTEMPTS = 10; // 最大試行回数
         
-        if (!otherDevice || !otherPort) return;
+        let adjustedX = targetX;
+        let adjustedY = targetY;
+        let adjustedSide = targetSide;
         
-        // 接続先ポートの実際の座標を計算
-        const otherPortX = otherDevice.x + otherPort.x * otherDevice.width;
-        const otherPortY = otherDevice.y + otherPort.y * otherDevice.height;
-        
-        // デバイス中央から接続先ポートへの線と、デバイスの輪郭との交点を計算
-        const deviceCenterX = device.x + device.width / 2;
-        const deviceCenterY = device.y + device.height / 2;
-        
-        const intersections = this.getLineRectIntersection(
-            deviceCenterX, deviceCenterY,
-            otherPortX, otherPortY,
-            device.x, device.y, device.width, device.height
+        // 全ての動的ポートとの衝突をチェック（同じ辺でなくても近接していれば対象）
+        const conflictingPorts = device.ports.nics.filter(otherNic => 
+            otherNic !== currentNic && 
+            otherNic.isDynamic
         );
         
-        if (intersections.length > 0) {
-            // 最も適切な交点を選択（接続先に近い方）
-            let bestIntersection = intersections[0];
-            let minDistance = Infinity;
+        if (conflictingPorts.length === 0) {
+            return { x: adjustedX, y: adjustedY, side: adjustedSide };
+        }
+        
+        // 衝突回避：枠の上を移動
+        for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            let hasCollision = false;
             
-            for (const intersection of intersections) {
-                const distance = Math.sqrt(
-                    Math.pow(intersection.x - otherPortX, 2) + 
-                    Math.pow(intersection.y - otherPortY, 2)
+            for (const otherNic of conflictingPorts) {
+                const distance = this.calculatePortDistance(
+                    device, adjustedX, adjustedY, otherNic.x, otherNic.y
                 );
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    bestIntersection = intersection;
+                
+                if (distance < MIN_DISTANCE) {
+                    hasCollision = true;
+                    
+                    // 枠の上での位置調整
+                    const adjustment = this.adjustPortOnFrame(
+                        adjustedX, adjustedY, adjustedSide, otherNic, STEP_SIZE
+                    );
+                    adjustedX = adjustment.x;
+                    adjustedY = adjustment.y;
+                    
+                    // 調整後の位置を枠上に固定
+                    switch (adjustedSide) {
+                        case 'top': adjustedY = 0; break;
+                        case 'bottom': adjustedY = 1; break;
+                        case 'left': adjustedX = 0; break;
+                        case 'right': adjustedX = 1; break;
+                    }
+                    break;
                 }
             }
             
-            // NICポートの位置を更新（相対座標で保存）
-            nic.x = (bestIntersection.x - device.x) / device.width;
-            nic.y = (bestIntersection.y - device.y) / device.height;
-            nic.side = bestIntersection.side;
+            if (!hasCollision) break;
         }
+        
+        return { x: adjustedX, y: adjustedY, side: adjustedSide };
+    }
+
+    // 端子間の距離を計算
+    calculatePortDistance(device, x1, y1, x2, y2) {
+        const absX1 = device.x + x1 * device.width;
+        const absY1 = device.y + y1 * device.height;
+        const absX2 = device.x + x2 * device.width;
+        const absY2 = device.y + y2 * device.height;
+        
+        return Math.sqrt(Math.pow(absX1 - absX2, 2) + Math.pow(absY1 - absY2, 2));
+    }
+
+    // 枠の上でのポート位置調整
+    adjustPortOnFrame(x, y, side, conflictingNic, stepSize) {
+        let adjustedX = x;
+        let adjustedY = y;
+        
+        // 衝突している端子から離れる方向に移動
+        const deltaX = x - conflictingNic.x;
+        const deltaY = y - conflictingNic.y;
+        
+        switch (side) {
+            case 'top':
+            case 'bottom':
+                // 上辺・下辺：x座標を調整
+                if (Math.abs(deltaX) > 0.01) {
+                    adjustedX = deltaX > 0 ? 
+                        Math.min(1, x + stepSize) : 
+                        Math.max(0, x - stepSize);
+                } else {
+                    // 完全に重なっている場合はランダムに移動
+                    adjustedX = Math.random() > 0.5 ? 
+                        Math.min(1, x + stepSize) : 
+                        Math.max(0, x - stepSize);
+                }
+                break;
+            case 'left':
+            case 'right':
+                // 左辺・右辺：y座標を調整
+                if (Math.abs(deltaY) > 0.01) {
+                    adjustedY = deltaY > 0 ? 
+                        Math.min(1, y + stepSize) : 
+                        Math.max(0, y - stepSize);
+                } else {
+                    // 完全に重なっている場合はランダムに移動
+                    adjustedY = Math.random() > 0.5 ? 
+                        Math.min(1, y + stepSize) : 
+                        Math.max(0, y - stepSize);
+                }
+                break;
+        }
+        
+        return { x: adjustedX, y: adjustedY };
     }
 
     // 全ての単一NICデバイスの動的ポート位置を更新
@@ -769,12 +917,12 @@ class NetworkSimulator {
             x: x,
             y: y,
             width: 80,
-            height: 70,
+            height: deviceType === 'router' ? 75 : 70, // ルーターのみ5px高く
             config: {
-                ipAddress: this.getDefaultIP(deviceType, deviceCount),
-                subnetMask: '255.255.255.0',
-                defaultGateway: '192.168.1.1',
-                dhcpEnabled: false,
+                ipAddress: deviceType === 'onu' ? '' : this.getDefaultIP(deviceType, deviceCount), // ONUはIPアドレスなし
+                subnetMask: deviceType === 'onu' ? '' : '255.255.255.0', // ONUはサブネットマスクなし
+                defaultGateway: deviceType === 'onu' ? '' : '192.168.1.1', // ONUはゲートウェイなし
+                dhcpEnabled: deviceType === 'onu' ? false : (deviceType === 'pc' || deviceType === 'server' || deviceType === 'dns'), // ONUはDHCP無効
                 // 複数LAN対応のDHCP設定
                 lan1: {
                     ipAddress: this.getDefaultIP(deviceType, deviceCount),
@@ -804,6 +952,15 @@ class NetworkSimulator {
                 dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 1),
                 dhcpAllocatedIPs: new Map()
             },
+            // ルーターのWAN設定を初期化
+            wanConfig: deviceType === 'router' ? {
+                dhcpEnabled: false, // デフォルトは固定IP
+                ipAddress: '',
+                subnetMask: '255.255.255.0',
+                defaultGateway: '',
+                dnsServers: ['8.8.8.8', '8.8.4.4'],
+                isConnected: false
+            } : undefined,
             zIndex: this.nextZIndex++,
             ports: this.getDevicePorts(deviceType)
         };
@@ -1557,6 +1714,601 @@ class NetworkSimulator {
         
         this.updateStatus(`${startPort.device.name}の${startPort.port.label} と ${endPort.device.name}の${endPort.port.label} を接続しました`);
         console.log('接続作成完了:', connection.id, '-', connection.from.device.name, '→', connection.to.device.name);
+        
+        // WAN接続の自動IP割り当てをチェック
+        this.checkAndAssignWANIP(connection);
+        
+        // ONU ↔ インターネット接続時の追加チェック
+        const fromDevice = connection.from.device;
+        const toDevice = connection.to.device;
+        
+        if ((fromDevice.type === 'onu' && toDevice.type === 'internet') ||
+            (fromDevice.type === 'internet' && toDevice.type === 'onu')) {
+            console.log('ONU-インターネット接続検出、既存のONU接続をチェック中...');
+            this.checkExistingONUConnections(fromDevice.type === 'onu' ? fromDevice : toDevice);
+        }
+        
+        // LAN側DHCP処理: PC/サーバー等がルーターのLANポートに接続された場合
+        this.checkAndAssignLANIP(connection);
+
+        // 接続開始状態をクリア
+        this.connectionStart = null;
+        this.scheduleRender();
+    }
+
+    // スイッチ関連接続の処理（スイッチ経由でのDHCP対応）
+    handleSwitchConnection(connection) {
+        const fromDevice = connection.from.device;
+        const toDevice = connection.to.device;
+        
+        // スイッチが接続されたときに、スイッチ経由でルーターに接続されているクライアントを探索
+        let switchDevice = null;
+        let connectedDevice = null;
+        
+        if (fromDevice.type === 'switch') {
+            switchDevice = fromDevice;
+            connectedDevice = toDevice;
+        } else if (toDevice.type === 'switch') {
+            switchDevice = toDevice;
+            connectedDevice = fromDevice;
+        }
+        
+        if (!switchDevice) return;
+        
+        console.log('🔍 スイッチDHCP処理開始:', switchDevice.name, '接続デバイス:', connectedDevice.name);
+        
+        // スイッチに接続されているすべてのデバイスを探索
+        const switchConnections = this.getDeviceConnections(switchDevice);
+        console.log('🔍 スイッチの全接続数:', switchConnections.length);
+        
+        // スイッチ経由でルーターに接続されているかチェック
+        let routerDevice = null;
+        let routerPort = null;
+        
+        for (const conn of switchConnections) {
+            const otherDevice = conn.from.device === switchDevice ? conn.to.device : conn.from.device;
+            const otherPort = conn.from.device === switchDevice ? conn.to.port : conn.from.port;
+            
+            if (otherDevice.type === 'router') {
+                // WANポート接続は除外
+                if (otherPort.id !== 'wan') {
+                    routerDevice = otherDevice;
+                    routerPort = otherPort;
+                    console.log('✅ スイッチ経由ルーター発見:', routerDevice.name, 'ポート:', routerPort.label);
+                    break;
+                }
+            }
+        }
+        
+        if (!routerDevice) {
+            console.log('⏭️ スイッチ経由のルーター接続が見つかりません');
+            return;
+        }
+        
+        // スイッチに接続されているクライアントデバイス（PC, server, DNS）にDHCP処理
+        for (const conn of switchConnections) {
+            const otherDevice = conn.from.device === switchDevice ? conn.to.device : conn.from.device;
+            
+            if (['pc', 'server', 'dns'].includes(otherDevice.type)) {
+                console.log('🔍 スイッチ経由クライアント発見:', otherDevice.name);
+                this.assignDHCPToClient(otherDevice, routerDevice, routerPort, 'switch');
+            }
+        }
+        
+        // スイッチ自体もDHCP対象の場合（スイッチにIPアドレスを割り当てる場合）
+        if (switchDevice.config && switchDevice.config.dhcpEnabled) {
+            console.log('🔍 スイッチ自体のDHCP処理:', switchDevice.name);
+            this.assignDHCPToClient(switchDevice, routerDevice, routerPort, 'switch');
+        }
+    }
+    
+    // デバイスに接続されているすべての接続を取得
+    getDeviceConnections(device) {
+        return this.connections.filter(conn => 
+            conn.from.device === device || conn.to.device === device
+        );
+    }
+    
+    // クライアントデバイスにDHCPでIPアドレスを割り当て
+    assignDHCPToClient(clientDevice, routerDevice, routerPort, connectionType = 'direct') {
+        // クライアントデバイスがDHCP有効かどうかチェック
+        if (!clientDevice.config || !clientDevice.config.dhcpEnabled) {
+            console.log('⏭️ クライアントのDHCP無効のため、IP割り当てをスキップ:', clientDevice.name);
+            return;
+        }
+        
+        // ルーターのどのLANに接続されているか判定
+        const lanConfig = this.determineLANConnection(clientDevice, routerDevice);
+        if (!lanConfig) {
+            console.log('❌ 対応するLAN設定が見つかりません:', routerDevice.name);
+            return;
+        }
+        
+        if (!lanConfig.dhcpEnabled) {
+            console.log('⏭️ ルーターのLAN DHCP無効のため、IP割り当てをスキップ:', routerDevice.name, this.getLANName(routerDevice, lanConfig));
+            return;
+        }
+        
+        // DHCP設定を初期化（必要に応じて）
+        if (!lanConfig.dhcpAllocatedIPs) {
+            lanConfig.dhcpAllocatedIPs = new Map();
+        }
+        
+        const connectionDesc = connectionType === 'switch' ? 'スイッチ経由' : '直接接続';
+        console.log('🌐 LAN DHCP処理開始 (' + connectionDesc + '):', clientDevice.name, '←', routerDevice.name, this.getLANName(routerDevice, lanConfig));
+        
+        // IPアドレスを割り当て
+        const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, clientDevice, routerDevice);
+        
+        if (assignedIP) {
+            // IPアドレスとネットワーク設定を更新
+            clientDevice.config.ipAddress = assignedIP.ip;
+            clientDevice.config.subnetMask = '255.255.255.0';
+            clientDevice.config.defaultGateway = lanConfig.ipAddress;
+            clientDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+            
+            const lanName = this.getLANName(routerDevice, lanConfig);
+            console.log('✅ LAN DHCP割り当て完了 (' + connectionDesc + '):', clientDevice.name, 'IP:', assignedIP.ip, 'ゲートウェイ:', lanConfig.ipAddress, '(' + lanName + ')');
+            this.updateStatus(`🔗 ${clientDevice.name} が ${routerDevice.name}の${lanName}から${connectionDesc}でIP ${assignedIP.ip} を取得しました`);
+            
+            // デバイス表示を更新
+            this.scheduleRender();
+        } else {
+            console.log('❌ LAN DHCP割り当てに失敗:', clientDevice.name, '→', routerDevice.name);
+            this.updateStatus(`❌ ${routerDevice.name}のDHCPプールが満杯のため、${clientDevice.name}にIPを割り当てできませんでした`);
+        }
+    }
+
+    // LAN側DHCP処理: PC/サーバー等がルーターのLANポートに接続された場合の自動IP割り当て
+    checkAndAssignLANIP(connection) {
+        const fromDevice = connection.from.device;
+        const toDevice = connection.to.device;
+        const fromPort = connection.from.port;
+        const toPort = connection.to.port;
+        
+        let clientDevice = null;
+        let routerDevice = null;
+        let routerPort = null;
+        
+        // 直接接続：クライアントデバイス（PC、サーバー、DNS等）とルーターの接続を検出
+        if (fromDevice.type === 'router' && ['pc', 'server', 'dns'].includes(toDevice.type)) {
+            routerDevice = fromDevice;
+            clientDevice = toDevice;
+            routerPort = fromPort;
+        } else if (toDevice.type === 'router' && ['pc', 'server', 'dns'].includes(fromDevice.type)) {
+            routerDevice = toDevice;
+            clientDevice = fromDevice;
+            routerPort = toPort;
+        }
+        // スイッチ経由接続：スイッチが関連する接続の場合、既存の接続を調査してDHCP処理
+        else if (fromDevice.type === 'switch' || toDevice.type === 'switch') {
+            console.log('🔍 スイッチ関連接続検出:', fromDevice.name, '↔', toDevice.name);
+            this.handleSwitchConnection(connection);
+            return; // スイッチ接続は別処理で対応
+        }
+        
+        if (!clientDevice || !routerDevice || !routerPort) {
+            // LAN接続ではない場合は何もしない
+            return;
+        }
+        
+        // WANポートへの接続は除外
+        if (routerPort.id === 'wan') {
+            return;
+        }
+        
+        console.log('🔍 直接LAN接続検出:', clientDevice.name, '→', routerDevice.name, 'ポート:', routerPort.label);
+        
+        // 統一されたDHCP処理を使用
+        this.assignDHCPToClient(clientDevice, routerDevice, routerPort, 'direct');
+    }
+
+    // ONU-インターネット接続時に既存のONU接続をチェック
+    checkExistingONUConnections(onuDevice) {
+        console.log('🔍 checkExistingONUConnections開始:', onuDevice.name);
+        
+        // ONUに接続されているインターネットを探す
+        const internetDevice = this.findConnectedInternet(onuDevice);
+        if (!internetDevice) {
+            console.log('❌ ONUに接続されているインターネットが見つかりません');
+            return;
+        }
+        
+        console.log('✅ ONUに接続されたインターネット:', internetDevice.name);
+        
+        // ONUに接続されている全デバイスをチェック
+        for (const connection of this.connections) {
+            let otherDevice = null;
+            
+            if (connection.from.device === onuDevice) {
+                otherDevice = connection.to.device;
+            } else if (connection.to.device === onuDevice) {
+                otherDevice = connection.from.device;
+            }
+            
+            // ルーターのWAN接続を発見した場合
+            if (otherDevice && otherDevice.type === 'router') {
+                const isWANConnection = this.isRouterWANConnection(connection);
+                if (isWANConnection) {
+                    console.log('🔍 既存のルーターWAN接続を発見:', otherDevice.name, 'WAN DHCP:', otherDevice.wanConfig?.dhcpEnabled);
+                    
+                    // WAN DHCPが有効な場合、直接IP割り当てを実行
+                    if (otherDevice.wanConfig && otherDevice.wanConfig.dhcpEnabled) {
+                        console.log('🌐 ONU経由でのWAN IP割り当て開始:', otherDevice.name);
+                        
+                        // グローバルIPを割り当て
+                        const globalIP = this.assignGlobalIP(otherDevice, internetDevice);
+                        if (globalIP) {
+                            // WAN設定を更新
+                            if (!otherDevice.wanConfig) {
+                                otherDevice.wanConfig = {};
+                            }
+                            
+                            otherDevice.wanConfig.ipAddress = globalIP.ip;
+                            otherDevice.wanConfig.subnetMask = '255.255.255.0';
+                            otherDevice.wanConfig.defaultGateway = globalIP.gateway;
+                            otherDevice.wanConfig.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                            otherDevice.wanConfig.isConnected = true;
+                            otherDevice.wanConfig.internetDevice = internetDevice;
+                            otherDevice.wanConfig.availableGlobalIP = globalIP;
+                            
+                            console.log('✅ ONU経由WAN設定完了:', otherDevice.name, 'IP:', globalIP.ip);
+                            this.updateStatus(`🌐 ${otherDevice.name} のWANがONU経由でグローバルIP ${globalIP.ip} を取得しました`);
+                            
+                            // デバイス表示を更新
+                            this.scheduleRender();
+                        } else {
+                            console.log('❌ グローバルIP割り当てに失敗:', otherDevice.name);
+                        }
+                    } else {
+                        console.log('⏭️ WAN DHCPが無効のため、IP割り当てをスキップ:', otherDevice.name);
+                    }
+                }
+            }
+            // サーバー/PC/DNS等の直接接続を発見した場合
+            else if (otherDevice && ['server', 'pc', 'dns'].includes(otherDevice.type)) {
+                console.log('🔍 既存のデバイス接続を発見:', otherDevice.name, 'タイプ:', otherDevice.type, 'DHCP:', otherDevice.config?.dhcpEnabled);
+                
+                // DHCPが有効な場合、直接IP割り当てを実行
+                if (otherDevice.config && otherDevice.config.dhcpEnabled) {
+                    console.log('🌐 ONU経由でのデバイス IP割り当て開始:', otherDevice.name, '(' + otherDevice.type + ')');
+                    
+                    // グローバルIPを割り当て
+                    const globalIP = this.assignGlobalIP(otherDevice, internetDevice);
+                    if (globalIP) {
+                        // 設定を更新
+                        otherDevice.config.ipAddress = globalIP.ip;
+                        otherDevice.config.subnetMask = '255.255.255.0';
+                        otherDevice.config.defaultGateway = globalIP.gateway;
+                        otherDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                        otherDevice.config.isInternetConnected = true;
+                        otherDevice.config.internetDevice = internetDevice;
+                        otherDevice.config.availableGlobalIP = globalIP;
+                        
+                        console.log('✅ ONU経由デバイス設定完了:', otherDevice.name, '(' + otherDevice.type + ')', 'IP:', globalIP.ip);
+                        this.updateStatus(`🌐 ${otherDevice.name} がONU経由でグローバルIP ${globalIP.ip} を取得しました`);
+                        
+                        // デバイス表示を更新
+                        this.scheduleRender();
+                    } else {
+                        console.log('❌ グローバルIP割り当てに失敗:', otherDevice.name);
+                    }
+                } else {
+                    console.log('⏭️ DHCPが無効のため、IP割り当てをスキップ:', otherDevice.name, '(' + otherDevice.type + ')');
+                }
+            }
+        }
+    }
+
+    // ルーターのWAN接続かどうかを判定
+    isRouterWANConnection(connection) {
+        if (connection.from.device.type === 'router' && connection.from.port.id === 'wan') {
+            return true;
+        }
+        if (connection.to.device.type === 'router' && connection.to.port.id === 'wan') {
+            return true;
+        }
+        return false;
+    }
+
+    // ONUに接続されているインターネットデバイスを検索
+    findConnectedInternet(onuDevice) {
+        if (onuDevice.type !== 'onu') {
+            console.log('findConnectedInternet: ONUではないデバイス:', onuDevice.name);
+            return null;
+        }
+        
+        console.log('findConnectedInternet: ONUの接続をチェック中:', onuDevice.name);
+        console.log('現在の接続数:', this.connections.length);
+        
+        // ONUの全ポートをチェック
+        for (const connection of this.connections) {
+            let otherDevice = null;
+            
+            if (connection.from.device === onuDevice) {
+                otherDevice = connection.to.device;
+                console.log('  接続先:', otherDevice.name, 'タイプ:', otherDevice.type);
+            } else if (connection.to.device === onuDevice) {
+                otherDevice = connection.from.device;
+                console.log('  接続元:', otherDevice.name, 'タイプ:', otherDevice.type);
+            }
+            
+            if (otherDevice && otherDevice.type === 'internet') {
+                console.log('  インターネットデバイス発見:', otherDevice.name);
+                return otherDevice;
+            }
+        }
+        
+        console.log('  インターネットデバイスが見つかりません');
+        return null;
+    }
+
+    // WAN接続の自動IP割り当てチェック
+    checkAndAssignWANIP(connection) {
+        const fromDevice = connection.from.device;
+        const toDevice = connection.to.device;
+        const fromPort = connection.from.port;
+        const toPort = connection.to.port;
+        
+        // インターネット接続の自動IP割り当てをチェック（ルーターのWANポートまたはPCの直接接続）
+        let targetDevice = null;
+        let internet = null;
+        let isWANConnection = false;
+        
+        // ルーターのWANポート接続をチェック（直接 or ONU経由）
+        if (fromDevice.type === 'router' && fromPort.id === 'wan') {
+            if (toDevice.type === 'internet') {
+                // 直接接続
+                targetDevice = fromDevice;
+                internet = toDevice;
+                isWANConnection = true;
+            } else if (toDevice.type === 'onu') {
+                // ONU経由接続: ONUの向こう側のインターネットを探す
+                console.log('ONU経由接続検出:', fromDevice.name, '→', toDevice.name);
+                const internetDevice = this.findConnectedInternet(toDevice);
+                console.log('ONUの向こう側のインターネット:', internetDevice ? internetDevice.name : 'なし');
+                if (internetDevice) {
+                    targetDevice = fromDevice;
+                    internet = internetDevice;
+                    isWANConnection = true;
+                    console.log('ONU経由WAN接続設定完了:', targetDevice.name, '→', internet.name);
+                }
+            }
+        } else if (toDevice.type === 'router' && toPort.id === 'wan') {
+            if (fromDevice.type === 'internet') {
+                // 直接接続
+                targetDevice = toDevice;
+                internet = fromDevice;
+                isWANConnection = true;
+            } else if (fromDevice.type === 'onu') {
+                // ONU経由接続: ONUの向こう側のインターネットを探す
+                console.log('ONU経由接続検出（逆向き）:', fromDevice.name, '→', toDevice.name);
+                const internetDevice = this.findConnectedInternet(fromDevice);
+                console.log('ONUの向こう側のインターネット（逆向き）:', internetDevice ? internetDevice.name : 'なし');
+                if (internetDevice) {
+                    targetDevice = toDevice;
+                    internet = internetDevice;
+                    isWANConnection = true;
+                    console.log('ONU経由WAN接続設定完了（逆向き）:', targetDevice.name, '→', internet.name);
+                }
+            }
+        }
+        // PCの直接接続をチェック
+        else if (fromDevice.type === 'pc' && toDevice.type === 'internet') {
+            targetDevice = fromDevice;
+            internet = toDevice;
+            isWANConnection = false;
+        } else if (toDevice.type === 'pc' && fromDevice.type === 'internet') {
+            targetDevice = toDevice;
+            internet = fromDevice;
+            isWANConnection = false;
+        }
+        // サーバーの直接接続もサポート
+        else if (fromDevice.type === 'server' && toDevice.type === 'internet') {
+            targetDevice = fromDevice;
+            internet = toDevice;
+            isWANConnection = false;
+        } else if (toDevice.type === 'server' && fromDevice.type === 'internet') {
+            targetDevice = toDevice;
+            internet = fromDevice;
+            isWANConnection = false;
+        }
+        // サーバーのONU経由接続もサポート
+        else if (fromDevice.type === 'server' && toDevice.type === 'onu') {
+            // ONU経由接続: ONUの向こう側のインターネットを探す
+            console.log('サーバー→ONU経由接続検出:', fromDevice.name, '→', toDevice.name);
+            const internetDevice = this.findConnectedInternet(toDevice);
+            console.log('ONUの向こう側のインターネット（サーバー→ONU）:', internetDevice ? internetDevice.name : 'なし');
+            if (internetDevice) {
+                targetDevice = fromDevice;
+                internet = internetDevice;
+                isWANConnection = false;
+                console.log('ONU経由サーバー接続設定完了:', targetDevice.name, '→', internet.name);
+            }
+        } else if (toDevice.type === 'server' && fromDevice.type === 'onu') {
+            // ONU経由接続: ONUの向こう側のインターネットを探す
+            console.log('ONU→サーバー経由接続検出:', fromDevice.name, '→', toDevice.name);
+            const internetDevice = this.findConnectedInternet(fromDevice);
+            console.log('ONUの向こう側のインターネット（ONU→サーバー）:', internetDevice ? internetDevice.name : 'なし');
+            if (internetDevice) {
+                targetDevice = toDevice;
+                internet = internetDevice;
+                isWANConnection = false;
+                console.log('ONU経由サーバー接続設定完了（逆向き）:', targetDevice.name, '→', internet.name);
+            }
+        }
+        // DNSサーバーの直接接続もサポート
+        else if (fromDevice.type === 'dns' && toDevice.type === 'internet') {
+            targetDevice = fromDevice;
+            internet = toDevice;
+            isWANConnection = false;
+        } else if (toDevice.type === 'dns' && fromDevice.type === 'internet') {
+            targetDevice = toDevice;
+            internet = fromDevice;
+            isWANConnection = false;
+        }
+        // DNSサーバーのONU経由接続もサポート
+        else if (fromDevice.type === 'dns' && toDevice.type === 'onu') {
+            // ONU経由接続: ONUの向こう側のインターネットを探す
+            console.log('DNSサーバー→ONU経由接続検出:', fromDevice.name, '→', toDevice.name);
+            const internetDevice = this.findConnectedInternet(toDevice);
+            console.log('ONUの向こう側のインターネット（DNS→ONU）:', internetDevice ? internetDevice.name : 'なし');
+            if (internetDevice) {
+                targetDevice = fromDevice;
+                internet = internetDevice;
+                isWANConnection = false;
+                console.log('ONU経由DNSサーバー接続設定完了:', targetDevice.name, '→', internet.name);
+            }
+        } else if (toDevice.type === 'dns' && fromDevice.type === 'onu') {
+            // ONU経由接続: ONUの向こう側のインターネットを探す
+            console.log('ONU→DNSサーバー経由接続検出:', fromDevice.name, '→', toDevice.name);
+            const internetDevice = this.findConnectedInternet(fromDevice);
+            console.log('ONUの向こう側のインターネット（ONU→DNS）:', internetDevice ? internetDevice.name : 'なし');
+            if (internetDevice) {
+                targetDevice = toDevice;
+                internet = internetDevice;
+                isWANConnection = false;
+                console.log('ONU経由DNSサーバー接続設定完了（逆向き）:', targetDevice.name, '→', internet.name);
+            }
+        }
+        
+        // デバッグ: 接続検出結果を表示
+        console.log('🔍 接続検出結果:', {
+            fromDevice: fromDevice.name,
+            toDevice: toDevice.name,
+            fromType: fromDevice.type,
+            toType: toDevice.type,
+            targetDevice: targetDevice ? targetDevice.name : 'なし',
+            internet: internet ? internet.name : 'なし',
+            isWANConnection
+        });
+        
+        if (targetDevice && internet) {
+            // グローバルIPアドレスを自動割り当て
+            const dhcpEnabled = isWANConnection ? 
+                (targetDevice.wanConfig && targetDevice.wanConfig.dhcpEnabled) : 
+                targetDevice.config.dhcpEnabled;
+            console.log('🔍 インターネット接続検出:', targetDevice.name, 'DHCP:', dhcpEnabled, 'isWAN:', isWANConnection);
+            console.log('🔍 WAN設定確認:', targetDevice.wanConfig);
+            const globalIP = this.assignGlobalIP(targetDevice, internet);
+            console.log('🔍 割り当てられたグローバルIP:', globalIP);
+            
+            if (globalIP) {
+                if (isWANConnection) {
+                    // ルーターのWAN設定を更新
+                    if (!targetDevice.wanConfig) {
+                        targetDevice.wanConfig = {};
+                    }
+                    
+                    // 利用可能なグローバルIPを保存
+                    targetDevice.wanConfig.availableGlobalIP = globalIP;
+                    targetDevice.wanConfig.isConnected = true;
+                    targetDevice.wanConfig.internetDevice = internet;
+                    
+                    // WAN DHCPが有効な場合のみIPアドレスを自動変更
+                    if (dhcpEnabled) {
+                        targetDevice.wanConfig.ipAddress = globalIP.ip;
+                        targetDevice.wanConfig.subnetMask = '255.255.255.0';
+                        targetDevice.wanConfig.defaultGateway = globalIP.gateway;
+                        targetDevice.wanConfig.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                        
+                        console.log('WAN設定完了:', targetDevice.name, 'IP:', targetDevice.wanConfig.ipAddress);
+                        this.updateStatus(`🌐 ${targetDevice.name} のWANがDHCPでグローバルIP ${globalIP.ip} を取得しました`);
+                    } else {
+                        this.updateStatus(`🌐 ${targetDevice.name} のWANがインターネットに接続されました（DHCP無効）`);
+                    }
+                } else {
+                    // PC/サーバーの直接接続設定を更新
+                    // インターネット接続情報を記録（IPは条件に応じて変更）
+                    targetDevice.config.isInternetConnected = true;
+                    targetDevice.config.internetDevice = internet;
+                    targetDevice.config.availableGlobalIP = globalIP; // 利用可能なグローバルIPを保存
+                    
+                    // DHCPが有効な場合のみIPアドレスを自動変更
+                    if (targetDevice.config.dhcpEnabled) {
+                        targetDevice.config.ipAddress = globalIP.ip;
+                        targetDevice.config.subnetMask = '255.255.255.0';
+                        targetDevice.config.defaultGateway = globalIP.gateway;
+                        targetDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                        
+                        this.updateStatus(`🌐 ${targetDevice.name} がDHCPでグローバルIP ${globalIP.ip} を取得しました`);
+                        console.log('DHCP有効でグローバルIP設定:', targetDevice.name, globalIP.ip);
+                    } else {
+                        // DHCP無効の場合は既存のIPを維持
+                        this.updateStatus(`🌐 ${targetDevice.name} がインターネットに接続されました（固定IP: ${targetDevice.config.ipAddress}）`);
+                        console.log('DHCP無効でIP維持:', targetDevice.name, targetDevice.config.ipAddress);
+                    }
+                }
+                
+                console.log('インターネット自動設定完了:', targetDevice.name, 'IP:', globalIP.ip, 'Gateway:', globalIP.gateway);
+                
+                // デバイスの表示を更新
+                this.scheduleRender();
+            }
+        }
+    }
+
+    // グローバルIP割り当て
+    assignGlobalIP(router, internet) {
+        // インターネットデバイスから利用可能なグローバルIPを取得
+        if (!internet.globalIPPool) {
+            // グローバルIPプールを初期化（テスト用IP範囲を使用）
+            internet.globalIPPool = {
+                network: '203.0.113.0',
+                startIP: 10,
+                endIP: 250,
+                assignedIPs: new Set(),
+                gateway: '203.0.113.1'
+            };
+        }
+        
+        const pool = internet.globalIPPool;
+        
+        // 利用可能なIPアドレスを検索
+        for (let i = pool.startIP; i <= pool.endIP; i++) {
+            const candidateIP = `203.0.113.${i}`;
+            if (!pool.assignedIPs.has(candidateIP)) {
+                pool.assignedIPs.add(candidateIP);
+                return {
+                    ip: candidateIP,
+                    gateway: pool.gateway,
+                    network: pool.network
+                };
+            }
+        }
+        
+        console.warn('グローバルIPプールが枯渇しました');
+        return null;
+    }
+
+    // インターネット接続デバイスのDHCP状態変更処理
+    handleInternetDHCPChange(device, wasUsingDHCP, nowUsingDHCP) {
+        const availableGlobalIP = device.config.availableGlobalIP;
+        
+        if (!availableGlobalIP) {
+            console.warn('利用可能なグローバルIPが見つかりません:', device.name);
+            return;
+        }
+        
+        if (!wasUsingDHCP && nowUsingDHCP) {
+            // 固定IP → DHCP: グローバルIPを自動取得
+            device.config.ipAddress = availableGlobalIP.ip;
+            device.config.subnetMask = '255.255.255.0';
+            device.config.defaultGateway = availableGlobalIP.gateway;
+            device.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+            
+            this.updateStatus(`🌐 ${device.name} がDHCPでグローバルIP ${availableGlobalIP.ip} を取得しました`);
+            console.log('DHCP有効化によるグローバルIP自動取得:', device.name, availableGlobalIP.ip);
+            
+        } else if (wasUsingDHCP && !nowUsingDHCP) {
+            // DHCP → 固定IP: 手動設定に戻る（UIから入力された値を使用）
+            // IPアドレスは既にsaveDeviceConfigで設定済み
+            this.updateStatus(`🌐 ${device.name} が固定IPに変更されました（${device.config.ipAddress}）`);
+            console.log('DHCP無効化による固定IP設定:', device.name, device.config.ipAddress);
+        }
+        
+        // 画面更新
+        this.scheduleRender();
     }
 
     // 指定座標のNICポートを取得
@@ -2022,7 +2774,7 @@ class NetworkSimulator {
         if (reason.includes('ルーターが必要') || reason.includes('異なるサブネット')) {
             // 最初のスイッチ（非ルーター）まで到達
             for (let i = 1; i < path.length; i++) {
-                if (path[i].type === 'switch' || path[i].type === 'hub') {
+                if (path[i].type === 'switch' || path[i].type === 'onu') {
                     return i + 1; // スイッチまで到達
                 }
                 if (path[i].type === 'router') {
@@ -2249,10 +3001,56 @@ class NetworkSimulator {
         this.scheduleRender();
     }
     
-    // デバイス間の経路を検索（BFS）
+    // デバイス間の経路を検索（BFS + インターネットルーティング対応）
     findPath(sourceDevice, targetDevice) {
         if (sourceDevice === targetDevice) return [sourceDevice];
         
+        // まず直接接続経路を試行
+        const directPath = this.findDirectPath(sourceDevice, targetDevice);
+        if (directPath.length > 0) {
+            // ONUを透明化した経路を返す
+            return this.transparentizeONUPath(directPath);
+        }
+        
+        // 直接経路がない場合、インターネット経由を試行
+        const internetPath = this.findInternetPath(sourceDevice, targetDevice);
+        if (internetPath.length > 0) {
+            // ONUを透明化した経路を返す
+            return this.transparentizeONUPath(internetPath);
+        }
+        
+        return []; // 経路が見つからない
+    }
+
+    // 経路からONUを透明化（パススルーデバイスとして動作）
+    transparentizeONUPath(path) {
+        // ONU透明化を無効化：アニメーションパスの完全性を優先
+        // ONUもアニメーション経路に含めることで、パケットが正しく物理パスを通る
+        console.log('📋 パス透明化処理（ONU保持）:', path.map(d => d.name).join(' → '));
+        
+        // 現在はONUを透明化せず、そのままパスを返す
+        // これによりアニメーションが物理接続に沿って動作する
+        return path;
+        
+        // 将来的にONU特別処理が必要な場合は、アニメーション以外の用途で実装
+        /*
+        const transparentPath = [];
+        for (let i = 0; i < path.length; i++) {
+            const device = path[i];
+            
+            if (device.type === 'onu') {
+                // ONUをそのまま保持（透明化しない）
+                transparentPath.push(device);
+            } else {
+                transparentPath.push(device);
+            }
+        }
+        return transparentPath;
+        */
+    }
+    
+    // 直接接続による経路検索
+    findDirectPath(sourceDevice, targetDevice) {
         const visited = new Set();
         const queue = [[sourceDevice]];
         visited.add(sourceDevice.id);
@@ -2294,7 +3092,123 @@ class NetworkSimulator {
             }
         }
         
-        return []; // 経路が見つからない
+        return []; // 直接経路が見つからない
+    }
+    
+    // インターネット経由の経路検索
+    findInternetPath(sourceDevice, targetDevice) {
+        // 送信元デバイスからインターネットに接続されたルーターを検索
+        const sourceRouter = this.findInternetConnectedRouter(sourceDevice);
+        // 宛先デバイスからインターネットに接続されたルーターを検索  
+        const targetRouter = this.findInternetConnectedRouter(targetDevice);
+        
+        if (!sourceRouter || !targetRouter) {
+            return []; // どちらかがインターネットに接続されていない
+        }
+        
+        // インターネットデバイスを取得
+        let internetDevice = null;
+        if (sourceRouter.wanConfig?.internetDevice) {
+            internetDevice = sourceRouter.wanConfig.internetDevice; // ルーターからのインターネット接続
+        } else if (sourceRouter.config?.internetDevice) {
+            internetDevice = sourceRouter.config.internetDevice; // PC/サーバーからの直接接続
+        }
+        
+        if (!internetDevice || internetDevice.type !== 'internet') {
+            return []; // インターネットデバイスが見つからない
+        }
+        
+        // ソース → ソースルーター → インターネット → ターゲットルーター → ターゲット の経路を構築
+        const sourceToRouter = this.findDirectPath(sourceDevice, sourceRouter);
+        const targetToRouter = this.findDirectPath(targetDevice, targetRouter);
+        
+        if (sourceToRouter.length === 0 || targetToRouter.length === 0) {
+            return []; // ルーターまでの経路が見つからない
+        }
+        
+        // ルーターからインターネットまでの物理パス（ONUも含む）を取得
+        const routerToInternet = this.findDirectPath(sourceRouter, internetDevice);
+        const internetToTargetRouter = this.findDirectPath(internetDevice, targetRouter);
+        
+        if (routerToInternet.length === 0 || internetToTargetRouter.length === 0) {
+            console.log('❌ ルーター-インターネット間の物理パスが見つかりません');
+            console.log('  sourceRouter:', sourceRouter.name, 'internetDevice:', internetDevice.name);
+            console.log('  targetRouter:', targetRouter.name);
+            return []; // インターネット経由の物理接続が見つからない
+        }
+        
+        // 完全な経路を構築（重複するデバイスは除去）
+        const fullPath = [];
+        
+        // ソース → ソースルーター
+        fullPath.push(...sourceToRouter);
+        
+        // ソースルーター → インターネット（ソースルーター重複回避）
+        fullPath.push(...routerToInternet.slice(1));
+        
+        // インターネット → ターゲットルーター（インターネット重複回避）  
+        fullPath.push(...internetToTargetRouter.slice(1));
+        
+        // ターゲットルーター → ターゲット（ターゲットルーター重複回避）
+        fullPath.push(...targetToRouter.slice().reverse().slice(1));
+        
+        console.log('🔍 インターネット経由パス構築完了:');
+        console.log('  sourceToRouter:', sourceToRouter.map(d => d.name).join(' → '));
+        console.log('  routerToInternet:', routerToInternet.map(d => d.name).join(' → '));
+        console.log('  internetToTargetRouter:', internetToTargetRouter.map(d => d.name).join(' → '));
+        console.log('  targetToRouter:', targetToRouter.map(d => d.name).join(' → '));
+        console.log('  fullPath:', fullPath.map(d => d.name).join(' → '));
+        
+        return fullPath;
+    }
+    
+    // デバイスからインターネットに接続されたルーターまたは直接接続を検索
+    findInternetConnectedRouter(device) {
+        // デバイス自身がインターネット接続ルーターの場合
+        if (device.type === 'router' && device.wanConfig?.isConnected) {
+            return device;
+        }
+        
+        // デバイス自身がインターネットに直接接続されているPCまたはサーバーの場合
+        if ((device.type === 'pc' || device.type === 'server') && device.config.isInternetConnected) {
+            return device; // インターネット直接接続デバイスをルーター代わりとして返す
+        }
+        
+        // デバイスから到達可能なインターネット接続ルーターまたは直接接続デバイスを検索
+        const visited = new Set();
+        const queue = [device];
+        visited.add(device.id);
+        
+        while (queue.length > 0) {
+            const currentDevice = queue.shift();
+            
+            // 現在のデバイスの接続をチェック
+            for (const conn of this.connections) {
+                let nextDevice = null;
+                
+                if (conn.from && conn.to) {
+                    if (conn.from.device === currentDevice) {
+                        nextDevice = conn.to.device;
+                    } else if (conn.to.device === currentDevice) {
+                        nextDevice = conn.from.device;
+                    }
+                }
+                
+                if (nextDevice && !visited.has(nextDevice.id)) {
+                    // インターネット接続ルーターまたは直接接続デバイスを発見
+                    if (nextDevice.type === 'router' && nextDevice.wanConfig?.isConnected) {
+                        return nextDevice;
+                    } else if ((nextDevice.type === 'pc' || nextDevice.type === 'server') && nextDevice.config.isInternetConnected) {
+                        return nextDevice;
+                    }
+                    
+                    visited.add(nextDevice.id);
+                    queue.push(nextDevice);
+                }
+            }
+        }
+        
+        return null; // インターネット接続が見つからない
     }
 
     // 接続されたデバイスを取得
@@ -2325,6 +3239,12 @@ class NetworkSimulator {
             
             // 経路情報を生成
             const routeInfo = path.map(device => `${device.name}(${device.config.ipAddress})`).join(' → ');
+            
+            // デバッグ: パス情報の詳細出力
+            console.log('🎯 Pingアニメーション実行パス:');
+            console.log('  元パス:', path.map(d => d.name).join(' → '));
+            console.log('  デバイス詳細:', path.map(d => `${d.name}(${d.type})`).join(' → '));
+            console.log('  IP情報:', routeInfo);
             
             // ICMP Request（送信元 → 送信先）
             this.updateStatus(`🚀 ICMP Request送信: ${sourceDevice.config.ipAddress} → ${targetDevice.config.ipAddress} (${routingType})`);
@@ -2816,6 +3736,12 @@ class NetworkSimulator {
             return;
         }
         
+        // ONUは設定なし（パススルーデバイス）
+        if (this.selectedDevice.type === 'onu') {
+            this.updateStatus('ONUには設定項目がありません（パススルーデバイス）');
+            return;
+        }
+        
         this.currentDeviceConfig = this.selectedDevice;
         
         document.getElementById('dialog-title').textContent = `${this.selectedDevice.name} の設定`;
@@ -2827,6 +3753,15 @@ class NetworkSimulator {
         // DHCPクライアント設定
         document.getElementById('dhcp-enabled').checked = this.selectedDevice.config.dhcpEnabled;
         
+        // WAN設定（ルーターのみ表示）
+        const wanConfigSection = document.getElementById('wan-config-section');
+        if (this.selectedDevice.type === 'router') {
+            wanConfigSection.style.display = 'block';
+            this.loadWANConfig();
+        } else {
+            wanConfigSection.style.display = 'none';
+        }
+
         // DHCPサーバー設定（ルーターのみ表示）
         const dhcpServerSection = document.getElementById('dhcp-server-section');
         if (this.selectedDevice.type === 'router') {
@@ -2880,6 +3815,37 @@ class NetworkSimulator {
         document.getElementById('dhcp-enabled').addEventListener('change', (e) => {
             this.toggleIPFields(e.target.checked);
         });
+        
+        // WAN DHCPチェックボックスの変更イベントを設定（ルーターのみ）
+        if (this.selectedDevice.type === 'router') {
+            const wanDhcpCheckbox = document.getElementById('wan-dhcp-enabled');
+            if (wanDhcpCheckbox) {
+                wanDhcpCheckbox.addEventListener('change', (e) => {
+                    this.toggleWANFields(e.target.checked);
+                });
+            }
+        }
+        
+        // ダイアログのドラッグ機能を初期化
+        this.initializeDialogDragging('device-config-dialog');
+    }
+
+    // WAN設定読み込み
+    loadWANConfig() {
+        const router = this.selectedDevice;
+        const wanConfig = router.wanConfig || {};
+        
+        // WAN DHCP設定
+        const wanDhcpEnabled = wanConfig.dhcpEnabled || false;
+        document.getElementById('wan-dhcp-enabled').checked = wanDhcpEnabled;
+        
+        // WAN手動設定
+        document.getElementById('wan-ip-address').value = wanConfig.ipAddress || '';
+        document.getElementById('wan-subnet-mask').value = wanConfig.subnetMask || '255.255.255.0';
+        document.getElementById('wan-default-gateway').value = wanConfig.defaultGateway || '';
+        
+        // フィールドの有効/無効状態を設定
+        this.toggleWANFields(wanDhcpEnabled);
     }
 
     // IP設定フィールドの有効/無効切り替え
@@ -2890,6 +3856,74 @@ class NetworkSimulator {
             field.disabled = dhcpEnabled;
             field.style.backgroundColor = dhcpEnabled ? '#f5f5f5' : 'white';
         });
+    }
+    
+    // WAN設定フィールドの有効/無効切り替え
+    toggleWANFields(dhcpEnabled) {
+        const wanFields = ['wan-ip-address', 'wan-subnet-mask', 'wan-default-gateway'];
+        wanFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.disabled = dhcpEnabled;
+                field.style.backgroundColor = dhcpEnabled ? '#f5f5f5' : 'white';
+            }
+        });
+        
+        const wanManualConfig = document.getElementById('wan-manual-config');
+        if (wanManualConfig) {
+            wanManualConfig.style.opacity = dhcpEnabled ? '0.6' : '1';
+        }
+    }
+
+    // WAN設定保存
+    saveWANConfig() {
+        const router = this.currentDeviceConfig;
+        
+        if (!router.wanConfig) {
+            router.wanConfig = {};
+        }
+        
+        const wanDhcpEnabled = document.getElementById('wan-dhcp-enabled').checked;
+        const wasUsingWANDHCP = router.wanConfig.dhcpEnabled || false;
+        
+        // WAN DHCP設定を保存
+        router.wanConfig.dhcpEnabled = wanDhcpEnabled;
+        
+        if (!wanDhcpEnabled) {
+            // DHCP無効時は手動設定を保存
+            const wanIP = document.getElementById('wan-ip-address').value;
+            const wanSubnet = document.getElementById('wan-subnet-mask').value;
+            const wanGateway = document.getElementById('wan-default-gateway').value;
+            
+            if (wanIP && this.isValidIP(wanIP)) {
+                router.wanConfig.ipAddress = wanIP;
+            }
+            if (wanSubnet && this.isValidIP(wanSubnet)) {
+                router.wanConfig.subnetMask = wanSubnet;
+            }
+            if (wanGateway && this.isValidIP(wanGateway)) {
+                router.wanConfig.defaultGateway = wanGateway;
+            }
+        }
+        
+        // インターネット接続中のルーターのDHCP状態変更処理
+        if (router.wanConfig.isConnected && !wasUsingWANDHCP && wanDhcpEnabled) {
+            // 固定IP → DHCP: 利用可能なグローバルIPを自動取得
+            const availableGlobalIP = router.wanConfig.availableGlobalIP;
+            if (availableGlobalIP) {
+                router.wanConfig.ipAddress = availableGlobalIP.ip;
+                router.wanConfig.subnetMask = '255.255.255.0';
+                router.wanConfig.defaultGateway = availableGlobalIP.gateway;
+                router.wanConfig.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                
+                this.updateStatus(`🌐 ${router.name} のWANでDHCPが有効になり、グローバルIP ${availableGlobalIP.ip} を取得しました`);
+            }
+        } else if (router.wanConfig.isConnected && wasUsingWANDHCP && !wanDhcpEnabled) {
+            // DHCP → 固定IP: 手動設定に変更
+            this.updateStatus(`🌐 ${router.name} のWANが固定IP設定に変更されました`);
+        }
+        
+        console.log('WAN設定保存完了:', router.name, 'DHCP:', wanDhcpEnabled, 'IP:', router.wanConfig.ipAddress);
     }
 
     // DNSテーブルを読み込む
@@ -3019,7 +4053,167 @@ class NetworkSimulator {
         // イベントリスナー設定
         this.setupDestinationDialogEvents();
         
+        // ダイアログのドラッグ機能を初期化
+        this.initializeDialogDragging('destination-dialog');
+        
         console.log('Dialog setup complete');
+    }
+
+    // ダイアログのドラッグ機能を初期化
+    initializeDialogDragging(dialogId) {
+        const dialog = document.getElementById(dialogId);
+        if (!dialog) {
+            console.warn(`Dialog not found: ${dialogId}`);
+            return;
+        }
+
+        // ダイアログヘッダーを取得（青いタイトルバー）
+        let header = null;
+        if (dialogId === 'device-config-dialog') {
+            // デバイス設定ダイアログの場合、.dialog-headerクラスを探す
+            header = dialog.querySelector('.dialog-header');
+        } else if (dialogId === 'destination-dialog') {
+            // 宛先選択ダイアログの場合、.dialog-headerクラスを探す
+            header = dialog.querySelector('.dialog-header');
+        }
+
+        if (!header) {
+            console.warn(`Dialog header not found for: ${dialogId}`);
+            return;
+        }
+
+        // ドラッグ状態を管理する変数
+        let isDragging = false;
+        let startX, startY, startDialogX, startDialogY;
+
+        // 初期状態では元のCSSスタイルを保持（中央配置のまま）
+        // ドラッグ開始時のみ絶対座標に変換
+
+        // ヘッダーにカーソル変更とドラッグヒントを追加
+        header.style.cursor = 'move';
+        header.title = 'ダイアログをドラッグして移動';
+
+        // マウスダウンイベント（ドラッグ開始）
+        const onMouseDown = (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            // 現在の表示位置を取得（transform: translate等を考慮）
+            const rect = dialog.getBoundingClientRect();
+            startDialogX = rect.left;
+            startDialogY = rect.top;
+            
+            // 初回ドラッグ時：CSS中央配置から絶対位置指定に変更
+            if (!dialog.style.left && !dialog.style.top) {
+                // 元のCSSスタイル（transform: translate(-50%, -50%)等）を無効化
+                dialog.style.position = 'fixed';
+                dialog.style.left = `${startDialogX}px`;
+                dialog.style.top = `${startDialogY}px`;
+                dialog.style.transform = 'none';
+                dialog.style.margin = '0';
+                
+                // デバッグログ（開発時のみ）
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log('🔄 ダイアログ座標系を変換:', { 
+                        fromCSS: 'center positioning', 
+                        toAbsolute: `${startDialogX}px, ${startDialogY}px` 
+                    });
+                }
+            } else {
+                // 既に絶対座標の場合は、CSSスタイルから取得
+                startDialogX = parseInt(dialog.style.left) || 0;
+                startDialogY = parseInt(dialog.style.top) || 0;
+            }
+            
+            // デバッグログ（開発時のみ）
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('🖱️ ドラッグ開始:', { startX, startY, startDialogX, startDialogY });
+            }
+            
+            // ドラッグ中のスタイル
+            header.style.opacity = '0.8';
+            document.body.style.userSelect = 'none'; // テキスト選択無効化
+            
+            e.preventDefault();
+        };
+
+        // マウス移動イベント（ドラッグ中）
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+            
+            // マウスの移動量を計算
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            // ダイアログの新しい位置を計算
+            let newX = startDialogX + deltaX;
+            let newY = startDialogY + deltaY;
+            
+            // ウィンドウ境界内に制限（固定値で計算）
+            const dialogWidth = dialog.offsetWidth;
+            const dialogHeight = dialog.offsetHeight;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            
+            // 境界制限：ダイアログが完全にウィンドウ内に収まるように
+            newX = Math.max(0, Math.min(newX, windowWidth - dialogWidth));
+            newY = Math.max(0, Math.min(newY, windowHeight - dialogHeight));
+            
+            // ダイアログの位置を更新
+            dialog.style.left = `${newX}px`;
+            dialog.style.top = `${newY}px`;
+            
+            e.preventDefault();
+        };
+
+        // マウスアップイベント（ドラッグ終了）
+        const onMouseUp = (e) => {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            
+            // スタイルを元に戻す
+            header.style.opacity = '';
+            document.body.style.userSelect = '';
+            
+            e.preventDefault();
+        };
+
+        // タッチイベント対応（スマートフォン・タブレット）
+        const onTouchStart = (e) => {
+            const touch = e.touches[0];
+            onMouseDown({
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => e.preventDefault()
+            });
+        };
+
+        const onTouchMove = (e) => {
+            const touch = e.touches[0];
+            onMouseMove({
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => e.preventDefault()
+            });
+        };
+
+        const onTouchEnd = (e) => {
+            onMouseUp({ preventDefault: () => e.preventDefault() });
+        };
+
+        // イベントリスナー登録
+        header.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        
+        // タッチイベント（モバイル対応）
+        header.addEventListener('touchstart', onTouchStart, { passive: false });
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd, { passive: false });
+
+        console.log(`✅ ダイアログドラッグ機能を初期化: ${dialogId}`);
     }
 
     // 宛先選択ダイアログのイベントリスナー設定
@@ -3770,6 +4964,10 @@ class NetworkSimulator {
             }
         }
         
+        // DHCP状態の変更をチェック
+        const wasUsingDHCP = this.currentDeviceConfig.config.dhcpEnabled;
+        const nowUsingDHCP = dhcpEnabled;
+        
         // 基本設定の更新
         this.currentDeviceConfig.name = name;
         this.currentDeviceConfig.config.dhcpEnabled = dhcpEnabled;
@@ -3781,8 +4979,16 @@ class NetworkSimulator {
             this.currentDeviceConfig.config.defaultGateway = defaultGateway;
         }
         
-        // ルーターの場合はDHCPサーバー設定も保存
+        // インターネット接続デバイスのDHCP状態変更処理
+        if (this.currentDeviceConfig.config.isInternetConnected) {
+            this.handleInternetDHCPChange(this.currentDeviceConfig, wasUsingDHCP, nowUsingDHCP);
+        }
+        
+        // ルーターの場合はWAN設定とDHCPサーバー設定も保存
         if (this.currentDeviceConfig.type === 'router') {
+            // WAN設定を保存
+            this.saveWANConfig();
+            
             const dhcpLeaseTime = parseInt(document.getElementById('dhcp-lease-time').value) || 3600;
             
             // LAN1 設定
@@ -4296,14 +5502,15 @@ class NetworkSimulator {
         // 端子を描画
         this.drawDevicePorts(device);
         
-        // アイコン
+        // アイコン（ルーターの場合は位置を上に調整）
         this.ctx.font = '20px Arial';
         this.ctx.fillStyle = '#333';
         this.ctx.textAlign = 'center';
+        const iconYOffset = device.type === 'router' ? 20 : 25;
         this.ctx.fillText(
             this.getDeviceIcon(device.type),
             device.x + device.width / 2,
-            device.y + 25
+            device.y + iconYOffset
         );
         
         // デバイス名
@@ -4326,21 +5533,73 @@ class NetworkSimulator {
             this.ctx.fillStyle = '#f44336';
         }
         
+        // デバイス名の表示位置をデバイスタイプに応じて調整（ルーターはアイコンとの隙間を詰める）
+        const nameYOffset = device.type === 'router' ? 40 : 18; // ルーターの場合は上から40px（75px高に対応）
         this.ctx.fillText(
             displayName,
             device.x + device.width / 2,
-            device.y + device.height - 18
+            device.y + device.height - nameYOffset
         );
         
-        // IPアドレス表示（常時表示）
-        this.ctx.font = '9px Arial';
-        this.ctx.fillStyle = '#666';
-        const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
-        this.ctx.fillText(
-            `${device.config.ipAddress}/${cidr}`,
-            device.x + device.width / 2,
-            device.y + device.height - 6
-        );
+        // IPアドレス表示
+        if (device.type === 'router') {
+            // ルーターの場合は小さいフォントで複数IP表示
+            this.ctx.font = '8px Arial';
+            this.ctx.fillStyle = '#666';
+            // ルーターの場合は全てのIP設定を表示
+            let ipLines = [];
+            
+            // WAN IPアドレス表示（device.wanConfig から取得）
+            if (device.wanConfig && device.wanConfig.ipAddress && 
+                device.wanConfig.ipAddress !== '0.0.0.0') {
+                const wanCidr = this.subnetMaskToCIDR(device.wanConfig.subnetMask || '255.255.255.0');
+                ipLines.push(`WAN: ${device.wanConfig.ipAddress}/${wanCidr}`);
+            }
+            
+            // LANインターフェースのIP表示（device.config.lan[123].ipAddress から取得）
+            if (device.config.lan1 && device.config.lan1.ipAddress && 
+                device.config.lan1.ipAddress !== '0.0.0.0') {
+                ipLines.push(`LAN1: ${device.config.lan1.ipAddress}/24`);
+            }
+            if (device.config.lan2 && device.config.lan2.ipAddress && 
+                device.config.lan2.ipAddress !== '0.0.0.0') {
+                ipLines.push(`LAN2: ${device.config.lan2.ipAddress}/24`);
+            }
+            if (device.config.lan3 && device.config.lan3.ipAddress && 
+                device.config.lan3.ipAddress !== '0.0.0.0') {
+                ipLines.push(`LAN3: ${device.config.lan3.ipAddress}/24`);
+            }
+            
+            // 基本IPが設定されている場合（デフォルトLANとして、他に表示されていない場合のみ）
+            if (device.config.ipAddress && device.config.ipAddress !== '0.0.0.0') {
+                const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
+                if (ipLines.length === 0 || !ipLines.some(line => line.includes(device.config.ipAddress))) {
+                    ipLines.push(`LAN: ${device.config.ipAddress}/${cidr}`);
+                }
+            }
+            
+            // 複数のIPアドレスを縦に並べて表示
+            // 基準位置：デバイス名の下から8px下から開始（間隔を詰める）
+            const ipStartY = device.y + device.height - nameYOffset + 8;
+            ipLines.forEach((line, index) => {
+                this.ctx.fillText(
+                    line,
+                    device.x + device.width / 2,
+                    ipStartY + (index * 9) // 行間を9pxに縮める
+                );
+            });
+        } else if (device.type !== 'onu') {
+            // ルーター以外のデバイス（ONUを除く）は従来通り
+            this.ctx.font = '9px Arial';
+            this.ctx.fillStyle = '#666';
+            const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
+            this.ctx.fillText(
+                `${device.config.ipAddress}/${cidr}`,
+                device.x + device.width / 2,
+                device.y + device.height - 6
+            );
+        }
+        // ONUはIPアドレスを表示しない（パススルーデバイス）
     }
 
     // デバイスのNICポートを描画
@@ -4395,10 +5654,46 @@ class NetworkSimulator {
         if (port.label) {
             this.ctx.font = '8px Arial';
             this.ctx.fillStyle = isHovered ? '#ff5722' : '#333';
-            // ラベル位置を動的に調整（左右の端子に応じて）
-            this.ctx.textAlign = port.x < 0.5 ? 'right' : 'left';
-            const labelX = x + (port.x < 0.5 ? -8 : 8);
-            this.ctx.fillText(port.label, labelX, y + 2);
+            
+            let labelX = x;
+            let labelY = y + 2;
+            
+            // 動的NICポートの場合、sideプロパティに基づいて位置調整
+            if (port.side) {
+                switch (port.side) {
+                    case 'top':
+                        // 上辺の場合：ラベルを上に表示
+                        this.ctx.textAlign = 'center';
+                        labelY = y - 8;
+                        break;
+                    case 'bottom':
+                        // 下辺の場合：ラベルを下に表示
+                        this.ctx.textAlign = 'center';
+                        labelY = y + 12;
+                        break;
+                    case 'left':
+                        // 左辺の場合：ラベルを左に表示
+                        this.ctx.textAlign = 'right';
+                        labelX = x - 8;
+                        break;
+                    case 'right':
+                        // 右辺の場合：ラベルを右に表示
+                        this.ctx.textAlign = 'left';
+                        labelX = x + 8;
+                        break;
+                    default:
+                        // デフォルト（従来の動作）
+                        this.ctx.textAlign = port.x < 0.5 ? 'right' : 'left';
+                        labelX = x + (port.x < 0.5 ? -8 : 8);
+                        break;
+                }
+            } else {
+                // 静的ポートの場合（従来の動作）
+                this.ctx.textAlign = port.x < 0.5 ? 'right' : 'left';
+                labelX = x + (port.x < 0.5 ? -8 : 8);
+            }
+            
+            this.ctx.fillText(port.label, labelX, labelY);
         }
     }
 
@@ -4410,7 +5705,8 @@ class NetworkSimulator {
             'switch': '#e8f5e8',
             'server': '#fff3e0',
             'dns': '#f1f8e9',
-            'hub': '#fce4ec'
+            'onu': '#f3e5f5',
+            'internet': '#e1f5fe'
         };
         return colors[type] || '#f5f5f5';
     }
@@ -4423,7 +5719,8 @@ class NetworkSimulator {
             'switch': '🔌',
             'server': '🖥️',
             'dns': '🌐',
-            'hub': '⚡'
+            'onu': '📦',
+            'internet': '☁️'
         };
         return icons[type] || '📱';
     }
@@ -4596,7 +5893,7 @@ class NetworkSimulator {
     findSwitchInPath(path) {
         if (!path) return null;
         
-        return path.find(device => device.type === 'switch' || device.type === 'hub');
+        return path.find(device => device.type === 'switch' || device.type === 'onu');
     }
 
     // 2つのデバイス間の直接接続を探す
@@ -4956,11 +6253,71 @@ class NetworkSimulator {
             width: device.width,
             height: device.height,
             config: {
+                // 基本ネットワーク設定
                 ipAddress: device.config.ipAddress,
                 subnetMask: device.config.subnetMask,
+                defaultGateway: device.config.defaultGateway,
+                dnsServers: device.config.dnsServers,
+                dhcpEnabled: device.config.dhcpEnabled,
+                
+                // LAN設定（ルーター用）
+                lan1: device.config.lan1 ? {
+                    ipAddress: device.config.lan1.ipAddress,
+                    dhcpEnabled: device.config.lan1.dhcpEnabled,
+                    dhcpPoolStart: device.config.lan1.dhcpPoolStart,
+                    dhcpPoolEnd: device.config.lan1.dhcpPoolEnd,
+                    dhcpAllocatedIPs: device.config.lan1.dhcpAllocatedIPs ? 
+                        Array.from(device.config.lan1.dhcpAllocatedIPs.entries()) : []
+                } : undefined,
+                
+                lan2: device.config.lan2 ? {
+                    ipAddress: device.config.lan2.ipAddress,
+                    dhcpEnabled: device.config.lan2.dhcpEnabled,
+                    dhcpPoolStart: device.config.lan2.dhcpPoolStart,
+                    dhcpPoolEnd: device.config.lan2.dhcpPoolEnd,
+                    dhcpAllocatedIPs: device.config.lan2.dhcpAllocatedIPs ? 
+                        Array.from(device.config.lan2.dhcpAllocatedIPs.entries()) : []
+                } : undefined,
+                
+                lan3: device.config.lan3 ? {
+                    ipAddress: device.config.lan3.ipAddress,
+                    dhcpEnabled: device.config.lan3.dhcpEnabled,
+                    dhcpPoolStart: device.config.lan3.dhcpPoolStart,
+                    dhcpPoolEnd: device.config.lan3.dhcpPoolEnd,
+                    dhcpAllocatedIPs: device.config.lan3.dhcpAllocatedIPs ? 
+                        Array.from(device.config.lan3.dhcpAllocatedIPs.entries()) : []
+                } : undefined,
+                
+                // DHCP共通設定
+                dhcpLeaseTime: device.config.dhcpLeaseTime,
+                dhcpServerEnabled: device.config.dhcpServerEnabled,
+                dhcpPoolStart: device.config.dhcpPoolStart,
+                dhcpPoolEnd: device.config.dhcpPoolEnd,
+                
+                // インターネット接続設定
+                isInternetConnected: device.config.isInternetConnected,
+                internetDevice: device.config.internetDevice ? device.config.internetDevice.id : null,
+                availableGlobalIP: device.config.availableGlobalIP,
+                
+                // 後方互換性
                 gateway: device.config.gateway,
                 dhcp: device.config.dhcp || {}
             },
+            
+            // WAN設定（ルーター用）
+            wanConfig: device.wanConfig ? {
+                dhcpEnabled: device.wanConfig.dhcpEnabled,
+                ipAddress: device.wanConfig.ipAddress,
+                subnetMask: device.wanConfig.subnetMask,
+                defaultGateway: device.wanConfig.defaultGateway,
+                dnsServers: device.wanConfig.dnsServers,
+                isConnected: device.wanConfig.isConnected,
+                internetDevice: device.wanConfig.internetDevice ? device.wanConfig.internetDevice.id : null,
+                availableGlobalIP: device.wanConfig.availableGlobalIP
+            } : undefined,
+            
+            // DNSテーブル（DNSサーバー用）
+            dnsTable: device.dnsTable || {},
             ports: {
                 nics: device.ports.nics.map(port => ({
                     id: port.id,
@@ -5039,7 +6396,43 @@ class NetworkSimulator {
                     device.name = deviceData.name;
                     device.width = deviceData.width;
                     device.height = deviceData.height;
+                    // 基本設定の復元
                     device.config = { ...deviceData.config };
+                    
+                    // LAN設定の復元（ルーター用）
+                    if (deviceData.config.lan1) {
+                        device.config.lan1 = { ...deviceData.config.lan1 };
+                        // DHCPアロケーションマップの復元
+                        if (deviceData.config.lan1.dhcpAllocatedIPs) {
+                            device.config.lan1.dhcpAllocatedIPs = new Map(deviceData.config.lan1.dhcpAllocatedIPs);
+                        }
+                    }
+                    
+                    if (deviceData.config.lan2) {
+                        device.config.lan2 = { ...deviceData.config.lan2 };
+                        if (deviceData.config.lan2.dhcpAllocatedIPs) {
+                            device.config.lan2.dhcpAllocatedIPs = new Map(deviceData.config.lan2.dhcpAllocatedIPs);
+                        }
+                    }
+                    
+                    if (deviceData.config.lan3) {
+                        device.config.lan3 = { ...deviceData.config.lan3 };
+                        if (deviceData.config.lan3.dhcpAllocatedIPs) {
+                            device.config.lan3.dhcpAllocatedIPs = new Map(deviceData.config.lan3.dhcpAllocatedIPs);
+                        }
+                    }
+                    
+                    // WAN設定の復元（ルーター用）
+                    if (deviceData.wanConfig) {
+                        device.wanConfig = { ...deviceData.wanConfig };
+                        // インターネットデバイス参照は後で復元
+                        device.wanConfig.internetDevice = null;
+                    }
+                    
+                    // DNSテーブルの復元（DNSサーバー用）
+                    if (deviceData.dnsTable) {
+                        device.dnsTable = { ...deviceData.dnsTable };
+                    }
                     
                     // ポートを復元
                     device.ports.nics.forEach((port, index) => {
@@ -5081,9 +6474,30 @@ class NetworkSimulator {
                     }
                 });
 
+                // デバイス参照の復元（インターネット接続関連）
+                data.devices.forEach(deviceData => {
+                    const device = deviceMap.get(deviceData.id);
+                    
+                    // WAN設定のインターネットデバイス参照復元
+                    if (deviceData.wanConfig && deviceData.wanConfig.internetDevice) {
+                        const internetDevice = deviceMap.get(deviceData.wanConfig.internetDevice);
+                        if (internetDevice) {
+                            device.wanConfig.internetDevice = internetDevice;
+                        }
+                    }
+                    
+                    // 基本設定のインターネットデバイス参照復元
+                    if (deviceData.config.internetDevice) {
+                        const internetDevice = deviceMap.get(deviceData.config.internetDevice);
+                        if (internetDevice) {
+                            device.config.internetDevice = internetDevice;
+                        }
+                    }
+                });
+
                 this.updateControlButtons();
                 this.scheduleRender();
-                this.updateStatus('ネットワーク構成を読み込みました');
+                this.updateStatus('ネットワーク構成を読み込みました（全設定情報を含む）');
                 
             } catch (error) {
                 console.error('ファイル読み込みエラー:', error);
