@@ -420,6 +420,33 @@ class NetworkSimulator {
         console.log('Device prepared for drag, not yet visible:', device.type);
     }
 
+    // モバイル用：長押しでデバイスドラッグを開始
+    startDeviceDragWithLongPress(event) {
+        event.preventDefault();
+        console.log('startDeviceDragWithLongPress called');
+        
+        const deviceType = event.currentTarget.dataset.deviceType;
+        const touch = event.touches[0];
+        
+        // 長押し判定用のタイマー設定（500ms）
+        this.longPressTimer = setTimeout(() => {
+            console.log('Long press detected, starting drag for:', deviceType);
+            this.startDeviceDrag(event);
+        }, 500);
+        
+        // タッチ終了時にタイマーをクリア
+        const clearTimer = () => {
+            if (this.longPressTimer) {
+                clearTimeout(this.longPressTimer);
+                this.longPressTimer = null;
+            }
+        };
+        
+        // タッチ移動や終了でタイマーをクリア
+        event.currentTarget.addEventListener('touchmove', clearTimer, { once: true });
+        event.currentTarget.addEventListener('touchend', clearTimer, { once: true });
+        event.currentTarget.addEventListener('touchcancel', clearTimer, { once: true });
+    }
 
     // デバイス表示名を取得
     getDeviceDisplayName(deviceType) {
