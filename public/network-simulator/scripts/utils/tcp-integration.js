@@ -114,7 +114,34 @@ function setupTCPEventListeners(simulator) {
     
     window.httpSimulator.addEventListener('httpResponseReceived', (data) => {
         const duration = data.duration || 0;
-        simulator.updateStatus(`HTTP通信完了: ${data.response.statusCode} ${data.response.statusText} (${duration}ms)`);
+        const response = data.response;
+        
+        // ステータス更新
+        simulator.updateStatus(`HTTP通信完了: ${response.statusCode} ${response.statusText} (${duration}ms)`);
+        
+        // レスポンス内容をダイアログで表示
+        let responseContent = `HTTP/${response.version || '1.1'} ${response.statusCode} ${response.statusText}\n\n`;
+        
+        // ヘッダー情報
+        if (response.headers) {
+            Object.entries(response.headers).forEach(([key, value]) => {
+                responseContent += `${key}: ${value}\n`;
+            });
+        }
+        
+        responseContent += '\n';
+        
+        // レスポンスボディ
+        if (response.body) {
+            responseContent += response.body;
+        }
+        
+        // レスポンス表示ダイアログ
+        setTimeout(() => {
+            if (confirm('HTTPレスポンスを受信しました。詳細を確認しますか？')) {
+                alert(responseContent);
+            }
+        }, 100);
     });
     
     

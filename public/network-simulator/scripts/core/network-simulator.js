@@ -3007,14 +3007,14 @@ class NetworkSimulator {
         
         // まず直接接続経路を試行
         const directPath = this.findDirectPath(sourceDevice, targetDevice);
-        if (directPath.length > 0) {
+        if (directPath && directPath.length > 0) {
             // ONUを透明化した経路を返す
             return this.transparentizeONUPath(directPath);
         }
         
         // 直接経路がない場合、インターネット経由を試行
         const internetPath = this.findInternetPath(sourceDevice, targetDevice);
-        if (internetPath.length > 0) {
+        if (internetPath && internetPath.length > 0) {
             // ONUを透明化した経路を返す
             return this.transparentizeONUPath(internetPath);
         }
