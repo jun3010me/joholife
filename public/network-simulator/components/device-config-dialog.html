@@ -114,6 +114,22 @@
                 <input type="number" class="form-input" id="dhcp-lease-time" placeholder="3600" value="3600">
             </div>
         </div>
+
+        <!-- DNS サーバー専用の設定 -->
+        <div id="dns-server-section" style="display: none;">
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #ddd;">
+            <h4 style="margin-bottom: 16px; color: #333;">DNSテーブル設定</h4>
+            <div class="form-group">
+                <label class="form-label">DNS レコード</label>
+                <div id="dns-records" style="margin-top: 8px;">
+                    <!-- DNS レコードが動的に挿入される -->
+                </div>
+                <button type="button" id="add-dns-record" class="dialog-button secondary" style="margin-top: 8px; font-size: 12px; padding: 6px 12px;">
+                    + DNSレコードを追加
+                </button>
+            </div>
+        </div>
+
         <div class="dialog-buttons">
             <button class="dialog-button secondary" id="cancel-btn">キャンセル</button>
             <button class="dialog-button primary" id="save-btn">保存</button>

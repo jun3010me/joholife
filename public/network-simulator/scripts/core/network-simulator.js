@@ -322,7 +322,8 @@ class NetworkSimulator {
             'pc': 'PC',
             'router': 'ルーター',
             'switch': 'スイッチ',
-            'server': 'サーバー',
+            'server': 'Webサーバー',
+            'dns': 'DNSサーバー',
             'hub': 'ハブ'
         };
         return names[deviceType] || deviceType;
@@ -408,6 +409,9 @@ class NetworkSimulator {
             'server': {
                 nics: [{ id: 'eth', label: 'ETH', x: 0, y: 0.5, isDynamic: true }]
             },
+            'dns': {
+                nics: [{ id: 'eth', label: 'ETH', x: 1, y: 0.5, isDynamic: true }]
+            },
             'router': {
                 nics: [
                     { id: 'wan', label: 'WAN', x: 0, y: 0.3 },
@@ -442,7 +446,7 @@ class NetworkSimulator {
 
     // 単一NICデバイスかどうかを判定
     isSingleNICDevice(device) {
-        return device.type === 'pc' || device.type === 'server';
+        return device.type === 'pc' || device.type === 'server' || device.type === 'dns';
     }
 
     // 線と矩形の交点を計算
@@ -495,9 +499,10 @@ class NetworkSimulator {
     // 動的NICポート位置を更新
     updateDynamicNICPosition(device) {
         if (!this.isSingleNICDevice(device)) return;
+        if (!device.ports || !device.ports.nics || device.ports.nics.length === 0) return;
         
         const nic = device.ports.nics[0];
-        if (!nic.connected) return;
+        if (!nic || !nic.connected) return;
         
         const connection = nic.connected;
         let otherDevice = null;
@@ -1655,7 +1660,10 @@ class NetworkSimulator {
     
     // Pingを実行
     async executePing() {
+        console.log('executePing called with:', this.pingSourceDevice?.name, this.pingTargetDevice?.name);
+        
         if (!this.pingSourceDevice || !this.pingTargetDevice) {
+            console.log('Missing ping devices, returning early');
             return;
         }
         
@@ -1667,8 +1675,12 @@ class NetworkSimulator {
         }
         
         // 物理的な接続経路をチェック
+        console.log('Finding path from', this.pingSourceDevice.name, 'to', this.pingTargetDevice.name);
         const path = this.findPath(this.pingSourceDevice, this.pingTargetDevice);
+        console.log('Found path:', path.map(device => device.name));
+        
         if (path.length === 0) {
+            console.log('No path found between devices');
             await this.showPingError('デバイス間に物理接続経路がありません', this.pingSourceDevice, this.pingTargetDevice);
             return;
         }
@@ -2222,13 +2234,11 @@ class NetworkSimulator {
         if (!this.pingSourceDevice) {
             // 送信元デバイスを選択
             this.pingSourceDevice = device;
-            this.updateStatus(`🔵 送信元: ${device.name} | 送信先のデバイスをクリックしてください`);
-        } else if (!this.pingTargetDevice && device !== this.pingSourceDevice) {
-            // 送信先デバイスを選択
-            this.pingTargetDevice = device;
-            this.updateStatus(`🔴 送信先: ${device.name} | Ping実行中...`);
-            // 自動的にPingを実行
-            setTimeout(() => this.executePing(), 500);
+            this.updateStatus(`🔵 送信元: ${device.name} | 宛先選択ダイアログを表示します`);
+            
+            // Pingモードを終了してダイアログを表示
+            this.exitPingMode();
+            this.showDestinationDialog(device, 'ping');
         } else if (device === this.pingSourceDevice) {
             // 送信元デバイスを再選択
             this.pingSourceDevice = null;
@@ -2845,6 +2855,20 @@ class NetworkSimulator {
         } else {
             dhcpServerSection.style.display = 'none';
         }
+
+        // DNS サーバー設定（DNSサーバーのみ表示）
+        const dnsServerSection = document.getElementById('dns-server-section');
+        if (this.selectedDevice.type === 'dns') {
+            dnsServerSection.style.display = 'block';
+            this.loadDNSTable();
+            
+            // DNS レコード追加ボタンのイベントリスナー設定
+            const addDnsRecordBtn = document.getElementById('add-dns-record');
+            addDnsRecordBtn.removeEventListener('click', this.addDNSRecord);
+            addDnsRecordBtn.addEventListener('click', this.addDNSRecord.bind(this));
+        } else {
+            dnsServerSection.style.display = 'none';
+        }
         
         // DHCP有効時はIP設定を無効化
         this.toggleIPFields(this.selectedDevice.config.dhcpEnabled);
@@ -2868,11 +2892,859 @@ class NetworkSimulator {
         });
     }
 
+    // DNSテーブルを読み込む
+    loadDNSTable() {
+        const dnsRecords = document.getElementById('dns-records');
+        dnsRecords.innerHTML = '';
+        
+        const dnsTable = this.currentDeviceConfig.dnsTable || {};
+        
+        Object.entries(dnsTable).forEach(([hostname, ipAddress]) => {
+            this.createDNSRecordElement(hostname, ipAddress);
+        });
+        
+        // 空のレコードが1つもない場合は1つ追加
+        if (Object.keys(dnsTable).length === 0) {
+            this.createDNSRecordElement('', '');
+        }
+    }
+
+    // DNSレコード要素を作成
+    createDNSRecordElement(hostname = '', ipAddress = '') {
+        const dnsRecords = document.getElementById('dns-records');
+        const recordDiv = document.createElement('div');
+        recordDiv.className = 'dns-record-item';
+        recordDiv.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center;';
+        
+        recordDiv.innerHTML = `
+            <input type="text" placeholder="ホスト名" value="${hostname}" 
+                   style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+            <input type="text" placeholder="IPアドレス" value="${ipAddress}" 
+                   style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+            <button type="button" class="remove-dns-record" style="padding: 4px 8px; background: #ff4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 10px;">
+                削除
+            </button>
+        `;
+        
+        // 削除ボタンのイベントリスナー
+        const removeBtn = recordDiv.querySelector('.remove-dns-record');
+        removeBtn.addEventListener('click', () => {
+            recordDiv.remove();
+        });
+        
+        dnsRecords.appendChild(recordDiv);
+    }
+
+    // DNSレコードを追加
+    addDNSRecord() {
+        this.createDNSRecordElement('', '');
+    }
+
     // デバイス設定ダイアログ非表示
     hideDeviceConfig() {
         document.getElementById('dialog-overlay').style.display = 'none';
         document.getElementById('device-config-dialog').style.display = 'none';
         this.currentDeviceConfig = null;
+    }
+
+    // 宛先選択ダイアログ表示
+    showDestinationDialog(sourceDevice, communicationType) {
+        console.log('showDestinationDialog called with:', sourceDevice.name, communicationType);
+        
+        // 少し待ってから要素を探す（コンポーネント読み込みの完了を待つ）
+        setTimeout(() => {
+            const overlay = document.getElementById('destination-dialog-overlay');
+            const dialog = document.getElementById('destination-dialog');
+            const title = document.getElementById('destination-dialog-title');
+            
+            console.log('DOM elements check:', {
+                overlay: !!overlay,
+                dialog: !!dialog,
+                title: !!title,
+                componentsLoaded: window.componentsLoaded
+            });
+            
+            if (!overlay || !dialog || !title) {
+                console.error('Required dialog elements not found:', {overlay: !!overlay, dialog: !!dialog, title: !!title});
+                this.updateStatus('ダイアログの表示に失敗しました - コンポーネントが読み込まれていません');
+                return;
+            }
+            
+            this.showDestinationDialogInternal(sourceDevice, communicationType, overlay, dialog, title);
+        }, 50);
+    }
+    
+    // 内部的な宛先選択ダイアログ表示処理
+    showDestinationDialogInternal(sourceDevice, communicationType, overlay, dialog, title) {
+        this.destinationSourceDevice = sourceDevice;
+        this.destinationCommunicationType = communicationType; // 'ping' or 'http'
+        
+        // ダイアログタイトル設定
+        const titleMap = {
+            'ping': 'Ping宛先を選択',
+            'http': 'HTTP通信先を選択'
+        };
+        title.textContent = titleMap[communicationType];
+        
+        // 送信元デバイス情報表示
+        const sourceDeviceName = document.getElementById('source-device-name');
+        const sourceDeviceIp = document.getElementById('source-device-ip');
+        if (sourceDeviceName) sourceDeviceName.textContent = sourceDevice.name;
+        if (sourceDeviceIp) sourceDeviceIp.textContent = `(${sourceDevice.config.ipAddress})`;
+        
+        // 宛先選択方法の初期化
+        const ipRadio = document.querySelector('input[name="destination-type"][value="ip"]');
+        const ipSection = document.getElementById('ip-address-section');
+        const hostnameSection = document.getElementById('hostname-section');
+        const destinationIp = document.getElementById('destination-ip');
+        
+        if (ipRadio) ipRadio.checked = true;
+        if (ipSection) ipSection.style.display = 'block';
+        if (hostnameSection) hostnameSection.style.display = 'none';
+        if (destinationIp) destinationIp.value = '';
+        
+        // ホスト名プルダウンの更新
+        this.updateHostnameOptions();
+        
+        // DNS解決状況をリセット
+        const dnsStatus = document.getElementById('dns-resolution-status');
+        const resolvedIp = document.getElementById('resolved-ip');
+        if (dnsStatus) dnsStatus.style.display = 'none';
+        if (resolvedIp) resolvedIp.style.display = 'none';
+        
+        // ダイアログ表示
+        console.log('Showing dialog overlay');
+        overlay.style.display = 'flex';
+        
+        // イベントリスナー設定
+        this.setupDestinationDialogEvents();
+        
+        console.log('Dialog setup complete');
+    }
+
+    // 宛先選択ダイアログのイベントリスナー設定
+    setupDestinationDialogEvents() {
+        // 宛先指定方法の切り替え
+        const radioButtons = document.querySelectorAll('input[name="destination-type"]');
+        radioButtons.forEach(radio => {
+            radio.removeEventListener('change', this.handleDestinationTypeChange);
+            radio.addEventListener('change', this.handleDestinationTypeChange.bind(this));
+        });
+        
+        // ホスト名選択変更
+        const hostnameSelect = document.getElementById('destination-hostname');
+        hostnameSelect.removeEventListener('change', this.handleHostnameSelection);
+        hostnameSelect.addEventListener('change', this.handleHostnameSelection.bind(this));
+        
+        // キャンセルボタン
+        const cancelBtn = document.getElementById('destination-cancel-btn');
+        cancelBtn.removeEventListener('click', this.hideDestinationDialog);
+        cancelBtn.addEventListener('click', this.hideDestinationDialog.bind(this));
+        
+        // 実行ボタン
+        const okBtn = document.getElementById('destination-ok-btn');
+        console.log('Setting up OK button event listener:', !!okBtn);
+        
+        if (okBtn) {
+            okBtn.removeEventListener('click', this.executeDestinationCommunication);
+            okBtn.addEventListener('click', () => {
+                console.log('OK button clicked!');
+                this.executeDestinationCommunication();
+            });
+        } else {
+            console.error('OK button not found!');
+        }
+        
+        // オーバーレイクリック（ダイアログ外のクリックのみで閉じる）
+        const overlay = document.getElementById('destination-dialog-overlay');
+        const dialog = document.getElementById('destination-dialog');
+        
+        overlay.removeEventListener('click', this.handleDestinationDialogOverlayClick);
+        overlay.addEventListener('click', this.handleDestinationDialogOverlayClick.bind(this));
+        
+        // ダイアログ内部のクリックでは閉じないようにする
+        dialog.removeEventListener('click', this.stopDestinationDialogPropagation);
+        dialog.addEventListener('click', this.stopDestinationDialogPropagation.bind(this));
+    }
+
+    // 宛先指定方法の切り替え
+    handleDestinationTypeChange(event) {
+        const value = event.target.value;
+        const ipSection = document.getElementById('ip-address-section');
+        const hostnameSection = document.getElementById('hostname-section');
+        
+        if (value === 'ip') {
+            ipSection.style.display = 'block';
+            hostnameSection.style.display = 'none';
+        } else {
+            ipSection.style.display = 'none';
+            hostnameSection.style.display = 'block';
+        }
+    }
+
+    // ホスト名選択時の処理
+    handleHostnameSelection(event) {
+        const selectedHostname = event.target.value;
+        const resolvedIpDiv = document.getElementById('resolved-ip');
+        const resolvedIpValue = document.getElementById('resolved-ip-value');
+        
+        if (selectedHostname) {
+            // DNS解決を試行
+            const resolvedIp = this.resolveDNS(selectedHostname);
+            if (resolvedIp) {
+                resolvedIpValue.textContent = resolvedIp;
+                resolvedIpDiv.style.display = 'block';
+            } else {
+                resolvedIpDiv.style.display = 'none';
+                this.showDNSResolutionError(selectedHostname);
+            }
+        } else {
+            resolvedIpDiv.style.display = 'none';
+        }
+    }
+
+    // ホスト名プルダウンの更新（DNSサーバーのレコードから取得）
+    updateHostnameOptions() {
+        const select = document.getElementById('destination-hostname');
+        select.innerHTML = '<option value="">-- ホスト名を選択 --</option>';
+        
+        // DNSサーバーを探す
+        const dnsServers = Array.from(this.devices.values()).filter(device => device.type === 'dns');
+        
+        if (dnsServers.length === 0) {
+            // DNSサーバーが存在しない場合
+            const noServerOption = document.createElement('option');
+            noServerOption.value = '';
+            noServerOption.textContent = '(DNSサーバーが必要です)';
+            noServerOption.disabled = true;
+            select.appendChild(noServerOption);
+            return;
+        }
+        
+        // すべてのDNSサーバーからレコードを収集
+        const allDNSRecords = new Map();
+        
+        for (const dnsServer of dnsServers) {
+            const dnsTable = dnsServer.dnsTable || {};
+            for (const [hostname, ipAddress] of Object.entries(dnsTable)) {
+                if (hostname && ipAddress) {
+                    // 同じホスト名で複数のIPがある場合は最初のものを使用
+                    if (!allDNSRecords.has(hostname)) {
+                        allDNSRecords.set(hostname, ipAddress);
+                    }
+                }
+            }
+        }
+        
+        // DNSレコードからオプションを作成
+        if (allDNSRecords.size === 0) {
+            const noRecordOption = document.createElement('option');
+            noRecordOption.value = '';
+            noRecordOption.textContent = '(DNSレコードが登録されていません)';
+            noRecordOption.disabled = true;
+            select.appendChild(noRecordOption);
+        } else {
+            // ホスト名順でソート
+            const sortedEntries = Array.from(allDNSRecords.entries()).sort(([a], [b]) => a.localeCompare(b));
+            
+            for (const [hostname, ipAddress] of sortedEntries) {
+                const option = document.createElement('option');
+                option.value = hostname;
+                option.textContent = `${hostname} (${ipAddress})`;
+                select.appendChild(option);
+            }
+        }
+    }
+
+    // オーバーレイクリックハンドラー（ダイアログ外のみ）
+    handleDestinationDialogOverlayClick(event) {
+        // ダイアログ要素自体がクリックされた場合は何もしない
+        if (event.target === document.getElementById('destination-dialog-overlay')) {
+            this.hideDestinationDialog();
+        }
+    }
+
+    // ダイアログ内部クリックの伝播を停止
+    stopDestinationDialogPropagation(event) {
+        event.stopPropagation();
+    }
+
+    // DNS解決エラー表示
+    showDNSResolutionError(hostname) {
+        const statusDiv = document.getElementById('dns-resolution-status');
+        const statusText = document.getElementById('dns-status-text');
+        
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = '#fee';
+        statusDiv.style.border = '1px solid #fcc';
+        statusText.textContent = `⚠️ "${hostname}" の名前解決に失敗しました（DNSサーバーが必要です）`;
+        statusText.style.color = '#c33';
+    }
+
+    // 宛先選択ダイアログ非表示
+    hideDestinationDialog() {
+        document.getElementById('destination-dialog-overlay').style.display = 'none';
+        this.destinationSourceDevice = null;
+        this.destinationCommunicationType = null;
+    }
+
+    // DNS解決
+    resolveDNS(hostname) {
+        // DNSサーバーを探す
+        const dnsServers = Array.from(this.devices.values()).filter(device => device.type === 'dns');
+        
+        if (dnsServers.length === 0) {
+            return null; // DNSサーバーが見つからない
+        }
+        
+        // 最初のDNSサーバーから解決を試行
+        for (const dnsServer of dnsServers) {
+            const dnsTable = dnsServer.dnsTable || {};
+            if (dnsTable[hostname]) {
+                return dnsTable[hostname];
+            }
+        }
+        
+        // デバイス名での直接マッチングも試行（後方互換性のため）
+        for (const [, device] of this.devices.entries()) {
+            if (device.name === hostname) {
+                return device.config.ipAddress;
+            }
+        }
+        
+        return null; // 解決失敗
+    }
+
+    // 宛先選択ダイアログからの通信実行
+    async executeDestinationCommunication() {
+        console.log('executeDestinationCommunication called');
+        
+        const destinationTypeRadio = document.querySelector('input[name="destination-type"]:checked');
+        console.log('Destination type radio:', destinationTypeRadio);
+        
+        if (!destinationTypeRadio) {
+            console.error('No destination type selected');
+            alert('宛先の指定方法を選択してください');
+            return;
+        }
+        
+        const destinationType = destinationTypeRadio.value;
+        console.log('Destination type:', destinationType);
+        let targetIp = null;
+        let hostname = null;
+        let needsDNSResolution = false;
+        
+        if (destinationType === 'ip') {
+            // IPアドレス直接指定
+            const ipInput = document.getElementById('destination-ip');
+            console.log('IP input element:', ipInput);
+            
+            if (!ipInput) {
+                console.error('destination-ip input not found');
+                alert('IPアドレス入力欄が見つかりません');
+                return;
+            }
+            
+            targetIp = ipInput.value.trim();
+            console.log('Target IP:', targetIp);
+            
+            if (!targetIp) {
+                console.log('Empty IP address');
+                alert('IPアドレスを入力してください');
+                return;
+            }
+            
+            console.log('Validating IP:', targetIp);
+            if (!this.isValidIP(targetIp)) {
+                console.log('Invalid IP format');
+                alert('有効なIPアドレスを入力してください');
+                return;
+            }
+            console.log('IP validation passed');
+        } else {
+            // ホスト名指定
+            hostname = document.getElementById('destination-hostname').value;
+            if (!hostname) {
+                alert('ホスト名を選択してください');
+                return;
+            }
+            
+            targetIp = this.resolveDNS(hostname);
+            if (!targetIp) {
+                // DNS解決失敗のアニメーションを実行
+                this.hideDestinationDialog();
+                await this.executeDNSResolutionWithAnimation(this.destinationSourceDevice, hostname, false);
+                return;
+            }
+            needsDNSResolution = true; // DNS解決アニメーションが必要
+        }
+        
+        // 宛先デバイスを特定
+        console.log('Finding device by IP:', targetIp);
+        const targetDevice = this.findDeviceByIP(targetIp);
+        console.log('Found target device:', targetDevice);
+        
+        if (!targetDevice) {
+            console.log('Target device not found for IP:', targetIp);
+            alert(`IPアドレス ${targetIp} のデバイスが見つかりません`);
+            return;
+        }
+        
+        console.log('Target device found:', targetDevice.name);
+        
+        // hideDestinationDialog()でクリアされる前に値を保存
+        const sourceDevice = this.destinationSourceDevice;
+        const communicationType = this.destinationCommunicationType;
+        
+        console.log('Saved values - Source device:', sourceDevice?.name);
+        console.log('Saved values - Communication type:', communicationType);
+        
+        // ダイアログを閉じる
+        this.hideDestinationDialog();
+        
+        // DNS解決が必要な場合は最初にDNS解決アニメーションを実行
+        if (needsDNSResolution) {
+            await this.executeDNSResolutionWithAnimation(sourceDevice, hostname, true, targetDevice);
+        }
+        
+        // 実際の通信実行
+        console.log('Communication type:', communicationType);
+        console.log('Source device:', sourceDevice);
+        console.log('Target device:', targetDevice);
+        
+        if (communicationType === 'ping') {
+            console.log('Calling executePingToTarget');
+            await this.executePingToTarget(sourceDevice, targetDevice);
+            console.log('executePingToTarget completed');
+        } else if (communicationType === 'http') {
+            console.log('Calling executeHTTPToTarget');
+            await this.executeHTTPToTarget(sourceDevice, targetDevice);
+            console.log('executeHTTPToTarget completed');
+        }
+    }
+
+    // IPアドレスからデバイスを検索
+    findDeviceByIP(ipAddress) {
+        for (const [, device] of this.devices.entries()) {
+            if (device.config.ipAddress === ipAddress) {
+                return device;
+            }
+        }
+        return null;
+    }
+
+    // DNS解決アニメーションの実行
+    async executeDNSResolutionWithAnimation(sourceDevice, hostname, isSuccess, targetDevice = null) {
+        // DNSサーバーを検索
+        const dnsServers = Array.from(this.devices.values()).filter(device => device.type === 'dns');
+        
+        if (dnsServers.length === 0) {
+            // DNSサーバーなし時のエラー演出
+            this.updateStatus(`🔍 DNS解決試行中: ${hostname} (DNSサーバーを探索中...)`);
+            
+            // DNSサーバーがない場合の視覚的演出
+            await this.animateDNSServerNotFoundError(sourceDevice, hostname);
+            return;
+        }
+        
+        const dnsServer = dnsServers[0]; // 最初のDNSサーバーを使用
+        
+        if (isSuccess) {
+            // DNS解決成功の場合
+            this.updateStatus(`🔍 DNS解決中: ${hostname} → ${targetDevice.config.ipAddress}`);
+            
+            // 統一されたアニメーションシステムを使用してDNS解決アニメーション実行
+            await this.animateDNSResolutionWithPath(sourceDevice, dnsServer, hostname, targetDevice.config.ipAddress, true);
+        } else {
+            // DNS解決失敗の場合
+            this.updateStatus(`🔍 DNS解決試行中: ${hostname} (失敗予定)`);
+            
+            // 統一されたアニメーションシステムを使用してDNS解決失敗アニメーション実行
+            await this.animateDNSResolutionWithPath(sourceDevice, dnsServer, hostname, null, false);
+        }
+    }
+
+    // 統一されたアニメーションシステムを使用するDNS解決アニメーション
+    async animateDNSResolutionWithPath(sourceDevice, dnsServer, hostname, resolvedIp, isSuccess) {
+        // ソースとDNSサーバー間の経路を取得
+        const pathToServer = this.findPath(sourceDevice, dnsServer);
+        
+        if (pathToServer.length === 0) {
+            this.updateStatus(`❌ DNS解決失敗: DNSサーバー(${dnsServer.name})への経路がありません`);
+            return;
+        }
+        
+        // DNS通信用のTCP接続を作成（ポート53）
+        let dnsConnectionId = null;
+        const sourcePort = this.getRandomPort(1024, 65535);
+        const targetPort = 53; // DNS標準ポート
+        
+        if (window.tcpManager) {
+            try {
+                // TCP接続作成（DNS用）
+                dnsConnectionId = `dns_${sourceDevice.id}_to_${dnsServer.id}_${Date.now()}`;
+                const connection = window.tcpManager.createConnection(
+                    sourceDevice.config.ipAddress,
+                    sourcePort,
+                    dnsServer.config.ipAddress,
+                    targetPort,
+                    dnsConnectionId
+                );
+                
+                connection.protocol = 'DNS';
+                connection.query = hostname;
+                
+                // TCP詳細ログが有効な場合のみ3-way handshake
+                const tcpVisibilityCheckbox = document.getElementById('tcp-visibility-toggle');
+                const showTCPDetails = tcpVisibilityCheckbox && tcpVisibilityCheckbox.checked;
+                
+                if (showTCPDetails) {
+                    // 3-way handshake
+                    await this.simulateDNSTCPHandshake(sourceDevice, dnsServer, pathToServer, dnsConnectionId);
+                }
+            } catch (error) {
+                console.warn('DNS TCP connection creation failed:', error);
+            }
+        }
+        
+        // DNS Query (クライアント → DNSサーバー)
+        this.updateStatus(`🔍 DNS Query送信: ${sourceDevice.name} → ${dnsServer.name} (${hostname}を問い合わせ中)`);
+        await this.queuedAnimatePacketAlongPath(pathToServer, '🔍 DNS Query', '#9c27b0');
+        
+        await this.sleep(300);
+        
+        if (isSuccess) {
+            // DNS Response - 成功 (DNSサーバー → クライアント)
+            this.updateStatus(`📋 DNS Response受信: ${dnsServer.name} → ${sourceDevice.name} (${hostname} = ${resolvedIp})`);
+            const reversePathFromServer = [...pathToServer].reverse();
+            await this.queuedAnimatePacketAlongPath(reversePathFromServer, '📋 DNS Response', '#4caf50');
+            
+            this.updateStatus(`✅ DNS解決完了: ${hostname} → ${resolvedIp}`);
+        } else {
+            // DNS Response - 失敗 (DNSサーバー → クライアント)
+            this.updateStatus(`📋 DNS Response受信: ${dnsServer.name} → ${sourceDevice.name} (${hostname}レコード未発見)`);
+            const reversePathFromServer = [...pathToServer].reverse();
+            await this.queuedAnimatePacketAlongPath(reversePathFromServer, '❌ DNS Error', '#f44336');
+            
+            this.updateStatus(`❌ DNS解決失敗: ${hostname} (レコードが見つかりません)`);
+        }
+        
+        // TCP接続をクローズ
+        if (dnsConnectionId && window.tcpManager) {
+            try {
+                const tcpVisibilityCheckbox = document.getElementById('tcp-visibility-toggle');
+                const showTCPDetails = tcpVisibilityCheckbox && tcpVisibilityCheckbox.checked;
+                
+                if (showTCPDetails) {
+                    await this.simulateDNSTCPClose(sourceDevice, dnsServer, pathToServer, dnsConnectionId);
+                }
+                
+                window.tcpManager.closeConnection(dnsConnectionId);
+            } catch (error) {
+                console.warn('DNS TCP connection close failed:', error);
+            }
+        }
+        
+        await this.sleep(500);
+    }
+
+    // DNS TCP 3-way handshake シミュレーション
+    async simulateDNSTCPHandshake(sourceDevice, dnsServer, path, connectionId) {
+        const reversePath = [...path].reverse();
+        
+        // SYN (クライアント → DNSサーバー)
+        await this.queuedAnimatePacketAlongPath(path, '🔄 SYN', '#ff9800', {
+            tcpDetails: { flag: 'SYN', seq: 1000, ack: 0, connectionId }
+        });
+        
+        await this.sleep(150);
+        
+        // SYN-ACK (DNSサーバー → クライアント)  
+        await this.queuedAnimatePacketAlongPath(reversePath, '🔄 SYN-ACK', '#ff9800', {
+            tcpDetails: { flag: 'SYN-ACK', seq: 2000, ack: 1001, connectionId }
+        });
+        
+        await this.sleep(150);
+        
+        // ACK (クライアント → DNSサーバー)
+        await this.queuedAnimatePacketAlongPath(path, '✅ ACK', '#4caf50', {
+            tcpDetails: { flag: 'ACK', seq: 1001, ack: 2001, connectionId }
+        });
+        
+        if (window.tcpManager && window.tcpManager.getConnection(connectionId)) {
+            window.tcpManager.getConnection(connectionId).state = 'ESTABLISHED';
+        }
+        
+        await this.sleep(200);
+    }
+
+    // DNS TCP接続クローズ シミュレーション
+    async simulateDNSTCPClose(sourceDevice, dnsServer, path, connectionId) {
+        const reversePath = [...path].reverse();
+        
+        // FIN (クライアント → DNSサーバー)
+        await this.queuedAnimatePacketAlongPath(path, '🔚 FIN', '#f44336', {
+            tcpDetails: { flag: 'FIN', seq: 1500, ack: 2500, connectionId }
+        });
+        
+        await this.sleep(150);
+        
+        // FIN-ACK (DNSサーバー → クライアント)
+        await this.queuedAnimatePacketAlongPath(reversePath, '🔚 FIN-ACK', '#f44336', {
+            tcpDetails: { flag: 'FIN-ACK', seq: 2500, ack: 1501, connectionId }
+        });
+        
+        await this.sleep(150);
+        
+        // ACK (クライアント → DNSサーバー)
+        await this.queuedAnimatePacketAlongPath(path, '✅ ACK', '#4caf50', {
+            tcpDetails: { flag: 'ACK', seq: 1501, ack: 2501, connectionId }
+        });
+        
+        if (window.tcpManager && window.tcpManager.getConnection(connectionId)) {
+            window.tcpManager.getConnection(connectionId).state = 'CLOSED';
+        }
+        
+        await this.sleep(200);
+    }
+
+    // ランダムポート生成ヘルパー
+    getRandomPort(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // DNSサーバー未発見時のエラー演出
+    async animateDNSServerNotFoundError(sourceDevice, hostname) {
+        // ネットワーク内のデバイスをスキャンするアニメーション
+        this.updateStatus(`🔍 DNSサーバーを探索中...`);
+        
+        // 全デバイスに対して探索パルスアニメーション
+        const allDevices = Array.from(this.devices.values());
+        const nonSourceDevices = allDevices.filter(device => device !== sourceDevice);
+        
+        let scanCount = 0;
+        const maxScans = Math.min(3, nonSourceDevices.length);
+        
+        for (let i = 0; i < maxScans; i++) {
+            if (nonSourceDevices.length > 0) {
+                const targetDevice = nonSourceDevices[i % nonSourceDevices.length];
+                
+                // 探索パルスアニメーション
+                if (window.animateSingleHop) {
+                    await window.animateSingleHop(this, sourceDevice, targetDevice, {
+                        color: '#ff9800',
+                        text: '❓ DNS?',
+                        className: 'dns-scan-pulse',
+                        duration: 600
+                    });
+                }
+                
+                // デバイスを短時間点滅（DNS応答なし）
+                this.blinkDeviceError(targetDevice, {
+                    color: '#ff5722',
+                    duration: 150,
+                    count: 2
+                });
+                
+                scanCount++;
+                
+                // スキャン間の待機時間
+                if (i < maxScans - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                }
+            }
+        }
+        
+        // 最終エラー演出
+        this.updateStatus(`❌ DNSサーバーが見つかりません`);
+        
+        // 送信元デバイスで長時間の赤色点滅
+        this.blinkDeviceError(sourceDevice, {
+            color: '#f44336',
+            duration: 300,
+            count: 4
+        });
+        
+        // フローティングエラーメッセージ
+        this.showFloatingErrorMessage(sourceDevice, `❌ DNSサーバーが必要です\n${hostname} を解決できません`, {
+            duration: 4000,
+            color: '#f44336'
+        });
+        
+        // エラー完了まで待機
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        this.updateStatus(`DNS設定を確認してください（DNSサーバーデバイスを配置してください）`);
+    }
+
+    // デバイスエラー点滅
+    blinkDeviceError(device, options = {}) {
+        const {
+            color = '#f44336',
+            duration = 200,
+            count = 3
+        } = options;
+        
+        let blinkCount = 0;
+        const blinkInterval = setInterval(() => {
+            if (blinkCount >= count * 2) {
+                clearInterval(blinkInterval);
+                if (this.errorBlinkDevices && this.errorBlinkDevices.has(device.id)) {
+                    this.errorBlinkDevices.delete(device.id);
+                    if (this.errorBlinkDevices.size === 0) {
+                        this.errorBlinkDevices = null;
+                    }
+                }
+                this.scheduleRender();
+                return;
+            }
+            
+            if (blinkCount % 2 === 0) {
+                // 点灯
+                if (!this.errorBlinkDevices) {
+                    this.errorBlinkDevices = new Set();
+                }
+                this.errorBlinkDevices.add(device.id);
+            } else {
+                // 消灯
+                if (this.errorBlinkDevices) {
+                    this.errorBlinkDevices.delete(device.id);
+                }
+            }
+            
+            this.scheduleRender();
+            blinkCount++;
+        }, duration);
+    }
+
+    // フローティングエラーメッセージ表示
+    showFloatingErrorMessage(device, message, options = {}) {
+        const {
+            duration = 3000,
+            color = '#f44336'
+        } = options;
+        
+        const errorMessage = document.createElement('div');
+        errorMessage.textContent = message;
+        errorMessage.style.position = 'absolute';
+        errorMessage.style.backgroundColor = color;
+        errorMessage.style.color = 'white';
+        errorMessage.style.padding = '8px 12px';
+        errorMessage.style.borderRadius = '8px';
+        errorMessage.style.fontSize = '11px';
+        errorMessage.style.fontWeight = 'bold';
+        errorMessage.style.zIndex = '1002';
+        errorMessage.style.pointerEvents = 'none';
+        errorMessage.style.border = '2px solid rgba(255,255,255,0.3)';
+        errorMessage.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+        errorMessage.style.whiteSpace = 'pre-line';
+        errorMessage.style.textAlign = 'center';
+        errorMessage.style.maxWidth = '200px';
+        
+        // デバイスの上部に配置
+        const deviceWorldPos = {
+            x: device.x + device.width / 2,
+            y: device.y - 50
+        };
+        const deviceDomPos = this.worldToDOM ? this.worldToDOM(deviceWorldPos) : {
+            x: deviceWorldPos.x * (this.scale || 1) + (this.panX || 0),
+            y: deviceWorldPos.y * (this.scale || 1) + (this.panY || 0)
+        };
+        
+        errorMessage.style.left = (deviceDomPos.x - 100) + 'px';
+        errorMessage.style.top = deviceDomPos.y + 'px';
+        
+        const canvasContainer = document.querySelector('.canvas-container');
+        if (canvasContainer) {
+            canvasContainer.appendChild(errorMessage);
+            
+            // アニメーション効果
+            errorMessage.style.opacity = '0';
+            errorMessage.style.transform = 'scale(0.8) translateY(10px)';
+            errorMessage.style.transition = 'all 300ms ease-out';
+            
+            // フェードイン
+            setTimeout(() => {
+                errorMessage.style.opacity = '1';
+                errorMessage.style.transform = 'scale(1) translateY(0)';
+            }, 100);
+            
+            // フェードアウト
+            setTimeout(() => {
+                errorMessage.style.transition = 'all 800ms ease-in';
+                errorMessage.style.opacity = '0';
+                errorMessage.style.transform = 'scale(0.9) translateY(-10px)';
+            }, duration - 800);
+            
+            // 削除
+            setTimeout(() => {
+                if (errorMessage.parentNode) {
+                    errorMessage.parentNode.removeChild(errorMessage);
+                }
+            }, duration);
+        }
+    }
+
+    // 座標変換ヘルパー（フォールバック用）
+    worldToDOM(worldPos) {
+        return {
+            x: worldPos.x * (this.scale || 1) + (this.panX || 0),
+            y: worldPos.y * (this.scale || 1) + (this.panY || 0)
+        };
+    }
+
+    // 宛先指定によるPing実行
+    async executePingToTarget(sourceDevice, targetDevice) {
+        console.log('executePingToTarget called:', sourceDevice.name, '->', targetDevice.name);
+        
+        // 一時的に従来のフィールドを設定
+        this.pingSourceDevice = sourceDevice;
+        this.pingTargetDevice = targetDevice;
+        
+        console.log('Set ping devices:', this.pingSourceDevice.name, this.pingTargetDevice.name);
+        
+        // 既存のPing実行処理を呼び出し
+        await this.executePing();
+        
+        console.log('executePing completed');
+    }
+
+    // 宛先指定によるHTTP通信実行
+    async executeHTTPToTarget(sourceDevice, targetDevice) {
+        // サーバータイプかWebサーバータイプの確認
+        if (targetDevice.type !== 'server' && targetDevice.type !== 'dns') {
+            alert(`HTTP通信の宛先は Webサーバー または DNSサーバー である必要があります。選択されたデバイス (${targetDevice.name}) は ${targetDevice.type} タイプです。`);
+            return;
+        }
+        
+        // 一時的に従来のフィールドを設定
+        this.httpSourceDevice = sourceDevice;
+        this.httpTargetDevice = targetDevice;
+        
+        this.updateStatus(`🌐 HTTP通信開始: ${sourceDevice.name} → ${targetDevice.name}`);
+        
+        try {
+            // HTTPシミュレーターを使用してHTTPリクエストを送信
+            const session = window.httpSimulator.sendRequest(sourceDevice, targetDevice, {
+                method: 'GET',
+                path: '/',
+                serverPort: 80
+            });
+            
+            if (session) {
+                console.log('HTTP通信セッションが開始されました:', session.id);
+            } else {
+                console.error('HTTP通信セッションの作成に失敗しました');
+                this.updateStatus('HTTP通信の開始に失敗しました');
+            }
+        } catch (error) {
+            console.error('HTTP通信エラー:', error);
+            this.updateStatus(`HTTP通信エラー: ${error.message}`);
+        }
+        
+        // 実行後にフィールドをクリア
+        this.httpSourceDevice = null;
+        this.httpTargetDevice = null;
     }
 
     // デバイス設定保存
@@ -3008,6 +3880,31 @@ class NetworkSimulator {
                 // DHCPが失敗した場合、一時的に無効なIPを設定
                 this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
             }
+        }
+
+        // DNSサーバーの場合はDNSテーブルも保存
+        if (this.currentDeviceConfig.type === 'dns') {
+            const dnsRecords = document.querySelectorAll('.dns-record-item');
+            const dnsTable = {};
+            
+            dnsRecords.forEach(record => {
+                const inputs = record.querySelectorAll('input');
+                const hostname = inputs[0].value.trim();
+                const ipAddress = inputs[1].value.trim();
+                
+                // 空でない場合のみテーブルに追加
+                if (hostname && ipAddress) {
+                    if (this.isValidIP(ipAddress)) {
+                        dnsTable[hostname] = ipAddress;
+                    } else {
+                        alert(`DNSレコード "${hostname}" に無効なIPアドレスが設定されています: ${ipAddress}`);
+                        return;
+                    }
+                }
+            });
+            
+            this.currentDeviceConfig.dnsTable = dnsTable;
+            console.log('DNSテーブル保存:', dnsTable);
         }
         
         this.hideDeviceConfig();
@@ -3512,6 +4409,7 @@ class NetworkSimulator {
             'router': '#f3e5f5',
             'switch': '#e8f5e8',
             'server': '#fff3e0',
+            'dns': '#f1f8e9',
             'hub': '#fce4ec'
         };
         return colors[type] || '#f5f5f5';
@@ -3524,6 +4422,7 @@ class NetworkSimulator {
             'router': '📡',
             'switch': '🔌',
             'server': '🖥️',
+            'dns': '🌐',
             'hub': '⚡'
         };
         return icons[type] || '📱';
@@ -4489,6 +5388,13 @@ function extendDevicesWithTCP(simulator) {
             window.httpSimulator.setupSampleServer(device, 80);
         }
         
+        // DNSサーバータイプの場合はDNSテーブルを初期化
+        if (type === 'dns') {
+            device.dnsTable = {
+                'localhost': '127.0.0.1'
+            };
+        }
+        
         return device;
     };
     
@@ -4529,21 +5435,16 @@ function extendDevicesWithTCP(simulator) {
         if (!this.httpSourceDevice) {
             // 送信元を選択
             this.httpSourceDevice = clickedDevice;
-            this.updateStatus(`HTTP送信元に ${clickedDevice.name} を選択しました。次にサーバーを選択してください。`);
+            this.updateStatus(`HTTP送信元に ${clickedDevice.name} を選択しました。宛先選択ダイアログを表示します。`);
+            
+            // HTTPモードを終了してダイアログを表示
+            this.isHTTPMode = false;
+            this.updateControlButtons();
+            this.showDestinationDialog(clickedDevice, 'http');
         } else if (this.httpSourceDevice === clickedDevice) {
             // 同じデバイスをクリック → 選択解除
             this.httpSourceDevice = null;
             this.updateStatus('HTTP送信元の選択を解除しました。クライアントを選択してください。');
-        } else {
-            // 送信先を選択 → HTTP通信実行
-            this.httpTargetDevice = clickedDevice;
-            this.executeHTTPCommunication(this.httpSourceDevice, this.httpTargetDevice);
-            
-            // 通信実行後、送信元・送信先をリセットして次の通信に備える
-            this.httpSourceDevice = null;
-            this.httpTargetDevice = null;
-            this.updateStatus('HTTP通信を実行しました。続けて別の通信を行うか、HTTP終了ボタンを押してください。');
-            this.updateControlButtons(); // HTTPモード継続中のためボタン状態を更新
         }
         this.scheduleRender();
     };

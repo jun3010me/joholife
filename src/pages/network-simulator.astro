@@ -30,6 +30,9 @@ import Layout from '../layouts/Layout.astro';
     <!-- デバイス設定ダイアログ（外部コンポーネントから読み込み） -->
     <div id="device-config-dialog-container"></div>
     
+    <!-- 宛先選択ダイアログ（外部コンポーネントから読み込み） -->
+    <div id="destination-dialog-container"></div>
+    
     <!-- 隠しファイル入力 -->
     <input type="file" id="file-input" accept=".json" style="display: none;">
 
@@ -60,6 +63,7 @@ import Layout from '../layouts/Layout.astro';
             await loadComponent('#status-panels-container', '/network-simulator/components/status-panels.html');
             await loadComponent('#control-panel-container', '/network-simulator/components/control-panel.html');
             await loadComponent('#device-config-dialog-container', '/network-simulator/components/device-config-dialog.html');
+            await loadComponent('#destination-dialog-container', '/network-simulator/components/destination-dialog.html');
             
             console.log('コンポーネント読み込み完了');
             window.componentsLoaded = true;

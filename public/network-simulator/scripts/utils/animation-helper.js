@@ -714,7 +714,158 @@ async function animateHTTPMessage(simulator, source, destination, messageType, o
     }
 }
 
+// DNS名前解決アニメーション
+async function animateDNSResolution(simulator, clientDevice, dnsServer, hostname, options = {}) {
+    const {
+        onAnimationComplete = null,
+        requestColor = '#9c27b0',
+        responseColor = '#673ab7'
+    } = options;
+    
+    console.log('🌐 DNS解決アニメーション開始:', hostname, clientDevice.name, '→', dnsServer.name);
+    
+    try {
+        // DNS経路を計算
+        if (window.simulator && typeof window.simulator.findPath === 'function') {
+            const path = window.simulator.findPath(clientDevice, dnsServer);
+            
+            if (path && path.length > 1) {
+                console.log('✅ DNS解決経路が見つかりました:', path.map(d => d.name || d.id).join(' → '));
+                
+                // DNS Queryアニメーション（往路）
+                await animatePacketAlongPath(simulator, path, {
+                    color: requestColor,
+                    text: '🔍 DNS Query',
+                    className: 'dns-query',
+                    hopDuration: 350,
+                    hopDelay: 80
+                });
+                
+                // DNS処理時間の待機
+                const speedMultiplier = window.animationSpeedMultiplier || 1.0;
+                const processingTime = Math.max(100, 300 / speedMultiplier);
+                await sleep(processingTime);
+                
+                // DNS Responseアニメーション（復路）
+                const reversePath = [...path].reverse();
+                await animatePacketAlongPath(simulator, reversePath, {
+                    color: responseColor,
+                    text: '📋 DNS Reply',
+                    className: 'dns-response',
+                    hopDuration: 350,
+                    hopDelay: 80
+                });
+                
+                console.log('DNS解決アニメーション完了');
+                
+                if (onAnimationComplete) {
+                    onAnimationComplete();
+                }
+                return;
+            }
+        }
+        
+        // フォールバック: 直線アニメーション
+        console.log('⚠️ DNS用の直線アニメーションにフォールバック');
+        
+        // DNS Query
+        await animateSingleHop(simulator, clientDevice, dnsServer, {
+            color: requestColor,
+            text: '🔍 DNS Query',
+            className: 'dns-query-direct',
+            duration: 800
+        });
+        
+        await sleep(200);
+        
+        // DNS Response
+        await animateSingleHop(simulator, dnsServer, clientDevice, {
+            color: responseColor,
+            text: '📋 DNS Reply',
+            className: 'dns-response-direct',
+            duration: 800
+        });
+        
+        if (onAnimationComplete) {
+            onAnimationComplete();
+        }
+        
+    } catch (error) {
+        console.error('DNS解決アニメーションエラー:', error);
+        if (onAnimationComplete) {
+            onAnimationComplete();
+        }
+    }
+}
+
+// DNS解決失敗のアニメーション
+async function animateDNSResolutionError(simulator, clientDevice, hostname, options = {}) {
+    const {
+        onAnimationComplete = null,
+        errorColor = '#f44336'
+    } = options;
+    
+    console.log('❌ DNS解決失敗アニメーション開始:', hostname, 'from', clientDevice.name);
+    
+    // クライアントデバイスでエラー表示
+    blinkDevice(simulator, clientDevice, {
+        color: errorColor,
+        duration: 300,
+        count: 3
+    });
+    
+    // エラーメッセージのフローティングアニメーション
+    const errorMessage = document.createElement('div');
+    errorMessage.textContent = `❌ ${hostname} not found`;
+    errorMessage.style.position = 'absolute';
+    errorMessage.style.backgroundColor = errorColor;
+    errorMessage.style.color = 'white';
+    errorMessage.style.padding = '4px 8px';
+    errorMessage.style.borderRadius = '4px';
+    errorMessage.style.fontSize = '10px';
+    errorMessage.style.fontWeight = 'bold';
+    errorMessage.style.zIndex = '1001';
+    errorMessage.style.pointerEvents = 'none';
+    errorMessage.style.border = '1px solid rgba(255,255,255,0.3)';
+    errorMessage.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+    
+    // デバイスの上に配置
+    const deviceWorldPos = {
+        x: clientDevice.x + clientDevice.width / 2,
+        y: clientDevice.y - 30
+    };
+    const deviceDomPos = worldToDOM(simulator, deviceWorldPos);
+    
+    errorMessage.style.left = (deviceDomPos.x - 40) + 'px';
+    errorMessage.style.top = deviceDomPos.y + 'px';
+    
+    const canvasContainer = document.querySelector('.canvas-container');
+    if (canvasContainer) {
+        canvasContainer.appendChild(errorMessage);
+        
+        // フェードアウトアニメーション
+        errorMessage.style.transition = 'all 2000ms ease-out';
+        
+        setTimeout(() => {
+            errorMessage.style.opacity = '0';
+            errorMessage.style.transform = 'translateY(-20px)';
+        }, 500);
+        
+        setTimeout(() => {
+            if (errorMessage.parentNode) {
+                errorMessage.parentNode.removeChild(errorMessage);
+            }
+        }, 2500);
+    }
+    
+    if (onAnimationComplete) {
+        setTimeout(onAnimationComplete, 2000);
+    }
+}
+
 // ウィンドウオブジェクトに公開
 window.animateHTTPMessage = animateHTTPMessage;
+window.animateDNSResolution = animateDNSResolution;
+window.animateDNSResolutionError = animateDNSResolutionError;
 
 console.log('Animation Helper module loaded successfully');
