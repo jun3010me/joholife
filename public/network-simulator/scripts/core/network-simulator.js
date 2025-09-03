@@ -354,6 +354,7 @@ class NetworkSimulator {
         // デスクトップ環境または広い画面時：即座にドラッグ開始
         this.isPaletteScrolling = false;
         const deviceType = event.currentTarget.dataset.deviceType;
+        console.log('🚀 startDeviceDrag called for:', deviceType, 'event type:', event.type);
         
         // パレットアイテムの場合は、適切なキャンバス座標にデバイスを作成
         let x, y;
@@ -388,12 +389,14 @@ class NetworkSimulator {
         }
         
         const device = this.createDevice(deviceType, x, y);
+        console.log('📦 Device created:', device.type, 'at position:', x, y);
         device.isNewFromPalette = true; // パレットから作成されたことを記録
         
         // 重要：まだマップには追加せず、一時的に保持
         this.pendingDevice = device;
         this.selectedDevice = device;
         this.isDragging = true;
+        console.log('🔄 Device drag state set:', this.isDragging);
         
         // タッチ操作でのドラッグオフセットを適切に設定
         if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
@@ -410,14 +413,16 @@ class NetworkSimulator {
         
         // タッチイベントの場合、グローバルなイベントリスナーを追加
         if (event.type === 'touchstart') {
+            console.log('🎯 Setting up global touch handlers');
             this.setupGlobalTouchHandlers();
         } else {
             // マウスイベントの場合
+            console.log('🖱️ Setting up global mouse handlers');
             document.addEventListener('mousemove', this.globalMouseMoveHandler);
             document.addEventListener('mouseup', this.globalMouseUpHandler);
         }
         
-        console.log('Device prepared for drag, not yet visible:', device.type);
+        console.log('✅ Device prepared for drag, not yet visible:', device.type);
     }
 
     // モバイル用：長押しでデバイスドラッグを開始
