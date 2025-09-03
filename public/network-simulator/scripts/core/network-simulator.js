@@ -265,13 +265,13 @@ class NetworkSimulator {
             
             const deltaX = Math.abs(moveEvent.touches[0].clientX - startX);
             const deltaY = Math.abs(moveEvent.touches[0].clientY - startY);
-            const moveThreshold = 8; // 動き判定の閾値
+            const moveThreshold = 4; // 動き判定の閾値（より敏感に）
             
             if (deltaX > moveThreshold || deltaY > moveThreshold) {
                 actionDecided = true;
                 
-                // 横方向の動きが優勢な場合はスクロールモード
-                if (deltaX > deltaY && deltaX > 12) {
+                // 明確に横方向の動きが優勢な場合はスクロールモード
+                if (deltaX > deltaY * 1.5 && deltaX > 5) {
                     console.log('🔄 Switching to scroll mode (horizontal movement detected)');
                     isScrollMode = true;
                     
@@ -281,9 +281,9 @@ class NetworkSimulator {
                         paletteContent.scrollLeft = startScrollLeft + scrollDelta;
                     }
                 }
-                // 縦方向が優勢または縦方向に十分な動きがある場合はドラッグモード
-                else if (deltaY > 10 || (deltaY > deltaX && deltaY > 8)) {
-                    console.log('🔽 Switching to drag mode (vertical movement detected)');
+                // その他の場合は全てドラッグモード（デバイス配置を優先）
+                else {
+                    console.log('🔽 Switching to drag mode (default behavior)');
                     isDragMode = true;
                     
                     // デバイスドラッグを開始
