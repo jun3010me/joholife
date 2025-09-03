@@ -3755,16 +3755,18 @@ class NetworkSimulator {
         
         // WAN設定（ルーターのみ表示）
         const wanConfigSection = document.getElementById('wan-config-section');
-        if (this.selectedDevice.type === 'router') {
-            wanConfigSection.style.display = 'block';
-            this.loadWANConfig();
-        } else {
-            wanConfigSection.style.display = 'none';
+        if (wanConfigSection) {
+            if (this.selectedDevice.type === 'router') {
+                wanConfigSection.style.display = 'block';
+                this.loadWANConfig();
+            } else {
+                wanConfigSection.style.display = 'none';
+            }
         }
 
         // DHCPサーバー設定（ルーターのみ表示）
         const dhcpServerSection = document.getElementById('dhcp-server-section');
-        if (this.selectedDevice.type === 'router') {
+        if (dhcpServerSection && this.selectedDevice.type === 'router') {
             dhcpServerSection.style.display = 'block';
             
             // LAN1 設定
@@ -3787,13 +3789,13 @@ class NetworkSimulator {
             
             // 共通設定
             document.getElementById('dhcp-lease-time').value = this.selectedDevice.config.dhcpLeaseTime;
-        } else {
+        } else if (dhcpServerSection) {
             dhcpServerSection.style.display = 'none';
         }
 
         // DNS サーバー設定（DNSサーバーのみ表示）
         const dnsServerSection = document.getElementById('dns-server-section');
-        if (this.selectedDevice.type === 'dns') {
+        if (dnsServerSection && this.selectedDevice.type === 'dns') {
             dnsServerSection.style.display = 'block';
             this.loadDNSTable();
             
@@ -3801,7 +3803,7 @@ class NetworkSimulator {
             const addDnsRecordBtn = document.getElementById('add-dns-record');
             addDnsRecordBtn.removeEventListener('click', this.addDNSRecord);
             addDnsRecordBtn.addEventListener('click', this.addDNSRecord.bind(this));
-        } else {
+        } else if (dnsServerSection) {
             dnsServerSection.style.display = 'none';
         }
         
