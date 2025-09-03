@@ -172,24 +172,20 @@ class NetworkSimulator {
             primaryTouch: window.matchMedia('(hover: none) and (pointer: coarse)').matches
         });
         
-        // モバイルデバイスの場合はスクロール処理を追加（条件を緩和）
-        const hasTouchCapability = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-        if (hasTouchCapability && isNarrowScreen) {
-            console.log('Setting up touch scroll handlers (has touch + narrow screen)');
-            const paletteContent = document.querySelector('.palette-content');
-            if (paletteContent) {
-                paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
-                paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
-                paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
-            }
-        }
+        // パレットスクロールはCSSのみで処理（JavaScriptイベントは無効化）
+        // CSSで touch-action: pan-x が設定されているため、ブラウザがネイティブスクロールを処理
+        console.log('Relying on CSS-only horizontal scrolling for palette');
         
-        // すべての環境でデバイスドラッグを有効化
+        // デバイスドラッグを有効化（横スクロールと競合しないよう調整）
         console.log('Setting up device drag handlers for all environments');
         items.forEach(item => {
             item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
-            // すべての環境でタッチイベントを有効化（パッシブでない）
-            item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
+            // タッチイベントはパッシブに設定してスクロールを妨害しないようにする
+            if (isNarrowScreen) {
+                item.addEventListener('touchstart', this.startDeviceDragDelayed.bind(this), { passive: true });
+            } else {
+                item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
+            }
         });
     }
 
@@ -244,6 +240,36 @@ class NetworkSimulator {
     handlePaletteScrollEnd(e) {
         this.isPaletteScrolling = false;
         this.pendingDeviceDrag = null;
+    }
+
+    // 遅延デバイスドラッグ開始処理（モバイル専用・横スクロール配慮）
+    startDeviceDragDelayed(e) {
+        // パッシブイベントのため、長押しでのみドラッグを開始
+        const item = e.currentTarget;
+        const deviceType = item.dataset.deviceType;
+        
+        console.log('startDeviceDragDelayed called for:', deviceType);
+        
+        // 長押し判定のためのタイマーを設定
+        this.deviceDragTimer = setTimeout(() => {
+            console.log('Starting delayed device drag for:', deviceType);
+            // 直接ドラッグ開始
+            const rect = item.getBoundingClientRect();
+            this.createDevice(deviceType, e.touches ? e.touches[0].clientX : rect.left + rect.width/2, e.touches ? e.touches[0].clientY : rect.top + rect.height/2);
+            this.startDrag(this.draggedDevice, e.touches ? e.touches[0] : e);
+        }, 500); // 500msの長押し
+        
+        // touchend/touchcancel で長押しタイマーをクリア
+        const clearTimer = () => {
+            if (this.deviceDragTimer) {
+                clearTimeout(this.deviceDragTimer);
+                this.deviceDragTimer = null;
+            }
+        };
+        
+        item.addEventListener('touchend', clearTimer, { once: true, passive: true });
+        item.addEventListener('touchcancel', clearTimer, { once: true, passive: true });
+        item.addEventListener('touchmove', clearTimer, { once: true, passive: true });
     }
 
     // デバイスドラッグ開始（論理回路シミュレータの実装を正確に模倣）

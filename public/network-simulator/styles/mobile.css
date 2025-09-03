@@ -138,14 +138,16 @@
     text-align: center;
 }
 
-/* モバイル向け横スクロール強化 */
-@media (max-width: 768px) and (hover: none) {
+/* モバイル向け横スクロール強化（全面的な対応） */
+@media (max-width: 768px) {
     /* デバイスパレットの横スクロール改善 */
     .device-palette {
         height: 110px !important;
         padding: 8px !important;
         padding-left: max(8px, env(safe-area-inset-left, 8px)) !important;
         padding-right: max(8px, env(safe-area-inset-right, 8px)) !important;
+        /* JavaScriptイベントを無効化して純粋なCSSスクロールを実現 */
+        pointer-events: auto !important;
     }
     
     .palette-content {
@@ -159,12 +161,18 @@
         width: 100% !important;
         height: 100% !important;
         flex-wrap: nowrap !important;
-        touch-action: pan-x !important;
+        
+        /* 確実にタッチスクロールを有効にする */
+        touch-action: pan-x pan-down pinch-zoom !important;
         -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-x: contain !important;
         
         /* スクロールバー非表示（モバイル専用） */
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
+        
+        /* 強制的にスクロール可能にする */
+        min-width: max-content !important;
     }
     
     .palette-content::-webkit-scrollbar {
@@ -173,6 +181,7 @@
         height: 0 !important;
     }
     
+    /* デバイスアイテムのポインタイベントを制限 */
     .device-item {
         flex-shrink: 0 !important;
         width: 80px !important;
@@ -182,11 +191,16 @@
         font-size: 0.8rem !important;
         padding: 6px 4px !important;
         box-sizing: border-box !important;
+        
+        /* タッチイベントの競合を回避 */
+        touch-action: none !important;
+        pointer-events: auto !important;
     }
     
     .device-icon {
         font-size: 24px !important;
         margin-bottom: 4px !important;
+        pointer-events: none !important;
     }
     
     .device-name {
@@ -196,6 +210,7 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
+        pointer-events: none !important;
     }
 }
 
