@@ -427,25 +427,57 @@ class NetworkSimulator {
         
         const deviceType = event.currentTarget.dataset.deviceType;
         const touch = event.touches[0];
+        let longPressActivated = false;
         
-        // 長押し判定用のタイマー設定（500ms）
+        // 初期位置を記録
+        const startX = touch.clientX;
+        const startY = touch.clientY;
+        
+        // 長押し判定用のタイマー設定（300ms）
         this.longPressTimer = setTimeout(() => {
             console.log('Long press detected, starting drag for:', deviceType);
+            longPressActivated = true;
+            
+            // 長押し成功時にドラッグを開始
             this.startDeviceDrag(event);
-        }, 500);
+            
+            // 視覚的フィードバック（バイブレーション）
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }, 300);
         
-        // タッチ終了時にタイマーをクリア
-        const clearTimer = () => {
+        // タッチ移動処理
+        const handleTouchMove = (moveEvent) => {
+            const moveTouch = moveEvent.touches[0];
+            const deltaX = Math.abs(moveTouch.clientX - startX);
+            const deltaY = Math.abs(moveTouch.clientY - startY);
+            
+            // 長押し成功前に大きく動いた場合はタイマーをクリア
+            if (!longPressActivated && (deltaX > 10 || deltaY > 10)) {
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+            }
+        };
+        
+        // タッチ終了処理
+        const handleTouchEnd = () => {
             if (this.longPressTimer) {
                 clearTimeout(this.longPressTimer);
                 this.longPressTimer = null;
             }
+            // イベントリスナーを削除
+            event.currentTarget.removeEventListener('touchmove', handleTouchMove);
+            event.currentTarget.removeEventListener('touchend', handleTouchEnd);
+            event.currentTarget.removeEventListener('touchcancel', handleTouchEnd);
         };
         
-        // タッチ移動や終了でタイマーをクリア
-        event.currentTarget.addEventListener('touchmove', clearTimer, { once: true });
-        event.currentTarget.addEventListener('touchend', clearTimer, { once: true });
-        event.currentTarget.addEventListener('touchcancel', clearTimer, { once: true });
+        // イベントリスナーを追加
+        event.currentTarget.addEventListener('touchmove', handleTouchMove, { passive: true });
+        event.currentTarget.addEventListener('touchend', handleTouchEnd, { once: true });
+        event.currentTarget.addEventListener('touchcancel', handleTouchEnd, { once: true });
     }
 
     // デバイス表示名を取得
