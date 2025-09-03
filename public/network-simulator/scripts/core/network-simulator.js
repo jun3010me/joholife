@@ -191,10 +191,22 @@ class NetworkSimulator {
         if (isNarrowScreen) {
             console.log('🍎 Narrow screen: Setting up palette-level touch handling');
             const paletteContent = document.querySelector('.palette-content');
+            const devicePalette = document.querySelector('.device-palette');
             console.log('📦 PaletteContent element:', paletteContent);
-            if (paletteContent) {
+            console.log('📦 DevicePalette element:', devicePalette);
+            
+            if (paletteContent && devicePalette) {
+                // 親要素の状態を確認
+                console.log('📏 Parent (device-palette) state:', {
+                    scrollWidth: devicePalette.scrollWidth,
+                    clientWidth: devicePalette.clientWidth,
+                    offsetWidth: devicePalette.offsetWidth,
+                    computedWidth: getComputedStyle(devicePalette).width,
+                    computedOverflowX: getComputedStyle(devicePalette).overflowX,
+                });
+                
                 // パレット要素の初期状態を確認
-                console.log('📏 Initial palette state:', {
+                console.log('📏 Child (palette-content) state:', {
                     scrollWidth: paletteContent.scrollWidth,
                     clientWidth: paletteContent.clientWidth,
                     offsetWidth: paletteContent.offsetWidth,
@@ -203,11 +215,28 @@ class NetworkSimulator {
                     canScrollInitially: paletteContent.scrollWidth > paletteContent.clientWidth
                 });
                 
+                // 強制的にスクロール設定を適用
+                devicePalette.style.overflowX = 'auto';
+                devicePalette.style.width = '100vw';
+                paletteContent.style.width = '800px'; // 十分な幅を設定
+                paletteContent.style.minWidth = '800px';
+                paletteContent.style.overflowX = 'visible'; // 親でスクロール処理
+                
                 console.log('✅ Adding touch event listeners to palette');
                 paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
                 paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
                 paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
                 console.log('✅ Touch event listeners added successfully');
+                
+                // 設定後の状態を再確認
+                console.log('📏 After force style - Parent:', {
+                    scrollWidth: devicePalette.scrollWidth,
+                    clientWidth: devicePalette.clientWidth,
+                });
+                console.log('📏 After force style - Child:', {
+                    scrollWidth: paletteContent.scrollWidth,
+                    clientWidth: paletteContent.clientWidth,
+                });
             } else {
                 console.error('❌ PaletteContent not found! Cannot add touch listeners');
             }
@@ -302,18 +331,23 @@ class NetworkSimulator {
                 console.log('📏 scrollWidth:', e.currentTarget.scrollWidth, 'clientWidth:', e.currentTarget.clientWidth, 'canScroll:', e.currentTarget.scrollWidth > e.currentTarget.clientWidth);
                 console.log('📏 scrollDelta:', scrollDelta, 'newScrollLeft:', newScrollLeft);
                 
-                // 強制的にスクロール可能にするためのスタイル設定
-                e.currentTarget.style.overflowX = 'auto';
-                e.currentTarget.style.width = '1200px';
-                e.currentTarget.style.minWidth = '1200px';
-                
-                e.currentTarget.scrollLeft = newScrollLeft;
-                console.log('🎯 Applied scrollLeft:', e.currentTarget.scrollLeft);
-                console.log('🎯 Element styles:', {
-                    overflowX: getComputedStyle(e.currentTarget).overflowX,
-                    width: getComputedStyle(e.currentTarget).width,
-                    minWidth: getComputedStyle(e.currentTarget).minWidth
-                });
+                // 親要素（device-palette）でスクロール実行
+                const devicePalette = e.currentTarget.closest('.device-palette');
+                if (devicePalette) {
+                    devicePalette.scrollLeft = newScrollLeft;
+                    console.log('🎯 Applied scrollLeft to parent:', devicePalette.scrollLeft);
+                    console.log('🎯 Parent element styles:', {
+                        scrollWidth: devicePalette.scrollWidth,
+                        clientWidth: devicePalette.clientWidth,
+                        canScroll: devicePalette.scrollWidth > devicePalette.clientWidth,
+                        overflowX: getComputedStyle(devicePalette).overflowX,
+                        width: getComputedStyle(devicePalette).width
+                    });
+                } else {
+                    // フォールバック：子要素で実行
+                    e.currentTarget.scrollLeft = newScrollLeft;
+                    console.log('🎯 Applied scrollLeft to child:', e.currentTarget.scrollLeft);
+                }
             }
         }
     }
