@@ -203,7 +203,7 @@ class NetworkSimulator {
 
     // パレット全体でのタッチ処理（論理回路シミュレータ方式）
     handlePaletteDeviceTouch(event) {
-        event.preventDefault();
+        // 最初はpreventDefault()を呼ばない（スクロールを有効に保つ）
         console.log('🎯 Palette touch detected');
         
         const touch = event.touches[0];
@@ -242,6 +242,11 @@ class NetworkSimulator {
                     return;
                 } else if (deltaY > deltaX && deltaY > 20) {
                     console.log('🔽 Vertical movement detected, preparing device drag');
+                    // デバイス配置が確定した時のみpreventDefaultを実行
+                    if (event.cancelable) {
+                        event.preventDefault();
+                        console.log('🚫 preventDefault called for device drag');
+                    }
                     this.createDeviceFromTouch(deviceType, startX, startY);
                     cleanup();
                     return;
@@ -254,6 +259,11 @@ class NetworkSimulator {
             if (!hasMoved && deviceType) {
                 // タップ（移動なし）の場合、長押し相当としてデバイス作成
                 console.log('📍 Tap detected, creating device');
+                // デバイス作成が確定した時のみpreventDefaultを実行
+                if (event.cancelable) {
+                    event.preventDefault();
+                    console.log('🚫 preventDefault called for device tap');
+                }
                 this.createDeviceFromTouch(deviceType, startX, startY);
             }
             cleanup();
