@@ -4638,7 +4638,12 @@ class NetworkSimulator {
                     await this.simulateDNSTCPClose(sourceDevice, dnsServer, pathToServer, dnsConnectionId);
                 }
                 
-                window.tcpManager.closeConnection(dnsConnectionId);
+                // TCP接続を適切に閉じる
+                const connection = window.tcpManager.getConnection(dnsConnectionId);
+                if (connection) {
+                    connection.close();
+                    window.tcpManager.removeConnection(dnsConnectionId);
+                }
             } catch (error) {
                 console.warn('DNS TCP connection close failed:', error);
             }
