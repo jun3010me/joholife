@@ -138,6 +138,79 @@
     text-align: center;
 }
 
+/* モバイル向け横スクロール強化 */
+@media (max-width: 768px) and (hover: none) {
+    /* デバイスパレットの横スクロール改善 */
+    .device-palette {
+        height: 110px !important;
+        padding: 8px !important;
+        padding-left: max(8px, env(safe-area-inset-left, 8px)) !important;
+        padding-right: max(8px, env(safe-area-inset-right, 8px)) !important;
+    }
+    
+    .palette-content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 4px 8px 4px 8px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        width: 100% !important;
+        height: 100% !important;
+        flex-wrap: nowrap !important;
+        touch-action: pan-x !important;
+        -webkit-overflow-scrolling: touch !important;
+        
+        /* スクロールバー非表示（モバイル専用） */
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    
+    .palette-content::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    .device-item {
+        flex-shrink: 0 !important;
+        width: 80px !important;
+        height: 86px !important;
+        min-height: 86px !important;
+        margin-right: 4px !important;
+        font-size: 0.8rem !important;
+        padding: 6px 4px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .device-icon {
+        font-size: 24px !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .device-name {
+        font-size: 10px !important;
+        line-height: 1.1 !important;
+        text-align: center !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+}
+
+/* タブレット向け横スクロール対応 */
+@media (max-width: 1024px) and (hover: none) {
+    .device-palette {
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .palette-content {
+        touch-action: pan-x !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
     .control-panel {
