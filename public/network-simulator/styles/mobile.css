@@ -151,7 +151,8 @@
         /* 親要素の幅を画面幅に制限してスクロールを有効化 */
         width: 100vw !important;
         max-width: 100vw !important;
-        overflow: hidden !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
     }
     
     .palette-content {
@@ -176,9 +177,9 @@
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         
-        /* 強制的にスクロール可能にする - 幅を大きく設定 */
-        min-width: 1000px !important;
-        width: 1000px !important;
+        /* 強制的にスクロール可能にする - 子要素に合わせて幅を設定 */
+        width: max-content !important;
+        min-width: calc(7 * 88px + 6 * 8px + 16px) !important; /* 7個のアイテム(88px) + 6個のgap(8px) + パディング(16px) = 664px */
     }
     
     .palette-content::-webkit-scrollbar {
