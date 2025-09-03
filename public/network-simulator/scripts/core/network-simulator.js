@@ -262,11 +262,16 @@ class NetworkSimulator {
             const touch = e.touches[0];
             this.paletteScrollStartX = touch.clientX;
             this.paletteScrollStartY = touch.clientY;
-            this.paletteScrollStartScrollLeft = e.currentTarget.scrollLeft;
+            
+            // 親要素（device-palette）の現在のスクロール位置を記録
+            const devicePalette = e.currentTarget.closest('.device-palette');
+            this.paletteScrollStartScrollLeft = devicePalette ? devicePalette.scrollLeft : 0;
+            
             this.isPaletteScrolling = false;
             this.pendingDeviceDrag = null;
             
             console.log('handlePaletteScrollStart: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
+            console.log('📏 Start scroll position:', this.paletteScrollStartScrollLeft, 'from element:', devicePalette ? 'parent' : 'self');
             
             // タッチ対象がデバイスアイテムかどうかチェック
             const targetItem = e.target.closest('.device-item');
