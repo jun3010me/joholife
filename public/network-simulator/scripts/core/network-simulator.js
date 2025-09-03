@@ -191,14 +191,29 @@ class NetworkSimulator {
         if (isNarrowScreen) {
             console.log('🍎 Narrow screen: Setting up palette-level touch handling');
             const paletteContent = document.querySelector('.palette-content');
+            console.log('📦 PaletteContent element:', paletteContent);
             if (paletteContent) {
+                console.log('✅ Adding touch event listeners to palette');
                 paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
                 paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
                 paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
+                console.log('✅ Touch event listeners added successfully');
+            } else {
+                console.error('❌ PaletteContent not found! Cannot add touch listeners');
             }
             
             // 狭い画面では個別アイテムのイベントは削除（パレット全体で処理）
             console.log('🚫 Narrow screen: No individual item handlers (handled by palette)');
+            
+            // でも念のため個別アイテムにもマウスイベントを追加（デバッグ用）
+            items.forEach(item => {
+                item.addEventListener('mousedown', (e) => {
+                    console.log('🖱️ Individual item mousedown (should not happen on mobile):', item.dataset.deviceType);
+                });
+                item.addEventListener('touchstart', (e) => {
+                    console.log('📱 Individual item touchstart (should not happen, handled by palette):', item.dataset.deviceType);
+                }, { passive: true });
+            });
         } else {
             console.log('🖥️ Wide screen: Setting up individual item handling');
             // 広い画面では個別アイテムでマウス・タッチ両方
