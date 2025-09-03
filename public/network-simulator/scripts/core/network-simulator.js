@@ -461,7 +461,7 @@ class NetworkSimulator {
         const startX = touch.clientX;
         const startY = touch.clientY;
         
-        // 長押し判定用のタイマー設定（300ms）
+        // 長押し判定用のタイマー設定（200ms）
         console.log('Setting long press timer for:', deviceType);
         this.longPressTimer = setTimeout(() => {
             console.log('🔥 Long press timer fired! Starting drag for:', deviceType);
@@ -474,7 +474,7 @@ class NetworkSimulator {
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
-        }, 300);
+        }, 200);
         console.log('Long press timer set with ID:', this.longPressTimer);
         
         // タッチ移動処理
