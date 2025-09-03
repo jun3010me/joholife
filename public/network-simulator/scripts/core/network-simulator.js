@@ -197,10 +197,8 @@ class NetworkSimulator {
                 paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
             }
             
-            // 個別アイテムはマウスのみ（PCとタッチ両対応）
-            items.forEach(item => {
-                item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
-            });
+            // 狭い画面では個別アイテムのイベントは削除（パレット全体で処理）
+            console.log('🚫 Narrow screen: No individual item handlers (handled by palette)');
         } else {
             console.log('🖥️ Wide screen: Setting up individual item handling');
             // 広い画面では個別アイテムでマウス・タッチ両方
