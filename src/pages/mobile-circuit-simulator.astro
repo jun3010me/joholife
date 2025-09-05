@@ -591,6 +591,14 @@ import Layout from '../layouts/Layout.astro';
                             <div class="component-icon">🔘</div>
                             <div class="component-name">スイッチ</div>
                         </div>
+                        <div class="component-item" data-type="VCC">
+                            <div class="component-icon">⚡</div>
+                            <div class="component-name">電源</div>
+                        </div>
+                        <div class="component-item" data-type="OSC">
+                            <div class="component-icon">⏰</div>
+                            <div class="component-name">クロック</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1202,12 +1210,16 @@ import Layout from '../layouts/Layout.astro';
                         return;
                     }
                     
-                    // 短いタップかつ移動距離が小さい場合は状態切り替え
+                    // 短いタップかつ移動距離が小さい場合は状態切り替えまたは設定変更
                     if ((this.selectedComponent.type === 'INPUT' || this.selectedComponent.type === 'SWITCH') &&
                         touchDuration < 500 && // 500ms以下
                         touchDistance < this.dragThreshold) { // 10px以下の移動
                         this.toggleInput(this.selectedComponent);
                         // console.log('Toggle input:', this.selectedComponent.type, 'to', this.selectedComponent.state);
+                    } else if (this.selectedComponent.type === 'OSC' &&
+                        touchDuration < 500 && // 500ms以下
+                        touchDistance < this.dragThreshold) { // 10px以下の移動
+                        this.adjustOscillatorFrequency(this.selectedComponent);
                     } else {
                         // ドラッグ完了 - エリア外削除判定
                         const component = this.selectedComponent;
@@ -1504,6 +1516,9 @@ import Layout from '../layouts/Layout.astro';
                         break;
                     case 'INPUT':
                     case 'SWITCH':
+                        baseComponent.inputs = [
+                            { id: 'power', x: 0, y: 25, connected: null }
+                        ];
                         baseComponent.outputs = [
                             { id: 'out', x: 90, y: 25, connected: [] }
                         ];
@@ -1565,6 +1580,20 @@ import Layout from '../layouts/Layout.astro';
                         ];
                         baseComponent.prevClk = false;
                         baseComponent.qState = false;
+                        baseComponent.state = false;
+                        break;
+                    case 'VCC':
+                        baseComponent.outputs = [
+                            { id: 'out', x: 90, y: 25, connected: [] }
+                        ];
+                        baseComponent.state = true; // 常に高レベル
+                        break;
+                    case 'OSC':
+                        baseComponent.outputs = [
+                            { id: 'out', x: 90, y: 25, connected: [] }
+                        ];
+                        baseComponent.frequency = 1; // デフォルト1Hz
+                        baseComponent.lastToggleTime = Date.now();
                         baseComponent.state = false;
                         break;
                 }
@@ -1905,11 +1934,31 @@ import Layout from '../layouts/Layout.astro';
             }
             
             toggleInput(component) {
-                component.state = !component.state;
-                // console.log('toggleInput - Component:', component.type, 'ID:', component.id, 'New state:', component.state);
+                if (component.userState === undefined) {
+                    component.userState = component.state; // 初期化
+                }
+                component.userState = !component.userState;
+                // console.log('toggleInput - Component:', component.type, 'ID:', component.id, 'New userState:', component.userState);
                 this.updateSimulation();
                 this.render();
                 this.saveState();
+            }
+            
+            adjustOscillatorFrequency(component) {
+                const currentFrequency = component.frequency || 1;
+                const newFrequency = prompt(`クロック周波数を設定してください (0.1〜100Hz)\n現在: ${currentFrequency}Hz`, currentFrequency);
+                
+                if (newFrequency !== null) {
+                    const frequency = parseFloat(newFrequency);
+                    if (!isNaN(frequency) && frequency >= 0.1 && frequency <= 100) {
+                        component.frequency = frequency;
+                        component.lastToggleTime = Date.now(); // リセット
+                        this.render();
+                        this.saveState();
+                    } else {
+                        alert('周波数は0.1〜100Hzの範囲で入力してください。');
+                    }
+                }
             }
             
             updateSimulation() {
@@ -1928,7 +1977,15 @@ import Layout from '../layouts/Layout.astro';
             
             calculateComponentState(component) {
                 if (component.type === 'INPUT' || component.type === 'SWITCH') {
-                    // 入力部品は手動で状態を設定
+                    // 入力部品の出力は手動状態とパワー入力の AND 演算
+                    const powerInput = this.getInputValue(component, 'power');
+                    // パワー接続がない場合は常にON（従来の動作を保持）
+                    const hasPower = powerInput || !component.inputs.find(input => input.id === 'power').connected;
+                    // userStateを保存して、実際の出力状態を計算
+                    if (component.userState === undefined) {
+                        component.userState = component.state; // 初期化
+                    }
+                    component.state = component.userState && hasPower;
                     return;
                 }
                 
@@ -1988,6 +2045,12 @@ import Layout from '../layouts/Layout.astro';
                         break;
                     case 'RSFF':
                         this.updateRSFlipFlop(component);
+                        break;
+                    case 'VCC':
+                        component.state = true; // 常に高レベル
+                        break;
+                    case 'OSC':
+                        this.updateOscillator(component);
                         break;
                     default:
                         component.state = false;
@@ -2087,6 +2150,17 @@ import Layout from '../layouts/Layout.astro';
                 this.setOutputValue(component, 'Q', component.qState);
                 this.setOutputValue(component, 'Qn', !component.qState);
                 component.state = component.qState;
+            }
+
+            updateOscillator(component) {
+                const now = Date.now();
+                
+                // 周波数に基づいてトグル
+                const interval = 1000 / (component.frequency * 2); // 半周期
+                if (now - component.lastToggleTime >= interval) {
+                    component.state = !component.state;
+                    component.lastToggleTime = now;
+                }
             }
 
             getInputValue(component, inputId) {
@@ -2731,6 +2805,64 @@ import Layout from '../layouts/Layout.astro';
                         component.type,
                         component.x + component.width / 2,
                         component.y + component.height / 2
+                    );
+                }
+                // VCC（電源）の描画
+                else if (component.type === 'VCC') {
+                    let bgColor = '#ffffff';
+                    if (isSelected) {
+                        bgColor = '#e3f2fd';
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(component.x, component.y, component.width, component.height);
+                    
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(component.x, component.y, component.width, component.height);
+                    
+                    // VCCラベルと雷マーク
+                    ctx.fillStyle = '#4caf50'; // 常に緑色（高レベル）
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        '⚡ VCC',
+                        component.x + component.width / 2,
+                        component.y + component.height / 2
+                    );
+                }
+                // OSC（オシレーター）の描画
+                else if (component.type === 'OSC') {
+                    let bgColor = isActive ? '#ffeb3b' : '#ffffff';
+                    if (isSelected) {
+                        bgColor = '#e3f2fd';
+                    }
+                    
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(component.x, component.y, component.width, component.height);
+                    
+                    ctx.strokeStyle = isSelected ? '#2196f3' : '#666666';
+                    ctx.lineWidth = isSelected ? 2 : 1;
+                    ctx.strokeRect(component.x, component.y, component.width, component.height);
+                    
+                    // OSCラベルとクロックマーク、周波数表示
+                    ctx.fillStyle = '#333333';
+                    ctx.font = 'bold 12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        '⏰ OSC',
+                        component.x + component.width / 2,
+                        component.y + component.height / 2 - 8
+                    );
+                    
+                    // 周波数表示
+                    ctx.font = '10px sans-serif';
+                    ctx.fillText(
+                        `${component.frequency || 1}Hz`,
+                        component.x + component.width / 2,
+                        component.y + component.height / 2 + 8
                     );
                 }
                 
