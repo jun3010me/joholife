@@ -1008,6 +1008,10 @@ class QuizSession {
           this.showingExplanation = false;
           this.showingNameInput = false; // Skip name input since we already have the name
           this.showingCertificate = false;
+          
+          // Re-shuffle questions for retry
+          this.questions = shuffleArray(this.questionSet.questions);
+          
           this.render();
         });
       }
@@ -1068,7 +1072,7 @@ class QuizSession {
           
           <div style="display: flex; gap: 1rem;">
             <button
-              onclick="window.location.reload()"
+              id="certificate-retry-button"
               class="btn btn-secondary"
             >
               もう一度挑戦
@@ -1091,6 +1095,27 @@ class QuizSession {
       const downloadButton = document.getElementById('download-certificate-button');
       if (downloadButton) {
         downloadButton.addEventListener('click', () => this.downloadCertificate());
+      }
+      
+      const retryButton = document.getElementById('certificate-retry-button');
+      if (retryButton) {
+        retryButton.addEventListener('click', () => {
+          // Reset quiz state and shuffle questions for retry
+          this.currentQuestionIndex = 0;
+          this.answers = {};
+          this.firstAnswers = {};
+          this.score = 0;
+          this.startTime = new Date();
+          this.isCompleted = false;
+          this.showingExplanation = false;
+          this.showingNameInput = false;
+          this.showingCertificate = false;
+          
+          // Re-shuffle questions for retry
+          this.questions = shuffleArray(this.questionSet.questions);
+          
+          this.render();
+        });
       }
     }, 0);
   }
