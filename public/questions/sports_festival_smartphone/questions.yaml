@@ -1,0 +1,575 @@
+id: sports_festival_smartphone
+title: 体育祭でのスマホ利用について
+description: 体育祭において適切なスマートフォンの利用方法を学び、肖像権、プライバシー、著作権、安全な使用方法について理解を深めます。
+icon: 📱
+difficulty: easy
+estimatedTime: 45
+category: 情報モラル
+tags:
+  - スマートフォン
+  - 肖像権
+  - プライバシー
+  - 著作権
+  - 体育祭
+  - 学校行事
+  - 安全利用
+questions:
+  - id: q1
+    type: single-choice
+    title: 友達の写真撮影の許可
+    description: 友達が走っている写真を撮りたい時、何をすればいい？（肖像権について）
+    options:
+      - id: a
+        text: 何も言わずに撮る
+        isCorrect: false
+        explanation: 勝手に撮影することは肖像権の侵害になる可能性があります。
+      - id: b
+        text: 撮る前に「写真撮っていい？」と聞く
+        isCorrect: true
+        explanation: 写真を撮る前に本人の許可を得ることが肖像権を尊重する正しい行為です。
+      - id: c
+        text: 遠くから撮れば何も言わなくていい
+        isCorrect: false
+        explanation: 距離に関係なく、人物を撮影する際は許可が必要です。
+      - id: d
+        text: 顔が写らなければ勝手に撮っていい
+        isCorrect: false
+        explanation: 顔が写らなくても、本人が特定できる場合は許可が必要です。
+    explanation: 肖像権は他人の人格を保護する重要な権利です。写真を撮る前には必ず本人の許可を得ることが大切です。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - 撮影許可
+    points: 5
+
+  - id: q2
+    type: single-choice
+    title: 他クラスの生徒の撮影
+    description: 違うクラスの人の写真を撮りたい時はどうする？（肖像権について）
+    options:
+      - id: a
+        text: 同じ学校だから勝手に撮っていい
+        isCorrect: false
+        explanation: 同じ学校でも無許可での撮影は肖像権の侵害になります。
+      - id: b
+        text: 競技中だから撮っても大丈夫
+        isCorrect: false
+        explanation: 競技中でも本人の許可なしに撮影すべきではありません。
+      - id: c
+        text: 必ず本人に「撮っていい？」と聞く
+        isCorrect: true
+        explanation: 知らない人でも同じように、撮影前に本人の許可を得ることが大切です。
+      - id: d
+        text: 先生に聞けば撮っていい
+        isCorrect: false
+        explanation: 先生の許可だけでは不十分で、本人の許可が必要です。
+    explanation: 肖像権は知っている人・知らない人に関係なく、すべての人に認められた権利です。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - 他者への配慮
+    points: 5
+
+  - id: q3
+    type: single-choice
+    title: 撮影を拒否された場合の対応
+    description: 友達が「写真に写りたくない」と言った時はどうする？（肖像権について）
+    options:
+      - id: a
+        text: 「大丈夫だよ」と言って撮る
+        isCorrect: false
+        explanation: 本人が拒否している場合は、その意思を尊重すべきです。
+      - id: b
+        text: 遠くから撮る
+        isCorrect: false
+        explanation: 拒否されているのに撮影することは肖像権の侵害です。
+      - id: c
+        text: その友達が写らないようにして撮る
+        isCorrect: true
+        explanation: 本人の意思を尊重し、写らないようにして撮影することが正しい対応です。
+      - id: d
+        text: 後ろを向いてもらって撮る
+        isCorrect: false
+        explanation: 本人が写りたくないと言っているのに撮影を強要すべきではありません。
+    explanation: 他人の気持ちや意思を尊重することが、良好な人間関係を築く基本です。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - 意思の尊重
+    points: 5
+
+  - id: q4
+    type: single-choice
+    title: SNS投稿時の許可
+    description: 撮った写真をインスタやTikTokに載せたい時は？（肖像権について）
+    options:
+      - id: a
+        text: 学校の行事だから自由に載せていい
+        isCorrect: false
+        explanation: 学校行事でも、写っている人の許可が必要です。
+      - id: b
+        text: 写っている人全員に「載せていい？」と聞く
+        isCorrect: true
+        explanation: SNSに投稿する際は、写っているすべての人の許可を得ることが必要です。
+      - id: c
+        text: 顔にスタンプを貼れば勝手に載せていい
+        isCorrect: false
+        explanation: 顔を隠しても、本人が特定できる場合は許可が必要です。
+      - id: d
+        text: 友達だけなら勝手に載せていい
+        isCorrect: false
+        explanation: 友達でも無許可での投稿は肖像権の侵害になる可能性があります。
+    explanation: SNS投稿は多くの人に見られる可能性があるため、特に慎重に許可を取る必要があります。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - SNS投稿
+    points: 5
+
+  - id: q5
+    type: single-choice
+    title: 集合写真の撮影
+    description: みんなで写る集合写真を撮る時は？（肖像権について）
+    options:
+      - id: a
+        text: 代表の人1人に聞けばいい
+        isCorrect: false
+        explanation: 集合写真でも、写るすべての人の許可が必要です。
+      - id: b
+        text: 写る人全員に「撮っていい？」と聞く
+        isCorrect: true
+        explanation: 集合写真でも一人ひとりの肖像権を尊重し、全員の許可を得ることが大切です。
+      - id: c
+        text: 誰にも載せなければ勝手に撮っていい
+        isCorrect: false
+        explanation: 投稿しなくても、撮影時点で許可が必要です。
+      - id: d
+        text: 学校の行事だから勝手に撮っていい
+        isCorrect: false
+        explanation: 学校行事でも個人の肖像権は保護されます。
+    explanation: 集合写真であっても、写るすべての人の肖像権を尊重することが重要です。
+    difficulty: easy
+    tags:
+      - 肖像権
+      - 集合写真
+    points: 5
+
+  - id: q6
+    type: single-choice
+    title: 歩きスマホの危険性
+    description: 体育祭でスマホを使う時に守るべきことは？（歩きスマホについて）
+    options:
+      - id: a
+        text: 歩きスマホをしても体育祭だから大丈夫
+        isCorrect: false
+        explanation: 体育祭では多くの人が動き回っているため、歩きスマホは特に危険です。
+      - id: b
+        text: 急いでいる時は歩きスマホしてもいい
+        isCorrect: false
+        explanation: 急いでいる時こそ、安全に注意すべきです。
+      - id: c
+        text: 歩きスマホはしないで、立ち止まってから使う
+        isCorrect: true
+        explanation: 安全のために、スマホを使う時は必ず立ち止まることが重要です。
+      - id: d
+        text: 人が少ない場所なら歩きスマホしてもいい
+        isCorrect: false
+        explanation: 人が少なくても、歩きスマホは事故の原因になります。
+    explanation: 体育祭では多くの人が活動しているため、歩きスマホによる事故のリスクが高まります。
+    difficulty: easy
+    tags:
+      - 歩きスマホ
+      - 安全対策
+    points: 5
+
+  - id: q7
+    type: single-choice
+    title: 行事への集中
+    description: 体育祭でのスマホ使用について正しいのは？（行事への集中について）
+    options:
+      - id: a
+        text: スマホで撮影することが一番大事
+        isCorrect: false
+        explanation: 撮影も大切ですが、行事そのものを楽しむことが最優先です。
+      - id: b
+        text: 行事よりもいい写真を撮ることを優先する
+        isCorrect: false
+        explanation: 写真撮影のために行事の邪魔をしてはいけません。
+      - id: c
+        text: 基本的には行事に集中して、撮影は必要な時だけにする
+        isCorrect: true
+        explanation: 行事を楽しみながら、適切なタイミングで撮影することが大切です。
+      - id: d
+        text: ずっとスマホの画面を見ていても大丈夫
+        isCorrect: false
+        explanation: 画面を見続けていては、行事の楽しさを味わえません。
+    explanation: スマートフォンは記録のツールとして活用し、実際の体験を大切にすることが重要です。
+    difficulty: easy
+    tags:
+      - 行事参加
+      - バランス
+    points: 5
+
+  - id: q8
+    type: single-choice
+    title: 競技者への配慮
+    description: 競技をしている人の邪魔にならないために気をつけることは？
+    options:
+      - id: a
+        text: いい写真を撮るために競技をしている場所に近づく
+        isCorrect: false
+        explanation: 競技エリアに近づくのは危険で、競技の邪魔になります。
+      - id: b
+        text: 競技の邪魔にならない場所から撮る
+        isCorrect: true
+        explanation: 競技者の安全と集中を妨げないよう、適切な距離から撮影することが大切です。
+      - id: c
+        text: 選手に話しかけながら撮る
+        isCorrect: false
+        explanation: 競技中の選手に話しかけることは集中の妨げになります。
+      - id: d
+        text: フラッシュをたいて撮る
+        isCorrect: false
+        explanation: フラッシュは選手の集中や安全を妨げる可能性があります。
+    explanation: 競技者の安全と集中を最優先に考え、適切な場所から撮影することが大切です。
+    difficulty: easy
+    tags:
+      - 競技者への配慮
+      - 安全な撮影
+    points: 5
+
+  - id: q9
+    type: single-choice
+    title: インターネット上の永続性
+    description: インスタやTikTokに載せた写真はどうなる？（プライバシーについて）
+    options:
+      - id: a
+        text: 友達だけに見せる設定なら安全
+        isCorrect: false
+        explanation: プライバシー設定があっても、完全に安全とは限りません。
+      - id: b
+        text: 後で消せば大丈夫
+        isCorrect: false
+        explanation: 一度投稿された情報は、削除しても完全には消えない可能性があります。
+      - id: c
+        text: インターネットにずっと残る可能性がある
+        isCorrect: true
+        explanation: インターネット上の情報は、デジタルタトゥーとして長期間残る可能性があります。
+      - id: d
+        text: アプリが守ってくれるから安全
+        isCorrect: false
+        explanation: アプリの保護にも限界があり、完全な安全は保証されません。
+    explanation: デジタルタトゥーの概念を理解し、投稿前に将来への影響を考えることが重要です。
+    difficulty: medium
+    tags:
+      - デジタルタトゥー
+      - プライバシー
+    points: 5
+
+  - id: q10
+    type: single-choice
+    title: 制服と個人特定
+    description: 制服を着た写真を載せる時に気をつけることは？（プライバシーについて）
+    options:
+      - id: a
+        text: 制服は学校のものだから載せてはダメ
+        isCorrect: false
+        explanation: 制服自体が問題ではなく、個人の特定可能性が問題です。
+      - id: b
+        text: どこの学校かバレる可能性がある
+        isCorrect: true
+        explanation: 制服から学校が特定され、さらに個人情報が推測される危険があります。
+      - id: c
+        text: 制服なら載せても安全
+        isCorrect: false
+        explanation: 制服からは多くの個人情報が推測可能です。
+      - id: d
+        text: 顔を隠せば大丈夫
+        isCorrect: false
+        explanation: 制服、場所、時間などから個人が特定される可能性があります。
+    explanation: 制服は学校を特定する重要な情報であり、個人の安全に関わる場合があります。
+    difficulty: medium
+    tags:
+      - 個人特定
+      - プライバシー保護
+    points: 5
+
+  - id: q11
+    type: single-choice
+    title: 個人特定の要因
+    description: あなたが誰かバレてしまう情報って何？（プライバシーについて）
+    options:
+      - id: a
+        text: 名前だけ
+        isCorrect: false
+        explanation: 名前だけでは特定は困難です。
+      - id: b
+        text: 顔だけ
+        isCorrect: false
+        explanation: 顔だけでも特定には他の情報が必要です。
+      - id: c
+        text: 制服・名前・場所・時間などが組み合わさったもの
+        isCorrect: true
+        explanation: 複数の情報が組み合わさることで個人の特定が容易になります。
+      - id: d
+        text: 学年だけ
+        isCorrect: false
+        explanation: 学年だけでは個人の特定は困難です。
+    explanation: 単一の情報は問題なくても、複数の情報が組み合わさることで個人特定のリスクが高まります。
+    difficulty: medium
+    tags:
+      - 個人特定
+      - 情報の組み合わせ
+    points: 5
+
+  - id: q12
+    type: single-choice
+    title: 第三者の肖像権
+    description: 他の人の保護者や来賓の方が一緒に写ってしまった時は？（肖像権について）
+    options:
+      - id: a
+        text: 学校の行事だから大丈夫
+        isCorrect: false
+        explanation: 学校行事でも、すべての人の肖像権は保護されます。
+      - id: b
+        text: 後で写真を加工して消せば大丈夫
+        isCorrect: false
+        explanation: 撮影時点で許可を得ることが重要です。
+      - id: c
+        text: 載せる前にその人たちに確認が必要
+        isCorrect: true
+        explanation: 知らない人でも肖像権があるため、使用前に許可を得ることが必要です。
+      - id: d
+        text: 小さく写っているだけなら大丈夫
+        isCorrect: false
+        explanation: 写っている大きさに関係なく、肖像権の配慮が必要です。
+    explanation: 肖像権は年齢や立場に関係なく、すべての人に認められた権利です。
+    difficulty: medium
+    tags:
+      - 肖像権
+      - 第三者への配慮
+    points: 5
+
+  - id: q13
+    type: single-choice
+    title: 音楽の著作権
+    description: 体育祭で流れている音楽と一緒に動画を撮って載せるのは？（著作権について）
+    options:
+      - id: a
+        text: 学校の行事だから大丈夫
+        isCorrect: false
+        explanation: 学校行事でも音楽の著作権は存在します。
+      - id: b
+        text: 音楽の著作権の問題が起きるかもしれない
+        isCorrect: true
+        explanation: 楽曲には著作権があり、無断での使用は著作権侵害になる可能性があります。
+      - id: c
+        text: 短い時間なら大丈夫
+        isCorrect: false
+        explanation: 使用時間の長さに関係なく、著作権の問題は発生します。
+      - id: d
+        text: 自分が使うだけなら大丈夫
+        isCorrect: false
+        explanation: SNSに投稿する時点で私的使用の範囲を超えます。
+    explanation: 音楽には著作権があり、SNSでの使用には注意が必要です。
+    difficulty: medium
+    tags:
+      - 音楽著作権
+      - SNS投稿
+    points: 5
+
+  - id: q14
+    type: single-choice
+    title: 楽曲の違法使用
+    description: 有名な歌が流れている時の動画をSNSに載せるのは？（著作権について）
+    options:
+      - id: a
+        text: たまたま入っただけなら大丈夫
+        isCorrect: false
+        explanation: 意図の有無に関係なく、著作権の問題は発生します。
+      - id: b
+        text: 学校が使っていいと言われているから載せても大丈夫
+        isCorrect: false
+        explanation: 学校の使用許可とSNSでの使用許可は別の問題です。
+      - id: c
+        text: SNSに載せると著作権の問題が起きるかもしれない
+        isCorrect: true
+        explanation: 有名な楽曲をSNSで使用することは著作権侵害のリスクがあります。
+      - id: d
+        text: 歌詞が聞こえなければ大丈夫
+        isCorrect: false
+        explanation: 歌詞の有無に関係なく、楽曲には著作権があります。
+    explanation: 楽曲の著作権は非常に厳しく管理されており、SNSでの使用には特に注意が必要です。
+    difficulty: medium
+    tags:
+      - 楽曲著作権
+      - SNS投稿リスク
+    points: 5
+
+  - id: q15
+    type: single-choice
+    title: キャラクターの著作権
+    description: アニメキャラクターのグッズが写った写真を載せるのは？（著作権について）
+    options:
+      - id: a
+        text: 自分の物だから自由に載せていい
+        isCorrect: false
+        explanation: グッズを所有していても、キャラクターの著作権は別の問題です。
+      - id: b
+        text: キャラクターの著作権を考える必要がある
+        isCorrect: true
+        explanation: アニメキャラクターには著作権があり、商業的利用には注意が必要です。
+      - id: c
+        text: 学校の行事だから大丈夫
+        isCorrect: false
+        explanation: 使用場面に関係なく、著作権の問題は存在します。
+      - id: d
+        text: お金をもらうわけじゃないから大丈夫
+        isCorrect: false
+        explanation: 営利目的でなくても著作権侵害のリスクがあります。
+    explanation: キャラクターの著作権は厳格に保護されており、使用には注意が必要です。
+    difficulty: medium
+    tags:
+      - キャラクター著作権
+      - 画像投稿
+    points: 5
+
+  - id: q16
+    type: single-choice
+    title: フラッシュ撮影の配慮
+    description: 写真を撮る時にフラッシュを使うのは？
+    options:
+      - id: a
+        text: 暗い場所では自由に使っていい
+        isCorrect: false
+        explanation: フラッシュが他の人に迷惑をかける場合があります。
+      - id: b
+        text: 競技をしている人の邪魔になるから使わない
+        isCorrect: true
+        explanation: フラッシュは競技者の集中や視界を妨げ、事故の原因になる可能性があります。
+      - id: c
+        text: カメラの機能だから気にしなくていい
+        isCorrect: false
+        explanation: 機能があっても、使用には配慮が必要です。
+      - id: d
+        text: 外なら使ってもいい
+        isCorrect: false
+        explanation: 場所に関係なく、他の人への影響を考慮すべきです。
+    explanation: フラッシュ撮影は競技者の安全や他の参観者の迷惑になる可能性があります。
+    difficulty: easy
+    tags:
+      - フラッシュ撮影
+      - 他者への配慮
+    points: 5
+
+  - id: q17
+    type: single-choice
+    title: 他者への迷惑防止
+    description: 他の人の迷惑にならないために気をつけることは？
+    options:
+      - id: a
+        text: 大きな声で撮影の指示を出す
+        isCorrect: false
+        explanation: 大きな声は他の参観者の迷惑になります。
+      - id: b
+        text: 他の人の邪魔にならない場所で撮影する
+        isCorrect: true
+        explanation: 周りの人への配慮を忘れず、迷惑のかからない場所で撮影することが大切です。
+      - id: c
+        text: 撮影のために人を押しのけてもいい
+        isCorrect: false
+        explanation: 他の人を押しのけることは危険で迷惑な行為です。
+      - id: d
+        text: 自分が撮りたい場所なら他の人がいても構わない
+        isCorrect: false
+        explanation: 自分の都合だけでなく、他の人への配慮が必要です。
+    explanation: 体育祭は皆が楽しむ行事であり、お互いへの配慮が重要です。
+    difficulty: easy
+    tags:
+      - 他者への配慮
+      - マナー
+    points: 5
+
+  - id: q18
+    type: single-choice
+    title: スマートフォンの管理
+    description: スマホで撮った写真について気をつけることは？
+    options:
+      - id: a
+        text: スマホを友達に貸しても大丈夫
+        isCorrect: false
+        explanation: 個人情報や写真が見られる可能性があります。
+      - id: b
+        text: スマホをなくしたり、友達に見られたりしないよう注意する
+        isCorrect: true
+        explanation: スマートフォンには個人情報や他人の写真が含まれているため、厳重な管理が必要です。
+      - id: c
+        text: 誰でも見られる場所にスマホを置いても大丈夫
+        isCorrect: false
+        explanation: 紛失や個人情報の漏洩のリスクがあります。
+      - id: d
+        text: スマホの画面ロックはしなくていい
+        isCorrect: false
+        explanation: セキュリティ対策として画面ロックは重要です。
+    explanation: スマートフォンには多くの個人情報が含まれているため、適切な管理が必要です。
+    difficulty: easy
+    tags:
+      - スマートフォン管理
+      - セキュリティ
+    points: 5
+
+  - id: q19
+    type: single-choice
+    title: 問題のある投稿への対処
+    description: ダメな写真や動画を見つけた時はどうする？
+    options:
+      - id: a
+        text: 面白いから友達に送る
+        isCorrect: false
+        explanation: 問題のある内容を拡散することは適切ではありません。
+      - id: b
+        text: 先生や大人に相談する
+        isCorrect: true
+        explanation: 問題のある投稿を見つけた時は、適切な大人に相談することが重要です。
+      - id: c
+        text: 見なかったことにする
+        isCorrect: false
+        explanation: 問題を放置することで被害が拡大する可能性があります。
+      - id: d
+        text: 撮った人に直接注意する
+        isCorrect: false
+        explanation: 直接対処するよりも、大人に相談することが安全です。
+    explanation: 問題のある投稿に遭遇した時は、一人で対処せず適切な大人に相談することが大切です。
+    difficulty: easy
+    tags:
+      - 問題解決
+      - 相談の重要性
+    points: 5
+
+  - id: q20
+    type: single-choice
+    title: スマートフォン利用の基本姿勢
+    description: 体育祭でスマホを使う時に一番大事なことは？
+    options:
+      - id: a
+        text: いい思い出を作るために自由に使う
+        isCorrect: false
+        explanation: 自由な使用よりも、適切な使用が重要です。
+      - id: b
+        text: 相手の気持ちを大事にして、安全に使う
+        isCorrect: true
+        explanation: 他者への配慮と安全な使用が、スマートフォン利用の最も重要な基本姿勢です。
+      - id: c
+        text: 後で謝れば何をしてもいい
+        isCorrect: false
+        explanation: 事後の謝罪よりも、事前の配慮が重要です。
+      - id: d
+        text: 学校の行事だから特別なルールはない
+        isCorrect: false
+        explanation: 学校行事でも情報モラルのルールは適用されます。
+    explanation: スマートフォンの適切な利用には、技術的な知識だけでなく、他者への思いやりと安全意識が最も重要です。
+    difficulty: easy
+    tags:
+      - 情報モラル総合
+      - 基本姿勢
+    points: 5
