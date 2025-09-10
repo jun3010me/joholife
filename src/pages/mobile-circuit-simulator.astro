@@ -740,7 +740,12 @@ import Layout from '../layouts/Layout.astro';
                 this.setupFileHandling();
                 this.drawPaletteIcons();
                 this.startSimulation();
-                this.render();
+                
+                // 初回アクセス時の表示問題対策：確実にキャンバスが初期化されてからレンダリング
+                setTimeout(() => {
+                    this.resizeCanvas(); // 再度リサイズして確実にサイズ設定
+                    this.render();
+                }, 50);
             }
             
             startSimulation() {
@@ -755,6 +760,16 @@ import Layout from '../layouts/Layout.astro';
                 this.resizeCanvas = () => {
                     const container = this.canvas.parentElement;
                     const dpr = window.devicePixelRatio || 1;
+                    
+                    // 初回アクセス時の表示問題対策：コンテナサイズが0の場合は少し待つ
+                    if (container.clientWidth === 0 || container.clientHeight === 0) {
+                        console.log('Container size not ready, retrying resize...', {
+                            width: container.clientWidth,
+                            height: container.clientHeight
+                        });
+                        setTimeout(this.resizeCanvas, 50);
+                        return;
+                    }
                     
                     this.canvas.width = container.clientWidth * dpr;
                     this.canvas.height = container.clientHeight * dpr;
@@ -3835,8 +3850,8 @@ import Layout from '../layouts/Layout.astro';
             }
         }
 
-        // アプリケーション開始
-        window.addEventListener('DOMContentLoaded', () => {
+        // アプリケーション開始 - 初回アクセス時の表示問題を解決するため、レイアウト確定を待つ
+        function initializeSimulator() {
             // 強制的にapp-containerのスタイルを設定
             const appContainer = document.querySelector('.app-container');
             if (appContainer && window.innerWidth <= 768) {
@@ -3853,7 +3868,35 @@ import Layout from '../layouts/Layout.astro';
                 console.log('Forced app-container styles applied');
             }
             
+            // キャンバスコンテナのサイズが確定するまで待つ
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (!canvasContainer) {
+                console.log('Canvas container not found, retrying...');
+                setTimeout(initializeSimulator, 50);
+                return;
+            }
+            
+            // コンテナのサイズが0でない場合のみ初期化
+            const containerRect = canvasContainer.getBoundingClientRect();
+            if (containerRect.width === 0 || containerRect.height === 0) {
+                console.log('Canvas container size not ready:', containerRect, 'retrying...');
+                setTimeout(initializeSimulator, 50);
+                return;
+            }
+            
+            console.log('Canvas container ready:', containerRect);
             new MobileCircuitSimulator();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // iOS Safari で Safe Area やレイアウト計算の完了を待つ
+            if (navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mobile')) {
+                // iOS Safari の場合はさらに待つ
+                setTimeout(initializeSimulator, 200);
+            } else {
+                // 他のブラウザでも少し待つ
+                setTimeout(initializeSimulator, 100);
+            }
         });
     </script>
 </Layout>
