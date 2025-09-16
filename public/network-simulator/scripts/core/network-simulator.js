@@ -160,10 +160,11 @@ class NetworkSimulator {
         // ダイアログイベント（要素存在確認）
         const cancelBtn = document.getElementById('cancel-btn');
         const saveBtn = document.getElementById('save-btn');
+        const dialogOverlay = document.getElementById('dialog-overlay');
         
         if (cancelBtn) cancelBtn.addEventListener('click', this.hideDeviceConfig.bind(this));
         if (saveBtn) saveBtn.addEventListener('click', this.saveDeviceConfig.bind(this));
-        document.getElementById('dialog-overlay').addEventListener('click', this.hideDeviceConfig.bind(this));
+        if (dialogOverlay) dialogOverlay.addEventListener('click', this.hideDeviceConfig.bind(this));
     }
 
     setupPalette() {
@@ -2194,15 +2195,8 @@ class NetworkSimulator {
             return;
         }
         
-        // スイッチに接続されているクライアントデバイス（PC, server, DNS）にDHCP処理
-        for (const conn of switchConnections) {
-            const otherDevice = conn.from.device === switchDevice ? conn.to.device : conn.from.device;
-            
-            if (['pc', 'server', 'dns'].includes(otherDevice.type)) {
-                console.log('🔍 スイッチ経由クライアント発見:', otherDevice.name);
-                this.assignDHCPToClient(otherDevice, routerDevice, routerPort, 'switch');
-            }
-        }
+        // スイッチに接続されているデバイスを処理（再帰的に）
+        this.processSwitchDevicesRecursively(switchDevice, routerDevice, routerPort, new Set());
         
         // スイッチ自体もDHCP対象の場合（スイッチにIPアドレスを割り当てる場合）
         if (switchDevice.config && switchDevice.config.dhcpEnabled) {
@@ -2218,8 +2212,47 @@ class NetworkSimulator {
         );
     }
     
+    // スイッチに接続されているデバイスを再帰的に処理（多段スイッチ対応）
+    processSwitchDevicesRecursively(switchDevice, routerDevice, routerPort, visitedDevices) {
+        console.log('🔄 再帰スイッチDHCP処理:', switchDevice.name, 'visited:', Array.from(visitedDevices));
+        
+        // 無限ループ防止
+        if (visitedDevices.has(switchDevice.id)) {
+            console.log('⏭️ 既に処理済みのスイッチをスキップ:', switchDevice.name);
+            return;
+        }
+        visitedDevices.add(switchDevice.id);
+        
+        const switchConnections = this.getDeviceConnections(switchDevice);
+        
+        for (const conn of switchConnections) {
+            const otherDevice = conn.from.device === switchDevice ? conn.to.device : conn.from.device;
+            
+            // ルーターとの直接接続は除外
+            if (otherDevice === routerDevice) {
+                continue;
+            }
+            
+            if (['pc', 'server', 'dns'].includes(otherDevice.type)) {
+                console.log('🔍 スイッチ経由クライアント発見 (再帰):', otherDevice.name);
+                this.assignDHCPToClient(otherDevice, routerDevice, routerPort, 'switch');
+            } else if (otherDevice.type === 'switch' && !visitedDevices.has(otherDevice.id)) {
+                console.log('🔍 さらにスイッチを発見、再帰処理:', otherDevice.name);
+                // 再帰的に次のスイッチも処理
+                this.processSwitchDevicesRecursively(otherDevice, routerDevice, routerPort, visitedDevices);
+            }
+        }
+    }
+    
     // クライアントデバイスにDHCPでIPアドレスを割り当て
     assignDHCPToClient(clientDevice, routerDevice, routerPort, connectionType = 'direct') {
+        console.log('📋 DHCP割り当て開始:', {
+            client: clientDevice.name,
+            router: routerDevice.name,
+            clientDHCP: clientDevice.config?.dhcpEnabled,
+            connectionType: connectionType
+        });
+        
         // クライアントデバイスがDHCP有効かどうかチェック
         if (!clientDevice.config || !clientDevice.config.dhcpEnabled) {
             console.log('⏭️ クライアントのDHCP無効のため、IP割り当てをスキップ:', clientDevice.name);
@@ -2228,6 +2261,13 @@ class NetworkSimulator {
         
         // ルーターのどのLANに接続されているか判定
         const lanConfig = this.determineLANConnection(clientDevice, routerDevice);
+        console.log('🔍 LAN判定結果:', {
+            lanConfig: lanConfig,
+            lan1Enabled: routerDevice.config.lan1?.dhcpEnabled,
+            lan2Enabled: routerDevice.config.lan2?.dhcpEnabled,
+            lan3Enabled: routerDevice.config.lan3?.dhcpEnabled
+        });
+        
         if (!lanConfig) {
             console.log('❌ 対応するLAN設定が見つかりません:', routerDevice.name);
             return;
@@ -2825,6 +2865,24 @@ class NetworkSimulator {
         
         if (!this.pingSourceDevice || !this.pingTargetDevice) {
             console.log('Missing ping devices, returning early');
+            return;
+        }
+        
+        // 同じデバイス間のPingチェック
+        if (this.pingSourceDevice === this.pingTargetDevice) {
+            await this.showPingError('同一デバイス内でのPingは実行できません。', this.pingSourceDevice, this.pingTargetDevice);
+            return;
+        }
+        
+        // 同じIPアドレス間のPingチェック
+        if (this.pingSourceDevice.config.ipAddress === this.pingTargetDevice.config.ipAddress) {
+            await this.showPingError(`同じIPアドレス (${this.pingSourceDevice.config.ipAddress}) を持つデバイス間でのPingは実行できません。\nIPアドレスの重複を解決してください。`, this.pingSourceDevice, this.pingTargetDevice);
+            return;
+        }
+        
+        // ネットワークループチェック
+        if (this.hasNetworkLoop()) {
+            await this.showPingError('ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。', this.pingSourceDevice, this.pingTargetDevice);
             return;
         }
         
@@ -5330,6 +5388,24 @@ class NetworkSimulator {
             return;
         }
         
+        // 同じデバイス間のHTTP通信チェック
+        if (sourceDevice === targetDevice) {
+            alert('同一デバイス内でのHTTP通信は実行できません。');
+            return;
+        }
+        
+        // 同じIPアドレス間のHTTP通信チェック
+        if (sourceDevice.config.ipAddress === targetDevice.config.ipAddress) {
+            alert(`同じIPアドレス (${sourceDevice.config.ipAddress}) を持つデバイス間でのHTTP通信は実行できません。\nIPアドレスの重複を解決してください。`);
+            return;
+        }
+        
+        // ネットワークループチェック
+        if (this.hasNetworkLoop()) {
+            alert('ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。');
+            return;
+        }
+        
         // 一時的に従来のフィールドを設定
         this.httpSourceDevice = sourceDevice;
         this.httpTargetDevice = targetDevice;
@@ -5381,6 +5457,12 @@ class NetworkSimulator {
                 alert('有効なサブネットマスクを入力してください');
                 return;
             }
+            
+            // IPアドレス重複チェック
+            if (this.checkIPAddressDuplication(ipAddress, this.currentDeviceConfig)) {
+                alert(`IPアドレス ${ipAddress} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
+                return;
+            }
         }
         
         // DHCP状態の変更をチェック
@@ -5421,6 +5503,12 @@ class NetworkSimulator {
                 return;
             }
             
+            // LAN1 IPアドレス重複チェック
+            if (this.checkIPAddressDuplicationForRouter(lan1IP, this.currentDeviceConfig, 'lan1')) {
+                alert(`LAN1 IPアドレス ${lan1IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
+                return;
+            }
+            
             if (lan1DHCPEnabled) {
                 if (!this.isValidIP(lan1PoolStart) || !this.isValidIP(lan1PoolEnd)) {
                     alert('有効なLAN1 IPプール範囲を入力してください');
@@ -5439,6 +5527,12 @@ class NetworkSimulator {
                 return;
             }
             
+            // LAN2 IPアドレス重複チェック
+            if (this.checkIPAddressDuplicationForRouter(lan2IP, this.currentDeviceConfig, 'lan2')) {
+                alert(`LAN2 IPアドレス ${lan2IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
+                return;
+            }
+            
             if (lan2DHCPEnabled) {
                 if (!this.isValidIP(lan2PoolStart) || !this.isValidIP(lan2PoolEnd)) {
                     alert('有効なLAN2 IPプール範囲を入力してください');
@@ -5454,6 +5548,12 @@ class NetworkSimulator {
             
             if (!this.isValidIP(lan3IP)) {
                 alert('有効なLAN3 IPアドレスを入力してください');
+                return;
+            }
+            
+            // LAN3 IPアドレス重複チェック
+            if (this.checkIPAddressDuplicationForRouter(lan3IP, this.currentDeviceConfig, 'lan3')) {
+                alert(`LAN3 IPアドレス ${lan3IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
                 return;
             }
             
@@ -6221,17 +6321,17 @@ class NetworkSimulator {
             
             // 隣接デバイスをキューに追加
             for (const connection of this.connections) {
-                let nextDeviceId = null;
+                let nextDevice = null;
                 
-                if (connection.fromDevice === currentId && !visited.has(connection.toDevice)) {
-                    nextDeviceId = connection.toDevice;
-                } else if (connection.toDevice === currentId && !visited.has(connection.fromDevice)) {
-                    nextDeviceId = connection.fromDevice;
+                if (connection.from.device.id === currentId && !visited.has(connection.to.device.id)) {
+                    nextDevice = connection.to.device;
+                } else if (connection.to.device.id === currentId && !visited.has(connection.from.device.id)) {
+                    nextDevice = connection.from.device;
                 }
                 
-                if (nextDeviceId) {
-                    visited.add(nextDeviceId);
-                    queue.push(nextDeviceId);
+                if (nextDevice) {
+                    visited.add(nextDevice.id);
+                    queue.push(nextDevice.id);
                 }
             }
         }
@@ -6241,8 +6341,11 @@ class NetworkSimulator {
 
     // クライアントが接続されているLANを判定（スイッチ経由対応）
     determineLANConnection(client, router) {
+        console.log('🔍 LAN判定開始:', client.name, '→', router.name);
+        
         // ルーターへの経路を取得してLANを判定
         const pathToRouter = this.findPath(client, router);
+        console.log('📍 経路:', pathToRouter ? pathToRouter.map(d => d.name).join(' → ') : 'なし');
         
         if (pathToRouter && pathToRouter.length > 1) {
             // ルーターに直接接続されている最後のデバイス（ルーターの隣接デバイス）を特定
@@ -6296,16 +6399,26 @@ class NetworkSimulator {
         }
         
         // 最後のフォールバック: 有効なLANから順に割り当て
+        console.log('🔧 フォールバック処理開始 - LAN状態:', {
+            lan1: router.config.lan1?.dhcpEnabled,
+            lan2: router.config.lan2?.dhcpEnabled,
+            lan3: router.config.lan3?.dhcpEnabled
+        });
+        
         if (router.config.lan1?.dhcpEnabled) {
+            console.log('✅ LAN1を選択');
             return router.config.lan1;
         }
         if (router.config.lan2?.dhcpEnabled) {
+            console.log('✅ LAN2を選択');
             return router.config.lan2;
         }
         if (router.config.lan3?.dhcpEnabled) {
+            console.log('✅ LAN3を選択');
             return router.config.lan3;
         }
         
+        console.log('❌ 利用可能なLANが見つかりません');
         return null;
     }
 
@@ -6553,10 +6666,13 @@ class NetworkSimulator {
         
         // このルーターのDHCPを利用している全クライアントを検出
         for (const [, device] of this.devices.entries()) {
-            if (device !== router && device.config.dhcpEnabled) {
+            if (device !== router && device.config && device.config.dhcpEnabled) {
+                console.log(`🔍 クライアント検査中: ${device.name} (DHCP: ${device.config.dhcpEnabled})`);
                 // このデバイスがこのルーターからDHCPを受けているかチェック
                 const dhcpServerInfo = this.findDHCPServer(device);
+                console.log(`🔍 DHCP server info:`, dhcpServerInfo);
                 if (dhcpServerInfo && dhcpServerInfo.router === router) {
+                    console.log(`✅ クライアント発見: ${device.name}`);
                     affectedClients.push({
                         client: device,
                         lanConfig: dhcpServerInfo.lanConfig
@@ -7369,6 +7485,24 @@ function extendDevicesWithTCP(simulator) {
             return;
         }
         
+        // 同じデバイス間のHTTP通信チェック
+        if (client === server) {
+            this.updateStatus(`❌ HTTP通信失敗: 同一デバイス内でのHTTP通信は実行できません`);
+            return;
+        }
+        
+        // 同じIPアドレス間のHTTP通信チェック
+        if (client.config.ipAddress === server.config.ipAddress) {
+            this.updateStatus(`❌ HTTP通信失敗: 同じIPアドレス (${client.config.ipAddress}) を持つデバイス間でのHTTP通信は実行できません。IPアドレスの重複を解決してください。`);
+            return;
+        }
+        
+        // ネットワークループチェック
+        if (this.hasNetworkLoop()) {
+            this.updateStatus(`❌ HTTP通信失敗: ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。`);
+            return;
+        }
+        
         // 通信可能性の検証
         const reachabilityResult = this.checkNetworkReachability(client, server);
         if (!reachabilityResult.isReachable) {
@@ -7583,6 +7717,170 @@ function toggleTCPDetailPanels(show) {
     
     console.log(`ログパネル: ${show ? '表示' : '非表示'}`);
 }
+
+// IPアドレス重複検出機能を NetworkSimulator クラスに追加
+NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, excludeDevice) {
+    // 同じIPアドレスを使用しているデバイスがないかチェック
+    for (const device of this.devices) {
+        // 自分自身は除外
+        if (device === excludeDevice) continue;
+        
+        // デバイス設定が存在しない場合はスキップ
+        if (!device.config) continue;
+        
+        // メインIPアドレスをチェック
+        if (device.config.ipAddress && device.config.ipAddress === ipAddress) {
+            console.log(`IP重複検出: ${device.name}が${ipAddress}を使用中`);
+            return true;
+        }
+        
+        // ルーターの場合はLANインターフェースもチェック
+        if (device.type === 'router') {
+            if (device.config.lan1 && device.config.lan1.ipAddress === ipAddress) {
+                console.log(`IP重複検出: ${device.name}のLAN1が${ipAddress}を使用中`);
+                return true;
+            }
+            if (device.config.lan2 && device.config.lan2.ipAddress === ipAddress) {
+                console.log(`IP重複検出: ${device.name}のLAN2が${ipAddress}を使用中`);
+                return true;
+            }
+            if (device.config.lan3 && device.config.lan3.ipAddress === ipAddress) {
+                console.log(`IP重複検出: ${device.name}のLAN3が${ipAddress}を使用中`);
+                return true;
+            }
+            // WANインターフェースもチェック
+            if (device.wanConfig && device.wanConfig.ipAddress === ipAddress) {
+                console.log(`IP重複検出: ${device.name}のWANが${ipAddress}を使用中`);
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+// ルーター用のIPアドレス重複検出
+NetworkSimulator.prototype.checkIPAddressDuplicationForRouter = function(ipAddress, excludeDevice, lanInterface) {
+    // 同じIPアドレスを使用しているデバイスがないかチェック
+    for (const device of this.devices) {
+        // 自分自身は除外
+        if (device === excludeDevice) continue;
+        
+        // デバイス設定が存在しない場合はスキップ
+        if (!device.config) continue;
+        
+        // メインIPアドレスをチェック
+        if (device.config.ipAddress && device.config.ipAddress === ipAddress) {
+            console.log(`ルーターIP重複検出: ${device.name}が${ipAddress}を使用中`);
+            return true;
+        }
+        
+        // ルーターの場合はLANインターフェースもチェック
+        if (device.type === 'router') {
+            if (device.config.lan1 && device.config.lan1.ipAddress === ipAddress) {
+                console.log(`ルーターIP重複検出: ${device.name}のLAN1が${ipAddress}を使用中`);
+                return true;
+            }
+            if (device.config.lan2 && device.config.lan2.ipAddress === ipAddress) {
+                console.log(`ルーターIP重複検出: ${device.name}のLAN2が${ipAddress}を使用中`);
+                return true;
+            }
+            if (device.config.lan3 && device.config.lan3.ipAddress === ipAddress) {
+                console.log(`ルーターIP重複検出: ${device.name}のLAN3が${ipAddress}を使用中`);
+                return true;
+            }
+            // WANインターフェースもチェック
+            if (device.wanConfig && device.wanConfig.ipAddress === ipAddress) {
+                console.log(`ルーターIP重複検出: ${device.name}のWANが${ipAddress}を使用中`);
+                return true;
+            }
+        }
+    }
+    
+    // 同じルーター内の他のLANインターフェースもチェック
+    if (excludeDevice && excludeDevice.type === 'router') {
+        if (lanInterface !== 'lan1' && excludeDevice.config.lan1 && excludeDevice.config.lan1.ipAddress === ipAddress) {
+            console.log(`ルーターIP重複検出: 同一ルーター内のLAN1が${ipAddress}を使用中`);
+            return true;
+        }
+        if (lanInterface !== 'lan2' && excludeDevice.config.lan2 && excludeDevice.config.lan2.ipAddress === ipAddress) {
+            console.log(`ルーターIP重複検出: 同一ルーター内のLAN2が${ipAddress}を使用中`);
+            return true;
+        }
+        if (lanInterface !== 'lan3' && excludeDevice.config.lan3 && excludeDevice.config.lan3.ipAddress === ipAddress) {
+            console.log(`ルーターIP重複検出: 同一ルーター内のLAN3が${ipAddress}を使用中`);
+            return true;
+        }
+        if (excludeDevice.wanConfig && excludeDevice.wanConfig.ipAddress === ipAddress) {
+            console.log(`ルーターIP重複検出: 同一ルーター内のWANが${ipAddress}を使用中`);
+            return true;
+        }
+    }
+    
+    return false;
+};
+
+// ネットワークループ検出機能（スイッチ間の複数接続検出）
+NetworkSimulator.prototype.detectNetworkLoops = function() {
+    const loops = [];
+    
+    // デバッグ情報
+    console.log('ループ検出開始 - 接続数:', this.connections.length);
+    
+    // スイッチ間の接続数をカウント
+    const switchConnections = new Map();
+    
+    // 各接続をチェック
+    for (const connection of this.connections) {
+        const device1 = connection.from ? connection.from.device : null;
+        const device2 = connection.to ? connection.to.device : null;
+        
+        // デバッグ情報
+        console.log('接続チェック:', {
+            connection_id: connection.id,
+            device1: device1 ? `${device1.name}(${device1.type})` : 'null',
+            device2: device2 ? `${device2.name}(${device2.type})` : 'null'
+        });
+        
+        // デバイスが存在し、両方がスイッチの場合のみ処理
+        if (device1 && device2 && device1.type === 'switch' && device2.type === 'switch') {
+            // デバイスペアのキーを作成（順序に依存しないように）
+            const devicePairKey = [device1.id, device2.id].sort().join('-');
+            
+            console.log('スイッチ間接続発見:', `${device1.name} ↔ ${device2.name}`);
+            
+            if (!switchConnections.has(devicePairKey)) {
+                switchConnections.set(devicePairKey, {
+                    device1: device1,
+                    device2: device2,
+                    connections: []
+                });
+            }
+            
+            switchConnections.get(devicePairKey).connections.push(connection);
+        }
+    }
+    
+    // 複数接続があるペアを検出
+    for (const [pairKey, pairData] of switchConnections) {
+        if (pairData.connections.length > 1) {
+            console.log(`ネットワークループ検出: ${pairData.device1.name} と ${pairData.device2.name} の間に ${pairData.connections.length} 本の接続があります`);
+            loops.push({
+                device1: pairData.device1,
+                device2: pairData.device2,
+                connectionCount: pairData.connections.length,
+                connections: pairData.connections
+            });
+        }
+    }
+    
+    return loops;
+};
+
+// ループ状態のチェック（通信可能性判定時に使用）
+NetworkSimulator.prototype.hasNetworkLoop = function() {
+    const loops = this.detectNetworkLoops();
+    return loops.length > 0;
+};
 
 // 注意: initializeAnimationSpeedControl() と initializeTCPVisibilityControl() は
 // 現在 initializeNetworkSimulator() 内で呼び出されています
