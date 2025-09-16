@@ -2106,8 +2106,18 @@ class NetworkSimulator {
         // NIC間接続作成（1対1接続）
         const connection = {
             id: 'conn_' + Date.now(),
-            from: { device: startPort.device, port: startPort.port },
-            to: { device: endPort.device, port: endPort.port },
+            from: { 
+                deviceId: startPort.device.id, 
+                portId: startPort.port.id,
+                device: startPort.device, 
+                port: startPort.port 
+            },
+            to: { 
+                deviceId: endPort.device.id, 
+                portId: endPort.port.id,
+                device: endPort.device, 
+                port: endPort.port 
+            },
             type: 'ethernet',
             selected: false
         };
@@ -2296,6 +2306,11 @@ class NetworkSimulator {
             clientDevice.config.defaultGateway = lanConfig.ipAddress;
             clientDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
             
+            // lan1.ipAddress も同期して更新
+            if (clientDevice.config.lan1) {
+                clientDevice.config.lan1.ipAddress = assignedIP.ip;
+            }
+            
             const lanName = this.getLANName(routerDevice, lanConfig);
             console.log('✅ LAN DHCP割り当て完了 (' + connectionDesc + '):', clientDevice.name, 'IP:', assignedIP.ip, 'ゲートウェイ:', lanConfig.ipAddress, '(' + lanName + ')');
             this.updateStatus(`🔗 ${clientDevice.name} が ${routerDevice.name}の${lanName}から${connectionDesc}でIP ${assignedIP.ip} を取得しました`);
@@ -2430,6 +2445,11 @@ class NetworkSimulator {
                         otherDevice.config.subnetMask = '255.255.255.0';
                         otherDevice.config.defaultGateway = globalIP.gateway;
                         otherDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                        
+                        // lan1.ipAddress も同期して更新
+                        if (otherDevice.config.lan1) {
+                            otherDevice.config.lan1.ipAddress = globalIP.ip;
+                        }
                         otherDevice.config.isInternetConnected = true;
                         otherDevice.config.internetDevice = internetDevice;
                         otherDevice.config.availableGlobalIP = globalIP;
@@ -2680,6 +2700,11 @@ class NetworkSimulator {
                         targetDevice.config.defaultGateway = globalIP.gateway;
                         targetDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
                         
+                        // lan1.ipAddress も同期して更新
+                        if (targetDevice.config.lan1) {
+                            targetDevice.config.lan1.ipAddress = globalIP.ip;
+                        }
+                        
                         this.updateStatus(`🌐 ${targetDevice.name} がDHCPでグローバルIP ${globalIP.ip} を取得しました`);
                         console.log('DHCP有効でグローバルIP設定:', targetDevice.name, globalIP.ip);
                     } else {
@@ -2745,6 +2770,11 @@ class NetworkSimulator {
             device.config.subnetMask = '255.255.255.0';
             device.config.defaultGateway = availableGlobalIP.gateway;
             device.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+            
+            // lan1.ipAddress も同期して更新
+            if (device.config.lan1) {
+                device.config.lan1.ipAddress = availableGlobalIP.ip;
+            }
             
             this.updateStatus(`🌐 ${device.name} がDHCPでグローバルIP ${availableGlobalIP.ip} を取得しました`);
             console.log('DHCP有効化によるグローバルIP自動取得:', device.name, availableGlobalIP.ip);
@@ -4298,6 +4328,9 @@ class NetworkSimulator {
             }
         }
         
+        // Enterキーで保存機能を追加
+        this.setupEnterKeyForDeviceConfig();
+        
         // ダイアログのドラッグ機能を初期化
         this.initializeDialogDragging('device-config-dialog');
     }
@@ -4446,6 +4479,32 @@ class NetworkSimulator {
         this.createDNSRecordElement('', '');
     }
 
+    // デバイス設定ダイアログでEnterキー機能を設定
+    setupEnterKeyForDeviceConfig() {
+        // 既存のイベントリスナーをクリア（重複防止）
+        const dialog = document.getElementById('device-config-dialog');
+        if (dialog._enterKeyHandler) {
+            dialog.removeEventListener('keydown', dialog._enterKeyHandler);
+        }
+        
+        // Enterキーイベントハンドラーを作成
+        const enterKeyHandler = (event) => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey) {
+                // テキストエリア内では通常のEnter動作を維持
+                if (event.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                event.preventDefault();
+                this.saveDeviceConfig();
+            }
+        };
+        
+        // イベントリスナーを設定（参照を保持）
+        dialog._enterKeyHandler = enterKeyHandler;
+        dialog.addEventListener('keydown', enterKeyHandler);
+    }
+
     // デバイス設定ダイアログ非表示
     hideDeviceConfig() {
         document.getElementById('dialog-overlay').style.display = 'none';
@@ -4496,7 +4555,16 @@ class NetworkSimulator {
         const sourceDeviceName = document.getElementById('source-device-name');
         const sourceDeviceIp = document.getElementById('source-device-ip');
         if (sourceDeviceName) sourceDeviceName.textContent = sourceDevice.name;
-        if (sourceDeviceIp) sourceDeviceIp.textContent = `(${sourceDevice.config.ipAddress})`;
+        
+        // IPアドレス表示時に最新の値を確実に取得
+        let currentIP = sourceDevice.config.ipAddress;
+        // IPアドレスが無効な場合、キャンバス表示用の現在の値を確認
+        if (!currentIP || currentIP === '0.0.0.0' || currentIP === '') {
+            // デバイスを再描画するために最新の設定を確認
+            this.redraw();
+            currentIP = sourceDevice.config.ipAddress || 'IP未設定';
+        }
+        if (sourceDeviceIp) sourceDeviceIp.textContent = `(${currentIP})`;
         
         // 宛先選択方法の初期化
         const ipRadio = document.querySelector('input[name="destination-type"][value="ip"]');
@@ -4731,6 +4799,35 @@ class NetworkSimulator {
         // ダイアログ内部のクリックでは閉じないようにする
         dialog.removeEventListener('click', this.stopDestinationDialogPropagation);
         dialog.addEventListener('click', this.stopDestinationDialogPropagation.bind(this));
+        
+        // Enterキーで実行機能を追加
+        this.setupEnterKeyForDestinationDialog();
+    }
+
+    // 宛先選択ダイアログでEnterキー機能を設定
+    setupEnterKeyForDestinationDialog() {
+        // 既存のイベントリスナーをクリア（重複防止）
+        const dialog = document.getElementById('destination-dialog');
+        if (dialog._enterKeyHandler) {
+            dialog.removeEventListener('keydown', dialog._enterKeyHandler);
+        }
+        
+        // Enterキーイベントハンドラーを作成
+        const enterKeyHandler = (event) => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey) {
+                // select要素では通常のEnter動作を維持
+                if (event.target.tagName === 'SELECT') {
+                    return;
+                }
+                
+                event.preventDefault();
+                this.executeDestinationCommunication();
+            }
+        };
+        
+        // イベントリスナーを設定（参照を保持）
+        dialog._enterKeyHandler = enterKeyHandler;
+        dialog.addEventListener('keydown', enterKeyHandler);
     }
 
     // 宛先指定方法の切り替え
@@ -5478,6 +5575,11 @@ class NetworkSimulator {
             this.currentDeviceConfig.config.ipAddress = ipAddress;
             this.currentDeviceConfig.config.subnetMask = subnetMask;
             this.currentDeviceConfig.config.defaultGateway = defaultGateway;
+            
+            // lan1.ipAddress も同期して更新（PC、サーバー、スイッチ等でも正しいJSONを保存するため）
+            if (this.currentDeviceConfig.config.lan1) {
+                this.currentDeviceConfig.config.lan1.ipAddress = ipAddress;
+            }
         }
         
         // インターネット接続デバイスのDHCP状態変更処理
@@ -5594,16 +5696,21 @@ class NetworkSimulator {
         
         // DHCP有効デバイスのIPアドレス取得を試行
         if (dhcpEnabled) {
-            // 前の静的IPアドレスをクリア
-            this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
+            // 前の静的IPアドレスをバックアップ
+            const previousStaticIP = this.currentDeviceConfig.config.ipAddress;
             
             // DHCP要求を実行
             const success = this.requestDHCPAddress(this.currentDeviceConfig);
             
             if (!success) {
                 console.log(`DHCP要求失敗: ${this.currentDeviceConfig.name}`);
-                // DHCPが失敗した場合、一時的に無効なIPを設定
-                this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
+                // DHCPが失敗した場合、前の静的IPに戻すか、適切なデフォルトIPを設定
+                if (previousStaticIP && previousStaticIP !== '0.0.0.0') {
+                    this.currentDeviceConfig.config.ipAddress = previousStaticIP;
+                } else {
+                    // デフォルトIPを再設定
+                    this.currentDeviceConfig.config.ipAddress = this.getDefaultIP(this.currentDeviceConfig.type, 1);
+                }
             }
         }
 
@@ -6282,6 +6389,11 @@ class NetworkSimulator {
         client.config.subnetMask = '255.255.255.0'; // 固定サブネットマスク
         client.config.defaultGateway = lanConfig.ipAddress; // そのLANのゲートウェイ
         
+        // lan1.ipAddress も同期して更新
+        if (client.config.lan1) {
+            client.config.lan1.ipAddress = assignedIP.ip;
+        }
+        
         const message = `✅ DHCP成功: ${client.name} に ${assignedIP.ip} を割り当てました (${lanName})`;
         console.log(message);
         console.log(`=== DHCP要求完了: ${client.name} ===\n`);
@@ -6350,20 +6462,36 @@ class NetworkSimulator {
         if (pathToRouter && pathToRouter.length > 1) {
             // ルーターに直接接続されている最後のデバイス（ルーターの隣接デバイス）を特定
             const routerNeighbor = pathToRouter[pathToRouter.length - 2];
+            console.log('🔧 ルーター隣接デバイス:', routerNeighbor?.name);
             const routerConnection = this.findDirectConnection(routerNeighbor, router);
+            console.log('🔧 ルーター接続:', routerConnection);
             
             if (routerConnection) {
                 // ルーターのポート番号に基づいてLANを判定
-                const routerPortIndex = this.getPortIndex(router, routerConnection, router.id === routerConnection.fromDevice);
+                const isFromDevice = router.id === routerConnection.from?.deviceId;
+                const routerPortIndex = this.getPortIndex(router, routerConnection, isFromDevice);
                 
-                // ポート0-1: LAN1, ポート2-3: LAN2, ポート4-5: LAN3 として判定
+                console.log('🔧 ポート判定詳細:', {
+                    routerConnection: routerConnection,
+                    isFromDevice: isFromDevice,
+                    routerPortIndex: routerPortIndex,
+                    lan1Enabled: router.config.lan1?.dhcpEnabled,
+                    lan2Enabled: router.config.lan2?.dhcpEnabled,
+                    lan3Enabled: router.config.lan3?.dhcpEnabled
+                });
+                
+                // ポート0-1: LAN1, ポート2: LAN2, ポート3-5: LAN3 として判定
                 if (routerPortIndex <= 1 && router.config.lan1?.dhcpEnabled) {
+                    console.log('✅ LAN1を選択 (ポート:', routerPortIndex, ')');
                     return router.config.lan1;
-                } else if (routerPortIndex <= 3 && router.config.lan2?.dhcpEnabled) {
+                } else if (routerPortIndex === 2 && router.config.lan2?.dhcpEnabled) {
+                    console.log('✅ LAN2を選択 (ポート:', routerPortIndex, ')');
                     return router.config.lan2;
-                } else if (routerPortIndex <= 5 && router.config.lan3?.dhcpEnabled) {
+                } else if (routerPortIndex >= 3 && router.config.lan3?.dhcpEnabled) {
+                    console.log('✅ LAN3を選択 (ポート:', routerPortIndex, ')');
                     return router.config.lan3;
                 }
+                console.log('❌ ポート判定で有効なLANが見つからない');
             }
         }
         
@@ -6406,11 +6534,11 @@ class NetworkSimulator {
         });
         
         if (router.config.lan1?.dhcpEnabled) {
-            console.log('✅ LAN1を選択');
+            console.log('✅ フォールバック: LAN1を選択');
             return router.config.lan1;
         }
         if (router.config.lan2?.dhcpEnabled) {
-            console.log('✅ LAN2を選択');
+            console.log('✅ フォールバック: LAN2を選択');
             return router.config.lan2;
         }
         if (router.config.lan3?.dhcpEnabled) {
@@ -6431,15 +6559,31 @@ class NetworkSimulator {
 
     // 2つのデバイス間の直接接続を探す
     findDirectConnection(device1, device2) {
-        return this.connections.find(conn => 
-            (conn.fromDevice === device1.id && conn.toDevice === device2.id) ||
-            (conn.fromDevice === device2.id && conn.toDevice === device1.id)
+        console.log('🔍 findDirectConnection 探索開始:', device1.name, '←→', device2.name);
+        console.log('🔍 device1.id:', device1.id);
+        console.log('🔍 device2.id:', device2.id);
+        console.log('🔍 総接続数:', this.connections.length);
+        
+        this.connections.forEach((conn, index) => {
+            console.log(`🔍 接続${index}:`, {
+                id: conn.id,
+                from: conn.from?.deviceId,
+                to: conn.to?.deviceId
+            });
+        });
+        
+        const result = this.connections.find(conn => 
+            (conn.from?.deviceId === device1.id && conn.to?.deviceId === device2.id) ||
+            (conn.from?.deviceId === device2.id && conn.to?.deviceId === device1.id)
         );
+        
+        console.log('🔍 findDirectConnection 結果:', result ? 'found' : 'not found');
+        return result;
     }
 
     // 接続におけるデバイスのポート番号を取得
     getPortIndex(device, connection, isFromDevice) {
-        const portId = isFromDevice ? connection.fromPort : connection.toPort;
+        const portId = isFromDevice ? connection.from?.portId : connection.to?.portId;
         const ports = device.ports?.nics || [];
         
         return ports.findIndex(port => port.id === portId);
@@ -6921,8 +7065,13 @@ class NetworkSimulator {
                     throw new Error('不正なファイル形式です');
                 }
 
-                // 現在の構成をクリア
-                this.clearAll();
+                // 現在の構成をクリア（描画は後で行う）
+                this.devices.clear();
+                this.connections = [];
+                this.selectedDevice = null;
+                this.selectedConnection = null;
+                this.connectionStart = null;
+                this.nextZIndex = 1;
 
                 // デバイスを復元
                 const deviceMap = new Map();
@@ -7034,8 +7183,12 @@ class NetworkSimulator {
                 // DHCPが有効なデバイスのIPアドレス表示を修正
                 this.refreshDHCPDevicesDisplay();
                 
+                // 全デバイスのlan1.ipAddressをconfig.ipAddressと同期（既存のファイル互換性のため）
+                this.syncLAN1Addresses();
+                
                 this.updateControlButtons();
-                this.scheduleRender();
+                // ファイル読み込み後は即座に描画を実行
+                this.render();
                 this.updateStatus('ネットワーク構成を読み込みました（全設定情報を含む）');
                 
             } catch (error) {
@@ -7056,6 +7209,18 @@ class NetworkSimulator {
                 // DHCPが有効でIPアドレスが0.0.0.0の場合、接続されたルーターから再取得を試行
                 if (device.config.ipAddress === '0.0.0.0' || !device.config.ipAddress) {
                     this.tryDHCPRefresh(device);
+                }
+            }
+        });
+    }
+
+    // 全デバイスのlan1.ipAddressをconfig.ipAddressと同期（ファイル読み込み時の互換性確保）
+    syncLAN1Addresses() {
+        Array.from(this.devices.values()).forEach(device => {
+            // ルーター以外のデバイスのlan1.ipAddressを同期
+            if (device.config && device.config.lan1 && device.type !== 'router') {
+                if (device.config.ipAddress && device.config.ipAddress !== '0.0.0.0') {
+                    device.config.lan1.ipAddress = device.config.ipAddress;
                 }
             }
         });

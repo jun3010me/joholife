@@ -1,0 +1,152 @@
+id: network-construction-3
+title: ネットワーク構築課題③
+description: 複数LANセグメントによるネットワーク構築課題
+icon: 🌐
+difficulty: hard
+estimatedTime: 30
+category: ネットワーク構築
+tags:
+  - ネットワーク設計
+  - DHCP設定
+  - LAN分割
+  - スイッチ接続
+  - 複数セグメント
+
+# この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
+questions:
+  - id: network_construction_3
+    type: file-analysis
+    title: 複数LANセグメントのネットワーク構築
+    description: |
+      **課題概要**
+      
+      以下の要件を満たすネットワーク構成を作成してください。
+      
+      **ネットワーク要件**
+      - ルーター1台（LAN1とLAN2でDHCP有効）
+      - スイッチ2台（スイッチ-1、スイッチ-2）
+      - PC4台（PC-1、PC-2、PC-3、PC-4）
+      
+      **接続要件**
+      - スイッチ-1をルーターのLAN1ポートに接続
+      - スイッチ-2をルーターの任意のLANポート（LAN2またはLAN3）に接続
+      - PC-1とPC-2をスイッチ-1に接続
+      - PC-3とPC-4をスイッチ-2に接続
+      - すべてのPC・スイッチでDHCP有効
+      
+      **IPアドレス設定要件**
+      - LAN1セグメント: 192.168.1.0/24（DHCP範囲: 192.168.1.100-199）
+      - PC-1、PC-2: 192.168.1.xのIPアドレスを取得
+      - PC-3、PC-4: 適切なセグメントからIPアドレスを自動取得
+      - スイッチ-1: 192.168.1.xのIPアドレスを取得
+      - スイッチ-2: 適切なセグメントからIPアドレスを自動取得
+      
+      **解決手順**
+      1. ネットワークシミュレータで上記構成を作成
+      2. ルーターのLAN1・LAN2でDHCPを有効化し、適切なIP範囲を設定
+      3. すべてのデバイスでDHCPを有効化してIPアドレスを自動取得
+      4. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
+      5. 自動判定で正解かどうかを確認
+      
+      **評価ポイント**
+      - 正しいトポロジ（接続関係）の構築
+      - 適切なLANセグメントへの配置
+      - DHCPによる自動IP割り当ての動作
+      - IPアドレスの適切な分離（LAN1とLAN2で異なるセグメント）
+    
+    # ファイル操作課題の特別な設定
+    downloadFile: "/network-simulator/exercises/network-construction-3-problem.json"
+    expectedChanges:
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのLAN1でDHCPを有効化する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan2.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのLAN2でDHCPを有効化する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-1でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.dhcpEnabled" 
+        expectedPattern: "true"
+        explanation: "PC-2でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-3"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-3でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-4"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-4でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "スイッチ-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "スイッチ-1でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "スイッチ-2"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "スイッチ-2でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-1は192.168.1.xネットワークからIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-2は192.168.1.xネットワークからIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "スイッチ-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "スイッチ-1は192.168.1.xネットワークからIPアドレスを取得する必要があります"
+        excludeValues: []
+    
+    points: 150
+    difficulty: hard
+    tags:
+      - ネットワーク構築
+      - DHCP設定
+      - LAN設計
+      - 複数セグメント
+    
+    # 通常の選択肢は使用しない（ファイル操作課題のため）
+    options: []
+    explanation: |
+      **解答解説**
+      
+      この課題では、複数のLANセグメントを持つネットワークの構築を学習しました。
+      
+      **構成のポイント:**
+      1. **ルーターの役割**: 複数のLANセグメントを管理し、それぞれでDHCPサービスを提供
+      2. **スイッチの配置**: 各LANセグメントにスイッチを配置してポート数を拡張
+      3. **IPアドレス管理**: セグメントごとに異なるIPアドレス範囲を設定
+      
+      **学習ポイント:**
+      - **LAN分割の意義**: セキュリティ向上、トラフィック分散、管理の簡素化
+      - **DHCP設定**: 各LANごとに適切なIP範囲の設定
+      - **ネットワーク設計**: 要件に応じたトポロジの設計
+      
+      **実際の現場では:**
+      - 部署別、用途別でのLAN分割
+      - VLAN（仮想LAN）技術の活用
+      - セキュリティポリシーに基づいたセグメント設計
+      - ルーティング設定による通信制御
+      
+      **発展課題:**
+      このネットワークに以下を追加することを考えてみましょう：
+      - インターネット接続
+      - セグメント間の通信制御
+      - VLANを使った論理的な分割
+      - ファイアウォール設定
