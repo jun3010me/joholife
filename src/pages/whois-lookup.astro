@@ -6,7 +6,7 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 ---
 
 <Layout title="Whois検索ツール">
-    <div class="whois-container">
+    <div class="whois-container" data-api-key={apiKey}>
         <h1>Whois検索ツール</h1>
         
         <div class="intro-section">
@@ -190,11 +190,6 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
         </div>
     </div>
 
-    <!-- API設定をグローバル変数として定義 -->
-    <script is:inline>
-        window.WHOIS_API_KEY = `${apiKey}`;
-    </script>
-    
     <script is:inline>
         // グローバル変数
         let currentRequest = null;
@@ -630,7 +625,8 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
                 currentRequest = controller;
                 
                 // IP2WHOIS APIをCORSプロキシ経由で呼び出し
-                const whoisApiKey = window.WHOIS_API_KEY || 'demo';
+                const container = document.querySelector('.whois-container');
+                const whoisApiKey = container.dataset.apiKey || 'demo';
                 const originalApiUrl = `https://api.ip2whois.com/v2?key=${whoisApiKey}&domain=${encodeURIComponent(domain)}&format=json`;
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalApiUrl)}`;
                 
