@@ -102,12 +102,6 @@ const topics = [
     }
 ];
 
-const stats = [
-    { number: "15", label: "学習ツール" },
-    { number: "120+", label: "練習問題" },
-    { number: "5+", label: "スライド" },
-    { number: "24/7", label: "いつでもアクセス" }
-];
 ---
 
 <Layout 
@@ -115,35 +109,6 @@ const stats = [
     description="じょうほうらいふは高校生のための情報Ⅰ学習支援サイトです。情報Ⅰの勉強、教材、問題演習を効果的にサポート。2進数変換、アルゴリズム、データ構造、著作権、プログラミング学習など、情報Ⅰの全範囲を網羅した無料の学習ツールを提供。"
     keywords="じょうほうらいふ,情報Ⅰ,情報Ⅰ 勉強,情報Ⅰ 教材,情報Ⅰ 問題,情報Ⅰ 過去問,高校情報,プログラミング学習,2進数変換,アルゴリズム,データ構造,著作権,産業財産権,論理回路,情報処理,コンピュータサイエンス"
 >
-    <div class="hero-section fade-in-up">
-        <div class="hero-content">
-            <h1 class="hero-title">
-                たのしい
-                <span class="highlight">情報らいふ</span>
-            </h1>
-            <p class="hero-description">
-                高校の情報Ⅰで学ぶプログラミング、アルゴリズム、データ構造を分かりやすく解説。
-                情報Ⅰの勉強・教材・問題演習を効果的にサポートし、実際にコードを書きながら、情報技術の基礎をしっかりと身につけましょう。
-            </p>
-            <div class="hero-buttons">
-                <a href="/lessons" class="btn btn-primary">
-                    📖 レッスンを始める
-                </a>
-                <a href="/quiz" class="btn btn-secondary">
-                    📝 問題演習
-                </a>
-            </div>
-        </div>
-        <div class="hero-stats">
-            {stats.map(stat => (
-                <div class="stat-item">
-                    <div class="stat-number">{stat.number}</div>
-                    <div class="stat-label">{stat.label}</div>
-                </div>
-            ))}
-        </div>
-    </div>
-
     <section class="topics-section">
         <div class="section-header">
             <h2>情報Ⅰの学習コンテンツ</h2>

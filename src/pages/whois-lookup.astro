@@ -622,7 +622,7 @@ import Layout from '../layouts/Layout.astro';
                 currentRequest = controller;
                 
                 // IP2WHOIS APIをCORSプロキシ経由で呼び出し
-                const apiKey = 'B13BA312845E9E543F093EA7F25A668F';
+                const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
                 const originalApiUrl = `https://api.ip2whois.com/v2?key=${apiKey}&domain=${encodeURIComponent(domain)}&format=json`;
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalApiUrl)}`;
                 
