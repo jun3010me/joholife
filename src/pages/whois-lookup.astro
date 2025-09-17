@@ -9,7 +9,7 @@ import Layout from '../layouts/Layout.astro';
         <div class="intro-section">
             <p>ドメイン名やIPアドレスのWhois情報を検索して、登録者情報、有効期限、DNSサーバーなどの詳細を確認できます。</p>
             <div class="demo-notice">
-                <p>⚠️ <strong>教育・デモ用ツール</strong>: このツールはWhoisの概念を学習するためのサンプルデータを表示します。実際の最新Whois情報が必要な場合は、公式のWhoisサービスをご利用ください。</p>
+                <p>🔍 <strong>実際のWhois検索ツール</strong>: このツールはIP2WHOIS APIを使用して、リアルタイムでWhois情報を取得します。教育目的での利用に最適化されています。</p>
             </div>
         </div>
 
@@ -617,21 +617,58 @@ import Layout from '../layouts/Layout.astro';
             loading.style.display = 'block';
 
             try {
-                // モックデータを生成
-                const mockData = generateMockWhoisData(domain);
+                // AbortControllerを作成
+                const controller = new AbortController();
+                currentRequest = controller;
                 
-                // API呼び出しをシミュレートするため1秒待機
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // IP2WHOIS APIをCORSプロキシ経由で呼び出し
+                const apiKey = 'B13BA312845E9E543F093EA7F25A668F';
+                const originalApiUrl = `https://api.ip2whois.com/v2?key=${apiKey}&domain=${encodeURIComponent(domain)}&format=json`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalApiUrl)}`;
                 
-                // フォールバック情報を追加
-                mockData._fallback = true;
-                mockData._note = mockData._note || 'これは教育・デモ用のサンプルデータです。実際のWhois情報とは異なる場合があります。';
+                console.log('CORSプロキシ経由でAPI呼び出し中:', originalApiUrl);
                 
-                displayWhoisInfo(mockData);
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Proxy Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const proxyData = await response.json();
+                console.log('プロキシ応答:', proxyData);
+                
+                // プロキシからの実際のデータを抽出
+                const data = JSON.parse(proxyData.contents);
+                console.log('API応答:', data);
+                
+                // エラーレスポンスをチェック
+                if (data.error_message) {
+                    throw new Error(data.error_message);
+                }
+                
+                displayWhoisInfo(data);
 
             } catch (error) {
                 console.error('Whois検索エラー:', error);
-                showError(`検索エラー: ${error.message}`);
+                
+                // AbortErrorの場合は何もしない（ユーザーがキャンセルした）
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                
+                // API失敗時はモックデータにフォールバック
+                console.log('APIに失敗、モックデータにフォールバック');
+                try {
+                    const mockData = generateMockWhoisData(domain);
+                    mockData._fallback = true;
+                    mockData._note = `実際のAPI呼び出しに失敗しました (${error.message})。これは教育・デモ用のサンプルデータです。`;
+                    displayWhoisInfo(mockData);
+                } catch (mockError) {
+                    showError(`検索エラー: ${error.message}`);
+                }
             } finally {
                 currentRequest = null;
             }
