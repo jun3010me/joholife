@@ -8,7 +8,7 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://joho.jun3010.me',
-  output: 'server',
+  output: 'static',
   integrations: [
     react(), 
     mdx(), 

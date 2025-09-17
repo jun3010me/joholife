@@ -8,6 +8,9 @@ import Layout from '../layouts/Layout.astro';
         
         <div class="intro-section">
             <p>ドメイン名やIPアドレスのWhois情報を検索して、登録者情報、有効期限、DNSサーバーなどの詳細を確認できます。</p>
+            <div class="demo-notice">
+                <p>⚠️ <strong>教育・デモ用ツール</strong>: このツールはWhoisの概念を学習するためのサンプルデータを表示します。実際の最新Whois情報が必要な場合は、公式のWhoisサービスをご利用ください。</p>
+            </div>
         </div>
 
         <!-- Whoisとは -->
@@ -498,6 +501,108 @@ import Layout from '../layouts/Layout.astro';
             resultSection.style.display = 'block';
         }
 
+        // モックデータ関数
+        function generateMockWhoisData(domain) {
+            const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(domain);
+            
+            if (isIP) {
+                return {
+                    domain: domain,
+                    type: 'IP Address',
+                    registrar: {
+                        name: 'Regional Internet Registry',
+                        iana_id: '',
+                        url: ''
+                    },
+                    create_date: '1999-01-01T00:00:00Z',
+                    expire_date: null,
+                    update_date: '2023-12-01T00:00:00Z',
+                    domain_age: 8760,
+                    status: 'allocated',
+                    nameservers: [],
+                    _note: 'このIPアドレスは地域インターネットレジストリによって管理されています。'
+                };
+            }
+            
+            const domains = {
+                'google.com': {
+                    domain: 'google.com',
+                    registrar: {
+                        name: 'MarkMonitor Inc.',
+                        iana_id: '292',
+                        url: 'http://www.markmonitor.com'
+                    },
+                    create_date: '1997-09-15T04:00:00Z',
+                    expire_date: '2028-09-14T04:00:00Z',
+                    update_date: '2019-09-09T15:39:04Z',
+                    domain_age: 10229,
+                    status: 'clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited',
+                    nameservers: ['ns1.google.com', 'ns2.google.com', 'ns3.google.com', 'ns4.google.com']
+                },
+                'github.com': {
+                    domain: 'github.com',
+                    registrar: {
+                        name: 'MarkMonitor Inc.',
+                        iana_id: '292',
+                        url: 'http://www.markmonitor.com'
+                    },
+                    create_date: '2007-10-09T18:20:50Z',
+                    expire_date: '2025-10-09T18:20:50Z',
+                    update_date: '2024-09-09T09:18:27Z',
+                    domain_age: 6184,
+                    status: 'clientDeleteProhibited',
+                    nameservers: ['dns1.p08.nsone.net', 'dns2.p08.nsone.net']
+                },
+                'yahoo.co.jp': {
+                    domain: 'yahoo.co.jp',
+                    registrar: {
+                        name: '',
+                        iana_id: '',
+                        url: ''
+                    },
+                    create_date: '2019-09-27T00:00:00Z',
+                    expire_date: '',
+                    update_date: '2024-10-01T01:00:44Z',
+                    domain_age: 2182,
+                    status: 'Connected (2025/09/30)',
+                    nameservers: ['ns01.yahoo.co.jp', 'ns02.yahoo.co.jp'],
+                    _note: '日本のドメイン(.co.jp)では、プライバシー保護により詳細な登録者情報が非公開になっています。'
+                },
+                '8.8.8.8': {
+                    domain: '8.8.8.8',
+                    type: 'IP Address',
+                    registrar: {
+                        name: 'Google Public DNS',
+                        iana_id: '',
+                        url: 'https://developers.google.com/speed/public-dns'
+                    },
+                    create_date: '2009-12-03T00:00:00Z',
+                    expire_date: null,
+                    update_date: '2023-01-01T00:00:00Z',
+                    domain_age: 5476,
+                    status: 'active',
+                    nameservers: [],
+                    _note: 'これはGoogleが提供するパブリックDNSサーバーのIPアドレスです。'
+                }
+            };
+            
+            return domains[domain.toLowerCase()] || {
+                domain: domain,
+                registrar: {
+                    name: 'Example Registrar Inc.',
+                    iana_id: '1234',
+                    url: 'https://example-registrar.com'
+                },
+                create_date: '2020-01-01T00:00:00Z',
+                expire_date: '2025-01-01T00:00:00Z',
+                update_date: '2024-01-01T00:00:00Z',
+                domain_age: 1825,
+                status: 'clientTransferProhibited',
+                nameservers: ['ns1.example.com', 'ns2.example.com'],
+                _note: 'これはデモンストレーション用のサンプルデータです。'
+            };
+        }
+
         // Whois検索の実行
         async function performWhoisLookup(domain) {
             // 既存のリクエストをキャンセル
@@ -512,52 +617,21 @@ import Layout from '../layouts/Layout.astro';
             loading.style.display = 'block';
 
             try {
-                // AbortControllerを使用してリクエストの制御
-                const controller = new AbortController();
-                currentRequest = controller;
-
-                // 自前のAPIエンドポイントを使用してCORS問題を回避
-                const apiUrl = `${window.location.origin}/api/whois`;
-                console.log('API URL:', apiUrl);
+                // モックデータを生成
+                const mockData = generateMockWhoisData(domain);
                 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    signal: controller.signal,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ domain })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
+                // API呼び出しをシミュレートするため1秒待機
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                // エラーチェック
-                if (data.error || data.error_message) {
-                    throw new Error(data.error || data.error_message);
-                }
-
-                displayWhoisInfo(data);
+                // フォールバック情報を追加
+                mockData._fallback = true;
+                mockData._note = mockData._note || 'これは教育・デモ用のサンプルデータです。実際のWhois情報とは異なる場合があります。';
+                
+                displayWhoisInfo(mockData);
 
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    return; // キャンセルされた場合は何もしない
-                }
-                
                 console.error('Whois検索エラー:', error);
-                
-                if (error.message.includes('Failed to fetch')) {
-                    showError('ネットワークエラーが発生しました。インターネット接続を確認してください。');
-                } else if (error.message.includes('HTTP 429')) {
-                    showError('API制限に達しました。しばらく待ってから再試行してください。');
-                } else if (error.message.includes('HTTP 500')) {
-                    showError('サーバーエラーが発生しました。しばらく待ってから再試行してください。');
-                } else {
-                    showError(`検索エラー: ${error.message}`);
-                }
+                showError(`検索エラー: ${error.message}`);
             } finally {
                 currentRequest = null;
             }
@@ -770,6 +844,24 @@ import Layout from '../layouts/Layout.astro';
             color: var(--text-secondary);
             max-width: 800px;
             margin: 0 auto;
+        }
+
+        .demo-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .demo-notice p {
+            color: #92400e;
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
         }
 
         .card {
