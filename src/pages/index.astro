@@ -129,42 +129,6 @@ const topics = [
         </div>
     </section>
 
-    <section class="features-section">
-        <div class="section-header">
-            <h2>なぜこのサイト？</h2>
-            <p>効率的で楽しい学習体験を提供します</p>
-        </div>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">💡</div>
-                <h3>分かりやすい解説</h3>
-                <p>複雑な概念も、図解と実例で理解しやすく説明します</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>実践的なコード</h3>
-                <p>実際に動くコードサンプルで、理論と実践を結びつけます</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>どこでも学習</h3>
-                <p>スマホ、タブレット、PCでいつでもアクセス可能です</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="cta-section">
-        <div class="cta-content">
-            <h2>今すぐ学習を始めましょう</h2>
-            <p>情報Ⅰの基礎から応用まで、ステップバイステップで学べます</p>
-            <a href="/lessons" class="btn btn-primary btn-large">
-                🎯 レッスンスタート
-            </a>
-        </div>
-    </section>
 </Layout>
 
 <style>
@@ -335,101 +299,10 @@ const topics = [
     opacity: 1;
 }
 
-.features-section {
-    margin-bottom: 6rem;
-}
-
 .learning-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-}
-
-.feature-card {
-    background: white;
-    border-radius: var(--radius-xl);
-    padding: 2.5rem;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-light);
-    transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-}
-
-.feature-icon {
-    font-size: 3rem;
-    margin-bottom: 1.5rem;
-}
-
-.feature-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-}
-
-.feature-card p {
-    color: var(--text-secondary);
-}
-
-.cta-section {
-    background: linear-gradient(135deg, #3b82f6, #10b981);
-    border-radius: 2rem;
-    padding: 4rem 2rem;
-    text-align: center;
-    color: white;
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-    pointer-events: none;
-}
-
-.cta-content {
-    position: relative;
-    z-index: 2;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.cta-section h2 {
-    color: white;
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.cta-section p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.125rem;
-    margin-bottom: 2rem;
-}
-
-.cta-section .btn {
-    background: white;
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-.cta-section .btn:hover {
-    background: var(--surface);
-    transform: translateY(-2px);
 }
 
 /* レスポンシブ対応 */
@@ -463,16 +336,5 @@ const topics = [
         padding: 2rem;
     }
     
-    .feature-card {
-        padding: 2rem;
-    }
-    
-    .cta-section {
-        padding: 3rem 1.5rem;
-    }
-    
-    .cta-section h2 {
-        font-size: 2rem;
-    }
 }
 </style>
