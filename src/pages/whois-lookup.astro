@@ -1,0 +1,1288 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Whois検索ツール">
+    <div class="whois-container">
+        <h1>Whois検索ツール</h1>
+        
+        <div class="intro-section">
+            <p>ドメイン名やIPアドレスのWhois情報を検索して、登録者情報、有効期限、DNSサーバーなどの詳細を確認できます。</p>
+        </div>
+
+        <!-- Whoisとは -->
+        <div class="concept-section card">
+            <h2>Whoisとは</h2>
+            <div class="whois-explanation">
+                <p>Whoisは、ドメイン名やIPアドレスの登録情報を公開するデータベースシステムです。</p>
+                <div class="whois-info-grid">
+                    <div class="info-item">
+                        <div class="info-icon">📝</div>
+                        <h3>登録者情報</h3>
+                        <p>ドメインの所有者や管理者の情報</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">📅</div>
+                        <h3>有効期限</h3>
+                        <p>ドメインの登録日と有効期限</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">🌐</div>
+                        <h3>DNSサーバー</h3>
+                        <p>ドメインを管理するDNSサーバー</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">🏢</div>
+                        <h3>レジストラ</h3>
+                        <p>ドメインを登録した業者</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 検索セクション -->
+        <div class="search-section card">
+            <h2>Whois検索</h2>
+            <div class="search-form">
+                <div class="input-group">
+                    <label for="domainInput">ドメイン名またはIPアドレスを入力:</label>
+                    <input type="text" id="domainInput" placeholder="例: google.com または 8.8.8.8" />
+                    <button class="btn btn-primary" id="searchBtn">検索</button>
+                </div>
+                <div class="search-examples">
+                    <p>検索例:</p>
+                    <div class="example-buttons">
+                        <button class="btn btn-example" onclick="setExample('google.com')">google.com</button>
+                        <button class="btn btn-example" onclick="setExample('github.com')">github.com</button>
+                        <button class="btn btn-example" onclick="setExample('8.8.8.8')">8.8.8.8</button>
+                        <button class="btn btn-example" onclick="setExample('yahoo.co.jp')">yahoo.co.jp</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ローディング表示 -->
+            <div class="loading" id="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Whois情報を取得中...</p>
+            </div>
+
+            <!-- 結果表示 -->
+            <div class="result-section" id="resultSection" style="display: none;">
+                <div class="result-header">
+                    <h3>検索結果</h3>
+                    <div class="copy-buttons">
+                        <button class="btn btn-copy" id="copyFormattedBtn" title="整形されたテキストをコピー">
+                            📋 課題用テキストをコピー
+                        </button>
+                        <button class="btn btn-copy" id="copyRawBtn" title="生データをコピー">
+                            📄 生データをコピー
+                        </button>
+                    </div>
+                </div>
+                <div class="result-content" id="resultContent"></div>
+            </div>
+
+            <!-- エラー表示 -->
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-content" id="errorContent"></div>
+            </div>
+        </div>
+
+        <!-- 情報の読み方ガイド -->
+        <div class="guide-section card">
+            <h2>Whois情報の読み方</h2>
+            <div class="guide-grid">
+                <div class="guide-item">
+                    <h3>🏷️ ドメイン名</h3>
+                    <p><strong>Domain Name:</strong> 検索したドメイン名が表示されます。</p>
+                </div>
+                <div class="guide-item">
+                    <h3>📝 登録者</h3>
+                    <p><strong>Registrant:</strong> ドメインの所有者情報。個人情報保護のため非公開の場合もあります。</p>
+                </div>
+                <div class="guide-item">
+                    <h3>🏢 レジストラ</h3>
+                    <p><strong>Registrar:</strong> ドメインを登録・管理している業者の情報。</p>
+                </div>
+                <div class="guide-item">
+                    <h3>📅 重要な日付</h3>
+                    <p><strong>Creation Date:</strong> 登録日<br><strong>Expiry Date:</strong> 有効期限</p>
+                </div>
+                <div class="guide-item">
+                    <h3>🌐 ネームサーバー</h3>
+                    <p><strong>Name Servers:</strong> DNSを管理するサーバーの一覧。</p>
+                </div>
+                <div class="guide-item">
+                    <h3>🔍 ドメインステータス</h3>
+                    <p><strong>Status:</strong> ドメインの現在の状態（アクティブ、ロック中など）。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 実用的な活用例 -->
+        <div class="usage-section card">
+            <h2>🔍 Whois検索の活用例</h2>
+            <div class="usage-grid">
+                <div class="usage-item">
+                    <div class="usage-icon">🕵️</div>
+                    <h3>ドメイン調査</h3>
+                    <p>怪しいサイトやフィッシングサイトの調査において、ドメインの登録情報を確認できます。</p>
+                </div>
+                <div class="usage-item">
+                    <div class="usage-icon">⏰</div>
+                    <h3>有効期限の確認</h3>
+                    <p>自社のドメインや重要なサイトの有効期限を確認して、更新忘れを防げます。</p>
+                </div>
+                <div class="usage-item">
+                    <div class="usage-icon">🌐</div>
+                    <h3>DNS設定の確認</h3>
+                    <p>ドメインがどのDNSサーバーで管理されているかを確認できます。</p>
+                </div>
+                <div class="usage-item">
+                    <div class="usage-icon">🏢</div>
+                    <h3>競合分析</h3>
+                    <p>競合他社のドメインがいつ登録されたか、どこで管理されているかを調査できます。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- プライバシーについて -->
+        <div class="privacy-section card">
+            <h2>🔒 プライバシーについて</h2>
+            <div class="privacy-content">
+                <p>近年、個人情報保護の観点から、多くのドメインでWhois情報が非公開になっています。</p>
+                <div class="privacy-info">
+                    <div class="privacy-item">
+                        <h3>GDPR対応</h3>
+                        <p>ヨーロッパのGDPR（一般データ保護規則）により、個人の登録者情報は非公開になっています。</p>
+                    </div>
+                    <div class="privacy-item">
+                        <h3>Whoisプライバシー</h3>
+                        <p>多くのレジストラがプライバシー保護サービスを提供しており、代理の情報が表示されます。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注意事項 -->
+        <div class="notice-section card">
+            <h2>⚠️ 利用上の注意</h2>
+            <div class="notice-content">
+                <div class="notice-item">
+                    <h3>🎯 デモ用途</h3>
+                    <p>このツールは教育・学習目的で作成されており、一部のデータはデモ用のサンプルデータです。</p>
+                </div>
+                <div class="notice-item">
+                    <h3>📊 リアルタイム性</h3>
+                    <p>実際のWhois情報は常に変化しているため、最新の情報が必要な場合は公式のWhoisサービスをご利用ください。</p>
+                </div>
+                <div class="notice-item">
+                    <h3>🔐 プライバシー尊重</h3>
+                    <p>取得した情報は適切に取り扱い、悪用や迷惑行為には使用しないでください。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script is:inline>
+        // グローバル変数
+        let currentRequest = null;
+        let currentWhoisData = null;
+        let currentSearchDomain = null;
+
+        // DOM要素
+        const domainInput = document.getElementById('domainInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const resultContent = document.getElementById('resultContent');
+        const errorSection = document.getElementById('errorSection');
+        const errorContent = document.getElementById('errorContent');
+        const copyFormattedBtn = document.getElementById('copyFormattedBtn');
+        const copyRawBtn = document.getElementById('copyRawBtn');
+
+        // 例をセットする関数
+        function setExample(domain) {
+            domainInput.value = domain;
+        }
+
+        // ドメイン/IPアドレスの検証
+        function validateInput(input) {
+            // より柔軟なドメイン名の正規表現（サブドメイン対応）
+            const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]*(\.[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]*)*\.[a-zA-Z]{2,}$/;
+            // IPアドレスの正規表現
+            const ipRegex = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+            
+            // 基本的な長さチェック
+            if (input.length < 3 || input.length > 253) {
+                return false;
+            }
+            
+            // 連続するドットやハイフンをチェック
+            if (input.includes('..') || input.includes('--') || input.startsWith('.') || input.endsWith('.')) {
+                return false;
+            }
+            
+            return domainRegex.test(input) || ipRegex.test(input);
+        }
+
+        // エラー表示
+        function showError(message) {
+            hideAll();
+            errorContent.innerHTML = `
+                <div class="error-message">
+                    <div class="error-icon">❌</div>
+                    <h3>エラー</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            errorSection.style.display = 'block';
+        }
+
+        // 全ての表示を隠す
+        function hideAll() {
+            loading.style.display = 'none';
+            resultSection.style.display = 'none';
+            errorSection.style.display = 'none';
+        }
+
+        // Whois情報の表示
+        function displayWhoisInfo(data) {
+            hideAll();
+            
+            // データが空の場合
+            if (!data || Object.keys(data).length === 0) {
+                showError('Whois情報が見つかりませんでした。');
+                return;
+            }
+
+            // グローバル変数に保存
+            currentWhoisData = data;
+
+            let html = '<div class="whois-results">';
+
+            // レスポンス形式を正規化
+            const whoisData = data.whois_data || data;
+            
+            // 基本情報
+            if (whoisData.domain_name || data.domain || data.domain_name) {
+                const domainName = whoisData.domain_name || data.domain || data.domain_name;
+                html += `
+                    <div class="result-group">
+                        <h4>🏷️ ドメイン情報</h4>
+                        <div class="result-item">
+                            <span class="label">ドメイン名:</span>
+                            <span class="value">${domainName}</span>
+                        </div>
+                `;
+                
+                // ドメイン年数の表示（IP2Whois APIの場合）
+                if (data.domain_age) {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">ドメイン年数:</span>
+                            <span class="value">${data.domain_age}日</span>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+            }
+
+            // レジストラ情報
+            if (whoisData.registrar || data.registrar) {
+                const registrar = whoisData.registrar || data.registrar;
+                html += `
+                    <div class="result-group">
+                        <h4>🏢 レジストラ情報</h4>
+                `;
+                
+                // IP2Whois APIの場合、registrarはオブジェクト
+                if (typeof registrar === 'object' && registrar.name && registrar.name.trim() !== '') {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">レジストラ:</span>
+                            <span class="value">${registrar.name}</span>
+                        </div>
+                    `;
+                    if (registrar.iana_id) {
+                        html += `
+                            <div class="result-item">
+                                <span class="label">IANA ID:</span>
+                                <span class="value">${registrar.iana_id}</span>
+                            </div>
+                        `;
+                    }
+                    if (registrar.url) {
+                        html += `
+                            <div class="result-item">
+                                <span class="label">レジストラURL:</span>
+                                <span class="value"><a href="${registrar.url}" target="_blank">${registrar.url}</a></span>
+                            </div>
+                        `;
+                    }
+                } else if (typeof registrar === 'string' && registrar.trim() !== '') {
+                    // 文字列の場合（モックデータなど）
+                    html += `
+                        <div class="result-item">
+                            <span class="label">レジストラ:</span>
+                            <span class="value">${registrar}</span>
+                        </div>
+                    `;
+                    const registrarUrl = whoisData.registrar_url || data.registrar_url;
+                    if (registrarUrl) {
+                        html += `
+                            <div class="result-item">
+                                <span class="label">レジストラURL:</span>
+                                <span class="value"><a href="${registrarUrl}" target="_blank">${registrarUrl}</a></span>
+                            </div>
+                        `;
+                    }
+                } else {
+                    // レジストラ情報が利用できない場合
+                    html += `
+                        <div class="japan-domain-notice">
+                            <p>ℹ️ このドメインのレジストラ情報は公開されていません。</p>
+                            <p>日本のドメイン（.co.jp等）では、プライバシー保護により詳細な登録者情報が非公開になっています。</p>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+            }
+
+            // 日付情報
+            const creationDate = whoisData.creation_date || data.creation_date || data.create_date || whoisData.created_date;
+            const expiryDate = whoisData.expiry_date || data.expiry_date || data.expire_date || whoisData.expires_date;
+            const updatedDate = whoisData.updated_date || data.updated_date || data.update_date || whoisData.updated;
+
+            if (creationDate || expiryDate || updatedDate) {
+                html += `
+                    <div class="result-group">
+                        <h4>📅 重要な日付</h4>
+                `;
+                if (creationDate) {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">登録日:</span>
+                            <span class="value">${new Date(creationDate).toLocaleDateString('ja-JP')}</span>
+                        </div>
+                    `;
+                }
+                if (expiryDate && expiryDate.trim() !== '') {
+                    let expiryDisplay;
+                    try {
+                        // 通常の日付形式を試す
+                        expiryDisplay = new Date(expiryDate).toLocaleDateString('ja-JP');
+                    } catch (e) {
+                        // 変換できない場合はそのまま表示
+                        expiryDisplay = expiryDate;
+                    }
+                    html += `
+                        <div class="result-item">
+                            <span class="label">有効期限:</span>
+                            <span class="value">${expiryDisplay}</span>
+                        </div>
+                    `;
+                }
+                if (updatedDate) {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">最終更新:</span>
+                            <span class="value">${new Date(updatedDate).toLocaleDateString('ja-JP')}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // ネームサーバー
+            const nameServers = whoisData.name_servers || data.name_servers || data.nameservers || whoisData.nameservers;
+            if (nameServers && nameServers.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <h4>🌐 ネームサーバー</h4>
+                `;
+                nameServers.forEach(ns => {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">NS:</span>
+                            <span class="value">${ns}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // ステータス
+            const status = whoisData.status || data.status || whoisData.domain_status;
+            if (status && status.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <h4>🔍 ドメインステータス</h4>
+                `;
+                if (Array.isArray(status)) {
+                    status.forEach(stat => {
+                        html += `
+                            <div class="result-item">
+                                <span class="label">ステータス:</span>
+                                <span class="value">${stat}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">ステータス:</span>
+                            <span class="value">${status}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
+            // 連絡先情報（プライバシー保護されていない場合）
+            const registrant = whoisData.registrant || data.registrant;
+            if (registrant && registrant.name && registrant.name !== 'REDACTED FOR PRIVACY') {
+                html += `
+                    <div class="result-group">
+                        <h4>📝 登録者情報</h4>
+                        <div class="result-item">
+                            <span class="label">名前:</span>
+                            <span class="value">${registrant.name}</span>
+                        </div>
+                `;
+                if (registrant.organization) {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">組織:</span>
+                            <span class="value">${registrant.organization}</span>
+                        </div>
+                    `;
+                }
+                if (registrant.country) {
+                    html += `
+                        <div class="result-item">
+                            <span class="label">国:</span>
+                            <span class="value">${registrant.country}</span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            } else {
+                html += `
+                    <div class="result-group">
+                        <h4>📝 登録者情報</h4>
+                        <div class="privacy-notice">
+                            <p>🔒 登録者情報はプライバシー保護により非公開になっています。</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // フォールバック情報の表示
+            if (data._fallback) {
+                html += `
+                    <div class="result-group">
+                        <h4>ℹ️ 情報</h4>
+                        <div class="fallback-notice">
+                            <p>${data._note}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            resultContent.innerHTML = html;
+            resultSection.style.display = 'block';
+        }
+
+        // Whois検索の実行
+        async function performWhoisLookup(domain) {
+            // 既存のリクエストをキャンセル
+            if (currentRequest) {
+                currentRequest.abort();
+            }
+
+            // 検索ドメインを保存
+            currentSearchDomain = domain;
+
+            hideAll();
+            loading.style.display = 'block';
+
+            try {
+                // AbortControllerを使用してリクエストの制御
+                const controller = new AbortController();
+                currentRequest = controller;
+
+                // 自前のAPIエンドポイントを使用してCORS問題を回避
+                const apiUrl = `${window.location.origin}/api/whois`;
+                console.log('API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ domain })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // エラーチェック
+                if (data.error || data.error_message) {
+                    throw new Error(data.error || data.error_message);
+                }
+
+                displayWhoisInfo(data);
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return; // キャンセルされた場合は何もしない
+                }
+                
+                console.error('Whois検索エラー:', error);
+                
+                if (error.message.includes('Failed to fetch')) {
+                    showError('ネットワークエラーが発生しました。インターネット接続を確認してください。');
+                } else if (error.message.includes('HTTP 429')) {
+                    showError('API制限に達しました。しばらく待ってから再試行してください。');
+                } else if (error.message.includes('HTTP 500')) {
+                    showError('サーバーエラーが発生しました。しばらく待ってから再試行してください。');
+                } else {
+                    showError(`検索エラー: ${error.message}`);
+                }
+            } finally {
+                currentRequest = null;
+            }
+        }
+
+        // 課題用テキストの生成
+        function generateFormattedText(data, domain) {
+            if (!data || !domain) return '';
+
+            const currentDate = new Date().toLocaleDateString('ja-JP');
+            const whoisData = data.whois_data || data;
+            
+            let text = `Whois検索結果レポート\n`;
+            text += `検索日時: ${currentDate}\n`;
+            text += `=====================================\n\n`;
+
+            // 基本情報
+            const domainName = whoisData.domain_name || data.domain || data.domain_name || domain;
+            text += `【ドメイン情報】\n`;
+            text += `ドメイン名: ${domainName}\n`;
+            
+            if (data.domain_age) {
+                text += `ドメイン年数: ${data.domain_age}日\n`;
+            }
+            text += `\n`;
+
+            // レジストラ情報
+            text += `【レジストラ情報】\n`;
+            const registrar = whoisData.registrar || data.registrar;
+            if (registrar && typeof registrar === 'object' && registrar.name && registrar.name.trim() !== '') {
+                text += `レジストラ: ${registrar.name}\n`;
+                if (registrar.iana_id) {
+                    text += `IANA ID: ${registrar.iana_id}\n`;
+                }
+                if (registrar.url) {
+                    text += `レジストラURL: ${registrar.url}\n`;
+                }
+            } else if (registrar && typeof registrar === 'string' && registrar.trim() !== '') {
+                text += `レジストラ: ${registrar}\n`;
+            } else {
+                text += `レジストラ: 情報非公開\n`;
+                text += `備考: 日本のドメイン(.co.jp等)では、プライバシー保護により詳細な登録者情報が非公開になっています。\n`;
+            }
+            text += `\n`;
+
+            // 日付情報
+            text += `【重要な日付】\n`;
+            const creationDate = whoisData.creation_date || data.creation_date || data.create_date || whoisData.created_date;
+            const expiryDate = whoisData.expiry_date || data.expiry_date || data.expire_date || whoisData.expires_date;
+            const updatedDate = whoisData.updated_date || data.updated_date || data.update_date || whoisData.updated;
+
+            if (creationDate) {
+                try {
+                    text += `登録日: ${new Date(creationDate).toLocaleDateString('ja-JP')}\n`;
+                } catch (e) {
+                    text += `登録日: ${creationDate}\n`;
+                }
+            }
+            if (expiryDate && expiryDate.trim() !== '') {
+                try {
+                    text += `有効期限: ${new Date(expiryDate).toLocaleDateString('ja-JP')}\n`;
+                } catch (e) {
+                    text += `有効期限: ${expiryDate}\n`;
+                }
+            }
+            if (updatedDate) {
+                try {
+                    text += `最終更新: ${new Date(updatedDate).toLocaleDateString('ja-JP')}\n`;
+                } catch (e) {
+                    text += `最終更新: ${updatedDate}\n`;
+                }
+            }
+            text += `\n`;
+
+            // ネームサーバー
+            const nameServers = whoisData.name_servers || data.name_servers || data.nameservers || whoisData.nameservers;
+            if (nameServers && nameServers.length > 0) {
+                text += `【ネームサーバー】\n`;
+                nameServers.forEach((ns, index) => {
+                    text += `NS${index + 1}: ${ns}\n`;
+                });
+                text += `\n`;
+            }
+
+            // ステータス
+            const status = whoisData.status || data.status || whoisData.domain_status;
+            if (status) {
+                text += `【ドメインステータス】\n`;
+                if (Array.isArray(status)) {
+                    status.forEach((stat, index) => {
+                        text += `ステータス${index + 1}: ${stat}\n`;
+                    });
+                } else {
+                    text += `ステータス: ${status}\n`;
+                }
+                text += `\n`;
+            }
+
+            // フォールバック情報
+            if (data._fallback) {
+                text += `【備考】\n`;
+                text += `${data._note}\n`;
+                text += `\n`;
+            }
+
+            text += `=====================================\n`;
+            text += `※ このレポートは「じょうほうらいふ」のWhois検索ツールで生成されました。\n`;
+
+            return text;
+        }
+
+        // クリップボードにコピー
+        async function copyToClipboard(text, buttonElement) {
+            try {
+                await navigator.clipboard.writeText(text);
+                
+                // ボタンのテキストを一時的に変更
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '✅ コピー完了！';
+                buttonElement.style.backgroundColor = '#22c55e';
+                
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.style.backgroundColor = '';
+                }, 2000);
+                
+            } catch (err) {
+                console.error('コピーに失敗しました:', err);
+                alert('クリップボードへのコピーに失敗しました。');
+            }
+        }
+
+        // イベントリスナーの設定
+        document.addEventListener('DOMContentLoaded', function() {
+            searchBtn.addEventListener('click', function() {
+                const domain = domainInput.value.trim();
+                
+                if (!domain) {
+                    showError('ドメイン名またはIPアドレスを入力してください。');
+                    return;
+                }
+
+                if (!validateInput(domain)) {
+                    showError('有効なドメイン名またはIPアドレスを入力してください。');
+                    return;
+                }
+
+                performWhoisLookup(domain);
+            });
+
+            // Enterキーでの検索
+            domainInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBtn.click();
+                }
+            });
+
+            // 入力フィールドのフォーカス時にエラーをクリア
+            domainInput.addEventListener('focus', function() {
+                if (errorSection.style.display === 'block') {
+                    hideAll();
+                }
+            });
+
+            // コピーボタンのイベントリスナー
+            copyFormattedBtn.addEventListener('click', function() {
+                if (currentWhoisData && currentSearchDomain) {
+                    const formattedText = generateFormattedText(currentWhoisData, currentSearchDomain);
+                    copyToClipboard(formattedText, copyFormattedBtn);
+                }
+            });
+
+            copyRawBtn.addEventListener('click', function() {
+                if (currentWhoisData) {
+                    const rawText = JSON.stringify(currentWhoisData, null, 2);
+                    copyToClipboard(rawText, copyRawBtn);
+                }
+            });
+        });
+
+        // グローバルスコープに関数を公開
+        window.setExample = setExample;
+    </script>
+
+    <style>
+        .whois-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .whois-container h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .intro-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 1rem;
+        }
+
+        .intro-section p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        /* Whois情報グリッド */
+        .whois-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .info-item p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* 検索フォーム */
+        .search-form {
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .input-group input {
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-example {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+        }
+
+        .btn-example:hover {
+            background: #e2e8f0;
+        }
+
+        .search-examples {
+            margin-top: 1rem;
+        }
+
+        .search-examples p {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* ローディング */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 結果表示 */
+        .result-section, .error-section {
+            margin-top: 2rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .result-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .copy-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-copy {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-copy:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+
+        .btn-copy:active {
+            transform: translateY(0);
+        }
+
+        .whois-results {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .result-group {
+            background: #f8fafc;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-group h4 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            margin-right: 1rem;
+        }
+
+        .result-item .value {
+            color: var(--text-primary);
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .result-item .value a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .result-item .value a:hover {
+            text-decoration: underline;
+        }
+
+        .privacy-notice {
+            text-align: center;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 0.5rem;
+            border: 1px solid #f59e0b;
+        }
+
+        .privacy-notice p {
+            color: #92400e;
+            margin: 0;
+        }
+
+        .fallback-notice {
+            text-align: center;
+            padding: 1rem;
+            background: #eff6ff;
+            border-radius: 0.5rem;
+            border: 1px solid #3b82f6;
+        }
+
+        .fallback-notice p {
+            color: #1d4ed8;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .japan-domain-notice {
+            background: #fef9e7;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #f59e0b;
+            margin: 0.5rem 0;
+        }
+
+        .japan-domain-notice p {
+            color: #92400e;
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .japan-domain-notice p:first-child {
+            font-weight: 600;
+            margin-top: 0;
+        }
+
+        .japan-domain-notice p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* エラー表示 */
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            background: #fef2f2;
+            border-radius: 0.75rem;
+            border: 1px solid #fca5a5;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-message h3 {
+            color: #dc2626;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message p {
+            color: #991b1b;
+        }
+
+        /* ガイドセクション */
+        .guide-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .guide-item {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .guide-item h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+        }
+
+        .guide-item p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* 活用例セクション */
+        .usage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .usage-item {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .usage-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.1);
+        }
+
+        .usage-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .usage-item h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+        }
+
+        .usage-item p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* プライバシーセクション */
+        .privacy-content {
+            background: #f0f9ff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid #3b82f6;
+        }
+
+        .privacy-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .privacy-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #bfdbfe;
+        }
+
+        .privacy-item h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .privacy-item p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* 注意事項セクション */
+        .notice-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .notice-item {
+            background: #fef3c7;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #f59e0b;
+        }
+
+        .notice-item h3 {
+            color: #92400e;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .notice-item p {
+            color: #78350f;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .whois-container {
+                padding: 1rem;
+            }
+
+            .whois-container h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .whois-info-grid,
+            .guide-grid,
+            .privacy-info,
+            .usage-grid,
+            .notice-content {
+                grid-template-columns: 1fr;
+            }
+
+            .result-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .result-item .value {
+                text-align: left;
+            }
+
+            .example-buttons {
+                justify-content: center;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .copy-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .input-group {
+                gap: 0.75rem;
+            }
+
+            .btn {
+                padding: 0.875rem 1.5rem;
+            }
+
+            .info-item,
+            .guide-item,
+            .privacy-item {
+                padding: 1rem;
+            }
+        }
+    </style>
+</Layout>
