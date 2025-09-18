@@ -1622,6 +1622,12 @@ class QuizSession {
           isMatch = actualValue === true;
         } else if (change.expectedPattern === "false") {
           isMatch = actualValue === false;
+        } else if (change.expectedPattern === "webserver_ip_match") {
+          // Special case: DNS Web record should match Webserver IP
+          const webserver = networkData.devices?.find(device => device.name === "Webサーバー-1");
+          const webserverIP = webserver?.config?.ipAddress;
+          isMatch = actualValue === webserverIP;
+          console.log(`DNS Web record: ${actualValue}, Webserver IP: ${webserverIP}, Match: ${isMatch}`);
         } else if (change.expectedPattern.startsWith("^") && change.expectedPattern.endsWith("$")) {
           // Regular expression pattern
           const regex = new RegExp(change.expectedPattern);

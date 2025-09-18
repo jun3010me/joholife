@@ -1,0 +1,189 @@
+id: network-construction-5
+title: ネットワーク構築課題⑤
+description: DNS名前解決を含む複合ネットワークの構築
+icon: 🌐
+difficulty: hard
+estimatedTime: 35
+category: ネットワーク構築
+tags:
+  - ネットワーク設計
+  - DNS設定
+  - 名前解決
+  - DHCP設定
+  - インターネット接続
+  - HTTP通信
+  - 複合ネットワーク
+
+# この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
+questions:
+  - id: network_construction_5
+    type: file-analysis
+    title: DNS名前解決を含む複合ネットワークの構築
+    description: |
+      **課題概要**
+
+      課題④の構成に加えて、DNS名前解決機能を持つネットワーク構成を作成してください。
+
+      **ネットワーク要件**
+      - PC2台（PC-1、PC-2）
+      - スイッチ1台
+      - ルーター1台
+      - ONU3台（ONU-1、ONU-2、ONU-3）
+      - Webサーバー1台
+      - DNSサーバー1台
+      - インターネット1台
+
+      **接続要件**
+      1. PC1とPC2をスイッチに接続
+      2. スイッチをルーターのLANポートに接続
+      3. ルーターのWANポートをONU-1のLANポートに接続
+      4. ONU-1のWANポートをインターネットのISP1に接続
+      5. WebサーバーをONU-2のLANポートに接続
+      6. ONU-2のWANポートをインターネットの別のISPポート（ISP2～ISP6のいずれか）に接続
+      7. DNSサーバーをONU-3のLANポートに接続
+      8. ONU-3のWANポートをインターネットの別のISPポート（ISP2～ISP6のいずれか）に接続
+
+      **設定要件**
+      - ルーターでDHCPサーバーを有効化し、PC1、PC2、DNSサーバーにIPアドレスを自動割り当て
+      - ルーターとWebサーバー、DNSサーバーはインターネットからDHCPでグローバルIPアドレスを取得
+      - PC1、PC2、DNSサーバーがDHCPで適切なIPアドレスを取得できること
+      - DNSサーバーのDNSテーブルに「Web」という名前でWebサーバーのIPアドレスを登録
+      - PC1とPC2からWebサーバーへのPing疎通とHTTP通信ができること
+      - PC1とPC2からDNSサーバーを通じてホスト名「Web」でWebサーバーにアクセスできること
+
+      **解決手順**
+      1. ネットワークシミュレータで上記構成を作成
+      2. ルーターのLAN1でDHCPサーバーを有効化
+      3. ルーターのWANでDHCPを有効化（インターネットからIP取得）
+      4. WebサーバーとDNSサーバーでDHCPを有効化（インターネットからグローバルIP取得）
+      5. PC1、PC2、DNSサーバーでDHCPを有効化
+      6. DNSサーバーのDNSテーブルに「Web」レコードを追加
+      7. 通信テストでPing、HTTP通信、DNS名前解決を確認
+      8. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
+      9. 自動判定で正解かどうかを確認
+
+      **評価ポイント**
+      - 正しいトポロジ（接続関係）の構築
+      - 適切なDHCP設定による自動IP割り当て
+      - インターネット経由のグローバル通信
+      - DNS名前解決機能の実装
+      - PC→DNS→Webサーバーの名前解決経路確立
+
+    # ファイル操作課題の特別な設定
+    downloadFile: "/network-simulator/exercises/network-construction-5-problem.json"
+    expectedChanges:
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのLAN1でDHCPを有効化してPC1、PC2、DNSサーバーにIPアドレスを配布する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.dhcpServerEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターでDHCPサーバー機能を有効化する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "wanConfig.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのWANでDHCPを有効化してインターネットからグローバルIPを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-1でDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-2でDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "Webサーバー-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "WebサーバーでDHCPを有効化してインターネットからグローバルIPを取得する必要があります"
+        excludeValues: []
+      - deviceName: "DNSサーバー-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "DNSサーバーでDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-1はルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-2はルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "DNSサーバー-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "DNSサーバーはルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "Webサーバー-1"
+        property: "config.isInternetConnected"
+        expectedPattern: "true"
+        explanation: "Webサーバーがインターネットに接続され、グローバルIPを取得している必要があります"
+        excludeValues: []
+      - deviceName: "DNSサーバー-1"
+        property: "config.isInternetConnected"
+        expectedPattern: "true"
+        explanation: "DNSサーバーがインターネットに接続され、グローバルIPを取得している必要があります"
+        excludeValues: []
+      - deviceName: "DNSサーバー-1"
+        property: "dnsTable.Web"
+        expectedPattern: "webserver_ip_match"
+        explanation: "DNSサーバーのDNSテーブルに「Web」レコードでWebサーバーのグローバルIPアドレスが登録されている必要があります"
+        excludeValues: []
+
+    points: 250
+    difficulty: hard
+    tags:
+      - ネットワーク構築
+      - DNS設定
+      - 名前解決
+      - DHCP設定
+      - インターネット接続
+      - HTTP通信
+      - 複合ネットワーク
+      - グローバルIP
+
+    # 通常の選択肢は使用しない（ファイル操作課題のため）
+    options: []
+    explanation: |
+      **解答解説**
+
+      この課題では、DNS名前解決機能を含む最も複雑なネットワーク構成を構築しました。
+
+      **構成のポイント:**
+      1. **階層的ネットワーク設計**: PC層→スイッチ層→ルーター層→インターネット層→サーバー層
+      2. **DHCP設定の階層**: ローカル（ルーター→PC・DNS）とグローバル（インターネット→各サーバー）
+      3. **DNS名前解決**: ホスト名「Web」からWebサーバーのIPアドレス解決
+      4. **分散接続**: 複数のONUとISPポートによる冗長性
+
+      **学習ポイント:**
+      - **DNS（Domain Name System）**: ホスト名とIPアドレスの対応関係を管理
+      - **名前解決プロセス**: PC→DNSサーバー→Webサーバーの通信フロー
+      - **グローバルIP管理**: インターネット上での一意なアドレス管理
+      - **ネットワーク冗長性**: 複数のインターネット接続による可用性向上
+
+      **実際の現場では:**
+      - 社内DNSサーバーによる内部システムの名前解決
+      - 外部DNSとの連携によるインターネットサービスアクセス
+      - 負荷分散DNSによる高可用性システム
+      - CDN（Content Delivery Network）との連携
+
+      **通信経路の理解:**
+      1. **PC→Webサーバー（IP直接）**: PC → ルーター → インターネット → Webサーバー
+      2. **PC→Webサーバー（DNS経由）**: PC → ルーター → インターネット → DNSサーバー → Webサーバー
+      3. **DNS解決フロー**: PC（ホスト名「Web」を問い合わせ）→ DNSサーバー（IPアドレス応答）→ PC（IPアドレスでアクセス）
+
+      **発展課題:**
+      このネットワークに以下を追加することを考えてみましょう：
+      - セカンダリDNSサーバーによる冗長化
+      - リバースDNS（逆引き）の設定
+      - DNSキャッシュ機能の実装
+      - 複数ドメインの名前解決
+      - DNSセキュリティ（DNSSEC）の導入
