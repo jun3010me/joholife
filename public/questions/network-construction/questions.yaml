@@ -86,104 +86,142 @@ questions:
       - IP設定
 
   - id: router-network
-    type: file-upload  
-    title: スイッチを使った3台PC接続とPing疎通
+    type: file-upload
+    title: ネットワーク疎通問題の修正
     description: |
-      **課題内容**
-      
-      以下の条件でネットワークを構築し、JSONファイルをアップロードしてください：
-      
-      **構成要件**
-      - スイッチ1台とPC3台を使用
-      - PC-1、PC-2、PC-3をすべてスイッチに接続
-      - PC-1のIPアドレス: 192.168.1.10
-      - PC-2のIPアドレス: 192.168.1.20  
-      - PC-3のIPアドレス: 192.168.1.30
-      - 全PCのサブネットマスク: 255.255.255.0
+      **課題概要**
+
+      以下のネットワーク構成において、一部のPC間でPing疎通ができない問題が発生しています。
+      問題を特定し、修正してください。
+
+      **ネットワーク構成**
+      - PC-1: 192.168.1.100
+      - PC-2: 192.168.1.101
+      - PC-3: ネットワーク設定に問題あり
+      - スイッチ-1: 192.168.1.10
+
+      **問題内容**
+      PC-3のネットワーク設定に問題があり、他のPCとの疎通ができません。
+
+      **修正要件**
+      - 全てのPCが同一ネットワークセグメント（192.168.1.0/24）に属すること
       - 全PC間でPing疎通が確認できること
-      
+      - サブネットマスク: 255.255.255.0
+
       **判定条件**
       - 1台のスイッチと3台のPCが存在する
       - 全てのPCがスイッチに接続されている
-      - IPアドレスが指定通りに設定されている
-      - 全PCが同一ネットワークセグメントに属している
+      - 全PCが192.168.1.0/24ネットワークセグメントに属している
       - PC間でPing疎通が確認できる
     validation: |
       function validateNetwork(networkData) {
+        console.log('[課題②デバッグ] validateNetwork開始', networkData);
         const { devices, connections } = networkData;
-        
+
         // デバイス数の確認
         const switches = devices.filter(d => d.type === 'switch');
         const pcs = devices.filter(d => d.type === 'pc');
-        
+
+        console.log('[課題②デバッグ] デバイス数 - スイッチ:', switches.length, 'PC:', pcs.length);
+
         if (switches.length !== 1) {
+          console.log('[課題②デバッグ] スイッチ数エラー');
           return { valid: false, message: 'スイッチが1台ではありません' };
         }
         if (pcs.length !== 3) {
+          console.log('[課題②デバッグ] PC数エラー');
           return { valid: false, message: 'PC数が3台ではありません' };
         }
         
         // 接続の確認（3台のPCがスイッチに接続されている）
+        console.log('[課題②デバッグ] 接続数:', connections.length);
         if (connections.length !== 3) {
+          console.log('[課題②デバッグ] 接続数エラー');
           return { valid: false, message: 'PC-スイッチ間の接続が正しくありません' };
         }
-        
+
         const switchId = switches[0].id;
-        const pcConnections = connections.filter(conn => 
+        console.log('[課題②デバッグ] スイッチID:', switchId);
+        const pcConnections = connections.filter(conn =>
           conn.from.deviceId === switchId || conn.to.deviceId === switchId
         );
-        
+        console.log('[課題②デバッグ] スイッチ接続数:', pcConnections.length, 'pcConnections:', pcConnections);
+
         if (pcConnections.length !== 3) {
+          console.log('[課題②デバッグ] スイッチ接続数エラー');
           return { valid: false, message: '全てのPCがスイッチに接続されていません' };
         }
-        
-        // IPアドレスの確認
-        const targetIPs = ['192.168.1.10', '192.168.1.20', '192.168.1.30'];
-        const actualIPs = pcs.map(pc => pc.config.ipAddress).sort();
-        targetIPs.sort();
-        
-        if (!targetIPs.every((ip, i) => ip === actualIPs[i])) {
-          return { valid: false, message: 'PCのIPアドレスが指定通りに設定されていません' };
+
+        // IPアドレスの確認（192.168.1.0/24セグメント内であることを確認）
+        const actualIPs = pcs.map(pc => pc.config.ipAddress);
+        console.log('[課題②デバッグ] PCのIPアドレス:', actualIPs);
+
+        for (const ip of actualIPs) {
+          if (!ip || typeof ip !== 'string') {
+            console.log('[課題②デバッグ] 無効IPアドレス:', ip);
+            return { valid: false, message: '無効なIPアドレスが設定されています' };
+          }
+
+          // 192.168.1.0/24セグメント内かチェック
+          const parts = ip.split('.');
+          console.log('[課題②デバッグ] IPパーツ:', ip, parts);
+          if (parts.length !== 4 || parts[0] !== '192' || parts[1] !== '168' || parts[2] !== '1') {
+            console.log('[課題②デバッグ] セグメントエラー:', ip, parts);
+            return { valid: false, message: `PCのIPアドレス ${ip} が192.168.1.0/24セグメントに属していません` };
+          }
+
+          // ホスト部が有効範囲（1-254）かチェック
+          const hostPart = parseInt(parts[3]);
+          console.log('[課題②デバッグ] ホスト部:', hostPart);
+          if (hostPart < 1 || hostPart > 254) {
+            console.log('[課題②デバッグ] ホスト部エラー:', hostPart);
+            return { valid: false, message: `PCのIPアドレス ${ip} のホスト部が無効です（1-254の範囲で設定してください）` };
+          }
         }
-        
+
+        // IPアドレスの重複チェック
+        const uniqueIPs = new Set(actualIPs);
+        console.log('[課題②デバッグ] IP重複チェック - 元の数:', actualIPs.length, 'ユニーク数:', uniqueIPs.size);
+        if (uniqueIPs.size !== actualIPs.length) {
+          console.log('[課題②デバッグ] IP重複エラー');
+          return { valid: false, message: 'PCのIPアドレスに重複があります' };
+        }
+
         // PCのサブネットマスクの確認（スイッチなのでデフォルトゲートウェイは不要）
+        console.log('[課題②デバッグ] サブネットマスクチェック開始');
         for (const pc of pcs) {
+          console.log('[課題②デバッグ] PC:', pc.name, 'サブネットマスク:', pc.config.subnetMask);
           if (pc.config.subnetMask !== '255.255.255.0') {
+            console.log('[課題②デバッグ] サブネットマスクエラー:', pc.name, pc.config.subnetMask);
             return { valid: false, message: 'サブネットマスクが正しく設定されていません' };
           }
         }
-        
-        // Ping疎通確認（同一セグメント内でのPing）
-        // 192.168.1.0/24 セグメント内で全PC間が疎通可能かチェック
-        const ipAddresses = pcs.map(pc => pc.config.ipAddress);
-        for (let i = 0; i < ipAddresses.length; i++) {
-          for (let j = i + 1; j < ipAddresses.length; j++) {
-            const ip1 = ipAddresses[i];
-            const ip2 = ipAddresses[j];
-            
-            // 同一セグメント確認（192.168.1.0/24）
-            const subnet1 = ip1.split('.').slice(0, 3).join('.');
-            const subnet2 = ip2.split('.').slice(0, 3).join('.');
-            
-            if (subnet1 !== '192.168.1' || subnet2 !== '192.168.1') {
-              return { valid: false, message: '全PCが同一セグメント（192.168.1.0/24）に属していません' };
-            }
-          }
-        }
-        
-        return { valid: true, message: '全ての条件を満たしています！スイッチ経由で3台のPCが同一セグメントで接続され、Ping疎通が可能です。' };
+
+        // Ping疎通確認（同一セグメント内での疎通確認は既に上記でチェック済み）
+        // 192.168.1.0/24セグメント内で全PCが接続されていることを確認
+
+        console.log('[課題②デバッグ] 全チェック完了 - 成功');
+        return { valid: true, message: '全ての条件を満たしています！\n' +
+                                     '✅ スイッチ経由で3台のPCが192.168.1.0/24セグメントで接続され、Ping疎通が可能です。\n' +
+                                     '✅ ネットワーク疎通問題が修正されました。' };
       }
     explanation: |
-      この課題では、スイッチを中心とした基本的なLAN構成を学習しました。
-      
-      **ポイント**
-      - **スイッチの役割**: レイヤー2で動作し、MACアドレスを学習してフレームを転送
-      - **スター型トポロジ**: スイッチを中心とした接続形態で、コリジョンドメインを分離
-      - **同一セグメント通信**: 全PCが同じネットワークセグメントでPing疎通が可能
-      - **IPアドレス管理**: 同一セグメント内でのユニークなIPアドレス割り当て
-      - **ブロードキャストドメイン**: スイッチ配下の全ポートが同一ブロードキャストドメイン
-      
-      この構成は、小規模なLANセグメントの基本形で、スイッチの動作原理を理解できます。
+      この課題では、ネットワーク疎通問題のトラブルシューティングを学習しました。
+
+      **解決した問題**
+      - **IPアドレス設定問題**: PC-3が異なるネットワークセグメントに設定されていた
+      - **疎通障害**: セグメント不一致によるPing疎通失敗
+
+      **学習ポイント**
+      - **同一セグメント通信**: 全PCが192.168.1.0/24の同じネットワークセグメントに属する必要性
+      - **IPアドレス管理**: ユニークなIPアドレス割り当ての重要性
+      - **ネットワーク設計**: スイッチ配下の全デバイスは同一ブロードキャストドメイン
+      - **トラブルシューティング**: Ping疎通テストによる接続確認手法
+
+      **実際の現場では**
+      - ネットワーク設定ミスによる疎通問題は頻繁に発生
+      - IPアドレス、サブネットマスク、デフォルトゲートウェイの設定確認が基本
+      - セグメント設計の重要性とVLAN分割への応用
     difficulty: medium
     points: 15
     tags:
