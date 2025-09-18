@@ -32,7 +32,7 @@ questions:
       - スイッチ-2をルーターの任意のLANポート（LAN2またはLAN3）に接続
       - PC-1とPC-2をスイッチ-1に接続
       - PC-3とPC-4をスイッチ-2に接続
-      - すべてのPC・スイッチでDHCP有効
+      - すべてのPCでDHCP有効、スイッチは適切なセグメントでIP設定
       
       **IPアドレス設定要件**
       - LAN1セグメント: 192.168.1.0/24（DHCP範囲: 192.168.1.100-199）
@@ -44,7 +44,7 @@ questions:
       **解決手順**
       1. ネットワークシミュレータで上記構成を作成
       2. ルーターのLAN1・LAN2でDHCPを有効化し、適切なIP範囲を設定
-      3. すべてのデバイスでDHCPを有効化してIPアドレスを自動取得
+      3. すべてのPCでDHCPを有効化してIPアドレスを自動取得、スイッチは手動でIP設定
       4. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
       5. 自動判定で正解かどうかを確認
       
@@ -88,14 +88,14 @@ questions:
         explanation: "PC-4でDHCPを有効化してIPアドレスを自動取得する必要があります"
         excludeValues: []
       - deviceName: "スイッチ-1"
-        property: "config.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "スイッチ-1でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "スイッチ-1は192.168.1.xネットワークに適切なIPアドレスを設定する必要があります"
         excludeValues: []
       - deviceName: "スイッチ-2"
-        property: "config.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "スイッチ-2でDHCPを有効化してIPアドレスを自動取得する必要があります"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.2\\.[0-9]+$"
+        explanation: "スイッチ-2は192.168.2.xネットワークに適切なIPアドレスを設定する必要があります"
         excludeValues: []
       - deviceName: "PC-1"
         property: "config.ipAddress"

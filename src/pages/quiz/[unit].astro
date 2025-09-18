@@ -157,8 +157,9 @@ async function loadQuestionSet(setId) {
         } else if (key === 'downloadFile') {
           currentQuestion.downloadFile = value.replace(/['"]/g, '');
         } else if (key === 'expectedChanges') {
-          currentQuestion.expectedChanges = {};
+          currentQuestion.expectedChanges = [];
           currentQuestion._isReadingExpectedChanges = true;
+          currentQuestion._currentExpectedChange = null;
         } else if (key === 'options') {
           inOptions = true;
           inQuestionTags = false;
@@ -167,6 +168,7 @@ async function loadQuestionSet(setId) {
             currentQuestion._isReadingDescription = false;
             currentQuestion._isReadingExplanation = false;
             currentQuestion._isReadingExpectedChanges = false;
+            currentQuestion._currentExpectedChange = null;
           }
         } else if (key === 'tags') {
           inQuestionTags = true;
@@ -176,6 +178,7 @@ async function loadQuestionSet(setId) {
             currentQuestion._isReadingDescription = false;
             currentQuestion._isReadingExplanation = false;
             currentQuestion._isReadingExpectedChanges = false;
+            currentQuestion._currentExpectedChange = null;
           }
         }
       }
@@ -183,24 +186,36 @@ async function loadQuestionSet(setId) {
       else if (currentQuestion && currentQuestion._isReadingExpectedChanges && (indent === 6 || indent === 8) && trimmed.includes(':')) {
         const [key, ...valueParts] = trimmed.split(':');
         const value = valueParts.join(':').trim();
-        
-        if (key === '- deviceName' || key === 'deviceName') {
-          currentQuestion.expectedChanges.deviceName = value.replace(/['"]/g, '');
-        } else if (key === 'property') {
-          currentQuestion.expectedChanges.property = value.replace(/['"]/g, '');
-        } else if (key === 'expectedPattern') {
-          currentQuestion.expectedChanges.expectedPattern = value.replace(/['"]/g, '');
-        } else if (key === 'explanation') {
-          currentQuestion.expectedChanges.explanation = value.replace(/['"]/g, '');
-        } else if (key === 'excludeValues') {
-          currentQuestion.expectedChanges.excludeValues = [];
+
+        if (key === '- deviceName') {
+          // Start a new expected change item
+          currentQuestion._currentExpectedChange = {
+            deviceName: value.replace(/['"]/g, ''),
+            property: '',
+            expectedPattern: '',
+            explanation: '',
+            excludeValues: []
+          };
+          currentQuestion.expectedChanges.push(currentQuestion._currentExpectedChange);
+        } else if (key === 'deviceName' && currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.deviceName = value.replace(/['"]/g, '');
+        } else if (key === 'property' && currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.property = value.replace(/['"]/g, '');
+        } else if (key === 'expectedPattern' && currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.expectedPattern = value.replace(/['"]/g, '');
+        } else if (key === 'explanation' && currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.explanation = value.replace(/['"]/g, '');
+        } else if (key === 'excludeValues' && currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.excludeValues = [];
           currentQuestion._isReadingExcludeValues = true;
         }
       }
       // Exclude values array
       else if (currentQuestion && currentQuestion._isReadingExcludeValues && indent === 8 && trimmed.startsWith('- ')) {
         const value = trimmed.substring(2).trim().replace(/['"]/g, '');
-        currentQuestion.expectedChanges.excludeValues.push(value);
+        if (currentQuestion._currentExpectedChange) {
+          currentQuestion._currentExpectedChange.excludeValues.push(value);
+        }
       }
       // Multi-line content
       else if (currentQuestion && indent === 6 && (currentQuestion._isReadingDescription || currentQuestion._isReadingExplanation)) {
@@ -1592,9 +1607,11 @@ class QuizSession {
         };
       }
 
-      // Check if expectedChanges is an array (for course ④) or single object (for course ③)
+      // Check if expectedChanges is an array (for course ③④) or single object (backward compatibility)
       const changesArray = Array.isArray(expectedChanges) ? expectedChanges : [expectedChanges];
       console.log('Processing changes array:', changesArray);
+      console.log('Changes array length:', changesArray.length);
+      console.log('Sample change item:', changesArray[0]);
 
       const failedChecks = [];
 
@@ -1638,6 +1655,11 @@ class QuizSession {
 
         if (!isMatch) {
           failedChecks.push(`${change.explanation || `${change.deviceName}の${change.property}が期待値と一致しません`}`);
+          console.log(`❌ FAILED: ${change.deviceName}.${change.property}`);
+          console.log(`   Expected: ${change.expectedPattern}`);
+          console.log(`   Actual: ${actualValue} (${typeof actualValue})`);
+        } else {
+          console.log(`✅ PASSED: ${change.deviceName}.${change.property} = ${actualValue}`);
         }
       }
 

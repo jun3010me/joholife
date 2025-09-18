@@ -5739,6 +5739,9 @@ class NetworkSimulator {
             console.log('DNSテーブル保存:', dnsTable);
         }
         
+        // 設定変更後、関連デバイスのDHCP状態を再評価
+        this.refreshConnectedDevicesDHCP(this.currentDeviceConfig);
+
         this.hideDeviceConfig();
         this.updateStatus(`${name} の設定を更新しました`);
         this.scheduleRender();
@@ -5801,14 +5804,19 @@ class NetworkSimulator {
 
     // 描画
     render() {
+        // キャンバスサイズを取得して確実にクリア
         const rect = this.canvas.getBoundingClientRect();
-        this.ctx.clearRect(0, 0, rect.width, rect.height);
+        this.ctx.save();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // 変換行列をリセット
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.restore();
         
         this.ctx.save();
         this.ctx.translate(this.panX, this.panY);
         this.ctx.scale(this.scale, this.scale);
         
         // 単一NICデバイスの動的ポート位置を更新（パフォーマンス最適化）
+        // JSON読み込み直後は必ず更新する（lastNICUpdateFrameがnullの場合）
         if (!this.lastNICUpdateFrame || (performance.now() - this.lastNICUpdateFrame) > 50) {
             this.updateAllDynamicNICPositions();
             this.lastNICUpdateFrame = performance.now();
@@ -6355,7 +6363,16 @@ class NetworkSimulator {
     // DHCP アドレス要求（複数LAN対応・デバッグ強化）
     requestDHCPAddress(client) {
         console.log(`\n=== DHCP要求開始: ${client.name} ===`);
-        
+
+        // 最初にインターネット接続を確認（グローバルIP取得を優先）
+        if (this.checkAndAssignInternetIP(client)) {
+            console.log(`✅ インターネットからグローバルIP取得成功: ${client.name}`);
+            console.log(`=== DHCP要求完了: ${client.name} ===\n`);
+            return true;
+        }
+
+        console.log(`ローカルネットワーク内でのDHCP要求に移行: ${client.name}`);
+
         // 接続されたDHCPサーバー（ルーター）を探す
         const dhcpServerInfo = this.findDHCPServer(client);
         
@@ -7187,8 +7204,21 @@ class NetworkSimulator {
                 this.syncLAN1Addresses();
                 
                 this.updateControlButtons();
+
+                // ファイル読み込み後は強制的にNICポジション更新を実行
+                this.lastNICUpdateFrame = null; // フレーム制限をリセット
+                this.updateAllDynamicNICPositions();
+
                 // ファイル読み込み後は即座に描画を実行
                 this.render();
+
+                // 少し遅延してもう一度描画を実行（確実に表示されるように）
+                setTimeout(() => {
+                    this.render();
+                    // デバッグ用: 描画後にデバイス数を確認
+                    console.log(`描画完了: ${this.devices.size}個のデバイス, ${this.connections.length}個の接続`);
+                }, 50);
+
                 this.updateStatus('ネットワーク構成を読み込みました（全設定情報を含む）');
                 
             } catch (error) {
@@ -7244,20 +7274,277 @@ class NetworkSimulator {
     // DHCPアドレス割り当てを試行
     tryAssignDHCPAddress(device, router) {
         if (router.type === 'router' && router.config) {
-            // 各LANポートのDHCP設定をチェック
-            const lanConfigs = ['lan1', 'lan2', 'lan3'];
-            
-            for (const lanKey of lanConfigs) {
-                const lanConfig = router.config[lanKey];
+            // デバイスが接続されているLANポートを特定
+            const connectedLanPort = this.getConnectedLanPort(device, router);
+
+            if (connectedLanPort) {
+                const lanConfig = router.config[connectedLanPort];
                 if (lanConfig && lanConfig.dhcpEnabled) {
                     const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, device, router);
                     if (assignedIP && assignedIP !== '0.0.0.0') {
+                        console.log(`DHCP: ${device.name} got IP ${assignedIP} from ${router.name} ${connectedLanPort}`);
                         return assignedIP;
+                    }
+                }
+            } else {
+                console.log(`Warning: Could not determine LAN port for device ${device.name}. Available connections:`,
+                    this.connections.filter(c => c.from.device === device || c.to.device === device));
+                // フォールバック: 従来の方式（すべてのLANをチェック）
+                const lanConfigs = ['lan1', 'lan2', 'lan3'];
+
+                for (const lanKey of lanConfigs) {
+                    const lanConfig = router.config[lanKey];
+                    if (lanConfig && lanConfig.dhcpEnabled) {
+                        const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, device, router);
+                        if (assignedIP && assignedIP !== '0.0.0.0') {
+                            console.log(`DHCP fallback: ${device.name} got IP ${assignedIP} from ${router.name} ${lanKey}`);
+                            return assignedIP;
+                        }
                     }
                 }
             }
         }
         return null;
+    }
+
+    // デバイスがルーターのどのLANポートに接続されているかを特定
+    getConnectedLanPort(device, router) {
+        // 直接接続の場合
+        const directConnection = this.connections.find(connection => {
+            return (connection.from.device === device && connection.to.device === router) ||
+                   (connection.to.device === device && connection.from.device === router);
+        });
+
+        if (directConnection) {
+            // ルーター側のポートIDからLAN番号を特定
+            let routerPortId;
+            if (directConnection.from.device === router) {
+                routerPortId = directConnection.from.port.id;
+            } else {
+                routerPortId = directConnection.to.port.id;
+            }
+
+            // ポートIDからLAN番号を判定
+            if (routerPortId === 'lan1') return 'lan1';
+            if (routerPortId === 'lan2') return 'lan2';
+            if (routerPortId === 'lan3') return 'lan3';
+        }
+
+        // 間接接続（スイッチ経由）の場合
+        const connectedSwitches = this.getConnectedSwitches(device);
+        for (const switchDevice of connectedSwitches) {
+            const switchToRouterConnection = this.connections.find(connection => {
+                return (connection.from.device === switchDevice && connection.to.device === router) ||
+                       (connection.to.device === switchDevice && connection.from.device === router);
+            });
+
+            if (switchToRouterConnection) {
+                // スイッチとルーター間の接続からLANポートを特定
+                let routerPortId;
+                if (switchToRouterConnection.from.device === router) {
+                    routerPortId = switchToRouterConnection.from.port.id;
+                } else {
+                    routerPortId = switchToRouterConnection.to.port.id;
+                }
+
+                // ポートIDからLAN番号を判定
+                if (routerPortId === 'lan1') return 'lan1';
+                if (routerPortId === 'lan2') return 'lan2';
+                if (routerPortId === 'lan3') return 'lan3';
+            }
+        }
+
+        return null; // 接続が見つからない場合
+    }
+
+    // デバイスに接続されたスイッチを取得
+    getConnectedSwitches(device) {
+        const switches = [];
+
+        this.connections.forEach(connection => {
+            let connectedDevice = null;
+
+            if (connection.from.device === device && connection.to.device.type === 'switch') {
+                connectedDevice = connection.to.device;
+            } else if (connection.to.device === device && connection.from.device.type === 'switch') {
+                connectedDevice = connection.from.device;
+            }
+
+            if (connectedDevice && !switches.includes(connectedDevice)) {
+                switches.push(connectedDevice);
+            }
+        });
+
+        return switches;
+    }
+
+    // インターネット接続確認とグローバルIP割り当て
+    checkAndAssignInternetIP(device) {
+        // デバイスがONU経由でインターネットに接続されているかチェック
+        const internetConnection = this.findInternetConnection(device);
+
+        if (!internetConnection) {
+            console.log(`インターネット接続なし: ${device.name}`);
+            return false;
+        }
+
+        const { internetDevice, onuDevice } = internetConnection;
+        console.log(`インターネット接続発見: ${device.name} -> ${onuDevice.name} -> ${internetDevice.name}`);
+
+        // 利用可能なグローバルIPを取得
+        const globalIP = this.getAvailableGlobalIP(internetDevice);
+
+        if (!globalIP) {
+            console.log(`❌ グローバルIP取得失敗: ${device.name} - 利用可能なIPがありません`);
+            return false;
+        }
+
+        // インターネット接続状態を設定
+        device.config.isInternetConnected = true;
+        device.config.internetDevice = internetDevice;
+        device.config.availableGlobalIP = globalIP;
+
+        // DHCPが有効な場合のみIPアドレスを自動変更
+        if (device.config.dhcpEnabled) {
+            device.config.ipAddress = globalIP.ip;
+            device.config.subnetMask = '255.255.255.0';
+            device.config.defaultGateway = globalIP.gateway;
+            device.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
+
+            // lan1.ipAddress も同期して更新
+            if (device.config.lan1) {
+                device.config.lan1.ipAddress = globalIP.ip;
+            }
+
+            this.updateStatus(`🌐 ${device.name} がインターネットからグローバルIP ${globalIP.ip} を取得しました`);
+            console.log(`グローバルIP設定完了: ${device.name} = ${globalIP.ip}`);
+            return true;
+        } else {
+            // DHCP無効の場合は既存のIPを維持
+            this.updateStatus(`🌐 ${device.name} がインターネットに接続されました（固定IP: ${device.config.ipAddress}）`);
+            console.log(`インターネット接続設定完了（固定IP維持）: ${device.name}`);
+            return false; // DHCPによるIP変更は行わない
+        }
+    }
+
+    // 利用可能なグローバルIPアドレスを取得（assignGlobalIPと同様のロジック）
+    getAvailableGlobalIP(internetDevice) {
+        // インターネットデバイスのグローバルIPプールを確認
+        if (!internetDevice.globalIPPool) {
+            // グローバルIPプールを初期化
+            internetDevice.globalIPPool = {
+                network: '203.0.113.0',
+                startIP: 10,
+                endIP: 250,
+                assignedIPs: new Set(),
+                gateway: '203.0.113.1'
+            };
+        }
+
+        const pool = internetDevice.globalIPPool;
+
+        // 利用可能なIPアドレスを検索
+        for (let i = pool.startIP; i <= pool.endIP; i++) {
+            const candidateIP = `203.0.113.${i}`;
+            if (!pool.assignedIPs.has(candidateIP)) {
+                // IPアドレスをプールに追加（実際に割り当て）
+                pool.assignedIPs.add(candidateIP);
+                return {
+                    ip: candidateIP,
+                    gateway: pool.gateway,
+                    network: pool.network
+                };
+            }
+        }
+
+        console.warn('グローバルIPプールが枯渇しました');
+        return null;
+    }
+
+    // デバイスのインターネット接続を検索
+    findInternetConnection(device) {
+        // 直接ONU接続をチェック
+        for (const connection of this.connections) {
+            let onuDevice = null;
+
+            if (connection.from.device === device && connection.to.device.type === 'onu') {
+                onuDevice = connection.to.device;
+            } else if (connection.to.device === device && connection.from.device.type === 'onu') {
+                onuDevice = connection.from.device;
+            }
+
+            if (onuDevice) {
+                // ONUのインターネット接続をチェック
+                const internetDevice = this.getONUInternetConnection(onuDevice);
+                if (internetDevice) {
+                    return { internetDevice, onuDevice };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ONUのインターネット接続を取得
+    getONUInternetConnection(onuDevice) {
+        for (const connection of this.connections) {
+            let internetDevice = null;
+
+            if (connection.from.device === onuDevice && connection.to.device.type === 'internet') {
+                internetDevice = connection.to.device;
+            } else if (connection.to.device === onuDevice && connection.from.device.type === 'internet') {
+                internetDevice = connection.from.device;
+            }
+
+            if (internetDevice) {
+                return internetDevice;
+            }
+        }
+
+        return null;
+    }
+
+    // 関連デバイスのDHCP状態を更新
+    refreshConnectedDevicesDHCP(changedDevice) {
+        // ルーターの設定が変更された場合、接続されたデバイスのDHCP状態を更新
+        if (changedDevice.type === 'router') {
+            this.connections.forEach(connection => {
+                let connectedDevice = null;
+
+                // ルーターに直接または間接的に接続されたデバイスを特定
+                if (connection.from.device === changedDevice) {
+                    connectedDevice = connection.to.device;
+                } else if (connection.to.device === changedDevice) {
+                    connectedDevice = connection.from.device;
+                }
+
+                if (connectedDevice && connectedDevice.config && connectedDevice.config.dhcpEnabled) {
+                    console.log(`Refreshing DHCP for ${connectedDevice.name} due to router change`);
+                    this.requestDHCPAddress(connectedDevice);
+                }
+
+                // スイッチ経由の接続もチェック
+                if (connectedDevice && connectedDevice.type === 'switch') {
+                    this.connections.forEach(switchConnection => {
+                        let switchConnectedDevice = null;
+
+                        if (switchConnection.from.device === connectedDevice) {
+                            switchConnectedDevice = switchConnection.to.device;
+                        } else if (switchConnection.to.device === connectedDevice) {
+                            switchConnectedDevice = switchConnection.from.device;
+                        }
+
+                        if (switchConnectedDevice &&
+                            switchConnectedDevice !== changedDevice &&
+                            switchConnectedDevice.config &&
+                            switchConnectedDevice.config.dhcpEnabled) {
+                            console.log(`Refreshing DHCP for ${switchConnectedDevice.name} via switch ${connectedDevice.name}`);
+                            this.requestDHCPAddress(switchConnectedDevice);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     // デバイスに接続されたルーターを取得
