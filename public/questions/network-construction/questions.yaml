@@ -1,5 +1,5 @@
 id: network-construction
-title: ネットワーク構築課題①
+title: ネットワーク構築課題
 description: ネットワーク構築シミュレータで作成したネットワークをJSONファイルでアップロードして、課題条件を満たしているかを判定します
 icon: 🌐
 difficulty: medium
@@ -192,3 +192,4 @@ questions:
       - Ping疎通
       - LAN設計
       - スター型
+

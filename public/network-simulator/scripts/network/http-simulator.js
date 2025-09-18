@@ -155,16 +155,19 @@ class HTTPSimulator {
             return null;
         }
 
-        // 既存セッションがある場合はリセット、なければ新規作成
-        let session = this.sessions.get(connection.id);
-        if (session) {
-            console.log('既存HTTPセッションをリセット:', connection.id);
-            session.reset();
-        } else {
-            console.log('新規HTTPセッション作成:', connection.id);
-            session = new HTTPSession(connection, this);
-            this.sessions.set(connection.id, session);
+        // 既存セッションがある場合は削除して新規作成
+        if (this.sessions.has(connection.id)) {
+            console.log('既存HTTPセッションを削除:', connection.id);
+            const oldSession = this.sessions.get(connection.id);
+            if (oldSession.connection) {
+                oldSession.connection.close();
+            }
+            this.sessions.delete(connection.id);
         }
+
+        console.log('新規HTTPセッション作成:', connection.id);
+        const session = new HTTPSession(connection, this);
+        this.sessions.set(connection.id, session);
 
         // TCP接続のイベントリスナーを設定
         this.setupTCPEventListeners(connection, session);
@@ -420,6 +423,7 @@ class HTTPSession {
         this.responseReceived = false;
         this.requestProcessed = false; // サーバー側でのリクエスト処理完了フラグ
         this.responseProcessed = false; // クライアント側でのレスポンス処理完了フラグ
+        this.responseSent = false; // レスポンス送信済みフラグ
         this.pendingRequest = null;
         this.receivedData = '';
         this.parsedRequest = null;
@@ -432,9 +436,9 @@ class HTTPSession {
 
     // 受信データの処理
     handleReceivedData(data) {
-        // 処理済みフラグをチェック（ただし、同じデータの重複のみをチェック）
-        if (this.processed && this.receivedData.includes(data)) {
-            // console.log('既に処理済みのセッション、スキップ');
+        // 重複データの処理を防ぐ
+        if (this.receivedData.includes(data)) {
+            console.log('重複データを検出、処理をスキップ:', data.substring(0, 50));
             return;
         }
         
@@ -461,10 +465,10 @@ class HTTPSession {
                     console.log('サーバー側なのでレスポンス解析をスキップ、またはレスポンス処理済み');
                 }
             } else if (firstLine.match(/^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)\s/)) {
-                // リクエストを解析（サーバー側のデバイスまたはHTTPハンドラーがある場合）
+                // リクエストを解析（サーバー側で未処理の場合のみ）
                 const isServer = this.connection.remoteDevice.type === 'server' || this.connection.remoteDevice.name.includes('サーバー');
                 if (isServer && !this.requestProcessed) {
-                    // console.log('HTTPリクエストとして解析中...');
+                    console.log('HTTPリクエストとして解析中...');
                     this.httpSimulator.addToLog(`PARSING: Request on ${this.id}`);
                     this.parseHTTPRequest();
                     this.requestProcessed = true; // リクエスト処理完了マーク
@@ -518,6 +522,12 @@ class HTTPSession {
             request: this.parsedRequest
         });
         
+        // レスポンス送信済みかチェック
+        if (this.responseSent) {
+            console.log('既にレスポンス送信済み、スキップ');
+            return;
+        }
+
         // サーバーハンドラーを呼び出し
         let response;
         if (this.connection.localDevice.httpHandler) {
@@ -532,9 +542,10 @@ class HTTPSession {
             };
             console.log('デフォルトHTTPレスポンス生成');
         }
-        
+
         // HTTPレスポンスを送信（サーバー側の接続を使用）
         if (response) {
+            this.responseSent = true; // レスポンス送信済みマーク
             this.httpSimulator.addToLog(`RESPONSE: ${response.statusCode} ${response.statusText}`);
             const responseData = this.httpSimulator.buildHTTPResponse(
                 response.statusCode, 
@@ -672,6 +683,7 @@ class HTTPSession {
         this.responseReceived = false;
         this.requestProcessed = false;
         this.responseProcessed = false;
+        this.responseSent = false;
         this.pendingRequest = null;
         this.receivedData = '';
         this.parsedRequest = null;

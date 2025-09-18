@@ -1581,7 +1581,7 @@ class QuizSession {
       console.log('Parsing JSON...');
       const networkData = JSON.parse(fileContent);
       console.log('JSON parsed successfully, devices count:', networkData.devices?.length);
-      
+
       // Expected changes from YAML configuration
       const expectedChanges = this.getExpectedChanges(question);
       console.log('Expected changes:', expectedChanges);
@@ -1591,83 +1591,68 @@ class QuizSession {
           message: '課題設定エラー：期待される変更が定義されていません。'
         };
       }
-      
-      // Find the target device
-      const targetDevice = networkData.devices?.find(device => 
-        device.name === expectedChanges.deviceName
-      );
-      console.log('Target device found:', targetDevice);
-      
-      if (!targetDevice) {
+
+      // Check if expectedChanges is an array (for course ④) or single object (for course ③)
+      const changesArray = Array.isArray(expectedChanges) ? expectedChanges : [expectedChanges];
+      console.log('Processing changes array:', changesArray);
+
+      const failedChecks = [];
+
+      // Validate each expected change
+      for (const change of changesArray) {
+        console.log(`Checking: ${change.deviceName}.${change.property}`);
+
+        // Find the target device
+        const targetDevice = networkData.devices?.find(device =>
+          device.name === change.deviceName
+        );
+
+        if (!targetDevice) {
+          failedChecks.push(`デバイス「${change.deviceName}」が見つかりません。`);
+          continue;
+        }
+
+        // Get the actual value
+        const actualValue = this.getNestedProperty(targetDevice, change.property);
+        console.log(`${change.deviceName}.${change.property} = ${actualValue} (${typeof actualValue})`);
+
+        // Pattern matching
+        let isMatch = false;
+        if (change.expectedPattern === "true") {
+          isMatch = actualValue === true;
+        } else if (change.expectedPattern === "false") {
+          isMatch = actualValue === false;
+        } else if (change.expectedPattern.startsWith("^") && change.expectedPattern.endsWith("$")) {
+          // Regular expression pattern
+          const regex = new RegExp(change.expectedPattern);
+          isMatch = regex.test(String(actualValue));
+        } else {
+          isMatch = String(actualValue) === change.expectedPattern;
+        }
+
+        if (!isMatch) {
+          failedChecks.push(`${change.explanation || `${change.deviceName}の${change.property}が期待値と一致しません`}`);
+        }
+      }
+
+      if (failedChecks.length > 0) {
         return {
           isCorrect: false,
-          message: `デバイス「${expectedChanges.deviceName}」が見つかりません。`
+          message: '以下の条件を満たしていません：<br><br>' +
+                   failedChecks.map(msg => `• ${msg}`).join('<br>')
         };
       }
-      
-      // Check the IP address
-      const currentIP = this.getNestedProperty(targetDevice, expectedChanges.property);
-      console.log('Current IP from getNestedProperty:', currentIP, 'property:', expectedChanges.property);
-      if (!currentIP) {
-        return {
-          isCorrect: false,
-          message: `${expectedChanges.deviceName}のIPアドレスが設定されていません。`
-        };
-      }
-      
-      // Validate IP address format and range
-      if (!this.isValidIP(currentIP)) {
-        return {
-          isCorrect: false,
-          message: `無効なIPアドレス形式です：${currentIP}`
-        };
-      }
-      
-      // Check if IP is in 192.168.1.x network
-      if (!currentIP.startsWith('192.168.1.')) {
-        return {
-          isCorrect: false,
-          message: `IPアドレスが正しいネットワークにありません：${currentIP}<br>` +
-                   `192.168.1.xネットワーク内のIPアドレスを設定してください。`
-        };
-      }
-      
-      // Extract the last octet
-      const lastOctet = parseInt(currentIP.split('.')[3], 10);
-      if (isNaN(lastOctet) || lastOctet < 1 || lastOctet > 254) {
-        return {
-          isCorrect: false,
-          message: `無効なIPアドレス範囲です：${currentIP}<br>` +
-                   `最後のオクテットは1～254の範囲で設定してください。`
-        };
-      }
-      
-      // Check for conflicts with existing devices in the network
-      const usedIPs = this.getUsedIPsInNetwork(networkData, expectedChanges.deviceName);
-      console.log('デバッグ情報:', {
-        targetDevice: expectedChanges.deviceName,
-        currentIP: currentIP,
-        usedIPs: Array.from(usedIPs),
-        hasConflict: usedIPs.includes(currentIP)
-      });
-      
-      if (usedIPs.includes(currentIP)) {
-        return {
-          isCorrect: false,
-          message: `このIPアドレスは既に使用されています：${currentIP}<br>` +
-                   `他のデバイスと重複しないIPアドレスを選択してください。<br>` +
-                   `使用済みIP: ${Array.from(usedIPs).join(', ')}`
-        };
-      }
-      
+
       return {
         isCorrect: true,
         message: `✅ 正解です！<br>` +
-                 `${expectedChanges.deviceName}のIPアドレスが正しく修正されました：${currentIP}<br>` +
-                 `192.168.1.xネットワーク内で他のデバイスと重複しない適切なIPアドレスです。<br>` +
-                 `これで同一サブネット内での通信が可能になります。`
+                 `全ての設定要件を満たしています。<br>` +
+                 `• ルーターのDHCPサーバー機能が有効化されています<br>` +
+                 `• PC1とPC2がDHCPで適切なIPアドレスを取得しています<br>` +
+                 `• WebサーバーがインターネットからグローバルIPを取得しています<br>` +
+                 `• 複合ネットワーク構成が正しく構築されています`
       };
-      
+
     } catch (error) {
       return {
         isCorrect: false,

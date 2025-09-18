@@ -1,0 +1,158 @@
+id: network-construction-4
+title: ネットワーク構築課題④
+description: 複数PCとWebサーバーを含む複合ネットワークの構築
+icon: 🌐
+difficulty: hard
+estimatedTime: 30
+category: ネットワーク構築
+tags:
+  - ネットワーク設計
+  - DHCP設定
+  - インターネット接続
+  - HTTP通信
+  - 複合ネットワーク
+
+# この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
+questions:
+  - id: network_construction_4
+    type: file-analysis
+    title: 複数PCとWebサーバーを含む複合ネットワークの構築
+    description: |
+      **課題概要**
+
+      以下の要件を満たすネットワーク構成を作成してください。
+
+      **ネットワーク要件**
+      - PC2台（PC-1、PC-2）
+      - スイッチ1台
+      - ルーター1台
+      - ONU2台（ONU-1、ONU-2）
+      - Webサーバー1台
+      - インターネット1台
+
+      **接続要件**
+      1. PC1とPC2をスイッチに接続
+      2. スイッチをルーターのLANポートに接続
+      3. ルーターのWANポートをONU-1のLANポートに接続
+      4. ONU-1のWANポートをインターネットのISP1に接続
+      5. WebサーバーをONU-2のLANポートに接続
+      6. ONU-2のWANポートをインターネットの別のISPポート（ISP2～ISP6のいずれか）に接続
+
+      **設定要件**
+      - ルーターでDHCPサーバーを有効化し、PC1とPC2にIPアドレスを自動割り当て
+      - ルーターとWebサーバーはインターネットからDHCPでグローバルIPアドレスを取得
+      - PC1、PC2がDHCPで適切なIPアドレスを取得できること
+      - PC1とPC2からWebサーバーへのPing疎通ができること
+      - PC1とPC2からWebサーバーへのHTTP通信ができること
+      - WebサーバーがインターネットからグローバルIPを取得できること
+
+      **解決手順**
+      1. ネットワークシミュレータで上記構成を作成
+      2. ルーターのLAN1でDHCPサーバーを有効化
+      3. ルーターのWANでDHCPを有効化（インターネットからIP取得）
+      4. WebサーバーでDHCPを有効化（インターネットからグローバルIP取得）
+      5. PC1、PC2でDHCPを有効化
+      6. 通信テストでPingとHTTP通信を確認
+      7. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
+      8. 自動判定で正解かどうかを確認
+
+      **評価ポイント**
+      - 正しいトポロジ（接続関係）の構築
+      - 適切なDHCP設定による自動IP割り当て
+      - インターネット経由のグローバル通信
+      - PC→インターネット→Webサーバーの通信経路確立
+
+    # ファイル操作課題の特別な設定
+    downloadFile: "/network-simulator/exercises/network-construction-4-problem.json"
+    expectedChanges:
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのLAN1でDHCPを有効化してPC1、PC2にIPアドレスを配布する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.dhcpServerEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターでDHCPサーバー機能を有効化する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "wanConfig.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターのWANでDHCPを有効化してインターネットからグローバルIPを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-1でDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-2でDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "Webサーバー-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "WebサーバーでDHCPを有効化してインターネットからグローバルIPを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-1はルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
+        explanation: "PC-2はルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "Webサーバー-1"
+        property: "config.isInternetConnected"
+        expectedPattern: "true"
+        explanation: "Webサーバーがインターネットに接続され、グローバルIPを取得している必要があります"
+        excludeValues: []
+
+    points: 200
+    difficulty: hard
+    tags:
+      - ネットワーク構築
+      - DHCP設定
+      - インターネット接続
+      - HTTP通信
+      - 複合ネットワーク
+      - グローバルIP
+
+    # 通常の選択肢は使用しない（ファイル操作課題のため）
+    options: []
+    explanation: |
+      **解答解説**
+
+      この課題では、最も複雑なネットワーク構成を構築しました。
+
+      **構成のポイント:**
+      1. **階層的ネットワーク設計**: PC層→スイッチ層→ルーター層→インターネット層
+      2. **DHCP設定の階層**: ローカル（ルーター→PC）とグローバル（インターネット→ルーター・サーバー）
+      3. **インターネット経由通信**: PC→ルーター→ONU-1→インターネット→ONU-2→Webサーバー
+
+      **学習ポイント:**
+      - **NAT変換**: プライベートIPからグローバルIPへの変換により外部通信を実現
+      - **グローバルIP**: インターネット上でユニークに識別されるIPアドレス
+      - **HTTP通信**: Webサーバーへのアクセスプロトコル
+      - **冗長性設計**: 複数のONUとISPポートによる分散接続
+
+      **実際の現場では:**
+      - 企業内LANからクラウドサービスへのアクセス
+      - リモートワーク環境での社内システム接続
+      - Webサーバーの外部公開とアクセス制御
+      - 負荷分散とフェイルオーバー設計
+
+      **通信経路の理解:**
+      1. **PC→Webサーバー**: PC(192.168.1.x) → ルーター(NAT変換) → インターネット → Webサーバー(グローバルIP)
+      2. **DHCP階層**: インターネット→ルーター(グローバルIP)、ルーター→PC(ローカルIP)
+      3. **HTTP通信**: TCPコネクション確立後のWebページ取得
+
+      **発展課題:**
+      このネットワークに以下を追加することを考えてみましょう：
+      - ファイアウォール設定によるセキュリティ強化
+      - ロードバランサーによる負荷分散
+      - VPN接続による安全な遠隔アクセス
+      - DNS設定によるドメイン名解決

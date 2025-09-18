@@ -144,7 +144,11 @@ class IPInputHelper {
         }
 
         // IPアドレスに使用可能な文字（数字とピリオド）かつ全角文字の場合のみ許可
-        if (!this.isValidIPCharacter(char) && !this.isFullWidthNumber(char) && char !== '．' && char !== '。') {
+        // CIDR記法のスラッシュ（/）は明示的に阻止
+        if (char === '/') {
+            e.preventDefault();
+            this.showCIDRWarning(e.target);
+        } else if (!this.isValidIPCharacter(char) && !this.isFullWidthNumber(char) && char !== '．' && char !== '。') {
             e.preventDefault();
         }
     }
@@ -165,7 +169,12 @@ class IPInputHelper {
         e.target.setSelectionRange(startPos + filteredText.length, startPos + filteredText.length);
 
         if (pastedText !== filteredText) {
-            this.showConversionFeedback(e.target);
+            // CIDR記法が含まれていた場合は専用の警告を表示
+            if (pastedText.includes('/')) {
+                this.showCIDRWarning(e.target);
+            } else {
+                this.showConversionFeedback(e.target);
+            }
         }
     }
 
@@ -213,6 +222,7 @@ class IPInputHelper {
 
     filterIPCharacters(text) {
         // IPアドレスに使用可能な文字（0-9とピリオド）のみを許可
+        // CIDR記法（/24など）のスラッシュは除外
         return text.replace(/[^0-9.]/g, '');
     }
 
@@ -269,6 +279,53 @@ class IPInputHelper {
                 parent.style.position = originalPosition;
             }
         }, 2000);
+    }
+
+    showCIDRWarning(element) {
+        // 既存のフィードバックを削除
+        const existingFeedback = element.parentNode.querySelector('.ip-conversion-feedback');
+        if (existingFeedback) {
+            existingFeedback.remove();
+        }
+
+        // CIDR記法警告フィードバックを表示
+        const feedback = document.createElement('div');
+        feedback.className = 'ip-conversion-feedback';
+        feedback.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #f44336;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            white-space: nowrap;
+            margin-top: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        `;
+        feedback.textContent = 'CIDR記法（/24）は入力できません';
+
+        // 親要素の位置をrelativeに設定
+        const parent = element.parentNode;
+        const originalPosition = getComputedStyle(parent).position;
+        if (originalPosition === 'static') {
+            parent.style.position = 'relative';
+        }
+
+        parent.appendChild(feedback);
+
+        // 3秒後にフィードバックを削除（警告なので少し長めに表示）
+        setTimeout(() => {
+            if (feedback.parentNode) {
+                feedback.remove();
+            }
+            // 元の位置設定を復元
+            if (originalPosition === 'static') {
+                parent.style.position = originalPosition;
+            }
+        }, 3000);
     }
 }
 
