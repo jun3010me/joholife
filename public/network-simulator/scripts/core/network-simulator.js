@@ -1212,6 +1212,9 @@ class NetworkSimulator {
                 this.isDragging = true;
                 this.dragPrepared = false;
                 console.log('ドラッグ開始:', this.selectedDevice.name);
+
+                // 削除ゾーン表示を開始
+                this.showDeleteZone();
             }
         }
         
@@ -1222,9 +1225,12 @@ class NetworkSimulator {
                 this.devices.set(this.pendingDevice.id, this.pendingDevice);
                 this.dragStarted = true;
             }
-            
+
             this.selectedDevice.x = pos.x - this.dragOffset.x;
             this.selectedDevice.y = pos.y - this.dragOffset.y;
+
+            // ドラッグ中のパレット領域判定で削除ゾーンの表示を更新
+            this.updateDeleteZoneVisibility(event);
         } else if (this.isPanning && this.lastPanPoint) {
             // パン処理：スクリーン座標で計算
             const rect = this.canvas.getBoundingClientRect();
@@ -1453,12 +1459,60 @@ class NetworkSimulator {
     // スクリーン座標がパレットエリア内かチェック
     isInPaletteArea(screenX, screenY) {
         const paletteRect = this.getPaletteRect();
-        if (!paletteRect) return false;
-        
-        return screenX >= paletteRect.left && 
-               screenX <= paletteRect.right && 
-               screenY >= paletteRect.top && 
-               screenY <= paletteRect.bottom;
+        if (!paletteRect) {
+            console.log('⚠️ パレット要素が見つかりません');
+            return false;
+        }
+
+        const isInside = screenX >= paletteRect.left &&
+                        screenX <= paletteRect.right &&
+                        screenY >= paletteRect.top &&
+                        screenY <= paletteRect.bottom;
+
+        return isInside;
+    }
+
+    // 削除ゾーンの表示
+    showDeleteZone() {
+        const palette = document.querySelector('.device-palette');
+        if (palette) {
+            palette.classList.add('delete-zone');
+        }
+    }
+
+    // 削除ゾーンの非表示
+    hideDeleteZone() {
+        const palette = document.querySelector('.device-palette');
+        if (palette) {
+            palette.classList.remove('delete-zone');
+            palette.classList.remove('delete-zone-active');
+        }
+    }
+
+    // ドラッグ中の削除ゾーン表示更新
+    updateDeleteZoneVisibility(event) {
+        if (!this.isDragging || !this.selectedDevice) return;
+
+        const screenX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : 0);
+        const screenY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : 0);
+
+        const palette = document.querySelector('.device-palette');
+        if (!palette) return;
+
+        const paletteRect = palette.getBoundingClientRect();
+        const isOverPalette = screenX >= paletteRect.left &&
+                             screenX <= paletteRect.right &&
+                             screenY >= paletteRect.top &&
+                             screenY <= paletteRect.bottom;
+
+        // パレット上の場合は削除ゾーンを強調表示
+        if (isOverPalette) {
+            if (!palette.classList.contains('delete-zone-active')) {
+                palette.classList.add('delete-zone-active');
+            }
+        } else {
+            palette.classList.remove('delete-zone-active');
+        }
     }
 
     // ドラッグ完了処理（論理回路シミュレータと同じロジック）
@@ -1470,7 +1524,7 @@ class NetworkSimulator {
             this.isDragging = false;
             return;
         }
-        
+
         // 新規デバイス配置（パレットからドラッグ）
         if (this.pendingDevice && this.dragStarted) {
             // ドロップ位置がパレットエリア内かチェック
@@ -1485,22 +1539,32 @@ class NetworkSimulator {
             }
             this.updateControlButtons();
         }
-        
-        // 既存デバイスのドラッグ完了 - 削除判定（論理回路シミュレータと同じ）
+
+        // 既存デバイスのドラッグ完了 - 削除判定（複数方法で確実性を向上）
         if (this.selectedDevice && this.isDragging && !this.pendingDevice) {
-            // パレットエリアにドロップされた場合は削除
-            if (this.isInPaletteArea(this.lastDropScreenPos.x, this.lastDropScreenPos.y)) {
-                console.log('Existing device dropped in palette area - removing');
-                
+            const deviceName = this.selectedDevice.name; // 削除前に名前を保存
+
+            // 1. パレットの削除ゾーン状態を確認
+            const palette = document.querySelector('.device-palette');
+            const isInDeleteZone = palette && palette.classList.contains('delete-zone-active');
+
+            // 2. 記録された座標での判定
+            const isInPaletteArea = this.isInPaletteArea(this.lastDropScreenPos.x, this.lastDropScreenPos.y);
+
+            // 3. 直前にパレット上にいたかの判定（updateDeleteZoneVisibilityで設定）
+            const wasOverPalette = palette && palette.classList.contains('delete-zone');
+
+            // いずれかの条件で削除を実行
+            if (isInPaletteArea || isInDeleteZone || wasOverPalette) {
                 // デバイスに関連する接続を削除
-                this.connections = this.connections.filter(conn => 
-                    conn.fromDevice !== this.selectedDevice.id && 
+                this.connections = this.connections.filter(conn =>
+                    conn.fromDevice !== this.selectedDevice.id &&
                     conn.toDevice !== this.selectedDevice.id
                 );
-                
+
                 // デバイスを削除
                 this.devices.delete(this.selectedDevice.id);
-                this.updateStatus(`${this.selectedDevice.name}を削除しました`);
+                this.updateStatus(`${deviceName}を削除しました`);
                 this.updateControlButtons();
             }
         }
@@ -1527,7 +1591,10 @@ class NetworkSimulator {
         this.pendingDevice = null;
         this.dragStarted = false;
         this.selectedDevice = null;
-        
+
+        // 削除ゾーンを非表示
+        this.hideDeleteZone();
+
         // グローバルイベントリスナーを削除
         if (this.globalMouseMoveHandler) {
             document.removeEventListener('mousemove', this.globalMouseMoveHandler);
@@ -1669,14 +1736,19 @@ class NetworkSimulator {
     // 統一されたポインタアップ処理
     handlePointerUp(e) {
         const pos = this.getPointerPos(e);
-        
-        // ドロップ位置のスクリーン座標を記録
+
+        // ドロップ位置のスクリーン座標を記録（最優先で実行）
         if (e.clientX !== undefined && e.clientY !== undefined) {
             this.lastDropScreenPos = { x: e.clientX, y: e.clientY };
         } else if (e.changedTouches && e.changedTouches.length > 0) {
             const touch = e.changedTouches[0];
             this.lastDropScreenPos = { x: touch.clientX, y: touch.clientY };
+        } else if (e.touches && e.touches.length > 0) {
+            // フォールバック: まだタッチが残っている場合
+            const touch = e.touches[0];
+            this.lastDropScreenPos = { x: touch.clientX, y: touch.clientY };
         }
+
         
         // 接続中の場合
         if (this.connectionStart) {

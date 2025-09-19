@@ -65,6 +65,47 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding-left: max(8px, env(safe-area-inset-left, 8px));
     padding-right: max(8px, env(safe-area-inset-right, 8px));
+    transition: all 0.2s ease;
+}
+
+/* デバイスドラッグ中の削除ゾーン表示 */
+.device-palette.delete-zone {
+    background: #ffebee !important;
+    border: 3px dashed #f44336 !important;
+    border-bottom: 3px dashed #f44336 !important;
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3) !important;
+}
+
+.device-palette.delete-zone::before {
+    content: "🗑️ ここにドロップすると削除されます";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(244, 67, 54, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 10001;
+    white-space: nowrap;
+}
+
+/* デバイスが削除ゾーン上にある場合の追加エフェクト */
+.device-palette.delete-zone.delete-zone-active {
+    background: #ffcdd2 !important;
+    animation: pulse-delete 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-delete {
+    0% {
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+    100% {
+        box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6);
+    }
 }
 
 .palette-content {
