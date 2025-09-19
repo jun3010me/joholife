@@ -7172,6 +7172,10 @@ class NetworkSimulator {
                     device.height = deviceData.height;
                     // 基本設定の復元
                     device.config = { ...deviceData.config };
+
+                    // デバイスを即座にマップに追加（基本設定完了後、詳細設定の前）
+                    this.devices.set(device.id, device);
+                    deviceMap.set(device.id, device);
                     
                     // LAN設定の復元（ルーター用）
                     if (deviceData.config.lan1) {
@@ -7220,9 +7224,6 @@ class NetworkSimulator {
                             port.connected = null;
                         }
                     });
-
-                    this.devices.set(device.id, device);
-                    deviceMap.set(device.id, device);
                 });
 
                 // 接続を復元
