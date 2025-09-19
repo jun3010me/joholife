@@ -307,6 +307,11 @@ class QuizSession {
     this.showingNameInput = true;
     this.showingCertificate = false;
     this.shuffledOptionsCache = {}; // 各問題の選択肢シャッフル結果をキャッシュ
+
+    // なりすまし防止のためのIPアドレス取得を開始
+    this.cachedIpAddress = null;
+    this.tryGetIPAddress();
+
     this.init();
   }
 
@@ -1334,6 +1339,27 @@ class QuizSession {
     ctx.fillStyle = '#059669';
     ctx.fillText('じょうほうらいふ', width / 2, 520);
 
+    // --- なりすまし防止情報 ---
+    // 追跡情報を収集
+    const trackingInfo = this.generateTrackingInfo();
+
+    // 下端に追跡情報を小さく表示（黄色で見やすく）
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#f59e0b';
+    ctx.textAlign = 'left';
+
+    const bottomY = height - 40;
+    ctx.fillText(`発行時刻: ${trackingInfo.timestamp}`, 43, bottomY - 20);
+    ctx.fillText(`アクセス元: ${trackingInfo.ipAddress}`, 43, bottomY - 5);
+
+    ctx.textAlign = 'right';
+    ctx.fillText(`端末: ${trackingInfo.userAgent}`, width - 43, bottomY - 20);
+    ctx.fillText(`画面: ${trackingInfo.screenInfo}`, width - 43, bottomY - 5);
+
+    // 中央下部に端末識別コードを配置
+    ctx.textAlign = 'center';
+    ctx.fillText(`端末識別: ${trackingInfo.deviceUserHash}`, width / 2, bottomY + 12);
+
     // Decorative elements
     ctx.fillStyle = '#10b981';
     ctx.beginPath();
@@ -1364,11 +1390,176 @@ class QuizSession {
     const link = document.createElement('a');
     link.download = `修了証_${this.questionSet?.title || this.unit}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
     link.href = canvas.toDataURL('image/png');
-    
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  }
+
+  generateTrackingInfo() {
+    const now = new Date();
+
+    // IPアドレス取得（非同期だが、できる限り試行）
+    let ipAddress = this.cachedIpAddress || 'N/A';
+    if (!this.cachedIpAddress) {
+      this.tryGetIPAddress();
+    }
+
+    // User-Agent情報の簡略化
+    const userAgent = navigator.userAgent;
+    const browserInfo = userAgent.includes('Chrome') ? 'Chrome' :
+                       userAgent.includes('Firefox') ? 'Firefox' :
+                       userAgent.includes('Safari') ? 'Safari' : 'Other';
+    const osInfo = userAgent.includes('Windows') ? 'Win' :
+                   userAgent.includes('Mac') ? 'Mac' :
+                   userAgent.includes('Linux') ? 'Linux' : 'Other';
+
+    // セッションID（ページ読み込み時に生成）
+    if (!this.sessionId) {
+      this.sessionId = this.generateSessionId();
+    }
+
+    // 端末識別コード（ブラウザフィンガープリントのみ）
+    const deviceUserHash = this.generateDeviceUserHash(this.userName);
+
+    return {
+      timestamp: now.toLocaleString('ja-JP', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ipAddress: ipAddress,
+      userAgent: `${browserInfo}/${osInfo}`,
+      screenInfo: `${screen.width}x${screen.height}`,
+      sessionId: this.sessionId,
+      deviceUserHash: deviceUserHash
+    };
+  }
+
+  generateSessionId() {
+    // 8桁のランダムなセッションID
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+  }
+
+  generateVerificationCode(userName, timestamp) {
+    // 名前 + ブラウザフィンガープリント + 時刻からハッシュを生成
+    const fingerprint = this.generateBrowserFingerprint();
+    const input = userName + fingerprint + timestamp.getTime();
+    return this.generateHash(input).substr(0, 6).toUpperCase();
+  }
+
+  generateDeviceUserHash(userName) {
+    // ブラウザフィンガープリントのみで端末識別
+    // 同じ端末から異なる名前で修了証を発行した場合の検出用
+    const fingerprint = this.generateBrowserFingerprint();
+    return this.generateHash(fingerprint).substr(0, 8).toUpperCase();
+  }
+
+  async tryGetIPAddress() {
+    try {
+      // 複数のサービスを試行してIPアドレスを取得
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      this.cachedIpAddress = data.ip;
+    } catch (error) {
+      try {
+        // フォールバック: 別のサービス
+        const response = await fetch('https://httpbin.org/ip');
+        const data = await response.json();
+        this.cachedIpAddress = data.origin.split(',')[0].trim();
+      } catch (error2) {
+        // IPアドレス取得に失敗した場合の代替手段
+        this.cachedIpAddress = 'Unknown';
+      }
+    }
+  }
+
+  generateBrowserFingerprint() {
+    // より詳細なブラウザフィンガープリント生成
+    const fingerprint = {
+      userAgent: navigator.userAgent || 'unknown',
+      language: navigator.language || 'unknown',
+      languages: navigator.languages ? navigator.languages.join(',') : 'unknown',
+      platform: navigator.platform || 'unknown',
+      cookieEnabled: navigator.cookieEnabled,
+      doNotTrack: navigator.doNotTrack || 'unknown',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+      screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+      availScreen: `${screen.availWidth}x${screen.availHeight}`,
+      pixelRatio: window.devicePixelRatio || 1,
+      colorDepth: screen.colorDepth || 'unknown',
+      hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+      maxTouchPoints: navigator.maxTouchPoints || 0,
+      plugins: this.getPluginsList(),
+      canvas: this.getCanvasFingerprint(),
+      webgl: this.getWebGLFingerprint()
+    };
+
+    // フィンガープリントをハッシュ化
+    const fingerprintString = JSON.stringify(fingerprint);
+    return this.generateHash(fingerprintString).substr(0, 8);
+  }
+
+  getPluginsList() {
+    try {
+      return Array.from(navigator.plugins || [])
+        .map(plugin => plugin.name)
+        .sort()
+        .join(',');
+    } catch (e) {
+      return 'unknown';
+    }
+  }
+
+  getCanvasFingerprint() {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = '#069';
+      ctx.fillText('フィンガープリント検証🔍', 2, 2);
+      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+      ctx.fillText('Canvas fingerprint', 4, 18);
+      return canvas.toDataURL().substr(-50); // 最後の50文字のみ使用
+    } catch (e) {
+      return 'unknown';
+    }
+  }
+
+  getWebGLFingerprint() {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return 'no-webgl';
+
+      return [
+        gl.getParameter(gl.VENDOR),
+        gl.getParameter(gl.RENDERER),
+        gl.getParameter(gl.VERSION)
+      ].join('|');
+    } catch (e) {
+      return 'webgl-error';
+    }
+  }
+
+  generateHash(input) {
+    // 改良されたハッシュ関数
+    let hash = 0;
+    if (input.length === 0) return hash.toString();
+
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32bit integer
+    }
+    return Math.abs(hash).toString(16);
   }
 
   renderError() {
