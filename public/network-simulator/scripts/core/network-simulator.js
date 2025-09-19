@@ -1540,22 +1540,14 @@ class NetworkSimulator {
             this.updateControlButtons();
         }
 
-        // 既存デバイスのドラッグ完了 - 削除判定（複数方法で確実性を向上）
+        // 既存デバイスのドラッグ完了 - 削除判定（パレット領域にドロップされた場合のみ削除）
         if (this.selectedDevice && this.isDragging && !this.pendingDevice) {
             const deviceName = this.selectedDevice.name; // 削除前に名前を保存
 
-            // 1. パレットの削除ゾーン状態を確認
-            const palette = document.querySelector('.device-palette');
-            const isInDeleteZone = palette && palette.classList.contains('delete-zone-active');
-
-            // 2. 記録された座標での判定
+            // 最終的にパレット領域にドロップされた場合のみ削除
             const isInPaletteArea = this.isInPaletteArea(this.lastDropScreenPos.x, this.lastDropScreenPos.y);
 
-            // 3. 直前にパレット上にいたかの判定（updateDeleteZoneVisibilityで設定）
-            const wasOverPalette = palette && palette.classList.contains('delete-zone');
-
-            // いずれかの条件で削除を実行
-            if (isInPaletteArea || isInDeleteZone || wasOverPalette) {
+            if (isInPaletteArea) {
                 // デバイスに関連する接続を削除
                 this.connections = this.connections.filter(conn =>
                     conn.fromDevice !== this.selectedDevice.id &&
