@@ -16,11 +16,34 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
             </div>
         </div>
 
-        <!-- Whoisとは -->
+        <!-- WhoisとRDAPとは -->
         <div class="concept-section card">
-            <h2>Whoisとは</h2>
-            <div class="whois-explanation">
-                <p>Whoisは、ドメイン名やIPアドレスの登録情報を公開するデータベースシステムです。</p>
+            <h2>Whois・RDAPとは</h2>
+            <div class="protocol-explanation">
+                <p>ドメイン名やIPアドレスの登録情報を公開するプロトコルです。従来のWhoisと新しいRDAP（Registration Data Access Protocol）の両方に対応しています。</p>
+
+                <!-- プロトコル比較 -->
+                <div class="protocol-comparison">
+                    <div class="protocol-item whois-protocol">
+                        <h3>🔍 Whois（従来型）</h3>
+                        <ul>
+                            <li>テキストベースの応答</li>
+                            <li>長年使われている標準プロトコル</li>
+                            <li>シンプルで軽量</li>
+                            <li>ポート43を使用</li>
+                        </ul>
+                    </div>
+                    <div class="protocol-item rdap-protocol">
+                        <h3>🆕 RDAP（次世代型）</h3>
+                        <ul>
+                            <li>JSON形式の構造化データ</li>
+                            <li>IANA推奨の新しい標準</li>
+                            <li>多言語対応・RESTful API</li>
+                            <li>HTTPS経由でアクセス</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="whois-info-grid">
                     <div class="info-item">
                         <div class="info-icon">📝</div>
@@ -48,20 +71,45 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 
         <!-- 検索セクション -->
         <div class="search-section card">
-            <h2>Whois検索</h2>
+            <h2>ドメイン・IP情報検索</h2>
+
+            <!-- プロトコル選択タブ -->
+            <div class="protocol-tabs">
+                <button class="tab-button active" data-protocol="whois">🔍 Whois検索</button>
+                <button class="tab-button" data-protocol="rdap">🆕 RDAP検索</button>
+            </div>
+
             <div class="search-form">
                 <div class="input-group">
                     <label for="domainInput">ドメイン名またはIPアドレスを入力:</label>
                     <input type="text" id="domainInput" placeholder="例: google.com または 8.8.8.8" />
-                    <button class="btn btn-primary" id="searchBtn">検索</button>
+                    <button class="btn btn-primary" id="searchBtn">
+                        <span id="searchBtnText">Whois検索</span>
+                    </button>
                 </div>
+
+                <!-- プロトコル情報表示 -->
+                <div class="protocol-info" id="protocolInfo">
+                    <div class="protocol-description whois-description active">
+                        <p>📍 <strong>Whois検索</strong>: 従来型のテキストベースプロトコルでドメイン情報を取得します。</p>
+                    </div>
+                    <div class="protocol-description rdap-description">
+                        <p>🚀 <strong>RDAP検索</strong>: 新世代のJSON形式プロトコルで構造化されたドメイン情報を取得します。</p>
+                    </div>
+                </div>
+
                 <div class="search-examples">
                     <p>検索例:</p>
                     <div class="example-buttons">
                         <button class="btn btn-example" onclick="setExample('google.com')">google.com</button>
                         <button class="btn btn-example" onclick="setExample('github.com')">github.com</button>
                         <button class="btn btn-example" onclick="setExample('8.8.8.8')">8.8.8.8</button>
-                        <button class="btn btn-example" onclick="setExample('yahoo.co.jp')">yahoo.co.jp</button>
+                        <button class="btn btn-example" onclick="setExample('example.org')">example.org</button>
+                    </div>
+                    <div class="protocol-specific-examples" id="protocolExamples">
+                        <div class="rdap-examples" style="display: none;">
+                            <p><strong>RDAP推奨例:</strong> .com, .net, .org ドメインがより確実です</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,7 +117,7 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
             <!-- ローディング表示 -->
             <div class="loading" id="loading" style="display: none;">
                 <div class="loading-spinner"></div>
-                <p>Whois情報を取得中...</p>
+                <p id="loadingText">情報を取得中...</p>
             </div>
 
             <!-- 結果表示 -->
@@ -126,8 +174,44 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
         </div>
 
         <!-- 実用的な活用例 -->
+        <!-- RDAP利用上の注意 -->
+        <div class="rdap-info-section card">
+            <h2>🚀 RDAPについて</h2>
+            <div class="rdap-info-content">
+                <p>RDAP（Registration Data Access Protocol）は次世代のドメイン情報検索プロトコルです。</p>
+
+                <div class="rdap-status-grid">
+                    <div class="status-item working">
+                        <div class="status-icon">✅</div>
+                        <h3>動作確認済み</h3>
+                        <p>.com、.net、.org、.info など主要なgTLD</p>
+                    </div>
+                    <div class="status-item limited">
+                        <div class="status-icon">⚠️</div>
+                        <h3>制限あり</h3>
+                        <p>.jp、.co.jp などの日本ドメイン（Whoisフォールバック）</p>
+                    </div>
+                    <div class="status-item technical">
+                        <div class="status-icon">🔧</div>
+                        <h3>技術的制限</h3>
+                        <p>ブラウザのCORS制限によりプロキシ経由でアクセス</p>
+                    </div>
+                </div>
+
+                <div class="rdap-benefits">
+                    <h3>RDAPの利点</h3>
+                    <ul>
+                        <li>構造化されたJSONデータで正確な情報取得</li>
+                        <li>国際化対応で多言語ドメインもサポート</li>
+                        <li>RESTful APIで現代的なアクセス方法</li>
+                        <li>IANA推奨の標準プロトコル</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div class="usage-section card">
-            <h2>🔍 Whois検索の活用例</h2>
+            <h2>🔍 活用例</h2>
             <div class="usage-grid">
                 <div class="usage-item">
                     <div class="usage-icon">🕵️</div>
@@ -195,11 +279,14 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
         let currentRequest = null;
         let currentWhoisData = null;
         let currentSearchDomain = null;
+        let currentProtocol = 'whois'; // 'whois' または 'rdap'
 
         // DOM要素
         const domainInput = document.getElementById('domainInput');
         const searchBtn = document.getElementById('searchBtn');
+        const searchBtnText = document.getElementById('searchBtnText');
         const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
         const resultSection = document.getElementById('resultSection');
         const resultContent = document.getElementById('resultContent');
         const errorSection = document.getElementById('errorSection');
@@ -207,9 +294,196 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
         const copyFormattedBtn = document.getElementById('copyFormattedBtn');
         const copyRawBtn = document.getElementById('copyRawBtn');
 
+        // タブ切り替え機能
+        function switchProtocol(protocol) {
+            currentProtocol = protocol;
+
+            // タブボタンの状態を更新
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.protocol === protocol) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // プロトコル説明の表示を更新
+            document.querySelectorAll('.protocol-description').forEach(desc => {
+                desc.classList.remove('active');
+            });
+            document.querySelector(`.${protocol}-description`).classList.add('active');
+
+            // 検索ボタンのテキストを更新
+            searchBtnText.textContent = protocol === 'whois' ? 'Whois検索' : 'RDAP検索';
+
+            // プロトコル固有の例を表示/非表示
+            const rdapExamples = document.querySelector('.rdap-examples');
+            if (rdapExamples) {
+                rdapExamples.style.display = protocol === 'rdap' ? 'block' : 'none';
+            }
+
+            // 既存の結果をクリア
+            hideAll();
+        }
+
         // 例をセットする関数
         function setExample(domain) {
             domainInput.value = domain;
+        }
+
+        // RDAPサーバーエンドポイントマッピング
+        const rdapServers = {
+            // gTLD用RDAPサーバー
+            'com': 'https://rdap.verisign.com/com/v1/',
+            'net': 'https://rdap.verisign.com/net/v1/',
+            'org': 'https://rdap.publicinterestregistry.org/rdap/',
+            'info': 'https://rdap.afilias.net/rdap/afilias/',
+            'biz': 'https://rdap.afilias.net/rdap/afilias/',
+            'name': 'https://rdap.afilias.net/rdap/afilias/',
+
+            // ccTLD用RDAPサーバー（一部）
+            'jp': 'https://rdap.jprs.jp/',
+            'cn': 'https://rdap.cnnic.cn/',
+            'de': 'https://rdap.denic.de/',
+            'uk': 'https://rdap.nominet.uk/uk/',
+            'ca': 'https://rdap.ca/',
+            'au': 'https://rdap.audns.net.au/',
+            'fr': 'https://rdap.nic.fr/',
+            'nl': 'https://rdap.sidn.nl/',
+
+            // 新gTLD用
+            'xyz': 'https://rdap.centralnic.com/xyz/',
+            'app': 'https://rdap.google.com/',
+            'dev': 'https://rdap.google.com/',
+            'page': 'https://rdap.google.com/',
+        };
+
+        // ドメインのTLDを取得してRDAPサーバーを決定
+        function getRdapServer(domain) {
+            const parts = domain.toLowerCase().split('.');
+            const tld = parts[parts.length - 1];
+
+            // 日本の特殊ドメイン
+            if (parts.length >= 2) {
+                const secondLevelTld = parts[parts.length - 2] + '.' + tld;
+                if (['co.jp', 'or.jp', 'ne.jp', 'ac.jp', 'ad.jp', 'ed.jp', 'go.jp', 'gr.jp', 'lg.jp'].includes(secondLevelTld)) {
+                    return {
+                        baseUrl: rdapServers['jp'],
+                        endpoint: 'domain'
+                    };
+                }
+            }
+
+            const server = rdapServers[tld];
+            if (server) {
+                return {
+                    baseUrl: server,
+                    endpoint: 'domain'
+                };
+            }
+
+            return null;
+        }
+
+        // RDAP検索の実行
+        async function performRdapLookup(domain) {
+            const rdapServerInfo = getRdapServer(domain);
+
+            if (!rdapServerInfo) {
+                throw new Error(`${domain}のTLDに対応するRDAPサーバーが見つかりません`);
+            }
+
+            // IPアドレスかドメインかを判定
+            const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(domain);
+            const endpoint = isIP ? 'ip' : rdapServerInfo.endpoint;
+            const rdapUrl = `${rdapServerInfo.baseUrl}${endpoint}/${encodeURIComponent(domain)}`;
+
+            console.log('RDAP URL:', rdapUrl);
+            console.log('Domain:', domain, 'Server:', rdapServerInfo.baseUrl);
+
+            // 複数のプロキシを順番に試す
+            const proxies = [
+                // より信頼性の高いプロキシサービスを最初に試す
+                { name: 'allorigins', url: `https://api.allorigins.win/get?url=${encodeURIComponent(rdapUrl)}` },
+                { name: 'corsproxy', url: `https://corsproxy.io/?${encodeURIComponent(rdapUrl)}` },
+                { name: 'crossorigin', url: `https://crossorigin.me/${rdapUrl}` },
+                // 最後に直接アクセスを試す（CORS制限で通常失敗するが、一部サーバーは対応）
+                { name: 'direct', url: rdapUrl }
+            ];
+
+            let lastError = null;
+
+            for (const proxy of proxies) {
+                try {
+                    console.log(`Trying ${proxy.name}:`, proxy.url);
+
+                    const headers = proxy.name === 'direct' ? {
+                        'Accept': 'application/rdap+json, application/json',
+                        'User-Agent': 'Mozilla/5.0 (compatible; RDAP client)'
+                    } : {};
+
+                    const response = await fetch(proxy.url, {
+                        method: 'GET',
+                        signal: currentRequest.signal,
+                        headers
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`${proxy.name} failed: ${response.status} ${response.statusText}`);
+                    }
+
+                    let data;
+
+                    if (proxy.name === 'allorigins') {
+                        // alloriginsの場合は特殊処理
+                        const proxyData = await response.json();
+                        console.log(`${proxy.name} プロキシ応答:`, proxyData);
+
+                        if (proxyData.status && proxyData.status.http_code !== 200) {
+                            throw new Error(`RDAP Server returned ${proxyData.status.http_code}`);
+                        }
+
+                        // alloriginsの contents を詳細にログ出力
+                        console.log('allorigins contents type:', typeof proxyData.contents);
+                        console.log('allorigins contents (first 500 chars):', proxyData.contents?.substring(0, 500));
+
+                        if (!proxyData.contents || typeof proxyData.contents !== 'string') {
+                            throw new Error('allorigins returned empty or invalid contents');
+                        }
+
+                        // HTMLかどうかチェック
+                        if (proxyData.contents.includes('<html') || proxyData.contents.includes('<!DOCTYPE')) {
+                            throw new Error('allorigins returned HTML page instead of JSON');
+                        }
+
+                        try {
+                            data = JSON.parse(proxyData.contents);
+                        } catch (parseError) {
+                            console.error('allorigins JSON parse error:', parseError);
+                            throw new Error(`allorigins JSON parse failed: ${parseError.message}`);
+                        }
+                    } else {
+                        // 直接またはその他のプロキシ
+                        data = await response.json();
+                    }
+
+                    console.log(`RDAP応答 (${proxy.name}):`, data);
+
+                    // RDAPエラーレスポンスをチェック
+                    if (data.errorCode) {
+                        throw new Error(`RDAP Error: ${data.title || data.description || 'Unknown error'}`);
+                    }
+
+                    return data;
+
+                } catch (error) {
+                    console.log(`${proxy.name} failed:`, error.message);
+                    lastError = error;
+                    continue;
+                }
+            }
+
+            // すべてのプロキシが失敗した場合
+            throw new Error(`すべてのRDAPアクセス方法が失敗しました。最後のエラー: ${lastError?.message || 'Unknown error'}`);
         }
 
         // ドメイン/IPアドレスの検証
@@ -486,16 +760,42 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
                 `;
             }
 
-            // フォールバック情報の表示
-            if (data._fallback) {
+            // プロトコル情報・備考の表示
+            if (data._rdap || data._fallback || data._note) {
                 html += `
                     <div class="result-group">
-                        <h4>ℹ️ 情報</h4>
+                        <h4>ℹ️ 検索情報</h4>
+                `;
+
+                if (data._rdap) {
+                    html += `
+                        <div class="rdap-notice">
+                            <p>🚀 <strong>RDAP検索</strong>: このデータはRDAP（Registration Data Access Protocol）から取得されました。</p>
+                        </div>
+                    `;
+                } else if (!data._fallback) {
+                    html += `
+                        <div class="whois-notice">
+                            <p>🔍 <strong>Whois検索</strong>: このデータは従来のWhoisプロトコルから取得されました。</p>
+                        </div>
+                    `;
+                }
+
+                if (data._fallback) {
+                    html += `
                         <div class="fallback-notice">
                             <p>${data._note}</p>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else if (data._note && !data._rdap) {
+                    html += `
+                        <div class="info-notice">
+                            <p>${data._note}</p>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
             }
 
             html += '</div>';
@@ -606,8 +906,87 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
             };
         }
 
-        // Whois検索の実行
-        async function performWhoisLookup(domain) {
+        // RDAP情報の表示（Whois形式で統一）
+        function displayRdapInfo(data) {
+            hideAll();
+
+            if (!data || Object.keys(data).length === 0) {
+                showError('RDAP情報が見つかりませんでした。');
+                return;
+            }
+
+            // RDAPデータをWhois形式に変換
+            const convertedData = convertRdapToWhoisFormat(data);
+            convertedData._rdap = true;
+            convertedData._note = 'このデータはRDAP（Registration Data Access Protocol）から取得されました。';
+
+            currentWhoisData = convertedData;
+            displayWhoisInfo(convertedData);
+        }
+
+        // RDAPデータをWhois形式に変換
+        function convertRdapToWhoisFormat(rdapData) {
+            const converted = {
+                domain: rdapData.ldhName || rdapData.handle,
+                domain_name: rdapData.ldhName || rdapData.handle,
+                registrar: {},
+                nameservers: [],
+                status: []
+            };
+
+            // 登録者情報
+            if (rdapData.entities) {
+                rdapData.entities.forEach(entity => {
+                    if (entity.roles && entity.roles.includes('registrar')) {
+                        converted.registrar = {
+                            name: entity.vcardArray?.[1]?.[1]?.[3] || entity.handle || 'Unknown',
+                            iana_id: entity.publicIds?.[0]?.identifier || '',
+                            url: entity.links?.[0]?.href || ''
+                        };
+                    }
+                });
+            }
+
+            // 日付情報
+            if (rdapData.events) {
+                rdapData.events.forEach(event => {
+                    switch (event.eventAction) {
+                        case 'registration':
+                            converted.creation_date = event.eventDate;
+                            break;
+                        case 'expiration':
+                            converted.expiry_date = event.eventDate;
+                            break;
+                        case 'last changed':
+                        case 'last update of RDAP database':
+                            converted.updated_date = event.eventDate;
+                            break;
+                    }
+                });
+            }
+
+            // ネームサーバー
+            if (rdapData.nameservers) {
+                converted.nameservers = rdapData.nameservers.map(ns => ns.ldhName || ns.objectClassName);
+            }
+
+            // ステータス
+            if (rdapData.status) {
+                converted.status = rdapData.status;
+            }
+
+            // ドメイン年数の計算
+            if (converted.creation_date) {
+                const creationDate = new Date(converted.creation_date);
+                const now = new Date();
+                converted.domain_age = Math.floor((now - creationDate) / (1000 * 60 * 60 * 24));
+            }
+
+            return converted;
+        }
+
+        // 統合検索関数（WhoisまたはRDAP）
+        async function performLookup(domain) {
             // 既存のリクエストをキャンセル
             if (currentRequest) {
                 currentRequest.abort();
@@ -618,64 +997,108 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 
             hideAll();
             loading.style.display = 'block';
+            loadingText.textContent = currentProtocol === 'rdap' ? 'RDAP情報を取得中...' : 'Whois情報を取得中...';
 
             try {
                 // AbortControllerを作成
                 const controller = new AbortController();
                 currentRequest = controller;
-                
-                // IP2WHOIS APIをCORSプロキシ経由で呼び出し
-                const container = document.querySelector('.whois-container');
-                const whoisApiKey = container.dataset.apiKey || 'demo';
-                const originalApiUrl = `https://api.ip2whois.com/v2?key=${whoisApiKey}&domain=${encodeURIComponent(domain)}&format=json`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalApiUrl)}`;
-                
-                console.log('CORSプロキシ経由でAPI呼び出し中:', originalApiUrl);
-                
-                const response = await fetch(proxyUrl, {
-                    method: 'GET',
-                    signal: controller.signal
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Proxy Error: ${response.status} ${response.statusText}`);
+
+                let data;
+                if (currentProtocol === 'rdap') {
+                    // RDAP検索
+                    data = await performRdapLookup(domain);
+                    displayRdapInfo(data);
+                } else {
+                    // Whois検索
+                    data = await performWhoisLookup(domain);
+                    displayWhoisInfo(data);
                 }
-                
-                const proxyData = await response.json();
-                console.log('プロキシ応答:', proxyData);
-                
-                // プロキシからの実際のデータを抽出
-                const data = JSON.parse(proxyData.contents);
-                console.log('API応答:', data);
-                
-                // エラーレスポンスをチェック
-                if (data.error_message) {
-                    throw new Error(data.error_message);
-                }
-                
-                displayWhoisInfo(data);
 
             } catch (error) {
-                console.error('Whois検索エラー:', error);
-                
+                console.error('検索エラー:', error);
+
                 // AbortErrorの場合は何もしない（ユーザーがキャンセルした）
                 if (error.name === 'AbortError') {
                     return;
                 }
-                
-                // API失敗時はモックデータにフォールバック
-                console.log('APIに失敗、モックデータにフォールバック');
-                try {
-                    const mockData = generateMockWhoisData(domain);
-                    mockData._fallback = true;
-                    mockData._note = `実際のAPI呼び出しに失敗しました (${error.message})。これは教育・デモ用のサンプルデータです。`;
-                    displayWhoisInfo(mockData);
-                } catch (mockError) {
-                    showError(`検索エラー: ${error.message}`);
+
+                // RDAP失敗時はWhoisにフォールバック
+                if (currentProtocol === 'rdap') {
+                    console.log('RDAPに失敗、Whoisにフォールバック');
+
+                    // 日本ドメインの場合は特別なメッセージ
+                    let errorNote;
+                    if (domain.endsWith('.jp') || domain.includes('.co.jp') || domain.includes('.or.jp')) {
+                        errorNote = `RDAP検索に失敗しました (${error.message})。日本のドメインではRDAPサーバーの対応が限定的な場合があります。Whoisデータで代替表示しています。`;
+                    } else {
+                        errorNote = `RDAP検索に失敗しました (${error.message})。Whoisデータで代替表示しています。`;
+                    }
+
+                    try {
+                        const whoisData = await performWhoisLookup(domain);
+                        whoisData._note = errorNote;
+                        displayWhoisInfo(whoisData);
+                    } catch (whoisError) {
+                        // Whoisも失敗した場合はモックデータ
+                        try {
+                            const mockData = generateMockWhoisData(domain);
+                            mockData._fallback = true;
+                            mockData._rdap_attempted = true;
+                            mockData._note = `RDAP・Whois検索ともに失敗しました。RDAPは新しいプロトコルのため、一部のドメインやネットワーク環境では制限がある場合があります。これは教育・デモ用のサンプルデータです。`;
+                            displayWhoisInfo(mockData);
+                        } catch (mockError) {
+                            showError(`検索エラー: ${error.message}`);
+                        }
+                    }
+                } else {
+                    // Whois検索失敗時は既存のフォールバック処理
+                    try {
+                        const mockData = generateMockWhoisData(domain);
+                        mockData._fallback = true;
+                        mockData._note = `実際のAPI呼び出しに失敗しました (${error.message})。これは教育・デモ用のサンプルデータです。`;
+                        displayWhoisInfo(mockData);
+                    } catch (mockError) {
+                        showError(`検索エラー: ${error.message}`);
+                    }
                 }
             } finally {
                 currentRequest = null;
             }
+        }
+
+        // Whois検索の実行（内部関数）
+        async function performWhoisLookup(domain) {
+            // IP2WHOIS APIをCORSプロキシ経由で呼び出し
+            const container = document.querySelector('.whois-container');
+            const whoisApiKey = container.dataset.apiKey || 'demo';
+            const originalApiUrl = `https://api.ip2whois.com/v2?key=${whoisApiKey}&domain=${encodeURIComponent(domain)}&format=json`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(originalApiUrl)}`;
+
+            console.log('CORSプロキシ経由でAPI呼び出し中:', originalApiUrl);
+
+            const response = await fetch(proxyUrl, {
+                method: 'GET',
+                signal: currentRequest.signal
+            });
+
+            if (!response.ok) {
+                throw new Error(`Proxy Error: ${response.status} ${response.statusText}`);
+            }
+
+            const proxyData = await response.json();
+            console.log('プロキシ応答:', proxyData);
+
+            // プロキシからの実際のデータを抽出
+            const data = JSON.parse(proxyData.contents);
+            console.log('API応答:', data);
+
+            // エラーレスポンスをチェック
+            if (data.error_message) {
+                throw new Error(data.error_message);
+            }
+
+            return data;
         }
 
         // 課題用テキストの生成
@@ -684,9 +1107,11 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 
             const currentDate = new Date().toLocaleDateString('ja-JP');
             const whoisData = data.whois_data || data;
-            
-            let text = `Whois検索結果レポート\n`;
+            const protocol = data._rdap ? 'RDAP' : 'Whois';
+
+            let text = `${protocol}検索結果レポート\n`;
             text += `検索日時: ${currentDate}\n`;
+            text += `プロトコル: ${protocol}\n`;
             text += `=====================================\n\n`;
 
             // 基本情報
@@ -807,9 +1232,17 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 
         // イベントリスナーの設定
         document.addEventListener('DOMContentLoaded', function() {
+            // プロトコルタブの切り替え
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    switchProtocol(this.dataset.protocol);
+                });
+            });
+
+            // 検索ボタンのクリック
             searchBtn.addEventListener('click', function() {
                 const domain = domainInput.value.trim();
-                
+
                 if (!domain) {
                     showError('ドメイン名またはIPアドレスを入力してください。');
                     return;
@@ -820,7 +1253,7 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
                     return;
                 }
 
-                performWhoisLookup(domain);
+                performLookup(domain);
             });
 
             // Enterキーでの検索
@@ -919,6 +1352,129 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
             margin-bottom: 1.5rem;
             font-size: 1.75rem;
             font-weight: 600;
+        }
+
+        /* プロトコル比較 */
+        .protocol-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .protocol-item {
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid;
+        }
+
+        .whois-protocol {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .rdap-protocol {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .protocol-item h3 {
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .whois-protocol h3 {
+            color: #22c55e;
+        }
+
+        .rdap-protocol h3 {
+            color: #3b82f6;
+        }
+
+        .protocol-item ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .protocol-item li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .protocol-item li:last-child {
+            border-bottom: none;
+        }
+
+        .protocol-item li:before {
+            content: "✓ ";
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .whois-protocol li:before {
+            color: #22c55e;
+        }
+
+        .rdap-protocol li:before {
+            color: #3b82f6;
+        }
+
+        /* プロトコルタブ */
+        .protocol-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab-button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.5rem 0.5rem 0 0;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #f8fafc;
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            transform: translateY(2px);
+        }
+
+        /* プロトコル情報 */
+        .protocol-info {
+            margin-bottom: 1rem;
+        }
+
+        .protocol-description {
+            display: none;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .protocol-description.active {
+            display: block;
+        }
+
+        .protocol-description p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         /* Whois情報グリッド */
@@ -1185,6 +1741,48 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
             font-weight: 500;
         }
 
+        .rdap-notice {
+            text-align: center;
+            padding: 1rem;
+            background: #eff6ff;
+            border-radius: 0.5rem;
+            border: 1px solid #3b82f6;
+        }
+
+        .rdap-notice p {
+            color: #1d4ed8;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .whois-notice {
+            text-align: center;
+            padding: 1rem;
+            background: #f0fdf4;
+            border-radius: 0.5rem;
+            border: 1px solid #22c55e;
+        }
+
+        .whois-notice p {
+            color: #15803d;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .info-notice {
+            text-align: center;
+            padding: 1rem;
+            background: #fef9e7;
+            border-radius: 0.5rem;
+            border: 1px solid #f59e0b;
+        }
+
+        .info-notice p {
+            color: #92400e;
+            margin: 0;
+            font-weight: 500;
+        }
+
         .japan-domain-notice {
             background: #fef9e7;
             padding: 1rem;
@@ -1230,6 +1828,106 @@ const apiKey = import.meta.env.VITE_IP2WHOIS_API_KEY || 'demo';
 
         .error-message p {
             color: #991b1b;
+        }
+
+        /* RDAP情報セクション */
+        .rdap-info-content {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .rdap-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .status-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .status-item.working {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .status-item.limited {
+            border-color: #f59e0b;
+            background: #fef9e7;
+        }
+
+        .status-item.technical {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .status-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .status-item h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .status-item.working h3 {
+            color: #15803d;
+        }
+
+        .status-item.limited h3 {
+            color: #d97706;
+        }
+
+        .status-item.technical h3 {
+            color: #4f46e5;
+        }
+
+        .status-item p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .rdap-benefits {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .rdap-benefits h3 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .rdap-benefits ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rdap-benefits li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-secondary);
+        }
+
+        .rdap-benefits li:last-child {
+            border-bottom: none;
+        }
+
+        .rdap-benefits li:before {
+            content: "🚀 ";
+            margin-right: 0.5rem;
         }
 
         /* ガイドセクション */
