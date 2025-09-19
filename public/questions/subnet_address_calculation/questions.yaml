@@ -1,0 +1,422 @@
+id: subnet_address_calculation
+title: サブネット化でのIPアドレス計算
+description: サブネット化した際の具体的なIPアドレス（ネットワークアドレス、ホストアドレス、ブロードキャストアドレス）を計算する問題です。実際のネットワーク設計で必要な計算力を身につけましょう。
+icon: 🌍
+difficulty: medium
+estimatedTime: 20
+category: ネットワーク
+tags:
+  - サブネット
+  - IPアドレス
+  - ネットワークアドレス
+  - ホストアドレス
+  - ブロードキャストアドレス
+questions:
+  # ネットワークアドレスを求める問題（5問）
+  - id: q1
+    type: single-choice
+    title: サブネット分割後のネットワークアドレス
+    description: **192.168.0.0/24** を **8個** に分割した時の、**3番目のネットワーク** のネットワークアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.0.64"
+        isCorrect: true
+        explanation: "正解です。8分割なら/27（32アドレス間隔）。3番目は0,32,64...なので192.168.0.64です。"
+      - id: b
+        text: "192.168.0.96"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のネットワークアドレスです。"
+      - id: c
+        text: "192.168.0.32"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.0.48"
+        isCorrect: false
+        explanation: "不正解です。32の倍数になる必要があります。"
+    explanation: "8分割には3ビット必要（/27）。各サブネットは32アドレス。3番目は0+32×2=64なので192.168.0.64です。"
+    difficulty: medium
+    tags:
+      - ネットワークアドレス
+    points: 15
+
+  - id: q2
+    type: single-choice
+    title: サブネット分割後のネットワークアドレス
+    description: **192.168.1.0/24** を **4個** に分割した時の、**2番目のネットワーク** のネットワークアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.1.64"
+        isCorrect: true
+        explanation: "正解です。4分割なら/26（64アドレス間隔）。2番目は0+64×1=64なので192.168.1.64です。"
+      - id: b
+        text: "192.168.1.128"
+        isCorrect: false
+        explanation: "不正解です。これは3番目のネットワークアドレスです。"
+      - id: c
+        text: "192.168.1.32"
+        isCorrect: false
+        explanation: "不正解です。4分割の間隔は64アドレスです。"
+      - id: d
+        text: "192.168.1.96"
+        isCorrect: false
+        explanation: "不正解です。64の倍数になる必要があります。"
+    explanation: "4分割には2ビット必要（/26）。各サブネットは64アドレス。2番目は0+64×1=64なので192.168.1.64です。"
+    difficulty: medium
+    tags:
+      - ネットワークアドレス
+    points: 15
+
+  - id: q3
+    type: single-choice
+    title: サブネット分割後のネットワークアドレス
+    description: **192.168.2.0/24** を **16個** に分割した時の、**5番目のネットワーク** のネットワークアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.2.64"
+        isCorrect: true
+        explanation: "正解です。16分割なら/28（16アドレス間隔）。5番目は0+16×4=64なので192.168.2.64です。"
+      - id: b
+        text: "192.168.2.80"
+        isCorrect: false
+        explanation: "不正解です。これは6番目のネットワークアドレスです。"
+      - id: c
+        text: "192.168.2.48"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.2.96"
+        isCorrect: false
+        explanation: "不正解です。これは7番目のネットワークアドレスです。"
+    explanation: "16分割には4ビット必要（/28）。各サブネットは16アドレス。5番目は0+16×4=64なので192.168.2.64です。"
+    difficulty: medium
+    tags:
+      - ネットワークアドレス
+    points: 15
+
+  - id: q4
+    type: single-choice
+    title: サブネット分割後のネットワークアドレス
+    description: **192.168.10.0/24** を **32個** に分割した時の、**7番目のネットワーク** のネットワークアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.10.48"
+        isCorrect: true
+        explanation: "正解です。32分割なら/29（8アドレス間隔）。7番目は0+8×6=48なので192.168.10.48です。"
+      - id: b
+        text: "192.168.10.56"
+        isCorrect: false
+        explanation: "不正解です。これは8番目のネットワークアドレスです。"
+      - id: c
+        text: "192.168.10.40"
+        isCorrect: false
+        explanation: "不正解です。これは6番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.10.64"
+        isCorrect: false
+        explanation: "不正解です。これは9番目のネットワークアドレスです。"
+    explanation: "32分割には5ビット必要（/29）。各サブネットは8アドレス。7番目は0+8×6=48なので192.168.10.48です。"
+    difficulty: medium
+    tags:
+      - ネットワークアドレス
+    points: 15
+
+  - id: q5
+    type: single-choice
+    title: サブネット分割後のネットワークアドレス
+    description: **192.168.5.0/24** を **2個** に分割した時の、**2番目のネットワーク** のネットワークアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.5.128"
+        isCorrect: true
+        explanation: "正解です。2分割なら/25（128アドレス間隔）。2番目は0+128×1=128なので192.168.5.128です。"
+      - id: b
+        text: "192.168.5.64"
+        isCorrect: false
+        explanation: "不正解です。2分割の間隔は128アドレスです。"
+      - id: c
+        text: "192.168.5.192"
+        isCorrect: false
+        explanation: "不正解です。これは3番目になってしまいます（2分割なので存在しない）。"
+      - id: d
+        text: "192.168.5.96"
+        isCorrect: false
+        explanation: "不正解です。128の倍数になる必要があります。"
+    explanation: "2分割には1ビット必要（/25）。各サブネットは128アドレス。2番目は0+128×1=128なので192.168.5.128です。"
+    difficulty: medium
+    tags:
+      - ネットワークアドレス
+    points: 15
+
+  # 最初のホストアドレスを求める問題（3問）
+  - id: q6
+    type: single-choice
+    title: 最初のホストアドレス
+    description: **192.168.1.0/24** を **64個** に分割した時の、**3番目のネットワーク** の最初のホストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.1.9"
+        isCorrect: true
+        explanation: "正解です。64分割なら/30（4アドレス間隔）。3番目のネットワークは192.168.1.8、最初のホストは.9です。"
+      - id: b
+        text: "192.168.1.8"
+        isCorrect: false
+        explanation: "不正解です。これはネットワークアドレスです。"
+      - id: c
+        text: "192.168.1.10"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のホストアドレスです。"
+      - id: d
+        text: "192.168.1.5"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のネットワークの最初のホストです。"
+    explanation: "64分割には6ビット必要（/30）。各サブネットは4アドレス。3番目は0+4×2=8。最初のホストは8+1=9です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  - id: q7
+    type: single-choice
+    title: 最初のホストアドレス
+    description: **192.168.3.0/24** を **16個** に分割した時の、**4番目のネットワーク** の最初のホストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.3.49"
+        isCorrect: true
+        explanation: "正解です。16分割なら/28（16アドレス間隔）。4番目のネットワークは192.168.3.48、最初のホストは.49です。"
+      - id: b
+        text: "192.168.3.48"
+        isCorrect: false
+        explanation: "不正解です。これはネットワークアドレスです。"
+      - id: c
+        text: "192.168.3.50"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のホストアドレスです。"
+      - id: d
+        text: "192.168.3.33"
+        isCorrect: false
+        explanation: "不正解です。これは3番目のネットワークの最初のホストです。"
+    explanation: "16分割には4ビット必要（/28）。各サブネットは16アドレス。4番目は0+16×3=48。最初のホストは48+1=49です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  - id: q8
+    type: single-choice
+    title: 最初のホストアドレス
+    description: **192.168.7.0/24** を **8個** に分割した時の、**2番目のネットワーク** の最初のホストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.7.33"
+        isCorrect: true
+        explanation: "正解です。8分割なら/27（32アドレス間隔）。2番目のネットワークは192.168.7.32、最初のホストは.33です。"
+      - id: b
+        text: "192.168.7.32"
+        isCorrect: false
+        explanation: "不正解です。これはネットワークアドレスです。"
+      - id: c
+        text: "192.168.7.34"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のホストアドレスです。"
+      - id: d
+        text: "192.168.7.1"
+        isCorrect: false
+        explanation: "不正解です。これは1番目のネットワークの最初のホストです。"
+    explanation: "8分割には3ビット必要（/27）。各サブネットは32アドレス。2番目は0+32×1=32。最初のホストは32+1=33です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  # 特定番目のホストアドレスを求める問題（4問）
+  - id: q9
+    type: single-choice
+    title: 特定番目のホストアドレス
+    description: **192.168.2.0/24** を **8個** に分割した時の、**3番目のネットワーク** の **5番目のホスト** アドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.2.69"
+        isCorrect: true
+        explanation: "正解です。3番目のネットワークは192.168.2.64。5番目のホストは64+5=69です。"
+      - id: b
+        text: "192.168.2.68"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のホストアドレスです。"
+      - id: c
+        text: "192.168.2.70"
+        isCorrect: false
+        explanation: "不正解です。これは6番目のホストアドレスです。"
+      - id: d
+        text: "192.168.2.65"
+        isCorrect: false
+        explanation: "不正解です。これは1番目のホストアドレスです。"
+    explanation: "8分割なら/27（32アドレス間隔）。3番目のネットワークは0+32×2=64。5番目のホストは64+5=69です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  - id: q10
+    type: single-choice
+    title: 特定番目のホストアドレス
+    description: **192.168.4.0/24** を **16個** に分割した時の、**6番目のネットワーク** の **3番目のホスト** アドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.4.83"
+        isCorrect: true
+        explanation: "正解です。6番目のネットワークは192.168.4.80。3番目のホストは80+3=83です。"
+      - id: b
+        text: "192.168.4.82"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のホストアドレスです。"
+      - id: c
+        text: "192.168.4.84"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のホストアドレスです。"
+      - id: d
+        text: "192.168.4.81"
+        isCorrect: false
+        explanation: "不正解です。これは1番目のホストアドレスです。"
+    explanation: "16分割なら/28（16アドレス間隔）。6番目のネットワークは0+16×5=80。3番目のホストは80+3=83です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  - id: q11
+    type: single-choice
+    title: 特定番目のホストアドレス
+    description: **192.168.6.0/24** を **4個** に分割した時の、**2番目のネットワーク** の **10番目のホスト** アドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.6.74"
+        isCorrect: true
+        explanation: "正解です。2番目のネットワークは192.168.6.64。10番目のホストは64+10=74です。"
+      - id: b
+        text: "192.168.6.73"
+        isCorrect: false
+        explanation: "不正解です。これは9番目のホストアドレスです。"
+      - id: c
+        text: "192.168.6.75"
+        isCorrect: false
+        explanation: "不正解です。これは11番目のホストアドレスです。"
+      - id: d
+        text: "192.168.6.65"
+        isCorrect: false
+        explanation: "不正解です。これは1番目のホストアドレスです。"
+    explanation: "4分割なら/26（64アドレス間隔）。2番目のネットワークは0+64×1=64。10番目のホストは64+10=74です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  - id: q12
+    type: single-choice
+    title: 特定番目のホストアドレス
+    description: **192.168.8.0/24** を **32個** に分割した時の、**10番目のネットワーク** の **2番目のホスト** アドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.8.74"
+        isCorrect: true
+        explanation: "正解です。10番目のネットワークは192.168.8.72。2番目のホストは72+2=74です。"
+      - id: b
+        text: "192.168.8.73"
+        isCorrect: false
+        explanation: "不正解です。これは1番目のホストアドレスです。"
+      - id: c
+        text: "192.168.8.75"
+        isCorrect: false
+        explanation: "不正解です。これは3番目のホストアドレスです。"
+      - id: d
+        text: "192.168.8.72"
+        isCorrect: false
+        explanation: "不正解です。これはネットワークアドレスです。"
+    explanation: "32分割なら/29（8アドレス間隔）。10番目のネットワークは0+8×9=72。2番目のホストは72+2=74です。"
+    difficulty: medium
+    tags:
+      - ホストアドレス
+    points: 15
+
+  # ブロードキャストアドレスを求める問題（3問）
+  - id: q13
+    type: single-choice
+    title: ブロードキャストアドレス
+    description: **192.168.3.0/24** を **8個** に分割した時の、**5番目のネットワーク** のブロードキャストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.3.159"
+        isCorrect: true
+        explanation: "正解です。5番目のネットワークは192.168.3.128。ブロードキャストは128+32-1=159です。"
+      - id: b
+        text: "192.168.3.158"
+        isCorrect: false
+        explanation: "不正解です。これは最後のホストアドレスです。"
+      - id: c
+        text: "192.168.3.160"
+        isCorrect: false
+        explanation: "不正解です。これは6番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.3.191"
+        isCorrect: false
+        explanation: "不正解です。これは6番目のネットワークのブロードキャストアドレスです。"
+    explanation: "8分割なら/27（32アドレス間隔）。5番目のネットワークは0+32×4=128。ブロードキャストは128+32-1=159です。"
+    difficulty: medium
+    tags:
+      - ブロードキャストアドレス
+    points: 15
+
+  - id: q14
+    type: single-choice
+    title: ブロードキャストアドレス
+    description: **192.168.9.0/24** を **16個** に分割した時の、**3番目のネットワーク** のブロードキャストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.9.47"
+        isCorrect: true
+        explanation: "正解です。3番目のネットワークは192.168.9.32。ブロードキャストは32+16-1=47です。"
+      - id: b
+        text: "192.168.9.46"
+        isCorrect: false
+        explanation: "不正解です。これは最後のホストアドレスです。"
+      - id: c
+        text: "192.168.9.48"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.9.31"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のネットワークのブロードキャストアドレスです。"
+    explanation: "16分割なら/28（16アドレス間隔）。3番目のネットワークは0+16×2=32。ブロードキャストは32+16-1=47です。"
+    difficulty: medium
+    tags:
+      - ブロードキャストアドレス
+    points: 15
+
+  - id: q15
+    type: single-choice
+    title: ブロードキャストアドレス
+    description: **192.168.11.0/24** を **4個** に分割した時の、**3番目のネットワーク** のブロードキャストアドレスを求めてください。
+    options:
+      - id: a
+        text: "192.168.11.191"
+        isCorrect: true
+        explanation: "正解です。3番目のネットワークは192.168.11.128。ブロードキャストは128+64-1=191です。"
+      - id: b
+        text: "192.168.11.190"
+        isCorrect: false
+        explanation: "不正解です。これは最後のホストアドレスです。"
+      - id: c
+        text: "192.168.11.192"
+        isCorrect: false
+        explanation: "不正解です。これは4番目のネットワークアドレスです。"
+      - id: d
+        text: "192.168.11.127"
+        isCorrect: false
+        explanation: "不正解です。これは2番目のネットワークのブロードキャストアドレスです。"
+    explanation: "4分割なら/26（64アドレス間隔）。3番目のネットワークは0+64×2=128。ブロードキャストは128+64-1=191です。"
+    difficulty: medium
+    tags:
+      - ブロードキャストアドレス
+    points: 15
