@@ -99,7 +99,7 @@ class IPInputHelper {
             // IMEモードを無効化
             element.style.imeMode = 'disabled';
             element.style.webkitImeMode = 'disabled';
-            element.setAttribute('inputmode', 'numeric');
+            element.setAttribute('inputmode', 'decimal');
             element.setAttribute('autocomplete', 'off');
             element.setAttribute('spellcheck', 'false');
 
