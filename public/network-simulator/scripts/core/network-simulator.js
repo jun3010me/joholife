@@ -1548,16 +1548,9 @@ class NetworkSimulator {
             const isInPaletteArea = this.isInPaletteArea(this.lastDropScreenPos.x, this.lastDropScreenPos.y);
 
             if (isInPaletteArea) {
-                // デバイスに関連する接続を削除
-                this.connections = this.connections.filter(conn =>
-                    conn.fromDevice !== this.selectedDevice.id &&
-                    conn.toDevice !== this.selectedDevice.id
-                );
-
-                // デバイスを削除
-                this.devices.delete(this.selectedDevice.id);
+                // デバイスを削除（関連する接続も自動的に削除される）
+                this.removeDevice(this.selectedDevice.id);
                 this.updateStatus(`${deviceName}を削除しました`);
-                this.updateControlButtons();
             }
         }
         
