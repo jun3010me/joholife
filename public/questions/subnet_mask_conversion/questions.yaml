@@ -1,0 +1,446 @@
+id: subnet_mask_conversion
+title: サブネット化でよく使うサブネットマスク
+description: サブネット化でよく使われる第4オクテットの2進数と10進数の変換問題です。基本的な変換パターンを覚えてサブネット計算に慣れましょう。
+icon: 🌐
+difficulty: easy
+estimatedTime: 15
+category: ネットワーク
+tags:
+  - サブネット
+  - 2進数
+  - 10進数
+  - 変換
+questions:
+  # 2進数から10進数への変換問題（8問）
+  - id: q1
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11111111** を10進数に変換してください。
+    options:
+      - id: a
+        text: "255"
+        isCorrect: true
+        explanation: "正解です。11111111(2) = 128+64+32+16+8+4+2+1 = 255(10)"
+      - id: b
+        text: "254"
+        isCorrect: false
+        explanation: "不正解です。254は11111110に相当します。"
+      - id: c
+        text: "256"
+        isCorrect: false
+        explanation: "不正解です。256は8ビットでは表現できません（100000000が必要）。"
+      - id: d
+        text: "253"
+        isCorrect: false
+        explanation: "不正解です。253は11111101に相当します。"
+    explanation: "2進数11111111の各ビットは全て1なので、2⁷+2⁶+2⁵+2⁴+2³+2²+2¹+2⁰ = 128+64+32+16+8+4+2+1 = 255です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q2
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11111110** を10進数に変換してください。
+    options:
+      - id: a
+        text: "254"
+        isCorrect: true
+        explanation: "正解です。11111110(2) = 128+64+32+16+8+4+2+0 = 254(10)"
+      - id: b
+        text: "255"
+        isCorrect: false
+        explanation: "不正解です。255は11111111に相当します。"
+      - id: c
+        text: "252"
+        isCorrect: false
+        explanation: "不正解です。252は11111100に相当します。"
+      - id: d
+        text: "253"
+        isCorrect: false
+        explanation: "不正解です。253は11111101に相当します。"
+    explanation: "2進数11111110は最下位ビットが0なので、2⁷+2⁶+2⁵+2⁴+2³+2²+2¹ = 128+64+32+16+8+4+2 = 254です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q3
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11111100** を10進数に変換してください。
+    options:
+      - id: a
+        text: "252"
+        isCorrect: true
+        explanation: "正解です。11111100(2) = 128+64+32+16+8+4+0+0 = 252(10)"
+      - id: b
+        text: "254"
+        isCorrect: false
+        explanation: "不正解です。254は11111110に相当します。"
+      - id: c
+        text: "248"
+        isCorrect: false
+        explanation: "不正解です。248は11111000に相当します。"
+      - id: d
+        text: "250"
+        isCorrect: false
+        explanation: "不正解です。250は11111010に相当します。"
+    explanation: "2進数11111100は下位2ビットが0なので、2⁷+2⁶+2⁵+2⁴+2³+2² = 128+64+32+16+8+4 = 252です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q4
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11111000** を10進数に変換してください。
+    options:
+      - id: a
+        text: "248"
+        isCorrect: true
+        explanation: "正解です。11111000(2) = 128+64+32+16+8+0+0+0 = 248(10)"
+      - id: b
+        text: "252"
+        isCorrect: false
+        explanation: "不正解です。252は11111100に相当します。"
+      - id: c
+        text: "240"
+        isCorrect: false
+        explanation: "不正解です。240は11110000に相当します。"
+      - id: d
+        text: "244"
+        isCorrect: false
+        explanation: "不正解です。244は11110100に相当します。"
+    explanation: "2進数11111000は下位3ビットが0なので、2⁷+2⁶+2⁵+2⁴+2³ = 128+64+32+16+8 = 248です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q5
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11110000** を10進数に変換してください。
+    options:
+      - id: a
+        text: "240"
+        isCorrect: true
+        explanation: "正解です。11110000(2) = 128+64+32+16+0+0+0+0 = 240(10)"
+      - id: b
+        text: "248"
+        isCorrect: false
+        explanation: "不正解です。248は11111000に相当します。"
+      - id: c
+        text: "224"
+        isCorrect: false
+        explanation: "不正解です。224は11100000に相当します。"
+      - id: d
+        text: "192"
+        isCorrect: false
+        explanation: "不正解です。192は11000000に相当します。"
+    explanation: "2進数11110000は下位4ビットが0なので、2⁷+2⁶+2⁵+2⁴ = 128+64+32+16 = 240です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q6
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11100000** を10進数に変換してください。
+    options:
+      - id: a
+        text: "224"
+        isCorrect: true
+        explanation: "正解です。11100000(2) = 128+64+32+0+0+0+0+0 = 224(10)"
+      - id: b
+        text: "240"
+        isCorrect: false
+        explanation: "不正解です。240は11110000に相当します。"
+      - id: c
+        text: "192"
+        isCorrect: false
+        explanation: "不正解です。192は11000000に相当します。"
+      - id: d
+        text: "128"
+        isCorrect: false
+        explanation: "不正解です。128は10000000に相当します。"
+    explanation: "2進数11100000は下位5ビットが0なので、2⁷+2⁶+2⁵ = 128+64+32 = 224です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q7
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **11000000** を10進数に変換してください。
+    options:
+      - id: a
+        text: "192"
+        isCorrect: true
+        explanation: "正解です。11000000(2) = 128+64+0+0+0+0+0+0 = 192(10)"
+      - id: b
+        text: "224"
+        isCorrect: false
+        explanation: "不正解です。224は11100000に相当します。"
+      - id: c
+        text: "128"
+        isCorrect: false
+        explanation: "不正解です。128は10000000に相当します。"
+      - id: d
+        text: "96"
+        isCorrect: false
+        explanation: "不正解です。96は01100000に相当します。"
+    explanation: "2進数11000000は下位6ビットが0なので、2⁷+2⁶ = 128+64 = 192です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q8
+    type: single-choice
+    title: 2進数を10進数に変換
+    description: 2進数 **10000000** を10進数に変換してください。
+    options:
+      - id: a
+        text: "128"
+        isCorrect: true
+        explanation: "正解です。10000000(2) = 128+0+0+0+0+0+0+0 = 128(10)"
+      - id: b
+        text: "192"
+        isCorrect: false
+        explanation: "不正解です。192は11000000に相当します。"
+      - id: c
+        text: "64"
+        isCorrect: false
+        explanation: "不正解です。64は01000000に相当します。"
+      - id: d
+        text: "255"
+        isCorrect: false
+        explanation: "不正解です。255は11111111に相当します。"
+    explanation: "2進数10000000は最上位ビットのみが1なので、2⁷ = 128です。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  # 10進数から2進数への変換問題（8問）
+  - id: q9
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **255** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11111111"
+        isCorrect: true
+        explanation: "正解です。255 = 128+64+32+16+8+4+2+1 = 11111111(2)"
+      - id: b
+        text: "11111110"
+        isCorrect: false
+        explanation: "不正解です。11111110は254に相当します。"
+      - id: c
+        text: "11111100"
+        isCorrect: false
+        explanation: "不正解です。11111100は252に相当します。"
+      - id: d
+        text: "11110000"
+        isCorrect: false
+        explanation: "不正解です。11110000は240に相当します。"
+    explanation: "255は8ビットで表現できる最大値で、全てのビットが1になります。128+64+32+16+8+4+2+1 = 255"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q10
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **254** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11111110"
+        isCorrect: true
+        explanation: "正解です。254 = 128+64+32+16+8+4+2 = 11111110(2)"
+      - id: b
+        text: "11111111"
+        isCorrect: false
+        explanation: "不正解です。11111111は255に相当します。"
+      - id: c
+        text: "11111100"
+        isCorrect: false
+        explanation: "不正解です。11111100は252に相当します。"
+      - id: d
+        text: "11111000"
+        isCorrect: false
+        explanation: "不正解です。11111000は248に相当します。"
+    explanation: "254は255から1を引いた値で、最下位ビット（1の位）のみが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q11
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **252** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11111100"
+        isCorrect: true
+        explanation: "正解です。252 = 128+64+32+16+8+4 = 11111100(2)"
+      - id: b
+        text: "11111110"
+        isCorrect: false
+        explanation: "不正解です。11111110は254に相当します。"
+      - id: c
+        text: "11111000"
+        isCorrect: false
+        explanation: "不正解です。11111000は248に相当します。"
+      - id: d
+        text: "11110000"
+        isCorrect: false
+        explanation: "不正解です。11110000は240に相当します。"
+    explanation: "252は下位2ビット（2¹+2⁰ = 3）を除いた値で、下位2ビットが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q12
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **248** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11111000"
+        isCorrect: true
+        explanation: "正解です。248 = 128+64+32+16+8 = 11111000(2)"
+      - id: b
+        text: "11111100"
+        isCorrect: false
+        explanation: "不正解です。11111100は252に相当します。"
+      - id: c
+        text: "11110000"
+        isCorrect: false
+        explanation: "不正解です。11110000は240に相当します。"
+      - id: d
+        text: "11100000"
+        isCorrect: false
+        explanation: "不正解です。11100000は224に相当します。"
+    explanation: "248は下位3ビット（2²+2¹+2⁰ = 7）を除いた値で、下位3ビットが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q13
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **240** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11110000"
+        isCorrect: true
+        explanation: "正解です。240 = 128+64+32+16 = 11110000(2)"
+      - id: b
+        text: "11111000"
+        isCorrect: false
+        explanation: "不正解です。11111000は248に相当します。"
+      - id: c
+        text: "11100000"
+        isCorrect: false
+        explanation: "不正解です。11100000は224に相当します。"
+      - id: d
+        text: "11000000"
+        isCorrect: false
+        explanation: "不正解です。11000000は192に相当します。"
+    explanation: "240は下位4ビット（2³+2²+2¹+2⁰ = 15）を除いた値で、下位4ビットが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q14
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **224** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11100000"
+        isCorrect: true
+        explanation: "正解です。224 = 128+64+32 = 11100000(2)"
+      - id: b
+        text: "11110000"
+        isCorrect: false
+        explanation: "不正解です。11110000は240に相当します。"
+      - id: c
+        text: "11000000"
+        isCorrect: false
+        explanation: "不正解です。11000000は192に相当します。"
+      - id: d
+        text: "10000000"
+        isCorrect: false
+        explanation: "不正解です。10000000は128に相当します。"
+    explanation: "224は下位5ビット（2⁴+2³+2²+2¹+2⁰ = 31）を除いた値で、下位5ビットが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q15
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **192** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "11000000"
+        isCorrect: true
+        explanation: "正解です。192 = 128+64 = 11000000(2)"
+      - id: b
+        text: "11100000"
+        isCorrect: false
+        explanation: "不正解です。11100000は224に相当します。"
+      - id: c
+        text: "10000000"
+        isCorrect: false
+        explanation: "不正解です。10000000は128に相当します。"
+      - id: d
+        text: "01000000"
+        isCorrect: false
+        explanation: "不正解です。01000000は64に相当します。"
+    explanation: "192は下位6ビット（2⁵+2⁴+2³+2²+2¹+2⁰ = 63）を除いた値で、下位6ビットが0になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10
+
+  - id: q16
+    type: single-choice
+    title: 10進数を2進数に変換
+    description: 10進数 **128** を2進数（8ビット）に変換してください。
+    options:
+      - id: a
+        text: "10000000"
+        isCorrect: true
+        explanation: "正解です。128 = 2⁷ = 10000000(2)"
+      - id: b
+        text: "11000000"
+        isCorrect: false
+        explanation: "不正解です。11000000は192に相当します。"
+      - id: c
+        text: "01000000"
+        isCorrect: false
+        explanation: "不正解です。01000000は64に相当します。"
+      - id: d
+        text: "11111111"
+        isCorrect: false
+        explanation: "不正解です。11111111は255に相当します。"
+    explanation: "128は2の7乗で、8ビットの最上位ビットのみが1になります。"
+    difficulty: easy
+    tags:
+      - 基本変換
+    points: 10

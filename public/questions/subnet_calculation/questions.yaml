@@ -1,0 +1,419 @@
+id: subnet_calculation
+title: サブネット化の計算問題
+description: サブネットマスクからネットワーク数やホスト数を計算する基本問題です。サブネット化の基礎計算に慣れましょう。
+icon: 🔢
+difficulty: easy
+estimatedTime: 15
+category: ネットワーク
+tags:
+  - サブネット
+  - 計算
+  - ネットワーク数
+  - ホスト数
+questions:
+  # ネットワーク数を問う問題（8問）
+  - id: q1
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.240** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "16"
+        isCorrect: true
+        explanation: "正解です。240は11110000なので、4ビットでサブネット化。2⁴=16ネットワークです。"
+      - id: b
+        text: "8"
+        isCorrect: false
+        explanation: "不正解です。8は224（11100000）の場合です。"
+      - id: c
+        text: "32"
+        isCorrect: false
+        explanation: "不正解です。32は248（11111000）の場合です。"
+      - id: d
+        text: "4"
+        isCorrect: false
+        explanation: "不正解です。4は192（11000000）の場合です。"
+    explanation: "240は2進数で11110000です。4ビットがサブネット用なので、2⁴=16ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q2
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.224** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "8"
+        isCorrect: true
+        explanation: "正解です。224は11100000なので、3ビットでサブネット化。2³=8ネットワークです。"
+      - id: b
+        text: "16"
+        isCorrect: false
+        explanation: "不正解です。16は240（11110000）の場合です。"
+      - id: c
+        text: "4"
+        isCorrect: false
+        explanation: "不正解です。4は192（11000000）の場合です。"
+      - id: d
+        text: "32"
+        isCorrect: false
+        explanation: "不正解です。32は248（11111000）の場合です。"
+    explanation: "224は2進数で11100000です。3ビットがサブネット用なので、2³=8ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q3
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.248** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "32"
+        isCorrect: true
+        explanation: "正解です。248は11111000なので、5ビットでサブネット化。2⁵=32ネットワークです。"
+      - id: b
+        text: "16"
+        isCorrect: false
+        explanation: "不正解です。16は240（11110000）の場合です。"
+      - id: c
+        text: "8"
+        isCorrect: false
+        explanation: "不正解です。8は224（11100000）の場合です。"
+      - id: d
+        text: "64"
+        isCorrect: false
+        explanation: "不正解です。64は252（11111100）の場合です。"
+    explanation: "248は2進数で11111000です。5ビットがサブネット用なので、2⁵=32ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q4
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.192** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "4"
+        isCorrect: true
+        explanation: "正解です。192は11000000なので、2ビットでサブネット化。2²=4ネットワークです。"
+      - id: b
+        text: "8"
+        isCorrect: false
+        explanation: "不正解です。8は224（11100000）の場合です。"
+      - id: c
+        text: "2"
+        isCorrect: false
+        explanation: "不正解です。2は128（10000000）の場合です。"
+      - id: d
+        text: "16"
+        isCorrect: false
+        explanation: "不正解です。16は240（11110000）の場合です。"
+    explanation: "192は2進数で11000000です。2ビットがサブネット用なので、2²=4ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q5
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.252** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "64"
+        isCorrect: true
+        explanation: "正解です。252は11111100なので、6ビットでサブネット化。2⁶=64ネットワークです。"
+      - id: b
+        text: "32"
+        isCorrect: false
+        explanation: "不正解です。32は248（11111000）の場合です。"
+      - id: c
+        text: "16"
+        isCorrect: false
+        explanation: "不正解です。16は240（11110000）の場合です。"
+      - id: d
+        text: "128"
+        isCorrect: false
+        explanation: "不正解です。128は254（11111110）の場合です。"
+    explanation: "252は2進数で11111100です。6ビットがサブネット用なので、2⁶=64ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q6
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.128** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "2"
+        isCorrect: true
+        explanation: "正解です。128は10000000なので、1ビットでサブネット化。2¹=2ネットワークです。"
+      - id: b
+        text: "4"
+        isCorrect: false
+        explanation: "不正解です。4は192（11000000）の場合です。"
+      - id: c
+        text: "8"
+        isCorrect: false
+        explanation: "不正解です。8は224（11100000）の場合です。"
+      - id: d
+        text: "1"
+        isCorrect: false
+        explanation: "不正解です。1はサブネット化していない場合です。"
+    explanation: "128は2進数で10000000です。1ビットがサブネット用なので、2¹=2ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q7
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.254** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "128"
+        isCorrect: true
+        explanation: "正解です。254は11111110なので、7ビットでサブネット化。2⁷=128ネットワークです。"
+      - id: b
+        text: "64"
+        isCorrect: false
+        explanation: "不正解です。64は252（11111100）の場合です。"
+      - id: c
+        text: "32"
+        isCorrect: false
+        explanation: "不正解です。32は248（11111000）の場合です。"
+      - id: d
+        text: "256"
+        isCorrect: false
+        explanation: "不正解です。256は8ビットでは表現できません。"
+    explanation: "254は2進数で11111110です。7ビットがサブネット用なので、2⁷=128ネットワークになります。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  - id: q8
+    type: single-choice
+    title: サブネットマスクからネットワーク数を計算
+    description: サブネットマスクが **255.255.255.0** の場合、ネットワークの数はいくつですか？
+    options:
+      - id: a
+        text: "1"
+        isCorrect: true
+        explanation: "正解です。255.255.255.0はサブネット化していないクラスCネットワークなので、1ネットワークです。"
+      - id: b
+        text: "2"
+        isCorrect: false
+        explanation: "不正解です。2は128（10000000）の場合です。"
+      - id: c
+        text: "4"
+        isCorrect: false
+        explanation: "不正解です。4は192（11000000）の場合です。"
+      - id: d
+        text: "0"
+        isCorrect: false
+        explanation: "不正解です。少なくとも1つのネットワークは存在します。"
+    explanation: "255.255.255.0は2進数で11111111.11111111.11111111.00000000です。第4オクテットがすべて0なので、サブネット化されておらず1ネットワークです。"
+    difficulty: easy
+    tags:
+      - ネットワーク数
+    points: 10
+
+  # ホスト数を問う問題（7問）
+  - id: q9
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.192** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "62台"
+        isCorrect: true
+        explanation: "正解です。192は11000000なので、6ビットがホスト用。2⁶-2=62台です。"
+      - id: b
+        text: "64台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "30台"
+        isCorrect: false
+        explanation: "不正解です。30台は224（11100000）の場合です。"
+      - id: d
+        text: "126台"
+        isCorrect: false
+        explanation: "不正解です。126台は128（10000000）の場合です。"
+    explanation: "192は2進数で11000000です。6ビットがホスト用なので、2⁶=64個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて64-2=62台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q10
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.240** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "14台"
+        isCorrect: true
+        explanation: "正解です。240は11110000なので、4ビットがホスト用。2⁴-2=14台です。"
+      - id: b
+        text: "16台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "30台"
+        isCorrect: false
+        explanation: "不正解です。30台は224（11100000）の場合です。"
+      - id: d
+        text: "6台"
+        isCorrect: false
+        explanation: "不正解です。6台は248（11111000）の場合です。"
+    explanation: "240は2進数で11110000です。4ビットがホスト用なので、2⁴=16個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて16-2=14台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q11
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.224** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "30台"
+        isCorrect: true
+        explanation: "正解です。224は11100000なので、5ビットがホスト用。2⁵-2=30台です。"
+      - id: b
+        text: "32台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "14台"
+        isCorrect: false
+        explanation: "不正解です。14台は240（11110000）の場合です。"
+      - id: d
+        text: "62台"
+        isCorrect: false
+        explanation: "不正解です。62台は192（11000000）の場合です。"
+    explanation: "224は2進数で11100000です。5ビットがホスト用なので、2⁵=32個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて32-2=30台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q12
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.248** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "6台"
+        isCorrect: true
+        explanation: "正解です。248は11111000なので、3ビットがホスト用。2³-2=6台です。"
+      - id: b
+        text: "8台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "14台"
+        isCorrect: false
+        explanation: "不正解です。14台は240（11110000）の場合です。"
+      - id: d
+        text: "2台"
+        isCorrect: false
+        explanation: "不正解です。2台は252（11111100）の場合です。"
+    explanation: "248は2進数で11111000です。3ビットがホスト用なので、2³=8個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて8-2=6台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q13
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.252** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "2台"
+        isCorrect: true
+        explanation: "正解です。252は11111100なので、2ビットがホスト用。2²-2=2台です。"
+      - id: b
+        text: "4台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "6台"
+        isCorrect: false
+        explanation: "不正解です。6台は248（11111000）の場合です。"
+      - id: d
+        text: "1台"
+        isCorrect: false
+        explanation: "不正解です。少なくとも2台は接続できます。"
+    explanation: "252は2進数で11111100です。2ビットがホスト用なので、2²=4個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて4-2=2台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q14
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.128** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "126台"
+        isCorrect: true
+        explanation: "正解です。128は10000000なので、7ビットがホスト用。2⁷-2=126台です。"
+      - id: b
+        text: "128台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "62台"
+        isCorrect: false
+        explanation: "不正解です。62台は192（11000000）の場合です。"
+      - id: d
+        text: "254台"
+        isCorrect: false
+        explanation: "不正解です。254台はサブネット化していない場合です。"
+    explanation: "128は2進数で10000000です。7ビットがホスト用なので、2⁷=128個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて128-2=126台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10
+
+  - id: q15
+    type: single-choice
+    title: サブネットマスクからホスト数を計算
+    description: サブネットマスクが **255.255.255.0** の場合、接続可能なホストの台数は何台ですか？
+    options:
+      - id: a
+        text: "254台"
+        isCorrect: true
+        explanation: "正解です。255.255.255.0は8ビットがホスト用。2⁸-2=254台です。"
+      - id: b
+        text: "256台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレスとブロードキャストアドレスを除く必要があります。"
+      - id: c
+        text: "126台"
+        isCorrect: false
+        explanation: "不正解です。126台は128（10000000）の場合です。"
+      - id: d
+        text: "255台"
+        isCorrect: false
+        explanation: "不正解です。ネットワークアドレス（.0）を除く必要があります。"
+    explanation: "255.255.255.0は2進数で11111111.11111111.11111111.00000000です。8ビットがホスト用なので、2⁸=256個のアドレス。ネットワークアドレスとブロードキャストアドレスを除いて256-2=254台です。"
+    difficulty: easy
+    tags:
+      - ホスト数
+    points: 10

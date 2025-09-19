@@ -15,3 +15,5 @@ questionSets:
   - network-construction-3
   - network-construction-4
   - network-construction-5
+  - subnet_mask_conversion
+  - subnet_calculation
