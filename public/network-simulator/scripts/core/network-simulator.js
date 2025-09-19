@@ -2086,14 +2086,28 @@ class NetworkSimulator {
         const device = this.devices.get(deviceId);
         if (!device) return;
         
-        // このデバイスに関連する接続線をすべて削除
-        const connectionsToRemove = this.connections.filter(conn =>
-            conn.fromDevice === deviceId || conn.toDevice === deviceId
-        );
-        
+        // このデバイスに関連する接続線をすべて削除（新旧形式両対応）
+        const connectionsToRemove = this.connections.filter(conn => {
+            // 古い形式の場合
+            if (conn.fromDevice === deviceId || conn.toDevice === deviceId) {
+                return true;
+            }
+            // 新しい形式の場合
+            if (conn.from && conn.from.device && conn.from.device.id === deviceId) {
+                return true;
+            }
+            if (conn.to && conn.to.device && conn.to.device.id === deviceId) {
+                return true;
+            }
+            return false;
+        });
+
+        console.log('削除対象の接続:', connectionsToRemove.length, '個');
         connectionsToRemove.forEach(conn => {
+            console.log('接続削除中:', conn.id, 'from:', conn.fromDevice, 'to:', conn.toDevice);
             this.removeConnection(conn.id);
         });
+        console.log('削除後の接続数:', this.connections.length);
         
         // デバイスを削除
         this.devices.delete(deviceId);
