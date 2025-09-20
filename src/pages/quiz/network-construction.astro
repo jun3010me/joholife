@@ -207,6 +207,11 @@ class NetworkQuizSession {
     this.showingNameInput = true;
     this.showingCertificate = false;
     this.isCompleted = false;
+
+    // なりすまし防止のためのIPアドレス取得を開始
+    this.cachedIpAddress = null;
+    this.tryGetIPAddress();
+
     this.init();
   }
 
@@ -898,6 +903,23 @@ class NetworkQuizSession {
     ctx.fillStyle = '#059669';
     ctx.fillText('じょうほうらいふ', width / 2, 520);
 
+    // --- なりすまし防止情報 ---
+    // 追跡情報を収集
+    const trackingInfo = this.generateTrackingInfo();
+
+    // 下端に追跡情報を小さく表示（黄色で見やすく）
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#f59e0b';
+    ctx.textAlign = 'left';
+
+    const bottomY = height - 40;
+    ctx.fillText(`発行時刻: ${trackingInfo.timestamp}`, 43, bottomY - 20);
+    ctx.fillText(`アクセス元: ${trackingInfo.ipAddress}`, 43, bottomY - 5);
+
+    ctx.textAlign = 'right';
+    ctx.fillText(`端末ID: ${trackingInfo.fingerprint}`, width - 43, bottomY - 20);
+    ctx.fillText(`セッション: ${trackingInfo.sessionId}`, width - 43, bottomY - 5);
+
     // Decorative elements
     ctx.fillStyle = '#10b981';
     ctx.beginPath();
@@ -1159,6 +1181,102 @@ class NetworkQuizSession {
     if (percentage >= 80) return 'よくできました！ほとんどの課題をクリアできています。';
     if (percentage >= 60) return '合格ライン！不合格だった課題を見直してみましょう。';
     return '復習が必要です。基礎からもう一度確認しましょう。';
+  }
+
+  async tryGetIPAddress() {
+    try {
+      // 複数のサービスを試行してIPアドレスを取得
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      this.cachedIpAddress = data.ip;
+    } catch (error) {
+      try {
+        // フォールバック: 別のサービス
+        const response = await fetch('https://httpbin.org/ip');
+        const data = await response.json();
+        this.cachedIpAddress = data.origin.split(',')[0].trim();
+      } catch (error2) {
+        // IPアドレス取得に失敗した場合の代替手段
+        this.cachedIpAddress = 'Unknown';
+      }
+    }
+  }
+
+  generateTrackingInfo() {
+    const now = new Date();
+
+    // IPアドレス取得（非同期だが、できる限り試行）
+    let ipAddress = this.cachedIpAddress || 'N/A';
+    if (!this.cachedIpAddress) {
+      this.tryGetIPAddress();
+    }
+
+    // User-Agent情報の簡略化
+    const userAgent = navigator.userAgent;
+    const browserInfo = userAgent.includes('Chrome') ? 'Chrome' :
+                       userAgent.includes('Firefox') ? 'Firefox' :
+                       userAgent.includes('Safari') ? 'Safari' : 'Other';
+    const osInfo = userAgent.includes('Windows') ? 'Win' :
+                   userAgent.includes('Mac') ? 'Mac' :
+                   userAgent.includes('Linux') ? 'Linux' : 'Other';
+
+    // ブラウザフィンガープリント生成
+    const fingerprint = this.generateBrowserFingerprint();
+
+    return {
+      timestamp: now.toISOString(),
+      ipAddress: ipAddress,
+      browserInfo: browserInfo,
+      osInfo: osInfo,
+      fingerprint: fingerprint,
+      sessionId: this.generateSessionId(now, fingerprint),
+      deviceUserHash: this.generateDeviceUserHash(this.userName)
+    };
+  }
+
+  generateBrowserFingerprint() {
+    // より詳細なブラウザフィンガープリント生成
+    const fingerprint = {
+      userAgent: navigator.userAgent || 'unknown',
+      language: navigator.language || 'unknown',
+      languages: navigator.languages ? navigator.languages.join(',') : 'unknown',
+      platform: navigator.platform || 'unknown',
+      vendor: navigator.vendor || 'unknown',
+      cookieEnabled: navigator.cookieEnabled || false,
+      doNotTrack: navigator.doNotTrack || 'unknown',
+      screenResolution: `${screen.width}x${screen.height}` || 'unknown',
+      colorDepth: screen.colorDepth || 'unknown',
+      pixelDepth: screen.pixelDepth || 'unknown',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'yes' : 'no'
+    };
+
+    // フィンガープリントをハッシュ化（ここでは簡易的に文字列化）
+    return this.generateHash(JSON.stringify(fingerprint)).substr(0, 12);
+  }
+
+  generateHash(input) {
+    // 簡易的なハッシュ関数（本来はcrypto APIを使用すべき）
+    let hash = 0;
+    if (input.length === 0) return hash.toString();
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32bit整数に変換
+    }
+    return Math.abs(hash).toString(16);
+  }
+
+  generateSessionId(timestamp, fingerprint) {
+    const input = `${timestamp.getTime()}_${fingerprint}_${Math.random()}`;
+    return this.generateHash(input).substr(0, 6).toUpperCase();
+  }
+
+  generateDeviceUserHash(userName) {
+    // ブラウザフィンガープリントのみで端末識別
+    // 同じ端末から異なる名前で修了証を発行した場合の検出用
+    const fingerprint = this.generateBrowserFingerprint();
+    return this.generateHash(fingerprint).substr(0, 8).toUpperCase();
   }
 }
 
