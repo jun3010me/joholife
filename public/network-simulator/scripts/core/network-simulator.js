@@ -2157,10 +2157,11 @@ class NetworkSimulator {
         console.log('接続完了試行:', startPort.type, '->', endPort.type);
         
         // 接続の妥当性をチェック
-        if (startPort.device === endPort.device) {
-            this.updateStatus('同じデバイス内のポート間は接続できません');
-            return;
-        }
+        // 注意: 同一デバイス間接続を許可（学習目的でループエラーを体験できるように）
+        // if (startPort.device === endPort.device) {
+        //     this.updateStatus('同じデバイス内のポート間は接続できません');
+        //     return;
+        // }
         
         // 1対1制限：開始ポートが既に接続されているかチェック
         if (startPort.port.connected) {
@@ -2983,8 +2984,25 @@ class NetworkSimulator {
         
         // ネットワークループチェック
         if (this.hasNetworkLoop()) {
-            await this.showPingError('ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。', this.pingSourceDevice, this.pingTargetDevice);
+            const loops = this.detectNetworkLoops();
+            const errorMessage = this.formatNetworkLoopErrorMessage(loops);
+            await this.showPingError(errorMessage, this.pingSourceDevice, this.pingTargetDevice);
             return;
+        }
+
+        // ルーター複数NIC同一スイッチ接続チェック
+        console.log('🔍 ルーター複数NIC接続チェック開始');
+        const multiNICIssues = this.detectRouterMultiNICToSameSwitch();
+        console.log('🔍 検出された問題:', multiNICIssues);
+
+        if (this.hasRouterMultiNICToSameSwitch()) {
+            console.log('⚠️ ルーター複数NIC問題が検出されました');
+            const errorMessage = this.formatRouterMultiNICErrorMessage(multiNICIssues);
+            console.log('📝 エラーメッセージ:', errorMessage);
+            await this.showPingError(errorMessage, this.pingSourceDevice, this.pingTargetDevice);
+            return;
+        } else {
+            console.log('✅ ルーター複数NIC問題は検出されませんでした');
         }
         
         // ネットワーク到達性チェック
@@ -3046,10 +3064,21 @@ class NetworkSimulator {
             };
         }
         
+        // ターゲットがルーターの場合、特定のNICの物理接続をチェック
+        if (targetDevice.type === 'router') {
+            const targetNICStatus = this.checkRouterNICPhysicalConnection(targetDevice, targetIP);
+            if (!targetNICStatus.isConnected) {
+                return {
+                    isReachable: false,
+                    reason: targetNICStatus.reason
+                };
+            }
+        }
+
         // 異なるサブネット間では、ルーターが必要
         // 詳細なサブネット不一致理由を取得
         const subnetMismatchReason = this.getSubnetMismatchReason(sourceIP, sourceSubnet, targetIP, targetSubnet);
-        
+
         // 経路上にルーターがあるかチェック
         const path = this.findPath(sourceDevice, targetDevice);
         const hasRouter = path.some(device => device.type === 'router');
@@ -3087,7 +3116,272 @@ class NetworkSimulator {
             routingType: 'routed'
         };
     }
-    
+
+    // ルーターの特定NICの物理接続状態をチェック
+    checkRouterNICPhysicalConnection(router, targetIP) {
+        // どのNICに対するアクセスかを判定
+        const nicInfo = this.identifyRouterNIC(router, targetIP);
+
+        if (!nicInfo.isValid) {
+            return {
+                isConnected: false,
+                reason: `IPアドレス ${targetIP} はルーターのどのNICにも対応していません`
+            };
+        }
+
+        // 該当NICが物理的に接続されているかチェック
+        const isPhysicallyConnected = this.isRouterNICPhysicallyConnected(router, nicInfo.nicType);
+
+        if (!isPhysicallyConnected) {
+            return {
+                isConnected: false,
+                reason: `ルーターの${nicInfo.nicType}は物理的に接続されていません（ケーブル未接続）`
+            };
+        }
+
+        return {
+            isConnected: true,
+            reason: `ルーターの${nicInfo.nicType}は物理的に接続されています`
+        };
+    }
+
+    // ルーターのNIC種別を特定（IPアドレスから判定）
+    identifyRouterNIC(router, targetIP) {
+        const config = router.config;
+
+        // LAN1のIPアドレスチェック
+        if (config.lan1 && config.lan1.ipAddress === targetIP) {
+            return {
+                isValid: true,
+                nicType: 'LAN1',
+                nicConfig: config.lan1
+            };
+        }
+
+        // LAN2のIPアドレスチェック
+        if (config.lan2 && config.lan2.ipAddress === targetIP) {
+            return {
+                isValid: true,
+                nicType: 'LAN2',
+                nicConfig: config.lan2
+            };
+        }
+
+        // LAN3のIPアドレスチェック
+        if (config.lan3 && config.lan3.ipAddress === targetIP) {
+            return {
+                isValid: true,
+                nicType: 'LAN3',
+                nicConfig: config.lan3
+            };
+        }
+
+        // WANのIPアドレスチェック
+        if (config.ipAddress === targetIP) {
+            return {
+                isValid: true,
+                nicType: 'WAN',
+                nicConfig: config
+            };
+        }
+
+        return {
+            isValid: false,
+            nicType: null,
+            nicConfig: null
+        };
+    }
+
+    // ルーターの特定NICが物理的に接続されているかチェック
+    isRouterNICPhysicallyConnected(router, nicType) {
+        const connectedDevices = this.getConnectedDevices(router);
+
+        if (connectedDevices.length === 0) {
+            // 何も接続されていない
+            return false;
+        }
+
+        // WAN接続の場合
+        if (nicType === 'WAN') {
+            return router.wanConfig && router.wanConfig.isConnected;
+        }
+
+        // LAN接続の場合は、接続された機器の数と位置から判定
+        // 実際の物理接続ポートを確認する
+        for (const connectedDevice of connectedDevices) {
+            const connection = this.findDirectConnection(router, connectedDevice);
+            if (connection) {
+                // ポート番号からNIC種別を判定
+                const routerPortIndex = this.getRouterPortIndex(router, connection);
+                const portNICType = this.mapPortToNICType(routerPortIndex);
+
+                if (portNICType === nicType) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 接続からルーターのポートインデックスを取得
+    getRouterPortIndex(router, connection) {
+        // 接続形式に応じて処理
+        if (connection.from && connection.to) {
+            // 新しい形式
+            if (connection.from.device === router) {
+                return connection.from.port || 0;
+            } else if (connection.to.device === router) {
+                return connection.to.port || 0;
+            }
+        } else {
+            // 古い形式の場合は推定
+            if (connection.fromDevice === router.id) {
+                return connection.fromPort || 0;
+            } else if (connection.toDevice === router.id) {
+                return connection.toPort || 0;
+            }
+        }
+        return 0;
+    }
+
+    // ポート番号をNIC種別にマッピング
+    mapPortToNICType(portIndex) {
+        // ポート0-1: LAN1, ポート2: LAN2, ポート3-5: LAN3
+        if (portIndex <= 1) {
+            return 'LAN1';
+        } else if (portIndex === 2) {
+            return 'LAN2';
+        } else if (portIndex >= 3) {
+            return 'LAN3';
+        }
+        return 'LAN1'; // デフォルト
+    }
+
+    // ネットワークループエラーメッセージをフォーマット
+    formatNetworkLoopErrorMessage(loops) {
+        if (loops.length === 0) {
+            return 'ネットワークにループが検出されましたが、詳細を取得できませんでした。';
+        }
+
+        let message = '🔄 ネットワークループエラー：\n\n';
+
+        let selfLoopCount = 0;
+        let redundantLoopCount = 0;
+
+        for (let i = 0; i < loops.length; i++) {
+            const loop = loops[i];
+
+            if (loop.type === 'self-loop') {
+                selfLoopCount++;
+                message += `🚨 自己ループ: 「${loop.device.name}」(${loop.device.type})の異なるポート間が接続されています\n`;
+                message += `   → ポート ${loop.fromPort?.port || '不明'} と ポート ${loop.toPort?.port || '不明'} が同一デバイス内で接続されています\n`;
+                message += `   → これは**ブロードキャストストーム**を引き起こし、ネットワーク全体が停止する可能性があります！\n`;
+            } else if (loop.type === 'switch-redundant') {
+                redundantLoopCount++;
+                message += `🔗 冗長接続: 「${loop.device1.name}」と「${loop.device2.name}」の間に${loop.connectionCount}本の接続があります\n`;
+                message += `   → これはSTP(Spanning Tree Protocol)なしでは**ブロードキャストループ**を引き起こします\n`;
+            }
+
+            if (i < loops.length - 1) {
+                message += '\n';
+            }
+        }
+
+        message += '\n🔥 **ループの危険性**：\n';
+        if (selfLoopCount > 0) {
+            message += '   • **自己ループ**: パケットが同じデバイス内で無限に循環し、即座にネットワークが麻痺します\n';
+        }
+        if (redundantLoopCount > 0) {
+            message += '   • **冗長接続**: ブロードキャストフレームが無限に循環し、ネットワーク帯域を消費します\n';
+        }
+
+        message += '\n💡 **修正方法**：\n';
+        message += '   • 同一デバイスの異なるポート間のケーブルを削除してください\n';
+        message += '   • スイッチ間の余分なケーブルを削除してください\n';
+        message += '   • 実際のネットワークではSTPやRSTPでループを防止しますが、このシミュレータでは物理的に削除が必要です';
+
+        return message;
+    }
+
+    // 短縮版ネットワークループエラーメッセージをフォーマット（status用）
+    formatShortNetworkLoopError(loops) {
+        if (loops.length === 0) {
+            return 'ネットワークにループが検出されました';
+        }
+
+        let selfLoops = loops.filter(loop => loop.type === 'self-loop');
+        let redundantLoops = loops.filter(loop => loop.type === 'switch-redundant');
+
+        if (selfLoops.length > 0 && redundantLoops.length > 0) {
+            return `自己ループ(${selfLoops.length}件)と冗長接続(${redundantLoops.length}件)を検出`;
+        } else if (selfLoops.length > 0) {
+            const deviceNames = selfLoops.map(loop => loop.device.name).join(', ');
+            return `自己ループを検出: ${deviceNames}`;
+        } else if (redundantLoops.length > 0) {
+            return `冗長接続を検出: スイッチ間の複数ケーブル`;
+        }
+
+        return 'ネットワークループを検出';
+    }
+
+    // ルーター複数NIC接続エラーメッセージをフォーマット
+    formatRouterMultiNICErrorMessage(issues) {
+        if (issues.length === 0) {
+            return 'ネットワーク構成に問題があります。';
+        }
+
+        let message = '❌ ネットワーク構成エラー：\n\n';
+
+        for (let i = 0; i < issues.length; i++) {
+            const issue = issues[i];
+            // 重複するNICを除去してユニークなNICのみ表示
+            const uniqueNICs = [...new Set(issue.connectedNICs)];
+
+            if (uniqueNICs.length > 1) {
+                // 複数の異なるNICが接続されている場合
+                message += `🔧 ルーター「${issue.router.name}」の複数NIC（${uniqueNICs.join(', ')}）が同一スイッチ「${issue.switch.name}」に接続されています\n`;
+            } else {
+                // 同じNICに複数接続されている場合
+                const nicCount = issue.connectedNICs.length;
+                message += `🔧 ルーター「${issue.router.name}」の${uniqueNICs[0]}に${nicCount}本のケーブルが同一スイッチ「${issue.switch.name}」に接続されています\n`;
+            }
+
+            message += `   → これは不正な接続です。ルーターの各NICは異なるスイッチまたはデバイスに接続してください。\n`;
+
+            if (i < issues.length - 1) {
+                message += '\n';
+            }
+        }
+
+        message += '\n💡 修正方法：\n';
+        message += '   • ルーターの各NIC（LAN1、LAN2、LAN3）は異なるネットワークセグメントに接続する\n';
+        message += '   • 同一セグメント内のデバイスは1つのNICにまとめて接続する\n';
+        message += '   • 余分なケーブルを削除して正しく配線し直してください';
+
+        return message;
+    }
+
+    // 2つのデバイス間の直接接続を検索
+    findDirectConnection(device1, device2) {
+        for (const connection of this.connections) {
+            if (connection.from && connection.to) {
+                // 新しい形式
+                if ((connection.from.device === device1 && connection.to.device === device2) ||
+                    (connection.from.device === device2 && connection.to.device === device1)) {
+                    return connection;
+                }
+            } else {
+                // 古い形式
+                if ((connection.fromDevice === device1.id && connection.toDevice === device2.id) ||
+                    (connection.fromDevice === device2.id && connection.toDevice === device1.id)) {
+                    return connection;
+                }
+            }
+        }
+        return null;
+    }
+
     // IPアドレスを32ビット整数に変換
     ipToInt(ip) {
         return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet), 0) >>> 0;
@@ -5570,7 +5864,9 @@ class NetworkSimulator {
         
         // ネットワークループチェック
         if (this.hasNetworkLoop()) {
-            alert('ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。');
+            const loops = this.detectNetworkLoops();
+            const shortErrorMessage = this.formatShortNetworkLoopError(loops);
+            alert(`HTTP通信エラー: ${shortErrorMessage}`);
             return;
         }
         
@@ -8023,7 +8319,9 @@ function extendDevicesWithTCP(simulator) {
         
         // ネットワークループチェック
         if (this.hasNetworkLoop()) {
-            this.updateStatus(`❌ HTTP通信失敗: ネットワークにループが検出されました。スイッチ間の冗長な接続を確認してください。`);
+            const loops = this.detectNetworkLoops();
+            const shortErrorMessage = this.formatShortNetworkLoopError(loops);
+            this.updateStatus(`❌ HTTP通信失敗: ${shortErrorMessage}`);
             return;
         }
         
@@ -8346,32 +8644,36 @@ NetworkSimulator.prototype.checkIPAddressDuplicationForRouter = function(ipAddre
 // ネットワークループ検出機能（スイッチ間の複数接続検出）
 NetworkSimulator.prototype.detectNetworkLoops = function() {
     const loops = [];
-    
+
     // デバッグ情報
     console.log('ループ検出開始 - 接続数:', this.connections.length);
-    
-    // スイッチ間の接続数をカウント
+
+    // 1. 自己ループ（同一デバイス内接続）を検出
+    const selfLoops = this.detectSelfLoops();
+    loops.push(...selfLoops);
+
+    // 2. スイッチ間の複数接続を検出
     const switchConnections = new Map();
-    
+
     // 各接続をチェック
     for (const connection of this.connections) {
         const device1 = connection.from ? connection.from.device : null;
         const device2 = connection.to ? connection.to.device : null;
-        
+
         // デバッグ情報
         console.log('接続チェック:', {
             connection_id: connection.id,
             device1: device1 ? `${device1.name}(${device1.type})` : 'null',
             device2: device2 ? `${device2.name}(${device2.type})` : 'null'
         });
-        
+
         // デバイスが存在し、両方がスイッチの場合のみ処理
         if (device1 && device2 && device1.type === 'switch' && device2.type === 'switch') {
             // デバイスペアのキーを作成（順序に依存しないように）
             const devicePairKey = [device1.id, device2.id].sort().join('-');
-            
+
             console.log('スイッチ間接続発見:', `${device1.name} ↔ ${device2.name}`);
-            
+
             if (!switchConnections.has(devicePairKey)) {
                 switchConnections.set(devicePairKey, {
                     device1: device1,
@@ -8379,16 +8681,17 @@ NetworkSimulator.prototype.detectNetworkLoops = function() {
                     connections: []
                 });
             }
-            
+
             switchConnections.get(devicePairKey).connections.push(connection);
         }
     }
-    
+
     // 複数接続があるペアを検出
     for (const [pairKey, pairData] of switchConnections) {
         if (pairData.connections.length > 1) {
             console.log(`ネットワークループ検出: ${pairData.device1.name} と ${pairData.device2.name} の間に ${pairData.connections.length} 本の接続があります`);
             loops.push({
+                type: 'switch-redundant',
                 device1: pairData.device1,
                 device2: pairData.device2,
                 connectionCount: pairData.connections.length,
@@ -8396,14 +8699,214 @@ NetworkSimulator.prototype.detectNetworkLoops = function() {
             });
         }
     }
-    
+
     return loops;
+};
+
+// 自己ループ（同一デバイス内接続）を検出
+NetworkSimulator.prototype.detectSelfLoops = function() {
+    const selfLoops = [];
+
+    console.log('🔍 自己ループ検出開始');
+
+    for (const connection of this.connections) {
+        const device1 = connection.from ? connection.from.device : null;
+        const device2 = connection.to ? connection.to.device : null;
+
+        // 同一デバイス内接続をチェック
+        if (device1 && device2 && device1.id === device2.id) {
+            console.log(`🔄 自己ループ検出: ${device1.name} (${device1.type}) 内でのポート間接続`);
+
+            selfLoops.push({
+                type: 'self-loop',
+                device: device1,
+                connection: connection,
+                fromPort: connection.from,
+                toPort: connection.to
+            });
+        }
+    }
+
+    console.log('🔍 自己ループ検出結果:', selfLoops.length, '件');
+    return selfLoops;
 };
 
 // ループ状態のチェック（通信可能性判定時に使用）
 NetworkSimulator.prototype.hasNetworkLoop = function() {
     const loops = this.detectNetworkLoops();
     return loops.length > 0;
+};
+
+// 同一スイッチに複数のルーターNICが接続されているかチェック
+NetworkSimulator.prototype.hasRouterMultiNICToSameSwitch = function() {
+    const issues = this.detectRouterMultiNICToSameSwitch();
+    return issues.length > 0;
+};
+
+// 同一スイッチに複数のルーターNICが接続されている問題を検出
+NetworkSimulator.prototype.detectRouterMultiNICToSameSwitch = function() {
+    const issues = [];
+    console.log('🔍 detectRouterMultiNICToSameSwitch: 開始');
+    console.log('🔍 デバイス総数:', this.devices.size);
+    console.log('🔍 接続総数:', this.connections.length);
+
+    // 全てのスイッチを確認
+    for (const [switchId, switchDevice] of this.devices) {
+        if (switchDevice.type !== 'switch') continue;
+        console.log('🔍 スイッチを確認中:', switchDevice.name, switchId);
+
+        // このスイッチに接続されているルーターを収集
+        const connectedRouters = new Map(); // routerId -> [connectedNICs]
+
+        for (const connection of this.connections) {
+            let routerDevice = null;
+            let otherDevice = null;
+
+            // 接続形式に応じて処理
+            if (connection.from && connection.to) {
+                // 新しい形式
+                console.log('🔍 新形式の接続:', connection.from.device?.name, '↔', connection.to.device?.name);
+                if (connection.from.device === switchDevice) {
+                    otherDevice = connection.to.device;
+                } else if (connection.to.device === switchDevice) {
+                    otherDevice = connection.from.device;
+                }
+            } else {
+                // 古い形式
+                console.log('🔍 旧形式の接続:', connection.device1, '↔', connection.device2);
+                if (connection.device1 === switchId) {
+                    otherDevice = this.devices.get(connection.device2);
+                } else if (connection.device2 === switchId) {
+                    otherDevice = this.devices.get(connection.device1);
+                }
+            }
+
+            // 接続先がルーターの場合
+            if (otherDevice && otherDevice.type === 'router') {
+                routerDevice = otherDevice;
+                console.log('🔍 ルーターが発見:', routerDevice.name, 'スイッチ:', switchDevice.name);
+
+                // このルーターのどのNICがスイッチに接続されているかを判定
+                const connectedNIC = this.determineConnectedNIC(routerDevice, switchDevice, connection);
+                console.log('🔍 接続NIC:', connectedNIC);
+
+                if (!connectedRouters.has(routerDevice.id)) {
+                    connectedRouters.set(routerDevice.id, []);
+                }
+                connectedRouters.get(routerDevice.id).push(connectedNIC);
+            }
+        }
+
+        console.log('🔍 スイッチ', switchDevice.name, '接続ルーター情報:', Array.from(connectedRouters.entries()));
+
+        // 同一ルーターの複数NICが同一スイッチに接続されているかチェック
+        for (const [routerId, connectedNICs] of connectedRouters) {
+            console.log('🔍 ルーター', routerId, 'の接続NIC数:', connectedNICs.length, 'NICs:', connectedNICs);
+            if (connectedNICs.length > 1) {
+                const routerDevice = this.devices.get(routerId);
+                console.log('⚠️ 問題発見! ルーター', routerDevice.name, '複数NIC接続:', connectedNICs);
+                issues.push({
+                    type: 'router-multi-nic-same-switch',
+                    router: routerDevice,
+                    switch: switchDevice,
+                    connectedNICs: connectedNICs,
+                    message: `ルーター「${routerDevice.name}」の複数NIC（${connectedNICs.join(', ')}）が同一スイッチ「${switchDevice.name}」に接続されています`
+                });
+            }
+        }
+    }
+
+    console.log('🔍 最終結果: 検出された問題数:', issues.length);
+    return issues;
+};
+
+// ルーターのどのNICがスイッチに接続されているかを判定
+NetworkSimulator.prototype.determineConnectedNIC = function(router, switchDevice, connection) {
+    console.log('🔍 determineConnectedNIC: ルーター', router.name, 'スイッチ', switchDevice.name);
+    console.log('🔍 接続情報:', connection);
+
+    // 接続位置から判定する方式を使用
+    let nicType = this.determineNICFromConnectionPosition(router, connection);
+
+    // フォールバック: ポート番号からNIC種別を判定
+    if (nicType === 'UNKNOWN') {
+        let routerPortIndex = 0;
+
+        if (connection.from && connection.to) {
+            // 新しい形式
+            console.log('🔍 新形式接続を解析中');
+            if (connection.from.device === router) {
+                routerPortIndex = connection.from.port || 0;
+                console.log('🔍 fromポート使用:', routerPortIndex);
+            } else if (connection.to.device === router) {
+                routerPortIndex = connection.to.port || 0;
+                console.log('🔍 toポート使用:', routerPortIndex);
+            }
+        } else {
+            // 古い形式の場合は推定
+            console.log('🔍 旧形式接続を解析中');
+            if (connection.fromDevice === router.id) {
+                routerPortIndex = connection.fromPort || 0;
+                console.log('🔍 旧fromポート使用:', routerPortIndex);
+            } else if (connection.toDevice === router.id) {
+                routerPortIndex = connection.toPort || 0;
+                console.log('🔍 旧toポート使用:', routerPortIndex);
+            }
+        }
+
+        // ポート番号をNIC種別にマッピング
+        nicType = this.mapPortToNICType(routerPortIndex);
+    }
+
+    console.log('🔍 最終判定: NIC', nicType);
+    return nicType;
+};
+
+// 接続位置からNIC種別を判定
+NetworkSimulator.prototype.determineNICFromConnectionPosition = function(router, connection) {
+    // ルーターの接続点座標を取得
+    let routerConnectionPoint = null;
+
+    if (connection.from && connection.to) {
+        if (connection.from.device === router) {
+            routerConnectionPoint = { x: connection.from.x, y: connection.from.y };
+        } else if (connection.to.device === router) {
+            routerConnectionPoint = { x: connection.to.x, y: connection.to.y };
+        }
+    }
+
+    if (!routerConnectionPoint) {
+        console.log('🔍 接続点座標が取得できません');
+        return 'UNKNOWN';
+    }
+
+    console.log('🔍 ルーター接続点:', routerConnectionPoint);
+    console.log('🔍 ルーター位置:', { x: router.x, y: router.y });
+
+    // ルーターの中心からの相対位置で判定
+    const relativeX = routerConnectionPoint.x - router.x;
+    const relativeY = routerConnectionPoint.y - router.y;
+
+    console.log('🔍 相対位置:', { relativeX, relativeY });
+
+    // ルーターの各NICエリアを判定（ルーターの描画仕様に合わせて調整）
+    // 左側: LAN1, 右側: LAN2, 下側: LAN3 のような配置を想定
+    if (relativeX < -20) {
+        console.log('🔍 位置判定: LAN1 (左側)');
+        return 'LAN1';
+    } else if (relativeX > 20) {
+        console.log('🔍 位置判定: LAN2 (右側)');
+        return 'LAN2';
+    } else if (relativeY > 10) {
+        console.log('🔍 位置判定: LAN3 (下側)');
+        return 'LAN3';
+    } else if (relativeY < -10) {
+        console.log('🔍 位置判定: WAN (上側)');
+        return 'WAN';
+    }
+
+    console.log('🔍 位置判定: UNKNOWN (判定不能)');
+    return 'UNKNOWN';
 };
 
 // 注意: initializeAnimationSpeedControl() と initializeTCPVisibilityControl() は
