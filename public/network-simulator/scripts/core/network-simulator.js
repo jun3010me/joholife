@@ -8508,7 +8508,8 @@ console.log('TCP統合を開始...');
 let httpEventListenerAdded = false;
 if (!httpEventListenerAdded) {
     window.tcpManager.addEventListener('dataReceived', (data) => {
-        console.log('🔄 TCPManager dataReceived:', data.connection.id);
+        console.log('🔄 TCPManager dataReceived イベント発火!');
+        console.log('🔄 Connection ID:', data.connection.id);
         console.log('📦 受信データ:', data.data);
 
         const connection = data.connection;
