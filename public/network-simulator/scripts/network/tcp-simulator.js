@@ -211,6 +211,14 @@ class TCPConnection {
 
     // セグメント受信処理
     receiveSegment(segment) {
+        // セグメント受信のデバッグログ
+        console.log(`🔄 ${this.id}: receiveSegment called`, {
+            hasData: !!(segment.data && segment.data.length > 0),
+            dataLength: segment.data ? segment.data.length : 0,
+            data: segment.data ? segment.data.substring(0, 50) : 'null',
+            flags: segment.flags
+        });
+
         this.receivedSegments.push(segment);
         // 重要な状態変化のみログ出力
         if (segment.hasFlag('SYN') || segment.hasFlag('FIN')) {
@@ -333,9 +341,15 @@ class TCPConnection {
             // 最終ACK受信 → 接続確立
             // 再送タイマーをクリア（SYN-ACKに対するACKを受信したため）
             this.clearRetransmissionTimer();
-            
+
             this.setState(TCP_STATES.ESTABLISHED);
             this.emit('connectionEstablished', { connection: this });
+
+            // ACKセグメントにデータが含まれている場合は、ESTABLISHED状態として処理
+            if (segment.data && segment.data.length > 0) {
+                console.log(`🔍 ${this.id}: SYN_RECEIVED→ESTABLISHED移行時にデータ付きセグメント検出`);
+                this.handleEstablishedState(segment);
+            }
         }
     }
 
@@ -343,14 +357,16 @@ class TCPConnection {
     handleEstablishedState(segment) {
         // 詳細デバッグログ
         console.log(`🔍 ${this.id}: ESTABLISHED状態でセグメント処理`);
-        console.log(`🔍 セグメント情報:`, {
+        console.log(`🔍 handleEstablishedState セグメント情報:`, {
             hasData: !!(segment.data && segment.data.length > 0),
             dataLength: segment.data ? segment.data.length : 0,
-            data: segment.data ? segment.data.substring(0, 100) : 'null',
+            data: segment.data ? `"${segment.data.substring(0, 100)}"` : 'null',
             flags: segment.flags,
             hasPSH: segment.hasFlag('PSH'),
             hasACK: segment.hasFlag('ACK'),
-            hasFIN: segment.hasFlag('FIN')
+            hasFIN: segment.hasFlag('FIN'),
+            segmentDataType: typeof segment.data,
+            segmentDataActual: segment.data
         });
 
         // データや重要なフラグのみログ出力

@@ -528,8 +528,13 @@ class HTTPSession {
         });
         
         // レスポンス送信済みかチェック
+        console.log('🔍 レスポンス送信チェック:', {
+            sessionId: this.id,
+            responseSent: this.responseSent,
+            requestProcessed: this.requestProcessed
+        });
         if (this.responseSent) {
-            console.log('既にレスポンス送信済み、スキップ');
+            console.log('⚠️ 既にレスポンス送信済み、スキップ');
             return;
         }
 
@@ -548,9 +553,12 @@ class HTTPSession {
             console.log('デフォルトHTTPレスポンス生成');
         }
 
+        // レスポンス送信済みマークを先に設定（重複防止）
+        this.responseSent = true;
+        console.log('✅ responseSent フラグを設定:', this.id);
+
         // HTTPレスポンスを送信（サーバー側の接続を使用）
         if (response) {
-            this.responseSent = true; // レスポンス送信済みマーク
             this.httpSimulator.addToLog(`RESPONSE: ${response.statusCode} ${response.statusText}`);
             const responseData = this.httpSimulator.buildHTTPResponse(
                 response.statusCode, 
@@ -570,8 +578,13 @@ class HTTPSession {
             });
             
             if (serverConnection) {
-                console.log('サーバー側接続でレスポンス送信:', serverConnection.id);
-                
+                console.log('🔍 サーバー側接続でレスポンス送信:', serverConnection.id);
+                console.log('🔍 レスポンスデータ詳細:', {
+                    dataLength: responseData.length,
+                    data: responseData.substring(0, 200) + '...',
+                    serverConnectionState: serverConnection.state
+                });
+
                 // HTTPレスポンス送信イベントを発火
                 console.log('🚀 HTTPレスポンス送信イベントを発火中...');
                 this.httpSimulator.emit('httpResponseSent', {
@@ -580,8 +593,10 @@ class HTTPSession {
                     serverConnection: serverConnection
                 });
                 console.log('✅ HTTPレスポンス送信イベント発火完了');
-                
-                serverConnection.send(responseData);
+
+                console.log('🔍 serverConnection.send() を呼び出し中...');
+                const sendResult = serverConnection.send(responseData);
+                console.log('🔍 serverConnection.send() 結果:', sendResult);
             } else {
                 console.error('サーバー側接続が見つかりません');
             }

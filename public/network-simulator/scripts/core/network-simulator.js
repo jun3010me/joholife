@@ -95,6 +95,18 @@ class NetworkSimulator {
         this.setupEventListeners();
         this.setupPalette();
         this.render();
+
+        // コンポーネント読み込み完了を待つ
+        if (window.componentsLoaded) {
+            console.log('🎯 Components already loaded, re-running setupPalette');
+            this.setupPalette();
+        } else {
+            console.log('⏳ Waiting for components to load...');
+            window.addEventListener('componentsLoaded', () => {
+                console.log('🎯 Components loaded event received, running setupPalette');
+                this.setupPalette();
+            });
+        }
     }
 
     setupCanvas() {
@@ -127,10 +139,6 @@ class NetworkSimulator {
         this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
         this.canvas.addEventListener('wheel', this.handleWheel.bind(this));
-        
-        // グローバルマウスイベント（キャンバス外でのドラッグ対応）
-        this.globalMouseMoveHandler = this.handleGlobalMouseMove.bind(this);
-        this.globalMouseUpHandler = this.handleGlobalMouseUp.bind(this);
 
         // タッチイベント
         this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
@@ -168,8 +176,25 @@ class NetworkSimulator {
     }
 
     setupPalette() {
+        console.log('🎨 setupPalette() called');
         const palette = document.querySelector('.device-palette');
+
+        if (!palette) {
+            console.warn('⚠️ .device-palette not found - components may not be loaded yet');
+            return;
+        }
+
         const items = palette.querySelectorAll('.device-item');
+        console.log('🔍 Palette elements found:', {
+            palette: !!palette,
+            itemCount: items.length,
+            paletteVisible: getComputedStyle(palette).display
+        });
+
+        if (items.length === 0) {
+            console.warn('⚠️ No .device-item elements found in palette');
+            return;
+        }
         const isTouchDevice = this.isTouchDevice();
         const isNarrowScreen = window.innerWidth <= 1024;
         
@@ -246,11 +271,19 @@ class NetworkSimulator {
             console.log('🚫 Narrow screen: No individual item handlers (handled by palette)');
         } else {
             console.log('🖥️ Wide screen: Setting up individual item handling');
+            console.log(`📋 Found ${items.length} device items to setup`);
             // 広い画面では個別アイテムでマウス・タッチ両方
-            items.forEach(item => {
+            items.forEach((item, index) => {
+                console.log(`🔧 Setting up item ${index}: ${item.dataset.deviceType}`);
                 item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
                 item.addEventListener('touchstart', this.startDeviceDrag.bind(this), { passive: false });
+
+                // テスト用にクリックイベントも追加
+                item.addEventListener('click', (e) => {
+                    console.log('📱 Device item clicked:', item.dataset.deviceType);
+                });
             });
+            console.log('✅ All device items setup complete');
         }
     }
 
@@ -513,8 +546,15 @@ class NetworkSimulator {
 
     // デバイスドラッグ開始（論理回路シミュレータの実装を正確に模倣）
     startDeviceDrag(event) {
+        console.log('🚀 startDeviceDrag called!', {
+            eventType: event.type,
+            deviceType: event.currentTarget.dataset.deviceType,
+            screenWidth: window.innerWidth,
+            target: event.currentTarget.className,
+            timestamp: Date.now()
+        });
+
         event.preventDefault();
-        console.log('startDeviceDrag called with type:', event.currentTarget.dataset.deviceType);
         
         // スクロール判定をスキップしてタッチ操作を改善
         const isTouchDevice = this.isTouchDevice();
@@ -1185,18 +1225,17 @@ class NetworkSimulator {
         };
     }
 
-    // グローバルマウス移動処理（論理回路シミュレータと同じ）
-    handleGlobalMouseMove(event) {
-        if (this.isDragging && this.selectedDevice) {
-            // キャンバス外でもマウス位置を取得してデバイスを移動
-            this.handlePointerMove(event);
-        }
-    }
     
     // 統一されたポインタ移動処理
     handlePointerMove(event) {
+        console.log('🔄 handlePointerMove called:', {
+            isDragging: this.isDragging,
+            selectedDevice: !!this.selectedDevice,
+            pendingDevice: !!this.pendingDevice
+        });
+
         // デバイスドラッグ中は拡張座標を使用（キャンバス外も許可）
-        const pos = this.isDragging && this.selectedDevice ? 
+        const pos = this.isDragging && this.selectedDevice ?
                    this.getDragPointerPos(event) : this.getPointerPos(event);
         this.currentMousePos = { x: pos.x, y: pos.y };
         
@@ -1270,31 +1309,6 @@ class NetworkSimulator {
         }
     }
 
-    // グローバルマウスアップ処理（パレット用）
-    handleGlobalMouseUp(event) {
-        // ドロップ位置のスクリーン座標を記録
-        this.lastDropScreenPos = {
-            x: event.clientX || 0,
-            y: event.clientY || 0
-        };
-        
-        // パレットからのドラッグ処理
-        if (this.pendingDevice || this.isDragging) {
-            this.finalizeDrag();
-        }
-        
-        // グローバルリスナーを削除
-        if (this.paletteMouseMoveHandler) {
-            document.removeEventListener('mousemove', this.paletteMouseMoveHandler);
-            this.paletteMouseMoveHandler = null;
-        }
-        if (this.paletteMouseUpHandler) {
-            document.removeEventListener('mouseup', this.paletteMouseUpHandler);
-            this.paletteMouseUpHandler = null;
-        }
-        
-        console.log('Removed global event listeners for palette drag');
-    }
 
     // グローバルタッチ移動処理
     handleGlobalTouchMove(event) {
@@ -1517,8 +1531,16 @@ class NetworkSimulator {
 
     // ドラッグ完了処理（論理回路シミュレータと同じロジック）
     finalizeDrag() {
+        console.log('🏁 finalizeDrag called:', {
+            pendingDevice: !!this.pendingDevice,
+            dragStarted: this.dragStarted,
+            isDragging: this.isDragging,
+            selectedDevice: !!this.selectedDevice
+        });
+
         // パレットから作成されたデバイスで、実際のドラッグが開始されていない場合
         if (this.pendingDevice && !this.dragStarted) {
+            console.log('❌ Removing device - drag not started');
             this.pendingDevice = null;
             this.selectedDevice = null;
             this.isDragging = false;
@@ -1703,9 +1725,19 @@ class NetworkSimulator {
     
     // グローバルマウス移動処理
     handleGlobalMouseMove(e) {
+        console.log('🖱️ Global mouse move:', {
+            isDragging: this.isDragging,
+            selectedDevice: !!this.selectedDevice,
+            pendingDevice: !!this.pendingDevice,
+            dragStarted: this.dragStarted
+        });
+
         if (this.isDragging && this.selectedDevice) {
+            console.log('✅ Calling handlePointerMove from global mouse move');
             // 統一処理を使用
             this.handlePointerMove(e);
+        } else {
+            console.log('❌ Not calling handlePointerMove - conditions not met');
         }
     }
     
@@ -4934,8 +4966,31 @@ class NetworkSimulator {
     
     // 内部的な宛先選択ダイアログ表示処理
     showDestinationDialogInternal(sourceDevice, communicationType, overlay, dialog, title) {
+        // セッション管理のための一意ID生成
+        const sessionId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        // セッション情報を保存
+        if (!this.communicationSessions) {
+            this.communicationSessions = new Map();
+        }
+        this.communicationSessions.set(sessionId, {
+            sourceDevice: sourceDevice,
+            communicationType: communicationType,
+            timestamp: Date.now()
+        });
+
+        // ダイアログ要素にセッションIDを保存（グローバル変数を避ける）
+        dialog.setAttribute('data-session-id', sessionId);
+        console.log('🔧 Set session ID to dialog:', sessionId, 'Dialog element:', dialog);
+
+        // 従来の方式も保持（後方互換性のため）
         this.destinationSourceDevice = sourceDevice;
         this.destinationCommunicationType = communicationType; // 'ping' or 'http'
+
+        console.log('🆔 Created communication session:', sessionId, {
+            sourceDevice: sourceDevice.name,
+            communicationType: communicationType
+        });
         
         // ダイアログタイトル設定
         const titleMap = {
@@ -4983,8 +5038,8 @@ class NetworkSimulator {
         console.log('Showing dialog overlay');
         overlay.style.display = 'flex';
         
-        // イベントリスナー設定
-        this.setupDestinationDialogEvents();
+        // イベントリスナー設定（セッションIDを渡す）
+        this.setupDestinationDialogEvents(sessionId);
         
         // ダイアログのドラッグ機能を初期化
         this.initializeDialogDragging('destination-dialog');
@@ -5150,7 +5205,7 @@ class NetworkSimulator {
     }
 
     // 宛先選択ダイアログのイベントリスナー設定
-    setupDestinationDialogEvents() {
+    setupDestinationDialogEvents(sessionId) {
         // 宛先指定方法の切り替え
         const radioButtons = document.querySelectorAll('input[name="destination-type"]');
         radioButtons.forEach(radio => {
@@ -5165,19 +5220,30 @@ class NetworkSimulator {
         
         // キャンセルボタン
         const cancelBtn = document.getElementById('destination-cancel-btn');
-        cancelBtn.removeEventListener('click', this.hideDestinationDialog);
-        cancelBtn.addEventListener('click', this.hideDestinationDialog.bind(this));
+        if (cancelBtn) {
+            // 古いキャンセルボタンを完全に置き換える（イベントリスナーもクリア）
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+            newCancelBtn.addEventListener('click', this.hideDestinationDialog.bind(this));
+        }
         
         // 実行ボタン
         const okBtn = document.getElementById('destination-ok-btn');
         console.log('Setting up OK button event listener:', !!okBtn);
-        
+
         if (okBtn) {
-            okBtn.removeEventListener('click', this.executeDestinationCommunication);
-            okBtn.addEventListener('click', () => {
-                console.log('OK button clicked!');
-                this.executeDestinationCommunication();
+            // 古いOKボタンを完全に置き換える（イベントリスナーもクリア）
+            const newOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+            // クロージャーでセッションIDを保存（確実な方法）
+            const currentSessionId = sessionId;
+            newOkBtn.addEventListener('click', () => {
+                console.log('OK button clicked! Session ID:', currentSessionId);
+                this.executeDestinationCommunicationWithSession(currentSessionId);
             });
+
+            console.log('✅ Replaced OK button with new event listener for session:', currentSessionId);
         } else {
             console.error('OK button not found!');
         }
@@ -5339,7 +5405,19 @@ class NetworkSimulator {
 
     // 宛先選択ダイアログ非表示
     hideDestinationDialog() {
+        const dialog = document.getElementById('destination-dialog');
+
         document.getElementById('destination-dialog-overlay').style.display = 'none';
+
+        // ダイアログからセッションIDを削除（セッション自体は通信完了後に削除）
+        if (dialog) {
+            const sessionId = dialog.getAttribute('data-session-id');
+            if (sessionId) {
+                dialog.removeAttribute('data-session-id');
+                console.log('📋 Removed session ID from dialog:', sessionId, '(session kept for communication)');
+            }
+        }
+
         this.destinationSourceDevice = null;
         this.destinationCommunicationType = null;
     }
@@ -5371,9 +5449,68 @@ class NetworkSimulator {
         return null; // 解決失敗
     }
 
+    // セッションIDを指定した通信実行
+    async executeDestinationCommunicationWithSession(sessionId) {
+        console.log('executeDestinationCommunicationWithSession called with sessionId:', sessionId);
+
+        // セッション管理から値を取得
+        let sourceDevice, communicationType;
+
+        if (sessionId && this.communicationSessions && this.communicationSessions.has(sessionId)) {
+            const session = this.communicationSessions.get(sessionId);
+            sourceDevice = session.sourceDevice;
+            communicationType = session.communicationType;
+            console.log('✅ Using session data:', sessionId, {
+                sourceDevice: sourceDevice?.name,
+                communicationType: communicationType
+            });
+        } else {
+            console.error('❌ Session not found:', sessionId);
+            console.error('❌ Available sessions:', this.communicationSessions ? Array.from(this.communicationSessions.keys()) : 'none');
+            console.error('❌ This likely means an old event listener is still active');
+
+            // セッションが見つからない場合でも、利用可能な最新のセッションを使用する
+            if (this.communicationSessions && this.communicationSessions.size > 0) {
+                const availableSessions = Array.from(this.communicationSessions.keys());
+                const latestSession = availableSessions[availableSessions.length - 1];
+                console.log('🔄 Attempting to use latest available session:', latestSession);
+
+                return this.executeDestinationCommunicationWithSession(latestSession);
+            }
+
+            alert('通信セッションが見つかりません。もう一度実行してください。');
+            return;
+        }
+
+        // 通信実行後にセッションをクリーンアップ
+        try {
+            const result = await this.executeDestinationCommunication(sourceDevice, communicationType);
+
+            // 通信完了後にセッション削除
+            if (this.communicationSessions && this.communicationSessions.has(sessionId)) {
+                this.communicationSessions.delete(sessionId);
+                console.log('🗑️ Cleaned up session after communication:', sessionId);
+            }
+
+            return result;
+        } catch (error) {
+            // エラーが発生してもセッションは削除
+            if (this.communicationSessions && this.communicationSessions.has(sessionId)) {
+                this.communicationSessions.delete(sessionId);
+                console.log('🗑️ Cleaned up session after error:', sessionId);
+            }
+            throw error;
+        }
+    }
+
     // 宛先選択ダイアログからの通信実行
-    async executeDestinationCommunication() {
-        console.log('executeDestinationCommunication called');
+    async executeDestinationCommunication(sourceDevice = null, communicationType = null) {
+        console.log('executeDestinationCommunication called', {
+            passedSourceDevice: sourceDevice?.name,
+            passedCommunicationType: communicationType,
+            thisSourceDevice: this.destinationSourceDevice?.name,
+            thisCommunicationType: this.destinationCommunicationType
+        });
         
         const destinationTypeRadio = document.querySelector('input[name="destination-type"]:checked');
         console.log('Destination type radio:', destinationTypeRadio);
@@ -5427,9 +5564,10 @@ class NetworkSimulator {
             
             targetIp = this.resolveDNS(hostname);
             if (!targetIp) {
-                // DNS解決失敗のアニメーションを実行
+                // DNS解決失敗のアニメーションを実行（値を保存してから）
+                const fallbackSourceDevice = sourceDevice || this.destinationSourceDevice;
                 this.hideDestinationDialog();
-                await this.executeDNSResolutionWithAnimation(this.destinationSourceDevice, hostname, false);
+                await this.executeDNSResolutionWithAnimation(fallbackSourceDevice, hostname, false);
                 return;
             }
             needsDNSResolution = true; // DNS解決アニメーションが必要
@@ -5448,43 +5586,73 @@ class NetworkSimulator {
         
         console.log('Target device found:', targetDevice.name);
         
-        // hideDestinationDialog()でクリアされる前に値を保存
-        const sourceDevice = this.destinationSourceDevice;
-        const communicationType = this.destinationCommunicationType;
+        // パラメータとして渡された値を優先使用
+        let finalSourceDevice, finalCommunicationType;
 
-        console.log('Saved values - Source device:', sourceDevice?.name);
-        console.log('Saved values - Communication type:', communicationType);
+        if (sourceDevice && communicationType) {
+            // パラメータとして渡された場合（新しいセッション管理システム）
+            finalSourceDevice = sourceDevice;
+            finalCommunicationType = communicationType;
+            console.log('✅ Using passed parameters:', {
+                sourceDevice: finalSourceDevice?.name,
+                communicationType: finalCommunicationType
+            });
+        } else {
+            // フォールバック: 従来のグローバル値またはダイアログ読み取り
+            const dialog = document.getElementById('destination-dialog');
+            const sessionId = dialog ? dialog.getAttribute('data-session-id') : null;
+            console.log('🔍 Reading session ID from dialog:', sessionId, 'Dialog element:', dialog);
+
+            if (sessionId && this.communicationSessions && this.communicationSessions.has(sessionId)) {
+                const session = this.communicationSessions.get(sessionId);
+                finalSourceDevice = session.sourceDevice;
+                finalCommunicationType = session.communicationType;
+                console.log('✅ Using session data from dialog:', sessionId);
+            } else {
+                finalSourceDevice = this.destinationSourceDevice;
+                finalCommunicationType = this.destinationCommunicationType;
+                console.log('⚠️ Fallback to global values');
+            }
+        }
+
+        console.log('Final values - Source device:', finalSourceDevice?.name);
+        console.log('Final values - Communication type:', finalCommunicationType);
 
         // sourceDeviceの存在確認を追加
-        if (!sourceDevice) {
-            console.error('sourceDevice is null or undefined');
+        if (!finalSourceDevice) {
+            console.error('❌ finalSourceDevice is null or undefined');
+            console.error('❌ sourceDevice param:', sourceDevice);
+            console.error('❌ this.destinationSourceDevice:', this.destinationSourceDevice);
+            console.error('❌ sessionId from dialog:', sessionId);
+            console.error('❌ available sessions:', this.communicationSessions ? Array.from(this.communicationSessions.keys()) : 'none');
+            console.error('❌ Check if hideDestinationDialog() was called prematurely');
             alert('送信元デバイスが見つかりません。もう一度実行してください。');
             return;
         }
 
-        // ダイアログを閉じる
+        // ダイアログを閉じる（sourceDevice使用後に実行）
         this.hideDestinationDialog();
 
         // DNS解決が必要な場合は最初にDNS解決アニメーションを実行
         if (needsDNSResolution) {
-            await this.executeDNSResolutionWithAnimation(sourceDevice, hostname, true, targetDevice);
+            await this.executeDNSResolutionWithAnimation(finalSourceDevice, hostname, true, targetDevice);
         }
-        
+
         // 実際の通信実行
-        console.log('🔍 Communication type:', communicationType);
-        console.log('🔍 Source device:', sourceDevice?.name);
+        console.log('🔍 Communication type:', finalCommunicationType);
+        console.log('🔍 Source device:', finalSourceDevice?.name);
         console.log('🔍 Target device:', targetDevice?.name);
 
-        if (communicationType === 'ping') {
+        if (finalCommunicationType === 'ping') {
             console.log('🏓 Calling executePingToTarget');
-            await this.executePingToTarget(sourceDevice, targetDevice);
+            await this.executePingToTarget(finalSourceDevice, targetDevice);
             console.log('✅ executePingToTarget completed');
-        } else if (communicationType === 'http') {
+        } else if (finalCommunicationType === 'http') {
             console.log('🌐 Calling executeHTTPToTarget');
-            await this.executeHTTPToTarget(sourceDevice, targetDevice);
+            await this.executeHTTPToTarget(finalSourceDevice, targetDevice);
             console.log('✅ executeHTTPToTarget completed');
         } else {
-            console.warn('⚠️ 不明な通信タイプ:', communicationType);
+            console.warn('⚠️ 不明な通信タイプ:', finalCommunicationType);
         }
     }
 

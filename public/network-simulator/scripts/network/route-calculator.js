@@ -287,4 +287,7 @@ function initializeRouteCalculator(simulator) {
     console.log('Route Calculator initialized');
 }
 
+// グローバルにアクセス可能にする
+window.initializeRouteCalculator = initializeRouteCalculator;
+
 console.log('Route Calculator module loaded successfully');
