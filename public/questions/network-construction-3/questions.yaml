@@ -15,104 +15,122 @@ tags:
 # この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
 questions:
   - id: network_construction_3
-    type: file-analysis
+    type: file-upload
     title: 複数LANセグメントのネットワーク構築
     description: |
       **課題概要**
-      
+
       以下の要件を満たすネットワーク構成を作成してください。
-      
+
       **ネットワーク要件**
       - ルーター1台（LAN1とLAN2でDHCP有効）
       - スイッチ2台（スイッチ-1、スイッチ-2）
       - PC4台（PC-1、PC-2、PC-3、PC-4）
-      
+
       **接続要件**
       - スイッチ-1をルーターのLAN1ポートに接続
-      - スイッチ-2をルーターの任意のLANポート（LAN2またはLAN3）に接続
+      - スイッチ-2をルーターのLAN2ポートに接続
       - PC-1とPC-2をスイッチ-1に接続
       - PC-3とPC-4をスイッチ-2に接続
       - すべてのPCでDHCP有効、スイッチは適切なセグメントでIP設定
-      
+
       **IPアドレス設定要件**
       - LAN1セグメント: 192.168.1.0/24（DHCP範囲: 192.168.1.100-199）
+      - LAN2セグメント: 192.168.2.0/24（DHCP範囲: 192.168.2.100-199）
       - PC-1、PC-2: 192.168.1.xのIPアドレスを取得
-      - PC-3、PC-4: 適切なセグメントからIPアドレスを自動取得
-      - スイッチ-1: 192.168.1.xのIPアドレスを取得
-      - スイッチ-2: 適切なセグメントからIPアドレスを自動取得
-      
+      - PC-3、PC-4: 192.168.2.xのIPアドレスを取得
+      - スイッチ-1: 192.168.1.xのIPアドレスを設定
+      - スイッチ-2: 192.168.2.xのIPアドレスを設定
+
       **解決手順**
       1. ネットワークシミュレータで上記構成を作成
       2. ルーターのLAN1・LAN2でDHCPを有効化し、適切なIP範囲を設定
-      3. すべてのPCでDHCPを有効化してIPアドレスを自動取得、スイッチは手動でIP設定
-      4. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
-      5. 自動判定で正解かどうかを確認
-      
+      3. すべてのPCでDHCPを有効化してIPアドレスを自動取得
+      4. スイッチは手動で適切なIPアドレスを設定
+      5. 構成ファイルを保存し、JSONファイルをアップロード
+
       **評価ポイント**
       - 正しいトポロジ（接続関係）の構築
       - 適切なLANセグメントへの配置
       - DHCPによる自動IP割り当ての動作
       - IPアドレスの適切な分離（LAN1とLAN2で異なるセグメント）
-    
-    # ファイル操作課題の特別な設定
-    downloadFile: "/network-simulator/exercises/network-construction-3-problem.json"
-    expectedChanges:
-      - deviceName: "ルーター-1"
-        property: "config.lan1.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "ルーターのLAN1でDHCPを有効化する必要があります"
-        excludeValues: []
-      - deviceName: "ルーター-1"
-        property: "config.lan2.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "ルーターのLAN2でDHCPを有効化する必要があります"
-        excludeValues: []
-      - deviceName: "PC-1"
-        property: "config.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "PC-1でDHCPを有効化してIPアドレスを自動取得する必要があります"
-        excludeValues: []
-      - deviceName: "PC-2"
-        property: "config.dhcpEnabled" 
-        expectedPattern: "true"
-        explanation: "PC-2でDHCPを有効化してIPアドレスを自動取得する必要があります"
-        excludeValues: []
-      - deviceName: "PC-3"
-        property: "config.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "PC-3でDHCPを有効化してIPアドレスを自動取得する必要があります"
-        excludeValues: []
-      - deviceName: "PC-4"
-        property: "config.dhcpEnabled"
-        expectedPattern: "true"
-        explanation: "PC-4でDHCPを有効化してIPアドレスを自動取得する必要があります"
-        excludeValues: []
-      - deviceName: "スイッチ-1"
-        property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
-        explanation: "スイッチ-1は192.168.1.xネットワークに適切なIPアドレスを設定する必要があります"
-        excludeValues: []
-      - deviceName: "スイッチ-2"
-        property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.2\\.[0-9]+$"
-        explanation: "スイッチ-2は192.168.2.xネットワークに適切なIPアドレスを設定する必要があります"
-        excludeValues: []
-      - deviceName: "PC-1"
-        property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
-        explanation: "PC-1は192.168.1.xネットワークからIPアドレスを取得する必要があります"
-        excludeValues: []
-      - deviceName: "PC-2"
-        property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
-        explanation: "PC-2は192.168.1.xネットワークからIPアドレスを取得する必要があります"
-        excludeValues: []
-      - deviceName: "スイッチ-1"
-        property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
-        explanation: "スイッチ-1は192.168.1.xネットワークからIPアドレスを取得する必要があります"
-        excludeValues: []
-    
+
+    validation: |
+      function validateNetwork(networkData) {
+        const { devices, connections } = networkData;
+
+        // デバイスの存在確認
+        const routers = devices.filter(d => d.type === 'router');
+        const switches = devices.filter(d => d.type === 'switch');
+        const pcs = devices.filter(d => d.type === 'pc');
+
+        if (routers.length !== 1) {
+          return { valid: false, message: 'ルーターが1台ではありません' };
+        }
+        if (switches.length !== 2) {
+          return { valid: false, message: 'スイッチが2台ではありません' };
+        }
+        if (pcs.length !== 4) {
+          return { valid: false, message: 'PCが4台ではありません' };
+        }
+
+        const router = routers[0];
+
+        // ルーターのDHCP設定確認
+        if (!router.config.lan1.dhcpEnabled) {
+          return { valid: false, message: 'ルーターのLAN1でDHCPを有効化してください' };
+        }
+        if (!router.config.lan2.dhcpEnabled) {
+          return { valid: false, message: 'ルーターのLAN2でDHCPを有効化してください' };
+        }
+
+        // 全PCのDHCP設定確認
+        for (const pc of pcs) {
+          if (!pc.config.dhcpEnabled) {
+            return { valid: false, message: `${pc.name}でDHCPを有効化してください` };
+          }
+        }
+
+        // IPアドレス確認
+        const pc1 = pcs.find(p => p.name === 'PC-1');
+        const pc2 = pcs.find(p => p.name === 'PC-2');
+        const pc3 = pcs.find(p => p.name === 'PC-3');
+        const pc4 = pcs.find(p => p.name === 'PC-4');
+        const switch1 = switches.find(s => s.name === 'スイッチ-1');
+        const switch2 = switches.find(s => s.name === 'スイッチ-2');
+
+        // PC-1、PC-2が192.168.1.xネットワークにいることを確認
+        if (pc1 && !pc1.config.ipAddress.startsWith('192.168.1.')) {
+          return { valid: false, message: 'PC-1は192.168.1.xネットワークからIPアドレスを取得してください' };
+        }
+        if (pc2 && !pc2.config.ipAddress.startsWith('192.168.1.')) {
+          return { valid: false, message: 'PC-2は192.168.1.xネットワークからIPアドレスを取得してください' };
+        }
+
+        // PC-3、PC-4が192.168.2.xネットワークにいることを確認
+        if (pc3 && !pc3.config.ipAddress.startsWith('192.168.2.')) {
+          return { valid: false, message: 'PC-3は192.168.2.xネットワークからIPアドレスを取得してください' };
+        }
+        if (pc4 && !pc4.config.ipAddress.startsWith('192.168.2.')) {
+          return { valid: false, message: 'PC-4は192.168.2.xネットワークからIPアドレスを取得してください' };
+        }
+
+        // スイッチのIPアドレス確認
+        if (switch1 && !switch1.config.ipAddress.startsWith('192.168.1.')) {
+          return { valid: false, message: 'スイッチ-1は192.168.1.xネットワークにIPアドレスを設定してください' };
+        }
+        if (switch2 && !switch2.config.ipAddress.startsWith('192.168.2.')) {
+          return { valid: false, message: 'スイッチ-2は192.168.2.xネットワークにIPアドレスを設定してください' };
+        }
+
+        // 接続確認（基本的なトポロジチェック）
+        if (connections.length < 6) {
+          return { valid: false, message: '接続数が不足しています。ルーター-スイッチ間、スイッチ-PC間の接続を確認してください' };
+        }
+
+        return { valid: true, message: '全ての条件を満たしています！複数LANセグメントのネットワークが正しく構築されました。' };
+      }
+
     points: 150
     difficulty: hard
     tags:
@@ -120,9 +138,6 @@ questions:
       - DHCP設定
       - LAN設計
       - 複数セグメント
-    
-    # 通常の選択肢は使用しない（ファイル操作課題のため）
-    options: []
     explanation: |
       **解答解説**
       
