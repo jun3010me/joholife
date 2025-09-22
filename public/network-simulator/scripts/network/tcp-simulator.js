@@ -334,6 +334,18 @@ class TCPConnection {
 
     // ESTABLISHED状態でのセグメント処理
     handleEstablishedState(segment) {
+        // 詳細デバッグログ
+        console.log(`🔍 ${this.id}: ESTABLISHED状態でセグメント処理`);
+        console.log(`🔍 セグメント情報:`, {
+            hasData: !!(segment.data && segment.data.length > 0),
+            dataLength: segment.data ? segment.data.length : 0,
+            data: segment.data ? segment.data.substring(0, 100) : 'null',
+            flags: segment.flags,
+            hasPSH: segment.hasFlag('PSH'),
+            hasACK: segment.hasFlag('ACK'),
+            hasFIN: segment.hasFlag('FIN')
+        });
+
         // データや重要なフラグのみログ出力
         if (segment.hasFlag('FIN') || (segment.data && segment.data.length > 0)) {
             console.log(`${this.id}: ${segment.hasFlag('FIN') ? 'FIN' : 'DATA'}セグメント受信 (${segment.data ? segment.data.length : 0}バイト)`);
