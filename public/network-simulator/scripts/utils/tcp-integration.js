@@ -100,15 +100,24 @@ function setupTCPEventListeners(simulator) {
     window.httpSimulator.addEventListener('httpResponseSent', (data) => {
         console.log('📨 httpResponseSentイベント受信！');
         console.log('🌐 HTTPレスポンス送信アニメーション開始');
-        
+        console.log('Received data:', data);
+        console.log('window.animateHTTPMessage exists:', !!window.animateHTTPMessage);
+        console.log('data.session exists:', !!data.session);
+        console.log('data.session.connection exists:', !!(data.session && data.session.connection));
+
         // HTTPレスポンスアニメーション（TCP表示がOFFでも表示）
         if (window.animateHTTPMessage && data.session && data.session.connection) {
             const localDevice = data.session.connection.localDevice;
             const remoteDevice = data.session.connection.remoteDevice;
+            console.log('Animation devices - local:', localDevice?.name, 'remote:', remoteDevice?.name);
             // サーバー → クライアント
             window.animateHTTPMessage(simulator, remoteDevice, localDevice, 'response');
         } else {
             console.warn('⚠️ animateHTTPMessage関数またはセッション情報が見つかりません');
+            console.warn('Details:');
+            console.warn('- animateHTTPMessage:', !!window.animateHTTPMessage);
+            console.warn('- data.session:', !!data.session);
+            console.warn('- data.session.connection:', !!(data.session && data.session.connection));
         }
     });
     

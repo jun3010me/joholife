@@ -346,15 +346,18 @@ class HTTPSimulator {
             
             // レスポンス送信をシミュレート（処理時間）
             setTimeout(() => {
+                console.log('📤 Sending HTTP response from setupSampleServer...');
                 session.connection.send(responseData);
-                
+
+                console.log('🚀 Emitting httpResponseSent from setupSampleServer...');
                 this.emit('httpResponseSent', {
                     session,
                     statusCode,
                     responseBody,
                     request
                 });
-                
+                console.log('✅ httpResponseSent event emitted from setupSampleServer');
+
                 // Connection: closeなので接続を終了
                 setTimeout(() => {
                     session.connection.close();
