@@ -6177,32 +6177,6 @@ class NetworkSimulator {
             
             this.currentDeviceConfig.dnsTable = dnsTable;
             console.log('DNSテーブル保存:', dnsTable);
-            }
-        }
-
-        // DNSサーバーの場合はDNSテーブルも保存
-        if (this.currentDeviceConfig.type === 'dns') {
-            const dnsRecords = document.querySelectorAll('.dns-record-item');
-            const dnsTable = {};
-
-            dnsRecords.forEach(record => {
-                const inputs = record.querySelectorAll('input');
-                const hostname = inputs[0].value.trim();
-                const ipAddress = inputs[1].value.trim();
-
-                // 空でない場合のみテーブルに追加
-                if (hostname && ipAddress) {
-                    if (this.isValidIP(ipAddress)) {
-                        dnsTable[hostname] = ipAddress;
-                    } else {
-                        alert(`DNSレコード "${hostname}" に無効なIPアドレスが設定されています: ${ipAddress}`);
-                        return;
-                    }
-                }
-            });
-
-            this.currentDeviceConfig.dnsTable = dnsTable;
-            console.log('DNSテーブル保存:', dnsTable);
         }
 
         // 設定変更後、関連デバイスのDHCP状態を再評価
