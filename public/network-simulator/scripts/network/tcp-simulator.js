@@ -111,7 +111,14 @@ class TCPConnection {
     // セグメント送信（内部処理）
     sendSegment(segment) {
         this.sentSegments.push(segment);
-        // console.log(`送信: ${segment.toString()}`); // デバッグ用：必要時のみ有効化
+        console.log(`🔍 sendSegment詳細:`, {
+            data: segment.data,
+            dataLength: segment.data ? segment.data.length : 0,
+            flags: segment.flags,
+            hasPSH: segment.hasFlag('PSH'),
+            hasACK: segment.hasFlag('ACK'),
+            toString: segment.toString()
+        });
         
         // アニメーション時間を計算（速度調整適用）
         let baseAnimationDelay = 1000; // デフォルト値
@@ -476,7 +483,13 @@ class TCPConnection {
             data: data
         });
 
-        // console.log(`作成されたセグメント データ長: ${dataSegment.data ? dataSegment.data.length : 'null'}`);
+        console.log(`🔍 作成されたセグメント詳細:`, {
+            data: dataSegment.data,
+            dataLength: dataSegment.data ? dataSegment.data.length : 0,
+            flags: dataSegment.flags,
+            hasPSH: dataSegment.hasFlag('PSH'),
+            hasACK: dataSegment.hasFlag('ACK')
+        });
         this.sendSegment(dataSegment);
         this.localSequenceNumber += data.length;
         
