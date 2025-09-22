@@ -1479,29 +1479,44 @@ class QuizSession {
   }
 
   generateBrowserFingerprint() {
-    // より詳細なブラウザフィンガープリント生成
-    const fingerprint = {
+    // 基本的なブラウザ情報
+    const basicFingerprint = {
       userAgent: navigator.userAgent || 'unknown',
       language: navigator.language || 'unknown',
       languages: navigator.languages ? navigator.languages.join(',') : 'unknown',
       platform: navigator.platform || 'unknown',
-      cookieEnabled: navigator.cookieEnabled,
+      vendor: navigator.vendor || 'unknown',
+      cookieEnabled: navigator.cookieEnabled || false,
       doNotTrack: navigator.doNotTrack || 'unknown',
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
-      screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
-      availScreen: `${screen.availWidth}x${screen.availHeight}`,
-      pixelRatio: window.devicePixelRatio || 1,
+      screenResolution: `${screen.width}x${screen.height}` || 'unknown',
       colorDepth: screen.colorDepth || 'unknown',
+      pixelDepth: screen.pixelDepth || 'unknown',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'yes' : 'no',
       hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
-      maxTouchPoints: navigator.maxTouchPoints || 0,
-      plugins: this.getPluginsList(),
-      canvas: this.getCanvasFingerprint(),
-      webgl: this.getWebGLFingerprint()
+      pixelRatio: window.devicePixelRatio || 1,
+      plugins: this.getPluginsList()
+    };
+
+    // Canvas Fingerprinting - GPU固有の描画特性
+    const canvasFingerprint = this.generateCanvasFingerprint();
+
+    // WebGL Fingerprinting - グラフィックカード情報
+    const webglFingerprint = this.generateWebGLFingerprint();
+
+    // Audio Context Fingerprinting - オーディオ処理の特性
+    const audioFingerprint = this.generateAudioFingerprint();
+
+    // すべてのフィンガープリントを組み合わせ
+    const combinedFingerprint = {
+      ...basicFingerprint,
+      canvas: canvasFingerprint,
+      webgl: webglFingerprint,
+      audio: audioFingerprint
     };
 
     // フィンガープリントをハッシュ化
-    const fingerprintString = JSON.stringify(fingerprint);
-    return this.generateHash(fingerprintString).substr(0, 8);
+    return this.generateHash(JSON.stringify(combinedFingerprint)).substr(0, 12);
   }
 
   getPluginsList() {
@@ -1515,37 +1530,123 @@ class QuizSession {
     }
   }
 
-  getCanvasFingerprint() {
+  generateCanvasFingerprint() {
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+
+      // 複雑な描画パターンを作成
+      canvas.width = 200;
+      canvas.height = 50;
+
+      // テキスト描画（フォントレンダリングの違いを検出）
       ctx.textBaseline = 'top';
       ctx.font = '14px Arial';
-      ctx.fillStyle = '#f60';
-      ctx.fillRect(125, 1, 62, 20);
-      ctx.fillStyle = '#069';
-      ctx.fillText('フィンガープリント検証🔍', 2, 2);
-      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-      ctx.fillText('Canvas fingerprint', 4, 18);
-      return canvas.toDataURL().substr(-50); // 最後の50文字のみ使用
+      ctx.fillText('Canvas fingerprint test 🎯', 2, 2);
+
+      // 図形描画（アンチエイリアシングの違いを検出）
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+      ctx.fillRect(50, 1, 62, 20);
+
+      // 円形描画
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+      ctx.beginPath();
+      ctx.arc(50, 10, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // グラデーション
+      const gradient = ctx.createLinearGradient(0, 0, 100, 0);
+      gradient.addColorStop(0, 'red');
+      gradient.addColorStop(1, 'blue');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(130, 1, 50, 20);
+
+      // Canvas内容をハッシュ化
+      return this.generateHash(canvas.toDataURL()).substr(0, 8);
     } catch (e) {
-      return 'unknown';
+      return 'canvas_error';
     }
   }
 
-  getWebGLFingerprint() {
+  generateWebGLFingerprint() {
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) return 'no-webgl';
 
-      return [
-        gl.getParameter(gl.VENDOR),
-        gl.getParameter(gl.RENDERER),
-        gl.getParameter(gl.VERSION)
-      ].join('|');
+      if (!gl) return 'no_webgl';
+
+      const webglInfo = {
+        vendor: gl.getParameter(gl.VENDOR),
+        renderer: gl.getParameter(gl.RENDERER),
+        version: gl.getParameter(gl.VERSION),
+        shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
+        maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+        maxViewportDims: gl.getParameter(gl.MAX_VIEWPORT_DIMS),
+        aliasedLineWidthRange: gl.getParameter(gl.ALIASED_LINE_WIDTH_RANGE),
+        aliasedPointSizeRange: gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE),
+        maxVertexAttribs: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),
+        maxVertexUniformVectors: gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS),
+        maxFragmentUniformVectors: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+        maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS)
+      };
+
+      // 拡張機能情報も追加
+      const extensions = gl.getSupportedExtensions();
+      webglInfo.extensions = extensions ? extensions.sort().join(',') : '';
+
+      return this.generateHash(JSON.stringify(webglInfo)).substr(0, 8);
     } catch (e) {
-      return 'webgl-error';
+      return 'webgl_error';
+    }
+  }
+
+  generateAudioFingerprint() {
+    try {
+      // Audio Context APIを使用してオーディオフィンガープリントを生成
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      const audioInfo = {
+        sampleRate: audioContext.sampleRate,
+        maxChannelCount: audioContext.destination.maxChannelCount,
+        numberOfInputs: audioContext.destination.numberOfInputs,
+        numberOfOutputs: audioContext.destination.numberOfOutputs,
+        channelCount: audioContext.destination.channelCount,
+        channelCountMode: audioContext.destination.channelCountMode,
+        channelInterpretation: audioContext.destination.channelInterpretation
+      };
+
+      // オシレーターを使った音響特性の測定
+      const oscillator = audioContext.createOscillator();
+      const analyser = audioContext.createAnalyser();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.value = 1000;
+      gainNode.gain.value = 0; // 音を出さない
+
+      oscillator.connect(analyser);
+      analyser.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // 分析器の設定
+      analyser.fftSize = 1024;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      // 短時間の分析データを取得
+      oscillator.start();
+      analyser.getByteFrequencyData(dataArray);
+      oscillator.stop();
+
+      // データの一部をフィンガープリントに使用
+      const audioSignature = Array.from(dataArray.slice(0, 10)).join(',');
+      audioInfo.signature = audioSignature;
+
+      audioContext.close();
+
+      return this.generateHash(JSON.stringify(audioInfo)).substr(0, 8);
+    } catch (e) {
+      return 'audio_error';
     }
   }
 
