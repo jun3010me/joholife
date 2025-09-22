@@ -6135,20 +6135,21 @@ class NetworkSimulator {
         if (this.currentDeviceConfig.type !== 'router') {
             const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
             if (dhcpEnabled) {
-            // 前の静的IPアドレスをバックアップ
-            const previousStaticIP = this.currentDeviceConfig.config.ipAddress;
-            
-            // DHCP要求を実行
-            const success = this.requestDHCPAddress(this.currentDeviceConfig);
-            
-            if (!success) {
-                console.log(`DHCP要求失敗: ${this.currentDeviceConfig.name}`);
-                // DHCPが失敗した場合、前の静的IPに戻すか、適切なデフォルトIPを設定
-                if (previousStaticIP && previousStaticIP !== '0.0.0.0') {
-                    this.currentDeviceConfig.config.ipAddress = previousStaticIP;
-                } else {
-                    // デフォルトIPを再設定
-                    this.currentDeviceConfig.config.ipAddress = this.getDefaultIP(this.currentDeviceConfig.type, 1);
+                // 前の静的IPアドレスをバックアップ
+                const previousStaticIP = this.currentDeviceConfig.config.ipAddress;
+
+                // DHCP要求を実行
+                const success = this.requestDHCPAddress(this.currentDeviceConfig);
+
+                if (!success) {
+                    console.log(`DHCP要求失敗: ${this.currentDeviceConfig.name}`);
+                    // DHCPが失敗した場合、前の静的IPに戻すか、適切なデフォルトIPを設定
+                    if (previousStaticIP && previousStaticIP !== '0.0.0.0') {
+                        this.currentDeviceConfig.config.ipAddress = previousStaticIP;
+                    } else {
+                        // デフォルトIPを再設定
+                        this.currentDeviceConfig.config.ipAddress = this.getDefaultIP(this.currentDeviceConfig.type, 1);
+                    }
                 }
             }
         }
