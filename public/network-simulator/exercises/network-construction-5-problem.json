@@ -182,6 +182,8 @@
         "dhcpEnabled": false,
         "lan1": {
           "ipAddress": "192.168.1.1",
+          "subnetMask": "255.255.255.0",
+          "defaultGateway": "192.168.1.1",
           "dhcpEnabled": false,
           "dhcpPoolStart": "192.168.1.100",
           "dhcpPoolEnd": "192.168.1.199",
@@ -189,6 +191,8 @@
         },
         "lan2": {
           "ipAddress": "192.168.2.1",
+          "subnetMask": "255.255.255.0",
+          "defaultGateway": "192.168.2.1",
           "dhcpEnabled": false,
           "dhcpPoolStart": "192.168.2.100",
           "dhcpPoolEnd": "192.168.2.199",
@@ -196,6 +200,8 @@
         },
         "lan3": {
           "ipAddress": "192.168.3.1",
+          "subnetMask": "255.255.255.0",
+          "defaultGateway": "192.168.3.1",
           "dhcpEnabled": false,
           "dhcpPoolStart": "192.168.3.100",
           "dhcpPoolEnd": "192.168.3.199",

@@ -4611,12 +4611,24 @@ class NetworkSimulator {
         
         document.getElementById('dialog-title').textContent = `${this.selectedDevice.name} の設定`;
         document.getElementById('device-name').value = this.selectedDevice.name;
-        document.getElementById('ip-address').value = this.selectedDevice.config.ipAddress;
-        document.getElementById('subnet-mask').value = this.selectedDevice.config.subnetMask;
-        document.getElementById('default-gateway').value = this.selectedDevice.config.defaultGateway;
-        
-        // DHCPクライアント設定
-        document.getElementById('dhcp-enabled').checked = this.selectedDevice.config.dhcpEnabled;
+
+        // 基本ネットワーク設定（ルーター以外のデバイス用）
+        const basicNetworkConfig = document.getElementById('basic-network-config');
+        if (this.selectedDevice.type === 'router') {
+            // ルーターの場合は基本ネットワーク設定を非表示
+            if (basicNetworkConfig) {
+                basicNetworkConfig.style.display = 'none';
+            }
+        } else {
+            // ルーター以外の場合は基本ネットワーク設定を表示し、値を設定
+            if (basicNetworkConfig) {
+                basicNetworkConfig.style.display = 'block';
+            }
+            document.getElementById('ip-address').value = this.selectedDevice.config.ipAddress;
+            document.getElementById('subnet-mask').value = this.selectedDevice.config.subnetMask;
+            document.getElementById('default-gateway').value = this.selectedDevice.config.defaultGateway;
+            document.getElementById('dhcp-enabled').checked = this.selectedDevice.config.dhcpEnabled;
+        }
         
         // WAN設定（ルーターのみ表示）
         const wanConfigSection = document.getElementById('wan-config-section');
@@ -4636,18 +4648,24 @@ class NetworkSimulator {
             
             // LAN1 設定
             document.getElementById('lan1-ip').value = this.selectedDevice.config.lan1.ipAddress;
+            document.getElementById('lan1-subnet-mask').value = this.selectedDevice.config.lan1.subnetMask || '255.255.255.0';
+            document.getElementById('lan1-default-gateway').value = this.selectedDevice.config.lan1.defaultGateway || this.selectedDevice.config.lan1.ipAddress;
             document.getElementById('lan1-dhcp-enabled').checked = this.selectedDevice.config.lan1.dhcpEnabled;
             document.getElementById('lan1-pool-start').value = this.selectedDevice.config.lan1.dhcpPoolStart;
             document.getElementById('lan1-pool-end').value = this.selectedDevice.config.lan1.dhcpPoolEnd;
-            
+
             // LAN2 設定
             document.getElementById('lan2-ip').value = this.selectedDevice.config.lan2.ipAddress;
+            document.getElementById('lan2-subnet-mask').value = this.selectedDevice.config.lan2.subnetMask || '255.255.255.0';
+            document.getElementById('lan2-default-gateway').value = this.selectedDevice.config.lan2.defaultGateway || this.selectedDevice.config.lan2.ipAddress;
             document.getElementById('lan2-dhcp-enabled').checked = this.selectedDevice.config.lan2.dhcpEnabled;
             document.getElementById('lan2-pool-start').value = this.selectedDevice.config.lan2.dhcpPoolStart;
             document.getElementById('lan2-pool-end').value = this.selectedDevice.config.lan2.dhcpPoolEnd;
-            
+
             // LAN3 設定
             document.getElementById('lan3-ip').value = this.selectedDevice.config.lan3.ipAddress;
+            document.getElementById('lan3-subnet-mask').value = this.selectedDevice.config.lan3.subnetMask || '255.255.255.0';
+            document.getElementById('lan3-default-gateway').value = this.selectedDevice.config.lan3.defaultGateway || this.selectedDevice.config.lan3.ipAddress;
             document.getElementById('lan3-dhcp-enabled').checked = this.selectedDevice.config.lan3.dhcpEnabled;
             document.getElementById('lan3-pool-start').value = this.selectedDevice.config.lan3.dhcpPoolStart;
             document.getElementById('lan3-pool-end').value = this.selectedDevice.config.lan3.dhcpPoolEnd;
@@ -4671,17 +4689,21 @@ class NetworkSimulator {
         } else if (dnsServerSection) {
             dnsServerSection.style.display = 'none';
         }
-        
-        // DHCP有効時はIP設定を無効化
-        this.toggleIPFields(this.selectedDevice.config.dhcpEnabled);
-        
+
+        // DHCP有効時はIP設定を無効化（ルーター以外）
+        if (this.selectedDevice.type !== 'router') {
+            this.toggleIPFields(this.selectedDevice.config.dhcpEnabled);
+        }
+
         document.getElementById('dialog-overlay').style.display = 'block';
         document.getElementById('device-config-dialog').style.display = 'block';
-        
-        // DHCPチェックボックスの変更イベントを設定
-        document.getElementById('dhcp-enabled').addEventListener('change', (e) => {
-            this.toggleIPFields(e.target.checked);
-        });
+
+        // DHCPチェックボックスの変更イベントを設定（ルーター以外）
+        if (this.selectedDevice.type !== 'router') {
+            document.getElementById('dhcp-enabled').addEventListener('change', (e) => {
+                this.toggleIPFields(e.target.checked);
+            });
+        }
         
         // WAN DHCPチェックボックスの変更イベントを設定（ルーターのみ）
         if (this.selectedDevice.type === 'router') {
@@ -5903,55 +5925,61 @@ class NetworkSimulator {
     // デバイス設定保存
     saveDeviceConfig() {
         if (!this.currentDeviceConfig) return;
-        
+
         const name = document.getElementById('device-name').value;
-        const ipAddress = document.getElementById('ip-address').value;
-        const subnetMask = document.getElementById('subnet-mask').value;
-        const defaultGateway = document.getElementById('default-gateway').value;
-        const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
-        
-        // DHCP無効時のみIP設定を検証
-        if (!dhcpEnabled) {
-            if (!this.isValidIP(ipAddress)) {
-                alert('有効なIPアドレスを入力してください');
-                return;
-            }
-            
-            if (!this.isValidIP(subnetMask)) {
-                alert('有効なサブネットマスクを入力してください');
-                return;
-            }
-            
-            // IPアドレス重複チェック
-            if (this.checkIPAddressDuplication(ipAddress, this.currentDeviceConfig)) {
-                alert(`IPアドレス ${ipAddress} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
-                return;
-            }
-        }
-        
-        // DHCP状態の変更をチェック
-        const wasUsingDHCP = this.currentDeviceConfig.config.dhcpEnabled;
-        const nowUsingDHCP = dhcpEnabled;
-        
-        // 基本設定の更新
+
+        // 基本設定の更新（全デバイス共通）
         this.currentDeviceConfig.name = name;
-        this.currentDeviceConfig.config.dhcpEnabled = dhcpEnabled;
-        
-        if (!dhcpEnabled) {
-            // DHCP無効時は手動IP設定を保存
-            this.currentDeviceConfig.config.ipAddress = ipAddress;
-            this.currentDeviceConfig.config.subnetMask = subnetMask;
-            this.currentDeviceConfig.config.defaultGateway = defaultGateway;
-            
-            // lan1.ipAddress も同期して更新（PC、サーバー、スイッチ等でも正しいJSONを保存するため）
-            if (this.currentDeviceConfig.config.lan1) {
-                this.currentDeviceConfig.config.lan1.ipAddress = ipAddress;
+
+        // ルーター以外のデバイスの場合のみ基本ネットワーク設定を処理
+        if (this.currentDeviceConfig.type !== 'router') {
+            const ipAddress = document.getElementById('ip-address').value;
+            const subnetMask = document.getElementById('subnet-mask').value;
+            const defaultGateway = document.getElementById('default-gateway').value;
+            const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
+
+            // DHCP無効時のみIP設定を検証
+            if (!dhcpEnabled) {
+                if (!this.isValidIP(ipAddress)) {
+                    alert('有効なIPアドレスを入力してください');
+                    return;
+                }
+
+                if (!this.isValidIP(subnetMask)) {
+                    alert('有効なサブネットマスクを入力してください');
+                    return;
+                }
+
+                // IPアドレス重複チェック
+                if (this.checkIPAddressDuplication(ipAddress, this.currentDeviceConfig)) {
+                    alert(`IPアドレス ${ipAddress} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
+                    return;
+                }
             }
-        }
-        
-        // インターネット接続デバイスのDHCP状態変更処理
-        if (this.currentDeviceConfig.config.isInternetConnected) {
-            this.handleInternetDHCPChange(this.currentDeviceConfig, wasUsingDHCP, nowUsingDHCP);
+
+            // DHCP状態の変更をチェック
+            const wasUsingDHCP = this.currentDeviceConfig.config.dhcpEnabled;
+            const nowUsingDHCP = dhcpEnabled;
+
+            // 基本ネットワーク設定を更新
+            this.currentDeviceConfig.config.dhcpEnabled = dhcpEnabled;
+
+            if (!dhcpEnabled) {
+                // DHCP無効時は手動IP設定を保存
+                this.currentDeviceConfig.config.ipAddress = ipAddress;
+                this.currentDeviceConfig.config.subnetMask = subnetMask;
+                this.currentDeviceConfig.config.defaultGateway = defaultGateway;
+
+                // lan1.ipAddress も同期して更新（PC、サーバー、スイッチ等でも正しいJSONを保存するため）
+                if (this.currentDeviceConfig.config.lan1) {
+                    this.currentDeviceConfig.config.lan1.ipAddress = ipAddress;
+                }
+            }
+
+            // インターネット接続デバイスのDHCP状態変更処理
+            if (this.currentDeviceConfig.config.isInternetConnected) {
+                this.handleInternetDHCPChange(this.currentDeviceConfig, wasUsingDHCP, nowUsingDHCP);
+            }
         }
         
         // ルーターの場合はWAN設定とDHCPサーバー設定も保存
@@ -5963,21 +5991,33 @@ class NetworkSimulator {
             
             // LAN1 設定
             const lan1IP = document.getElementById('lan1-ip').value;
+            const lan1SubnetMask = document.getElementById('lan1-subnet-mask').value;
+            const lan1DefaultGateway = document.getElementById('lan1-default-gateway').value;
             const lan1DHCPEnabled = document.getElementById('lan1-dhcp-enabled').checked;
             const lan1PoolStart = document.getElementById('lan1-pool-start').value;
             const lan1PoolEnd = document.getElementById('lan1-pool-end').value;
-            
+
             if (!this.isValidIP(lan1IP)) {
                 alert('有効なLAN1 IPアドレスを入力してください');
                 return;
             }
-            
+
+            if (!this.isValidIP(lan1SubnetMask)) {
+                alert('有効なLAN1 サブネットマスクを入力してください');
+                return;
+            }
+
+            if (!this.isValidIP(lan1DefaultGateway)) {
+                alert('有効なLAN1 デフォルトゲートウェイを入力してください');
+                return;
+            }
+
             // LAN1 IPアドレス重複チェック
             if (this.checkIPAddressDuplicationForRouter(lan1IP, this.currentDeviceConfig, 'lan1')) {
                 alert(`LAN1 IPアドレス ${lan1IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
                 return;
             }
-            
+
             if (lan1DHCPEnabled) {
                 if (!this.isValidIP(lan1PoolStart) || !this.isValidIP(lan1PoolEnd)) {
                     alert('有効なLAN1 IPプール範囲を入力してください');
@@ -5987,21 +6027,33 @@ class NetworkSimulator {
             
             // LAN2 設定
             const lan2IP = document.getElementById('lan2-ip').value;
+            const lan2SubnetMask = document.getElementById('lan2-subnet-mask').value;
+            const lan2DefaultGateway = document.getElementById('lan2-default-gateway').value;
             const lan2DHCPEnabled = document.getElementById('lan2-dhcp-enabled').checked;
             const lan2PoolStart = document.getElementById('lan2-pool-start').value;
             const lan2PoolEnd = document.getElementById('lan2-pool-end').value;
-            
+
             if (!this.isValidIP(lan2IP)) {
                 alert('有効なLAN2 IPアドレスを入力してください');
                 return;
             }
-            
+
+            if (!this.isValidIP(lan2SubnetMask)) {
+                alert('有効なLAN2 サブネットマスクを入力してください');
+                return;
+            }
+
+            if (!this.isValidIP(lan2DefaultGateway)) {
+                alert('有効なLAN2 デフォルトゲートウェイを入力してください');
+                return;
+            }
+
             // LAN2 IPアドレス重複チェック
             if (this.checkIPAddressDuplicationForRouter(lan2IP, this.currentDeviceConfig, 'lan2')) {
                 alert(`LAN2 IPアドレス ${lan2IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
                 return;
             }
-            
+
             if (lan2DHCPEnabled) {
                 if (!this.isValidIP(lan2PoolStart) || !this.isValidIP(lan2PoolEnd)) {
                     alert('有効なLAN2 IPプール範囲を入力してください');
@@ -6011,21 +6063,33 @@ class NetworkSimulator {
             
             // LAN3 設定
             const lan3IP = document.getElementById('lan3-ip').value;
+            const lan3SubnetMask = document.getElementById('lan3-subnet-mask').value;
+            const lan3DefaultGateway = document.getElementById('lan3-default-gateway').value;
             const lan3DHCPEnabled = document.getElementById('lan3-dhcp-enabled').checked;
             const lan3PoolStart = document.getElementById('lan3-pool-start').value;
             const lan3PoolEnd = document.getElementById('lan3-pool-end').value;
-            
+
             if (!this.isValidIP(lan3IP)) {
                 alert('有効なLAN3 IPアドレスを入力してください');
                 return;
             }
-            
+
+            if (!this.isValidIP(lan3SubnetMask)) {
+                alert('有効なLAN3 サブネットマスクを入力してください');
+                return;
+            }
+
+            if (!this.isValidIP(lan3DefaultGateway)) {
+                alert('有効なLAN3 デフォルトゲートウェイを入力してください');
+                return;
+            }
+
             // LAN3 IPアドレス重複チェック
             if (this.checkIPAddressDuplicationForRouter(lan3IP, this.currentDeviceConfig, 'lan3')) {
                 alert(`LAN3 IPアドレス ${lan3IP} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
                 return;
             }
-            
+
             if (lan3DHCPEnabled) {
                 if (!this.isValidIP(lan3PoolStart) || !this.isValidIP(lan3PoolEnd)) {
                     alert('有効なLAN3 IPプール範囲を入力してください');
@@ -6035,16 +6099,22 @@ class NetworkSimulator {
             
             // 設定を保存
             this.currentDeviceConfig.config.lan1.ipAddress = lan1IP;
+            this.currentDeviceConfig.config.lan1.subnetMask = lan1SubnetMask;
+            this.currentDeviceConfig.config.lan1.defaultGateway = lan1DefaultGateway;
             this.currentDeviceConfig.config.lan1.dhcpEnabled = lan1DHCPEnabled;
             this.currentDeviceConfig.config.lan1.dhcpPoolStart = lan1PoolStart;
             this.currentDeviceConfig.config.lan1.dhcpPoolEnd = lan1PoolEnd;
-            
+
             this.currentDeviceConfig.config.lan2.ipAddress = lan2IP;
+            this.currentDeviceConfig.config.lan2.subnetMask = lan2SubnetMask;
+            this.currentDeviceConfig.config.lan2.defaultGateway = lan2DefaultGateway;
             this.currentDeviceConfig.config.lan2.dhcpEnabled = lan2DHCPEnabled;
             this.currentDeviceConfig.config.lan2.dhcpPoolStart = lan2PoolStart;
             this.currentDeviceConfig.config.lan2.dhcpPoolEnd = lan2PoolEnd;
-            
+
             this.currentDeviceConfig.config.lan3.ipAddress = lan3IP;
+            this.currentDeviceConfig.config.lan3.subnetMask = lan3SubnetMask;
+            this.currentDeviceConfig.config.lan3.defaultGateway = lan3DefaultGateway;
             this.currentDeviceConfig.config.lan3.dhcpEnabled = lan3DHCPEnabled;
             this.currentDeviceConfig.config.lan3.dhcpPoolStart = lan3PoolStart;
             this.currentDeviceConfig.config.lan3.dhcpPoolEnd = lan3PoolEnd;

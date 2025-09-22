@@ -9,23 +9,27 @@
             <label class="form-label" for="device-name">デバイス名</label>
             <input type="text" class="form-input" id="device-name" placeholder="PC-1">
         </div>
-        <div class="form-group">
-            <label class="form-label" for="ip-address">IPアドレス</label>
-            <input type="text" class="form-input" id="ip-address" placeholder="192.168.1.1">
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="subnet-mask">サブネットマスク</label>
-            <input type="text" class="form-input" id="subnet-mask" placeholder="255.255.255.0">
-        </div>
-        <div class="form-group">
-            <label class="form-label" for="default-gateway">デフォルトゲートウェイ</label>
-            <input type="text" class="form-input" id="default-gateway" placeholder="192.168.1.1">
-        </div>
-        <div class="form-group">
-            <label class="form-label">
-                <input type="checkbox" id="dhcp-enabled" style="margin-right: 8px;">
-                DHCPでIPアドレスを自動取得
-            </label>
+
+        <!-- PC、サーバー、DNS等の基本ネットワーク設定（ルーターでは非表示） -->
+        <div id="basic-network-config">
+            <div class="form-group">
+                <label class="form-label" for="ip-address">IPアドレス</label>
+                <input type="text" class="form-input" id="ip-address" placeholder="192.168.1.1">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="subnet-mask">サブネットマスク</label>
+                <input type="text" class="form-input" id="subnet-mask" placeholder="255.255.255.0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="default-gateway">デフォルトゲートウェイ</label>
+                <input type="text" class="form-input" id="default-gateway" placeholder="192.168.1.1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" id="dhcp-enabled" style="margin-right: 8px;">
+                    DHCPでIPアドレスを自動取得
+                </label>
+            </div>
         </div>
         
         <!-- ルーター専用のWAN設定 -->
@@ -70,6 +74,14 @@
                         <input type="text" class="form-input" id="lan1-ip" placeholder="192.168.1.1">
                     </div>
                     <div class="form-group">
+                        <label class="form-label" for="lan1-subnet-mask">LAN1 サブネットマスク</label>
+                        <input type="text" class="form-input" id="lan1-subnet-mask" placeholder="255.255.255.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan1-default-gateway">LAN1 デフォルトゲートウェイ</label>
+                        <input type="text" class="form-input" id="lan1-default-gateway" placeholder="192.168.1.1">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">
                             <input type="checkbox" id="lan1-dhcp-enabled" style="margin-right: 8px;">
                             LAN1でDHCPサーバーを有効にする
@@ -95,6 +107,14 @@
                         <input type="text" class="form-input" id="lan2-ip" placeholder="192.168.2.1">
                     </div>
                     <div class="form-group">
+                        <label class="form-label" for="lan2-subnet-mask">LAN2 サブネットマスク</label>
+                        <input type="text" class="form-input" id="lan2-subnet-mask" placeholder="255.255.255.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan2-default-gateway">LAN2 デフォルトゲートウェイ</label>
+                        <input type="text" class="form-input" id="lan2-default-gateway" placeholder="192.168.2.1">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">
                             <input type="checkbox" id="lan2-dhcp-enabled" style="margin-right: 8px;">
                             LAN2でDHCPサーバーを有効にする
@@ -118,6 +138,14 @@
                     <div class="form-group">
                         <label class="form-label" for="lan3-ip">LAN3 IPアドレス</label>
                         <input type="text" class="form-input" id="lan3-ip" placeholder="192.168.3.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan3-subnet-mask">LAN3 サブネットマスク</label>
+                        <input type="text" class="form-input" id="lan3-subnet-mask" placeholder="255.255.255.0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="lan3-default-gateway">LAN3 デフォルトゲートウェイ</label>
+                        <input type="text" class="form-input" id="lan3-default-gateway" placeholder="192.168.3.1">
                     </div>
                     <div class="form-group">
                         <label class="form-label">
