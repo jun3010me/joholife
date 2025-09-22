@@ -165,6 +165,46 @@ class NetworkSimulator {
         if (cancelBtn) cancelBtn.addEventListener('click', this.hideDeviceConfig.bind(this));
         if (saveBtn) saveBtn.addEventListener('click', this.saveDeviceConfig.bind(this));
         if (dialogOverlay) dialogOverlay.addEventListener('click', this.hideDeviceConfig.bind(this));
+
+        // HTTP関連イベントリスナーの設定
+        this.setupHTTPEventListeners();
+    }
+
+    // HTTP関連イベントリスナーの設定
+    setupHTTPEventListeners() {
+        // HTTPシミュレーターが利用可能になったときにイベントリスナーを設定
+        const setupHTTPListeners = () => {
+            if (window.httpSimulator) {
+                console.log('Setting up HTTP event listeners...');
+
+                // HTTPレスポンス送信イベント
+                window.httpSimulator.on('httpResponseSent', (data) => {
+                    console.log('HTTP response sent event received:', data);
+                    const { session, response, serverConnection } = data;
+
+                    // レスポンスアニメーション実行
+                    this.animateHTTPResponse(session, response, serverConnection);
+                });
+
+                // HTTPレスポンス受信イベント
+                window.httpSimulator.on('httpResponseReceived', (data) => {
+                    console.log('HTTP response received event received:', data);
+                    const { session, response, duration } = data;
+
+                    // 通信完了の更新
+                    this.updateStatus(`✅ HTTP通信完了: ${session.connection.localDevice.name} ← ${session.connection.remoteDevice.name} (${duration}ms)`);
+                });
+
+                console.log('HTTP event listeners setup complete');
+            }
+        };
+
+        // HTTPシミュレーターがまだロードされていない場合は少し待つ
+        if (window.httpSimulator) {
+            setupHTTPListeners();
+        } else {
+            setTimeout(setupHTTPListeners, 100);
+        }
     }
 
     setupPalette() {
@@ -5451,13 +5491,20 @@ class NetworkSimulator {
         // hideDestinationDialog()でクリアされる前に値を保存
         const sourceDevice = this.destinationSourceDevice;
         const communicationType = this.destinationCommunicationType;
-        
+
         console.log('Saved values - Source device:', sourceDevice?.name);
         console.log('Saved values - Communication type:', communicationType);
-        
+
+        // sourceDeviceの存在確認を追加
+        if (!sourceDevice) {
+            console.error('sourceDevice is null or undefined');
+            alert('送信元デバイスが見つかりません。もう一度実行してください。');
+            return;
+        }
+
         // ダイアログを閉じる
         this.hideDestinationDialog();
-        
+
         // DNS解決が必要な場合は最初にDNS解決アニメーションを実行
         if (needsDNSResolution) {
             await this.executeDNSResolutionWithAnimation(sourceDevice, hostname, true, targetDevice);
@@ -5517,6 +5564,58 @@ class NetworkSimulator {
             
             // 統一されたアニメーションシステムを使用してDNS解決失敗アニメーション実行
             await this.animateDNSResolutionWithPath(sourceDevice, dnsServer, hostname, null, false);
+        }
+    }
+
+    // HTTPレスポンスアニメーション
+    async animateHTTPResponse(session, response, serverConnection) {
+        console.log('Starting HTTP response animation...');
+
+        if (!session || !serverConnection) {
+            console.error('Missing session or serverConnection for HTTP response animation');
+            return;
+        }
+
+        const sourceDevice = serverConnection.localDevice; // サーバー
+        const targetDevice = serverConnection.remoteDevice; // クライアント
+
+        if (!sourceDevice || !targetDevice) {
+            console.error('Missing devices for HTTP response animation');
+            return;
+        }
+
+        // レスポンスの状況に応じたメッセージ
+        const statusCode = response.statusCode || 200;
+        const statusText = response.statusText || 'OK';
+        const responseSize = response.body ? response.body.length : 0;
+
+        this.updateStatus(`📤 HTTPレスポンス送信中: ${sourceDevice.name} → ${targetDevice.name} (${statusCode} ${statusText})`);
+
+        try {
+            // サーバーからクライアントへの経路を取得
+            const path = this.findPath(sourceDevice, targetDevice);
+
+            if (path.length === 0) {
+                console.warn('No path found for HTTP response');
+                this.updateStatus(`❌ HTTPレスポンス失敗: 経路がありません`);
+                return;
+            }
+
+            // HTTPレスポンスパケットをアニメーション
+            const label = `HTTP ${statusCode}`;
+            const color = statusCode === 200 ? '#22c55e' : '#ef4444'; // 成功は緑、エラーは赤
+
+            await this.animatePacketAlongPath(path, label, color, {
+                duration: 2000,
+                size: Math.min(8 + Math.floor(responseSize / 100), 20) // レスポンスサイズに応じてパケットサイズ調整
+            });
+
+            console.log('HTTP response animation completed');
+            this.updateStatus(`✅ HTTPレスポンス完了: ${targetDevice.name} が ${sourceDevice.name} からレスポンスを受信`);
+
+        } catch (error) {
+            console.error('HTTP response animation error:', error);
+            this.updateStatus(`❌ HTTPレスポンスアニメーションエラー: ${error.message}`);
         }
     }
 
