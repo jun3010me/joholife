@@ -1452,11 +1452,30 @@ class QuizSession {
     return this.generateHash(input).substr(0, 6).toUpperCase();
   }
 
+  getOrCreateDeviceId() {
+    // ローカルストレージから端末IDを取得、なければ新規作成
+    const DEVICE_ID_KEY = 'joholife_device_id';
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+
+    if (!deviceId) {
+      // 初回アクセス時: 高精度フィンガープリンティングで端末IDを生成
+      console.log('端末ID初回生成中...');
+      const fingerprint = this.generateBrowserFingerprint();
+      deviceId = this.generateHash(fingerprint).substr(0, 8).toUpperCase();
+
+      // ローカルストレージに保存
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+      console.log('端末ID生成完了:', deviceId);
+    } else {
+      console.log('保存済み端末IDを使用:', deviceId);
+    }
+
+    return deviceId;
+  }
+
   generateDeviceUserHash(userName) {
-    // ブラウザフィンガープリントのみで端末識別
-    // 同じ端末から異なる名前で修了証を発行した場合の検出用
-    const fingerprint = this.generateBrowserFingerprint();
-    return this.generateHash(fingerprint).substr(0, 8).toUpperCase();
+    // 永続化された端末IDを使用
+    return this.getOrCreateDeviceId();
   }
 
   async tryGetIPAddress() {
