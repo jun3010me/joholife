@@ -4029,6 +4029,12 @@ class NetworkSimulator {
     
     // デバイスからインターネットに接続されたルーターまたは直接接続を検索
     findInternetConnectedRouter(device) {
+        // デバイスの存在確認
+        if (!device) {
+            console.warn('findInternetConnectedRouter: device is null or undefined');
+            return null;
+        }
+
         // デバイス自身がインターネット接続ルーターの場合
         if (device.type === 'router' && device.wanConfig?.isConnected) {
             return device;
@@ -5516,6 +5522,17 @@ class NetworkSimulator {
 
     // 統一されたアニメーションシステムを使用するDNS解決アニメーション
     async animateDNSResolutionWithPath(sourceDevice, dnsServer, hostname, resolvedIp, isSuccess) {
+        // デバイスの存在確認
+        if (!sourceDevice) {
+            console.warn('animateDNSResolutionWithPath: sourceDevice is null or undefined');
+            return;
+        }
+        if (!dnsServer) {
+            console.warn('animateDNSResolutionWithPath: dnsServer is null or undefined');
+            this.updateStatus(`❌ DNS解決失敗: DNSサーバーが見つかりません`);
+            return;
+        }
+
         // ソースとDNSサーバー間の経路を取得
         const pathToServer = this.findPath(sourceDevice, dnsServer);
         
