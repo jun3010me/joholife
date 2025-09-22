@@ -5924,16 +5924,23 @@ class NetworkSimulator {
         
         try {
             // HTTPシミュレーターを使用してHTTPリクエストを送信
+            console.log('🚀 HTTPリクエスト送信開始:', sourceDevice.name, '→', targetDevice.name);
             const session = window.httpSimulator.sendRequest(sourceDevice, targetDevice, {
                 method: 'GET',
                 path: '/',
                 serverPort: 80
             });
-            
+
             if (session) {
-                console.log('HTTP通信セッションが開始されました:', session.id);
+                console.log('✅ HTTP通信セッションが開始されました:', session.id);
+                console.log('📊 HTTPセッション詳細:', {
+                    id: session.id,
+                    connectionId: session.connection?.id,
+                    localDevice: session.connection?.localDevice?.name,
+                    remoteDevice: session.connection?.remoteDevice?.name
+                });
             } else {
-                console.error('HTTP通信セッションの作成に失敗しました');
+                console.error('❌ HTTP通信セッションの作成に失敗しました');
                 this.updateStatus('HTTP通信の開始に失敗しました');
             }
         } catch (error) {
@@ -8493,23 +8500,32 @@ console.log('TCP統合を開始...');
 let httpEventListenerAdded = false;
 if (!httpEventListenerAdded) {
     window.tcpManager.addEventListener('dataReceived', (data) => {
-        console.log('TCPManager dataReceived:', data.connection.id);
-        
+        console.log('🔄 TCPManager dataReceived:', data.connection.id);
+        console.log('📦 受信データ:', data.data);
+
         const connection = data.connection;
         const localDevice = connection.localDevice;
         const remoteDevice = connection.remoteDevice;
-        
+
+        console.log('🔍 接続詳細:', {
+            id: connection.id,
+            local: localDevice?.name,
+            remote: remoteDevice?.name,
+            localPort: connection.localPort,
+            remotePort: connection.remotePort
+        });
+
         // TCP接続IDでHTTPセッションを正確に特定
         const targetSessionId = connection.id;
-        console.log('HTTPセッション検索対象:', targetSessionId);
-        
+        console.log('🎯 HTTPセッション検索対象:', targetSessionId);
+
         const session = window.httpSimulator.sessions.get(targetSessionId);
         if (session) {
-            console.log('HTTPセッションに転送:', targetSessionId);
+            console.log('✅ HTTPセッションに転送:', targetSessionId);
             session.handleReceivedData(data.data);
         } else {
-            console.log('対応するHTTPセッションが見つかりません:', targetSessionId);
-            console.log('利用可能なHTTPセッション:', Array.from(window.httpSimulator.sessions.keys()));
+            console.log('❌ 対応するHTTPセッションが見つかりません:', targetSessionId);
+            console.log('📋 利用可能なHTTPセッション:', Array.from(window.httpSimulator.sessions.keys()));
             
             // まず逆方向のTCP接続IDでHTTPセッションを検索
             const reversedId = window.httpSimulator.getReversedConnectionId ? 
