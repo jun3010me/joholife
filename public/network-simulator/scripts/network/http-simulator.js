@@ -447,9 +447,10 @@ class HTTPSession {
         
         this.receivedData += data;
         console.log(`📨 HTTPデータ受信: ${data.length}バイト`);
-        // console.log(`受信したデータ: "${data}"`);
-        // console.log(`累積データ: "${this.receivedData}"`);
-        // console.log(`localDeviceにhttpHandler: ${!!this.connection.localDevice.httpHandler}`);
+        console.log(`🔍 受信したデータ: "${data}"`);
+        console.log(`📊 累積データ: "${this.receivedData}"`);
+        console.log(`🔍 localDeviceにhttpHandler: ${!!this.connection.localDevice.httpHandler}`);
+        console.log(`🔍 remoteDeviceにhttpHandler: ${!!this.connection.remoteDevice.httpHandler}`);
         
         this.httpSimulator.addToLog(`DATA RECEIVED: ${data.length} bytes on ${this.id}`);
         
@@ -470,13 +471,14 @@ class HTTPSession {
             } else if (firstLine.match(/^(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH)\s/)) {
                 // リクエストを解析（サーバー側で未処理の場合のみ）
                 const isServer = this.connection.remoteDevice.type === 'server' || this.connection.remoteDevice.name.includes('サーバー');
+                console.log(`🔍 リクエスト判定: remoteDevice=${this.connection.remoteDevice.name}, type=${this.connection.remoteDevice.type}, isServer=${isServer}, requestProcessed=${this.requestProcessed}`);
                 if (isServer && !this.requestProcessed) {
-                    console.log('HTTPリクエストとして解析中...');
+                    console.log('🚀 HTTPリクエストとして解析中...');
                     this.httpSimulator.addToLog(`PARSING: Request on ${this.id}`);
                     this.parseHTTPRequest();
                     this.requestProcessed = true; // リクエスト処理完了マーク
                 } else {
-                    console.log('クライアント側なのでリクエスト解析をスキップ、またはリクエスト処理済み');
+                    console.log('⚠️ クライアント側なのでリクエスト解析をスキップ、またはリクエスト処理済み');
                 }
             } else {
                 console.log('HTTPメッセージの形式が不明:', firstLine);
