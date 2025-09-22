@@ -5471,18 +5471,20 @@ class NetworkSimulator {
         }
         
         // 実際の通信実行
-        console.log('Communication type:', communicationType);
-        console.log('Source device:', sourceDevice);
-        console.log('Target device:', targetDevice);
-        
+        console.log('🔍 Communication type:', communicationType);
+        console.log('🔍 Source device:', sourceDevice?.name);
+        console.log('🔍 Target device:', targetDevice?.name);
+
         if (communicationType === 'ping') {
-            console.log('Calling executePingToTarget');
+            console.log('🏓 Calling executePingToTarget');
             await this.executePingToTarget(sourceDevice, targetDevice);
-            console.log('executePingToTarget completed');
+            console.log('✅ executePingToTarget completed');
         } else if (communicationType === 'http') {
-            console.log('Calling executeHTTPToTarget');
+            console.log('🌐 Calling executeHTTPToTarget');
             await this.executeHTTPToTarget(sourceDevice, targetDevice);
-            console.log('executeHTTPToTarget completed');
+            console.log('✅ executeHTTPToTarget completed');
+        } else {
+            console.warn('⚠️ 不明な通信タイプ:', communicationType);
         }
     }
 
@@ -5890,6 +5892,12 @@ class NetworkSimulator {
 
     // 宛先指定によるHTTP通信実行
     async executeHTTPToTarget(sourceDevice, targetDevice) {
+        console.log('🌐 executeHTTPToTarget が呼び出されました:', sourceDevice?.name, '→', targetDevice?.name);
+        console.log('🔍 デバイス情報:', {
+            source: { name: sourceDevice?.name, type: sourceDevice?.type },
+            target: { name: targetDevice?.name, type: targetDevice?.type }
+        });
+
         // サーバータイプかWebサーバータイプの確認
         if (targetDevice.type !== 'server' && targetDevice.type !== 'dns') {
             alert(`HTTP通信の宛先は Webサーバー または DNSサーバー である必要があります。選択されたデバイス (${targetDevice.name}) は ${targetDevice.type} タイプです。`);
