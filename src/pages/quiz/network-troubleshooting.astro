@@ -1,9 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
 ---
 
-<Layout title="ネットワーク構築課題③ - じょうほうらいふ">
+<Layout title="ネットワーク構築課題② - じょうほうらいふ">
   <div class="container mx-auto px-4 py-8">
     <div id="network-quiz-app" class="max-w-4xl mx-auto">
       <div class="flex items-center justify-center py-12">
@@ -18,118 +17,142 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
 async function loadNetworkQuestions() {
-  // Return the question set directly without YAML parsing
   return {
-    id: 'network-construction-3',
-    title: 'ネットワーク構築課題③',
-    description: '複数LANセグメントによるネットワーク構築課題',
-    icon: '🌐',
-    difficulty: 'hard',
-    estimatedTime: 30,
+    id: 'network-troubleshooting',
+    title: 'ネットワーク構築課題②',
+    description: 'ネットワーク接続のトラブルシューティング課題',
+    icon: '🔧',
+    difficulty: 'medium',
+    estimatedTime: 20,
     category: 'ネットワーク構築',
-    tags: ['ネットワーク設計', 'DHCP設定', 'LAN分割', 'スイッチ接続', '複数セグメント'],
+    tags: ['トラブルシューティング', 'IPアドレス設定', 'Ping疎通', 'ネットワーク設計'],
     questions: [{
-      id: 'network_construction_3',
+      id: 'troubleshooting_1',
       type: 'file-analysis',
-      title: '複数LANセグメントのネットワーク構築',
+      title: 'ネットワーク接続トラブルの解決',
       description: `**課題概要**
 
-以下の要件を満たすネットワーク構成を作成してください。
+以下のネットワーク構成において、一部のPC間でPing疎通ができない問題が発生しています。
+問題を特定し、修正してください。
 
-**ネットワーク要件**
-- ルーター1台（LAN1とLAN2でDHCP有効）
-- スイッチ2台（スイッチ-1、スイッチ-2）
-- PC4台（PC-1、PC-2、PC-3、PC-4）
+**ネットワーク構成**
+- PC-1: 192.168.1.100
+- PC-2: 192.168.1.101
+- PC-3: ネットワーク設定に問題あり
+- スイッチ-1: 192.168.1.10
 
 **接続要件**
-- スイッチ-1をルーターのLAN1ポートに接続
-- スイッチ-2をルーターのLAN2ポートに接続
-- PC-1とPC-2をスイッチ-1に接続
-- PC-3とPC-4をスイッチ-2に接続
-- すべてのPCでDHCP有効、スイッチは適切なセグメントでIP設定
+- PC-1、PC-2、PC-3をスイッチに接続
+- 全PCが同一セグメント（192.168.1.0/24）に属する
+- 全PC間でPing疎通が可能
 
-**IPアドレス設定要件**
-- LAN1セグメント: 192.168.1.0/24（DHCP範囲: 192.168.1.100-199）
-- LAN2セグメント: 192.168.2.0/24（DHCP範囲: 192.168.2.100-199）
-- PC-1、PC-2: 192.168.1.xのIPアドレスを取得
-- PC-3、PC-4: 192.168.2.xのIPアドレスを取得
-- スイッチ-1: 192.168.1.xのIPアドレスを設定
-- スイッチ-2: 192.168.2.xのIPアドレスを設定`,
+**トラブルシューティングのポイント**
+- IPアドレスの重複確認
+- サブネットマスクの設定確認
+- 適切なIPアドレス範囲の設定
+- スイッチとの接続確認`,
       validation: function validateNetwork(networkData) {
         const { devices, connections } = networkData;
 
-        const routers = devices.filter(d => d.type === 'router');
+        // Device count validation
         const switches = devices.filter(d => d.type === 'switch');
         const pcs = devices.filter(d => d.type === 'pc');
 
-        if (routers.length !== 1) {
-          return { valid: false, message: 'ルーターが1台ではありません' };
+        if (switches.length !== 1) {
+          return { valid: false, message: 'スイッチが1台ではありません（現在: ' + switches.length + '台）' };
         }
-        if (switches.length !== 2) {
-          return { valid: false, message: 'スイッチが2台ではありません' };
-        }
-        if (pcs.length !== 4) {
-          return { valid: false, message: 'PCが4台ではありません' };
+        if (pcs.length !== 3) {
+          return { valid: false, message: 'PCが3台ではありません（現在: ' + pcs.length + '台）' };
         }
 
-        const router = routers[0];
-
-        if (!router.config.lan1.dhcpEnabled) {
-          return { valid: false, message: 'ルーターのLAN1でDHCPを有効化してください' };
-        }
-        if (!router.config.lan2.dhcpEnabled) {
-          return { valid: false, message: 'ルーターのLAN2でDHCPを有効化してください' };
-        }
-
-        for (const pc of pcs) {
-          if (!pc.config.dhcpEnabled) {
-            return { valid: false, message: pc.name + 'でDHCPを有効化してください' };
-          }
-        }
-
+        // Find specific PCs
         const pc1 = pcs.find(p => p.name === 'PC-1');
         const pc2 = pcs.find(p => p.name === 'PC-2');
         const pc3 = pcs.find(p => p.name === 'PC-3');
-        const pc4 = pcs.find(p => p.name === 'PC-4');
-        const switch1 = switches.find(s => s.name === 'スイッチ-1');
-        const switch2 = switches.find(s => s.name === 'スイッチ-2');
 
-        if (pc1 && !pc1.config.ipAddress.startsWith('192.168.1.')) {
-          return { valid: false, message: 'PC-1は192.168.1.xからIPアドレスを取得してください' };
-        }
-        if (pc2 && !pc2.config.ipAddress.startsWith('192.168.1.')) {
-          return { valid: false, message: 'PC-2は192.168.1.xからIPアドレスを取得してください' };
-        }
-        if (pc3 && !pc3.config.ipAddress.startsWith('192.168.2.')) {
-          return { valid: false, message: 'PC-3は192.168.2.xからIPアドレスを取得してください' };
-        }
-        if (pc4 && !pc4.config.ipAddress.startsWith('192.168.2.')) {
-          return { valid: false, message: 'PC-4は192.168.2.xからIPアドレスを取得してください' };
-        }
-        if (switch1 && !switch1.config.ipAddress.startsWith('192.168.1.')) {
-          return { valid: false, message: 'スイッチ-1は192.168.1.xにIPアドレスを設定してください' };
-        }
-        if (switch2 && !switch2.config.ipAddress.startsWith('192.168.2.')) {
-          return { valid: false, message: 'スイッチ-2は192.168.2.xにIPアドレスを設定してください' };
+        if (!pc1 || !pc2 || !pc3) {
+          return { valid: false, message: 'PC-1、PC-2、PC-3が正しく配置されていません' };
         }
 
-        if (connections.length < 6) {
-          return { valid: false, message: '接続数が不足しています' };
+        // IP address validation
+        if (pc1.config.ipAddress !== '192.168.1.100') {
+          return { valid: false, message: 'PC-1のIPアドレスが192.168.1.100ではありません' };
+        }
+        if (pc2.config.ipAddress !== '192.168.1.101') {
+          return { valid: false, message: 'PC-2のIPアドレスが192.168.1.101ではありません' };
         }
 
-        return { valid: true, message: '全ての条件を満たしています' };
+        // PC-3 IP validation (should be in same segment but not conflicting)
+        if (!pc3.config.ipAddress || !pc3.config.ipAddress.match(/^192\.168\.1\.[0-9]+$/)) {
+          return { valid: false, message: 'PC-3のIPアドレスが192.168.1.xネットワークに設定されていません' };
+        }
+
+        // Check for IP conflicts
+        const ipAddresses = pcs.map(pc => pc.config.ipAddress);
+        const uniqueIPs = [...new Set(ipAddresses)];
+        if (ipAddresses.length !== uniqueIPs.length) {
+          return { valid: false, message: 'IPアドレスの重複があります。各PCに固有のIPアドレスを設定してください' };
+        }
+
+        // Subnet mask validation
+        for (const pc of pcs) {
+          if (pc.config.subnetMask !== '255.255.255.0') {
+            return { valid: false, message: pc.name + 'のサブネットマスクが255.255.255.0ではありません' };
+          }
+        }
+
+        // Connection validation
+        const switchId = switches[0].id;
+        const pcConnections = connections.filter(conn =>
+          conn.from.deviceId === switchId || conn.to.deviceId === switchId
+        );
+
+        if (pcConnections.length !== 3) {
+          return { valid: false, message: '全てのPCがスイッチに接続されていません（現在: ' + pcConnections.length + '接続）' };
+        }
+
+        // Switch IP validation
+        const switch1 = switches[0];
+        if (switch1.config.ipAddress !== '192.168.1.10') {
+          return { valid: false, message: 'スイッチのIPアドレスが192.168.1.10ではありません' };
+        }
+
+        return { valid: true, message: '全ての問題が解決されました！ネットワーク接続が正常に動作しています。' };
       },
-      explanation: `この課題では、複数のLANセグメントを持つネットワークの構築を学習しました。`,
-      difficulty: 'hard',
-      points: 150,
-      tags: ['ネットワーク構築', 'DHCP設定', 'LAN設計', '複数セグメント']
+      explanation: `**解答解説**
+
+このトラブルシューティング課題では、ネットワーク接続問題の特定と解決方法を学習しました。
+
+**発生しやすい問題:**
+1. **IPアドレスの重複**: 同じネットワーク内で同じIPアドレスが複数のデバイスに設定されている
+2. **不適切なIPアドレス範囲**: 異なるセグメントのIPアドレスが混在している
+3. **サブネットマスクの設定ミス**: 通信に必要な適切なサブネットマスクが設定されていない
+4. **物理接続の問題**: デバイス間の接続が正しく行われていない
+
+**解決手順:**
+1. **ネットワーク図の確認**: 論理的な接続関係を把握
+2. **IPアドレステーブルの作成**: 各デバイスの設定を一覧化
+3. **重複・矛盾の特定**: IPアドレスやサブネット設定の問題を発見
+4. **設定の修正**: 問題箇所を適切な値に変更
+5. **疎通テスト**: Pingコマンドで接続を確認
+
+**学習ポイント:**
+- **体系的アプローチ**: 問題を順序立てて解決する方法
+- **ネットワーク設計原則**: 一貫性のある設定の重要性
+- **トラブルシューティングスキル**: 実際の現場で役立つ問題解決能力
+- **設定検証**: 変更後の動作確認の重要性
+
+**実際の現場では:**
+- ネットワーク構築後の動作確認
+- 既存ネットワークへの新機器追加時のトラブル
+- システム移行時の接続問題解決
+- 定期的なネットワーク健全性チェック`,
+      difficulty: 'medium',
+      points: 100,
+      tags: ['トラブルシューティング', 'IPアドレス設定', 'Ping疎通', 'ネットワーク設計']
     }]
   };
 }
-
-// Copy all the same classes and functions from network-construction.astro
-// (NetworkQuizSession class, parseMarkdown function, etc.)
-// Just change the loadNetworkQuestions function above
 
 function parseMarkdown(text) {
   if (!text) return '';
@@ -408,11 +431,11 @@ class NetworkQuizSession {
         <div class="card" style="padding: 3rem;">
           <div style="margin-bottom: 2rem;">
             <div style="font-size: 3rem; margin-bottom: 1rem;">
-              ${this.questionSet?.icon || '🌐'}
+              ${this.questionSet?.icon || '🔧'}
             </div>
             <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.2; hyphens: auto; word-break: break-word;">
               <span style="display: inline-block; max-width: 100%; font-size: clamp(1.25rem, 4vw, 1.75rem);">
-                ${this.questionSet?.title || 'ネットワーク構築課題③'}
+                ${this.questionSet?.title || 'ネットワーク構築課題②'}
               </span>
             </h2>
             <p style="color: var(--text-secondary); margin-bottom: 2rem;">
@@ -437,10 +460,10 @@ class NetworkQuizSession {
           <div style="border-top: 1px solid var(--border); padding-top: 2rem;">
             ${savedName && savedName.trim() ? `
               <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
-                🎯 ネットワーク構築課題③開始！
+                🎯 ネットワーク構築課題②開始！
               </h3>
               <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem;">
-                ${savedName}さん、課題③を開始しますか？
+                ${savedName}さん、課題②を開始しますか？
               </p>
 
               <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
@@ -983,7 +1006,7 @@ class NetworkQuizSession {
           課題データの読み込みに失敗しました
         </h3>
         <p class="text-gray-500 mb-4">
-          ネットワーク構築課題③が見つかりませんでした。
+          ネットワーク構築課題②が見つかりませんでした。
         </p>
         <button
           onclick="window.location.href='/quiz'"
@@ -1000,7 +1023,7 @@ class NetworkQuizSession {
       case 'easy': return '初級';
       case 'medium': return '中級';
       case 'hard': return '上級';
-      default: return '上級';
+      default: return '中級';
     }
   }
 
@@ -1072,7 +1095,7 @@ class NetworkQuizSession {
     // Course title
     ctx.font = 'bold 28px sans-serif';
     ctx.fillStyle = '#047857';
-    ctx.fillText(`「${this.questionSet?.title || 'ネットワーク構築課題③'}」`, width / 2, 370);
+    ctx.fillText(`「${this.questionSet?.title || 'ネットワーク構築課題②'}」`, width / 2, 370);
     // Date
     const now = new Date();
     const dateStr = now.toLocaleDateString('ja-JP', {
@@ -1127,7 +1150,7 @@ class NetworkQuizSession {
     if (!canvas) return;
     // Create download link
     const link = document.createElement('a');
-    link.download = `修了証_${this.questionSet?.title || 'ネットワーク構築課題③'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
+    link.download = `修了証_${this.questionSet?.title || 'ネットワーク構築課題②'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
     link.href = canvas.toDataURL('image/png');
     // Trigger download
     document.body.appendChild(link);
@@ -1390,43 +1413,43 @@ function processFile(file) {
 let networkQuizSession;
 
 function downloadTemplateJSON() {
-  // Template JSON for network construction exercise 3
+  // Template JSON for network troubleshooting exercise 2 (with intentional issues to fix)
   const templateData = {
     version: "1.0",
     timestamp: new Date().toISOString(),
     devices: [
       {
-        id: "router-1758565803089",
-        type: "router",
-        name: "ルーター-1",
-        x: 406.5,
-        y: 217,
+        id: "pc-1758565801047",
+        type: "pc",
+        name: "PC-1",
+        x: 129.5,
+        y: 157.5,
         width: 80,
-        height: 75,
+        height: 70,
         config: {
-          ipAddress: "192.168.1.1",
+          ipAddress: "192.168.1.100",
           subnetMask: "255.255.255.0",
           defaultGateway: "192.168.1.1",
           dhcpEnabled: false,
           lan1: {
-            ipAddress: "192.168.1.1",
-            dhcpEnabled: true,
+            ipAddress: "192.168.1.100",
+            dhcpEnabled: false,
             dhcpPoolStart: "192.168.1.100",
             dhcpPoolEnd: "192.168.1.199",
             dhcpAllocatedIPs: []
           },
           lan2: {
             ipAddress: "192.168.2.1",
-            dhcpEnabled: true,
-            dhcpPoolStart: "192.168.2.100",
-            dhcpPoolEnd: "192.168.2.199",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
             dhcpAllocatedIPs: []
           },
           lan3: {
             ipAddress: "192.168.3.1",
             dhcpEnabled: false,
-            dhcpPoolStart: "192.168.3.100",
-            dhcpPoolEnd: "192.168.3.199",
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
             dhcpAllocatedIPs: []
           },
           dhcpLeaseTime: 3600,
@@ -1436,42 +1459,123 @@ function downloadTemplateJSON() {
           internetDevice: null,
           dhcp: {}
         },
-        wanConfig: {
-          dhcpEnabled: false,
-          ipAddress: "",
+        dnsTable: {},
+        ports: {
+          nics: [
+            {
+              id: "eth",
+              x: 1,
+              y: 0.7672811059907835,
+              side: "right",
+              connectedId: "conn_1758581993686"
+            }
+          ]
+        }
+      },
+      {
+        id: "pc-1758565801774",
+        type: "pc",
+        name: "PC-2",
+        x: 122.5,
+        y: 288,
+        width: 80,
+        height: 70,
+        config: {
+          ipAddress: "192.168.1.101",
           subnetMask: "255.255.255.0",
-          defaultGateway: "",
-          dnsServers: ["8.8.8.8", "8.8.4.4"],
-          isConnected: false,
-          internetDevice: null
+          defaultGateway: "192.168.1.1",
+          dhcpEnabled: false,
+          lan1: {
+            ipAddress: "192.168.1.101",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          lan2: {
+            ipAddress: "192.168.2.1",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          lan3: {
+            ipAddress: "192.168.3.1",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          dhcpLeaseTime: 3600,
+          dhcpServerEnabled: false,
+          dhcpPoolStart: "192.168.1.100",
+          dhcpPoolEnd: "192.168.1.199",
+          internetDevice: null,
+          dhcp: {}
         },
         dnsTable: {},
         ports: {
           nics: [
             {
-              id: "wan",
+              id: "eth",
+              x: 1,
+              y: 0.24285714285714285,
+              side: "right",
+              connectedId: "conn_1758581995711"
+            }
+          ]
+        }
+      },
+      {
+        id: "pc-1758565819395",
+        type: "pc",
+        name: "PC-3",
+        x: 385,
+        y: 230,
+        width: 80,
+        height: 70,
+        config: {
+          ipAddress: "192.168.2.102", // Issue: Wrong subnet (should be 192.168.1.x)
+          subnetMask: "255.255.255.0",
+          defaultGateway: "192.168.1.1",
+          dhcpEnabled: false,
+          lan1: {
+            ipAddress: "192.168.2.102",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          lan2: {
+            ipAddress: "192.168.2.1",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          lan3: {
+            ipAddress: "192.168.3.1",
+            dhcpEnabled: false,
+            dhcpPoolStart: "192.168.1.100",
+            dhcpPoolEnd: "192.168.1.199",
+            dhcpAllocatedIPs: []
+          },
+          dhcpLeaseTime: 3600,
+          dhcpServerEnabled: false,
+          dhcpPoolStart: "192.168.1.100",
+          dhcpPoolEnd: "192.168.1.199",
+          internetDevice: null,
+          dhcp: {}
+        },
+        dnsTable: {},
+        ports: {
+          nics: [
+            {
+              id: "eth",
               x: 0,
-              y: 0.5605128205128206,
+              y: 0.5900432900432901,
               side: "left",
-              connectedId: null
-            },
-            {
-              id: "lan1",
-              x: 0,
-              y: 0.7,
-              connectedId: null
-            },
-            {
-              id: "lan2",
-              x: 1,
-              y: 0.3,
-              connectedId: null
-            },
-            {
-              id: "lan3",
-              x: 1,
-              y: 0.7,
-              connectedId: null
+              connectedId: "conn_1758581998261"
             }
           ]
         }
@@ -1524,7 +1628,7 @@ function downloadTemplateJSON() {
               id: "port1",
               x: 0,
               y: 0.15,
-              connectedId: null
+              connectedId: "conn_1758581993686"
             },
             {
               id: "port2",
@@ -1542,7 +1646,7 @@ function downloadTemplateJSON() {
               id: "port4",
               x: 0,
               y: 0.75,
-              connectedId: null
+              connectedId: "conn_1758581995711"
             },
             {
               id: "port5",
@@ -1566,322 +1670,47 @@ function downloadTemplateJSON() {
               id: "port8",
               x: 1,
               y: 0.75,
-              connectedId: null
-            }
-          ]
-        }
-      },
-      {
-        id: "switch-1758565810035",
-        type: "switch",
-        name: "スイッチ-2",
-        x: 543,
-        y: 223.5,
-        width: 80,
-        height: 70,
-        config: {
-          ipAddress: "192.168.2.10",
-          subnetMask: "255.255.255.0",
-          defaultGateway: "192.168.2.1",
-          dhcpEnabled: false,
-          lan1: {
-            ipAddress: "192.168.2.10",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan2: {
-            ipAddress: "192.168.2.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan3: {
-            ipAddress: "192.168.3.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          dhcpLeaseTime: 3600,
-          dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
-        },
-        dnsTable: {},
-        ports: {
-          nics: [
-            {
-              id: "port1",
-              x: 0,
-              y: 0.15,
-              connectedId: null
-            },
-            {
-              id: "port2",
-              x: 0,
-              y: 0.35,
-              connectedId: null
-            },
-            {
-              id: "port3",
-              x: 0,
-              y: 0.55,
-              connectedId: null
-            },
-            {
-              id: "port4",
-              x: 0,
-              y: 0.75,
-              connectedId: null
-            },
-            {
-              id: "port5",
-              x: 1,
-              y: 0.15,
-              connectedId: null
-            },
-            {
-              id: "port6",
-              x: 1,
-              y: 0.35,
-              connectedId: null
-            },
-            {
-              id: "port7",
-              x: 1,
-              y: 0.55,
-              connectedId: null
-            },
-            {
-              id: "port8",
-              x: 1,
-              y: 0.75,
-              connectedId: null
-            }
-          ]
-        }
-      },
-      {
-        id: "pc-1758565801047",
-        type: "pc",
-        name: "PC-1",
-        x: 129.5,
-        y: 300,
-        width: 80,
-        height: 70,
-        config: {
-          ipAddress: "0.0.0.0",
-          subnetMask: "255.255.255.0",
-          defaultGateway: "192.168.1.1",
-          dhcpEnabled: true,
-          lan1: {
-            ipAddress: "0.0.0.0",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan2: {
-            ipAddress: "192.168.2.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan3: {
-            ipAddress: "192.168.3.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          dhcpLeaseTime: 3600,
-          dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
-        },
-        dnsTable: {},
-        ports: {
-          nics: [
-            {
-              id: "eth",
-              x: 1,
-              y: 0.5,
-              side: "right",
-              connectedId: null
-            }
-          ]
-        }
-      },
-      {
-        id: "pc-1758565801774",
-        type: "pc",
-        name: "PC-2",
-        x: 122.5,
-        y: 400,
-        width: 80,
-        height: 70,
-        config: {
-          ipAddress: "0.0.0.0",
-          subnetMask: "255.255.255.0",
-          defaultGateway: "192.168.1.1",
-          dhcpEnabled: true,
-          lan1: {
-            ipAddress: "0.0.0.0",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan2: {
-            ipAddress: "192.168.2.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan3: {
-            ipAddress: "192.168.3.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          dhcpLeaseTime: 3600,
-          dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
-        },
-        dnsTable: {},
-        ports: {
-          nics: [
-            {
-              id: "eth",
-              x: 1,
-              y: 0.5,
-              side: "right",
-              connectedId: null
-            }
-          ]
-        }
-      },
-      {
-        id: "pc-1758565819395",
-        type: "pc",
-        name: "PC-3",
-        x: 660,
-        y: 300,
-        width: 80,
-        height: 70,
-        config: {
-          ipAddress: "0.0.0.0",
-          subnetMask: "255.255.255.0",
-          defaultGateway: "192.168.2.1",
-          dhcpEnabled: true,
-          lan1: {
-            ipAddress: "0.0.0.0",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan2: {
-            ipAddress: "192.168.2.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan3: {
-            ipAddress: "192.168.3.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          dhcpLeaseTime: 3600,
-          dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
-        },
-        dnsTable: {},
-        ports: {
-          nics: [
-            {
-              id: "eth",
-              x: 1,
-              y: 0.5,
-              connectedId: null
-            }
-          ]
-        }
-      },
-      {
-        id: "pc-1758565821136",
-        type: "pc",
-        name: "PC-4",
-        x: 697,
-        y: 400,
-        width: 80,
-        height: 70,
-        config: {
-          ipAddress: "0.0.0.0",
-          subnetMask: "255.255.255.0",
-          defaultGateway: "192.168.2.1",
-          dhcpEnabled: true,
-          lan1: {
-            ipAddress: "0.0.0.0",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan2: {
-            ipAddress: "192.168.2.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          lan3: {
-            ipAddress: "192.168.3.1",
-            dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
-          },
-          dhcpLeaseTime: 3600,
-          dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
-        },
-        dnsTable: {},
-        ports: {
-          nics: [
-            {
-              id: "eth",
-              x: 1,
-              y: 0.5,
-              connectedId: null
+              connectedId: "conn_1758581998261"
             }
           ]
         }
       }
     ],
-    connections: []
+    connections: [
+      {
+        id: "conn_1758581993686",
+        from: {
+          deviceId: "pc-1758565801047",
+          portId: "eth"
+        },
+        to: {
+          deviceId: "switch-1758565804467",
+          portId: "port1"
+        }
+      },
+      {
+        id: "conn_1758581995711",
+        from: {
+          deviceId: "pc-1758565801774",
+          portId: "eth"
+        },
+        to: {
+          deviceId: "switch-1758565804467",
+          portId: "port4"
+        }
+      },
+      {
+        id: "conn_1758581998261",
+        from: {
+          deviceId: "pc-1758565819395",
+          portId: "eth"
+        },
+        to: {
+          deviceId: "switch-1758565804467",
+          portId: "port8"
+        }
+      }
+    ]
   };
 
   // Create and download the JSON file
@@ -1891,7 +1720,7 @@ function downloadTemplateJSON() {
 
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'network-construction-3-template.json';
+  link.download = 'network-troubleshooting-template.json';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

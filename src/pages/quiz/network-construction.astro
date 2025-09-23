@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="ネットワーク構築課題 - じょうほうらいふ">
+<Layout title="ネットワーク構築課題① - じょうほうらいふ">
   <div class="container mx-auto px-4 py-8">
     <div id="network-quiz-app" class="max-w-4xl mx-auto">
       <div class="flex items-center justify-center py-12">
@@ -17,182 +17,185 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
 async function loadNetworkQuestions() {
-  try {
-    const response = await fetch('/questions/network-construction/questions.yaml');
-    if (!response.ok) {
-      throw new Error(`Failed to load question set: ${response.status}`);
-    }
-    
-    const yamlContent = await response.text();
-    console.log('Loaded YAML for network-construction:', yamlContent.substring(0, 200));
-    
-    // YAML parsing with proper indentation handling
-    const lines = yamlContent.split('\n');
-    const questionSet = {
-      id: 'network-construction',
-      title: '',
-      description: '',
-      icon: '🌐',
+  return {
+    id: 'network-construction',
+    title: 'ネットワーク構築課題①',
+    description: 'ネットワーク構築シミュレータで作成したネットワークをJSONファイルでアップロードして、課題条件を満たしているかを判定します',
+    icon: '🌐',
+    difficulty: 'medium',
+    estimatedTime: 20,
+    category: 'ネットワーク',
+    tags: ['ネットワーク', 'IP設定', '接続構成', 'シミュレータ'],
+    questions: [{
+      id: 'basic-pc-connection',
+      type: 'file-analysis',
+      title: '基本的なPC間接続',
+      description: `**課題内容**
+
+以下の条件でネットワークを構築し、JSONファイルをアップロードしてください：
+
+**構成要件**
+- PC-1とPC-2を直接LANケーブルで接続
+- PC-1のIPアドレス: 192.168.0.2
+- PC-2のIPアドレス: 192.168.0.3
+- 両PCのサブネットマスク: 255.255.255.0
+- 両PCのデフォルトゲートウェイ: 192.168.0.1
+- PC間でPing疎通が可能であること
+
+**判定条件**
+- 2台のPCが存在する
+- PC間がLANケーブルで接続されている
+- IPアドレスが指定通りに設定されている
+- サブネットマスクとデフォルトゲートウェイが正しく設定されている`,
+      validation: function validateNetwork(networkData) {
+        const { devices, connections } = networkData;
+
+        const pcs = devices.filter(d => d.type === 'pc');
+        if (pcs.length !== 2) {
+          return { valid: false, message: 'PC数が2台ではありません' };
+        }
+
+        if (connections.length !== 1) {
+          return { valid: false, message: 'PC間の接続が正しくありません' };
+        }
+
+        const targetIPs = ['192.168.0.2', '192.168.0.3'];
+        const actualIPs = pcs.map(pc => pc.config.ipAddress).sort();
+        targetIPs.sort();
+
+        if (!targetIPs.every((ip, i) => ip === actualIPs[i])) {
+          return { valid: false, message: 'IPアドレスが指定通りに設定されていません' };
+        }
+
+        for (const pc of pcs) {
+          if (pc.config.subnetMask !== '255.255.255.0') {
+            return { valid: false, message: 'サブネットマスクが正しく設定されていません' };
+          }
+          if (pc.config.defaultGateway !== '192.168.0.1') {
+            return { valid: false, message: 'デフォルトゲートウェイが正しく設定されていません' };
+          }
+        }
+
+        return { valid: true, message: '全ての条件を満たしています！' };
+      },
+      explanation: `この課題では、最も基本的なネットワーク構成である2台のPCの直接接続を学習しました。
+
+**ポイント**
+- **IPアドレス設定**: 同じネットワークセグメント（192.168.0.0/24）内でユニークなIPアドレスを設定
+- **サブネットマスク**: ネットワーク部とホスト部を分ける設定（255.255.255.0）
+- **デフォルトゲートウェイ**: 他のネットワークへの出口となるルータのIPアドレス
+- **物理接続**: LANケーブルによるPC間の直接接続
+
+このような基本構成を理解することで、より複雑なネットワーク設計の基礎となります。`,
+      difficulty: 'easy',
+      points: 10,
+      tags: ['基本構成', 'PC接続', 'IP設定']
+    }, {
+      id: 'router-network',
+      type: 'file-analysis',
+      title: 'スイッチを使った3台PC接続とPing疎通',
+      description: `**課題内容**
+
+以下の条件でネットワークを構築し、JSONファイルをアップロードしてください：
+
+**構成要件**
+- スイッチ1台とPC3台を使用
+- PC-1、PC-2、PC-3をすべてスイッチに接続
+- PC-1のIPアドレス: 192.168.1.10
+- PC-2のIPアドレス: 192.168.1.20
+- PC-3のIPアドレス: 192.168.1.30
+- 全PCのサブネットマスク: 255.255.255.0
+- 全PC間でPing疎通が確認できること
+
+**判定条件**
+- 1台のスイッチと3台のPCが存在する
+- 全てのPCがスイッチに接続されている
+- IPアドレスが指定通りに設定されている
+- 全PCが同一ネットワークセグメントに属している
+- PC間でPing疎通が確認できる`,
+      validation: function validateNetwork(networkData) {
+        const { devices, connections } = networkData;
+
+        const switches = devices.filter(d => d.type === 'switch');
+        const pcs = devices.filter(d => d.type === 'pc');
+
+        if (switches.length !== 1) {
+          return { valid: false, message: 'スイッチが1台ではありません' };
+        }
+        if (pcs.length !== 3) {
+          return { valid: false, message: 'PC数が3台ではありません' };
+        }
+
+        if (connections.length !== 3) {
+          return { valid: false, message: 'PC-スイッチ間の接続が正しくありません' };
+        }
+
+        const switchId = switches[0].id;
+        const pcConnections = connections.filter(conn =>
+          conn.from.deviceId === switchId || conn.to.deviceId === switchId
+        );
+
+        if (pcConnections.length !== 3) {
+          return { valid: false, message: '全てのPCがスイッチに接続されていません' };
+        }
+
+        const targetIPs = ['192.168.1.10', '192.168.1.20', '192.168.1.30'];
+        const actualIPs = pcs.map(pc => pc.config.ipAddress).sort();
+        targetIPs.sort();
+
+        if (!targetIPs.every((ip, i) => ip === actualIPs[i])) {
+          return { valid: false, message: 'PCのIPアドレスが指定通りに設定されていません' };
+        }
+
+        for (const pc of pcs) {
+          if (pc.config.subnetMask !== '255.255.255.0') {
+            return { valid: false, message: 'サブネットマスクが正しく設定されていません' };
+          }
+        }
+
+        const ipAddresses = pcs.map(pc => pc.config.ipAddress);
+        for (let i = 0; i < ipAddresses.length; i++) {
+          for (let j = i + 1; j < ipAddresses.length; j++) {
+            const ip1 = ipAddresses[i];
+            const ip2 = ipAddresses[j];
+
+            const subnet1 = ip1.split('.').slice(0, 3).join('.');
+            const subnet2 = ip2.split('.').slice(0, 3).join('.');
+
+            if (subnet1 !== '192.168.1' || subnet2 !== '192.168.1') {
+              return { valid: false, message: '全PCが同一セグメント（192.168.1.0/24）に属していません' };
+            }
+          }
+        }
+
+        return { valid: true, message: '全ての条件を満たしています！スイッチ経由で3台のPCが同一セグメントで接続され、Ping疎通が可能です。' };
+      },
+      explanation: `この課題では、スイッチを中心とした基本的なLAN構成を学習しました。
+
+**ポイント**
+- **スイッチの役割**: レイヤー2で動作し、MACアドレスを学習してフレームを転送
+- **スター型トポロジ**: スイッチを中心とした接続形態で、コリジョンドメインを分離
+- **同一セグメント通信**: 全PCが同じネットワークセグメントでPing疎通が可能
+- **IPアドレス管理**: 同一セグメント内でのユニークなIPアドレス割り当て
+- **ブロードキャストドメイン**: スイッチ配下の全ポートが同一ブロードキャストドメイン
+
+この構成は、小規模なLANセグメントの基本形で、スイッチの動作原理を理解できます。`,
       difficulty: 'medium',
-      estimatedTime: 20,
-      questions: [],
-      tags: [],
-      category: 'ネットワーク'
-    };
-    
-    let currentQuestion = null;
-    let inQuestions = false;
-    let inTags = false;
-    let currentValidationFunction = '';
-    let parsingValidation = false;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const trimmed = line.trim();
-      const indent = line.length - line.trimStart().length;
-      
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      
-      // Root level properties
-      if (indent === 0 && trimmed.includes(':')) {
-        const [key, value] = trimmed.split(':').map(s => s.trim());
-        if (key === 'title') {
-          questionSet.title = value.replace(/['"]/g, '');
-        } else if (key === 'description') {
-          questionSet.description = value.replace(/['"]/g, '');
-        } else if (key === 'icon') {
-          questionSet.icon = value.replace(/['"]/g, '');
-        } else if (key === 'difficulty') {
-          questionSet.difficulty = value.replace(/['"]/g, '');
-        } else if (key === 'estimatedTime') {
-          questionSet.estimatedTime = parseInt(value) || 20;
-        } else if (key === 'category') {
-          questionSet.category = value.replace(/['"]/g, '');
-        } else if (key === 'questions') {
-          inQuestions = true;
-          inTags = false;
-        } else if (key === 'tags') {
-          inTags = true;
-          inQuestions = false;
-        }
-      }
-      // Tags section
-      else if (inTags && indent === 2 && trimmed.startsWith('- ')) {
-        questionSet.tags.push(trimmed.substring(2).trim().replace(/['"]/g, ''));
-      }
-      // Questions section
-      else if (inQuestions && indent === 2 && trimmed.startsWith('- id:')) {
-        currentQuestion = {
-          id: trimmed.substring(5).trim().replace(/['"]/g, ''),
-          type: 'file-upload',
-          title: '',
-          description: '',
-          validation: '',
-          explanation: '',
-          difficulty: 'medium',
-          tags: [],
-          points: 10
-        };
-        questionSet.questions.push(currentQuestion);
-        currentValidationFunction = '';
-        parsingValidation = false;
-      }
-      // Question properties
-      else if (currentQuestion && indent === 4 && trimmed.includes(':')) {
-        const [key, value] = trimmed.split(':').map(s => s.trim());
-        if (key === 'type') {
-          currentQuestion.type = value.replace(/['"]/g, '');
-        } else if (key === 'title') {
-          currentQuestion.title = value.replace(/['"]/g, '');
-        } else if (key === 'description') {
-          // Multi-line description handling
-          if (value === '|') {
-            let descriptionLines = [];
-            for (let j = i + 1; j < lines.length; j++) {
-              const descLine = lines[j];
-              if (descLine.trim() === '' || (descLine.length - descLine.trimStart().length) >= 6) {
-                descriptionLines.push(descLine.substring(6)); // Remove 6 spaces indent
-              } else {
-                i = j - 1; // Adjust loop counter
-                break;
-              }
-            }
-            currentQuestion.description = descriptionLines.join('\n');
-          } else {
-            currentQuestion.description = value.replace(/['"]/g, '');
-          }
-        } else if (key === 'validation') {
-          // Multi-line validation function handling
-          if (value === '|') {
-            parsingValidation = true;
-            currentValidationFunction = '';
-          } else {
-            currentQuestion.validation = value.replace(/['"]/g, '');
-          }
-        } else if (key === 'explanation') {
-          // Multi-line explanation handling
-          if (value === '|') {
-            let explanationLines = [];
-            for (let j = i + 1; j < lines.length; j++) {
-              const explLine = lines[j];
-              if (explLine.trim() === '' || (explLine.length - explLine.trimStart().length) >= 6) {
-                explanationLines.push(explLine.substring(6)); // Remove 6 spaces indent
-              } else {
-                i = j - 1; // Adjust loop counter
-                break;
-              }
-            }
-            currentQuestion.explanation = explanationLines.join('\n');
-          } else {
-            currentQuestion.explanation = value.replace(/['"]/g, '');
-          }
-        } else if (key === 'difficulty') {
-          currentQuestion.difficulty = value.replace(/['"]/g, '');
-        } else if (key === 'points') {
-          currentQuestion.points = parseInt(value) || 10;
-        }
-      }
-      // Multi-line validation function content
-      else if (parsingValidation && indent >= 6) {
-        currentValidationFunction += line.substring(6) + '\n';
-        // Check if we've reached the end of validation function
-        if (i + 1 < lines.length) {
-          const nextLine = lines[i + 1];
-          if (nextLine.trim() !== '' && (nextLine.length - nextLine.trimStart().length) < 6) {
-            currentQuestion.validation = currentValidationFunction.trim();
-            parsingValidation = false;
-            currentValidationFunction = '';
-          }
-        } else {
-          // End of file
-          currentQuestion.validation = currentValidationFunction.trim();
-        }
-      }
-    }
-    
-    console.log('Parsed network question set:', questionSet);
-    return questionSet;
-  } catch (error) {
-    console.error('Error loading network question set:', error);
-    return null;
-  }
+      points: 15,
+      tags: ['スイッチ構成', '同一セグメント', 'Ping疎通', 'LAN設計', 'スター型']
+    }]
+  };
 }
 
 function parseMarkdown(text) {
   if (!text) return '';
-  
+
   return text
-    // 太字: **text** -> <strong>text</strong>
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // 斜体: *text* -> <em>text</em>
     .replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
-    // コード: `code` -> <code>code</code>
     .replace(/`([^`]+)`/g, '<code style="background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: monospace;">$1</code>')
-    // 改行: <br> -> <br>
     .replace(/<br>/g, '<br>')
-    // 改行: \n -> <br> (必要に応じて)
     .replace(/\n/g, '<br>')
-    // リンク: [text](url) -> <a href="url">text</a>
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: underline;">$1</a>');
 }
 
@@ -207,10 +210,10 @@ class NetworkQuizSession {
     this.showingNameInput = true;
     this.showingCertificate = false;
     this.isCompleted = false;
+    this.currentUploadedFile = null;
 
-    // なりすまし防止のためのIPアドレス取得を開始
     this.cachedIpAddress = null;
-    this.sessionId = null; // セッションIDを初期化
+    this.sessionId = null;
     this.tryGetIPAddress();
 
     this.init();
@@ -222,7 +225,7 @@ class NetworkQuizSession {
       if (!this.questionSet) {
         throw new Error('Question set not found');
       }
-      
+
       this.questions = this.questionSet.questions;
       this.render();
     } catch (error) {
@@ -267,12 +270,12 @@ class NetworkQuizSession {
               </span>
             </div>
             <div style="width: 100%; background: var(--border); border-radius: var(--radius-md); height: 8px;">
-              <div 
+              <div
                 style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 8px; border-radius: var(--radius-md); transition: all 0.3s ease; width: ${((this.currentQuestionIndex + 1) / this.questions.length) * 100}%;"
               ></div>
             </div>
           </div>
-          
+
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
             <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
               <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${completedQuestions}</div>
@@ -322,14 +325,14 @@ class NetworkQuizSession {
             <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
               ${parseMarkdown(currentQuestion.title)}
             </h3>
-            
+
             <div style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
               ${parseMarkdown(currentQuestion.description)}
             </div>
 
             <!-- File Upload Area -->
             <div style="margin-bottom: 2rem;">
-              <div 
+              <div
                 id="file-drop-zone"
                 style="
                   border: 2px dashed var(--border);
@@ -355,15 +358,15 @@ class NetworkQuizSession {
                 <p style="color: var(--text-muted); font-size: 0.875rem;">
                   ネットワークシミュレータからエクスポートしたJSONファイルをアップロードしてください
                 </p>
-                <input 
-                  type="file" 
-                  id="file-input" 
+                <input
+                  type="file"
+                  id="file-input"
                   accept=".json"
                   style="display: none;"
                   onchange="handleFileSelect(event)"
                 />
               </div>
-              
+
               <!-- File Info Display -->
               <div id="file-info" style="display: none; margin-top: 1rem; padding: 1rem; background: #f0fdf4; border: 1px solid #22c55e; border-radius: var(--radius-md);">
                 <div style="display: flex; align-items: center; gap: 0.5rem; color: #065f46;">
@@ -394,25 +397,24 @@ class NetworkQuizSession {
         </div>
       </div>
     `;
-    
-    // Add event listeners after DOM is updated
+
     setTimeout(() => {
       const dropZone = document.getElementById('file-drop-zone');
       const fileInput = document.getElementById('file-input');
       const submitButton = document.getElementById('submit-button');
-      
+
       if (dropZone) {
         dropZone.addEventListener('click', () => {
           fileInput.click();
         });
       }
-      
+
       if (submitButton && this.currentUploadedFile) {
         submitButton.disabled = false;
         submitButton.className = 'btn btn-primary';
         submitButton.style.opacity = '1';
         submitButton.style.cursor = 'pointer';
-        
+
         submitButton.addEventListener('click', () => this.evaluateNetwork());
       }
     }, 0);
@@ -422,9 +424,8 @@ class NetworkQuizSession {
     const container = document.getElementById('network-quiz-app');
     if (!container) return;
 
-    // ローカルストレージから保存された名前を取得
     const savedName = localStorage.getItem('quizStudentName');
-    
+
     container.innerHTML = `
       <div style="max-width: 600px; margin: 0 auto; text-align: center;">
         <div class="card" style="padding: 3rem;">
@@ -434,7 +435,7 @@ class NetworkQuizSession {
             </div>
             <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.2; hyphens: auto; word-break: break-word;">
               <span style="display: inline-block; max-width: 100%; font-size: clamp(1.25rem, 4vw, 1.75rem);">
-                ${this.questionSet?.title || 'ネットワーク構築課題'}
+                ${this.questionSet?.title || 'ネットワーク構築課題①'}
               </span>
             </h2>
             <p style="color: var(--text-secondary); margin-bottom: 2rem;">
@@ -458,14 +459,13 @@ class NetworkQuizSession {
 
           <div style="border-top: 1px solid var(--border); padding-top: 2rem;">
             ${savedName && savedName.trim() ? `
-              <!-- 名前確認画面 -->
               <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
-                🎯 ネットワーク構築課題開始！
+                🎯 ネットワーク構築課題①開始！
               </h3>
               <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem;">
-                ${savedName}さん、課題を開始しますか？
+                ${savedName}さん、課題①を開始しますか？
               </p>
-              
+
               <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
                 <button
                   id="start-quiz-button"
@@ -474,7 +474,7 @@ class NetworkQuizSession {
                 >
                   はい、開始する
                 </button>
-                
+
                 <button
                   id="change-name-button"
                   class="btn btn-secondary"
@@ -482,7 +482,7 @@ class NetworkQuizSession {
                 >
                   別の名前で開始
                 </button>
-                
+
                 <button
                   onclick="window.location.href='/quiz'"
                   class="btn btn-secondary"
@@ -492,7 +492,6 @@ class NetworkQuizSession {
                 </button>
               </div>
             ` : `
-              <!-- 名前入力画面 -->
               <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">
                 お名前を入力してください
               </h3>
@@ -500,18 +499,18 @@ class NetworkQuizSession {
                 100%の合格率で全課題をクリアすると、修了証が発行されます<br>
                 ※入力された氏名は、修了証発行にのみ使用されます。
               </p>
-              
+
               <div style="margin-bottom: 2rem;">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   id="user-name-input"
                   placeholder="山田太郎"
                   style="
-                    width: 100%; 
+                    width: 100%;
                     max-width: 300px;
-                    padding: 0.75rem 1rem; 
-                    border: 2px solid var(--border); 
-                    border-radius: var(--radius-md); 
+                    padding: 0.75rem 1rem;
+                    border: 2px solid var(--border);
+                    border-radius: var(--radius-md);
                     font-size: 1rem;
                     text-align: center;
                     transition: border-color 0.2s ease;
@@ -529,7 +528,7 @@ class NetworkQuizSession {
                 >
                   課題を開始
                 </button>
-                
+
                 <button
                   onclick="window.location.href='/quiz'"
                   class="btn btn-secondary"
@@ -544,46 +543,41 @@ class NetworkQuizSession {
       </div>
     `;
 
-    // Add event listeners
     setTimeout(() => {
       const nameInput = document.getElementById('user-name-input');
       const startButton = document.getElementById('start-quiz-button');
       const changeNameButton = document.getElementById('change-name-button');
-      
-      // 保存された名前がある場合の処理
+
       const savedName = localStorage.getItem('quizStudentName');
       if (savedName && savedName.trim()) {
-        // 名前が保存されている場合は直接開始可能
         if (startButton) {
           startButton.addEventListener('click', () => {
             this.userName = savedName;
             this.startQuiz();
           });
         }
-        
-        // 名前変更ボタンの処理
+
         if (changeNameButton) {
           changeNameButton.addEventListener('click', () => {
             localStorage.removeItem('quizStudentName');
-            this.renderNameInput(); // 画面を再描画
+            this.renderNameInput();
           });
         }
       } else {
-        // 名前入力が必要な場合の処理
         if (nameInput && startButton) {
           const validateInput = () => {
             const name = nameInput.value.trim();
             startButton.disabled = name.length === 0;
             startButton.style.opacity = name.length === 0 ? '0.5' : '1';
           };
-          
+
           nameInput.addEventListener('input', validateInput);
           nameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && nameInput.value.trim()) {
               this.startQuiz();
             }
           });
-          
+
           startButton.addEventListener('click', () => this.startQuiz());
           nameInput.focus();
         }
@@ -592,27 +586,199 @@ class NetworkQuizSession {
   }
 
   startQuiz() {
-    // 名前が既に設定されている場合（保存された名前を使用）
     if (this.userName && this.userName.trim()) {
       this.showingNameInput = false;
-      this.startTime = new Date(); // Reset start time
+      this.startTime = new Date();
       this.render();
       return;
     }
-    
-    // 名前入力フィールドから取得
+
     const nameInput = document.getElementById('user-name-input');
     if (nameInput) {
       this.userName = nameInput.value.trim();
       if (this.userName) {
-        // ローカルストレージに名前を保存
         localStorage.setItem('quizStudentName', this.userName);
         console.log('Name saved to localStorage:', this.userName);
-        
+
         this.showingNameInput = false;
-        this.startTime = new Date(); // Reset start time
+        this.startTime = new Date();
         this.render();
       }
+    }
+  }
+
+  async evaluateNetwork() {
+    if (!this.currentUploadedFile) return;
+
+    const currentQuestion = this.questions[this.currentQuestionIndex];
+    console.log('Evaluating network for question:', currentQuestion.id);
+
+    try {
+      const validationResult = currentQuestion.validation(this.currentUploadedFile);
+
+      console.log('Validation result:', validationResult);
+
+      this.results[currentQuestion.id] = {
+        isCorrect: validationResult.valid,
+        message: validationResult.message,
+        uploadedFile: this.currentUploadedFile
+      };
+
+      this.showValidationResult(validationResult);
+
+    } catch (error) {
+      console.error('Error evaluating network:', error);
+      const errorResult = {
+        valid: false,
+        message: 'ネットワーク構築の判定中にエラーが発生しました。JSONファイルの形式を確認してください。'
+      };
+
+      this.results[currentQuestion.id] = {
+        isCorrect: false,
+        message: errorResult.message,
+        uploadedFile: this.currentUploadedFile
+      };
+
+      this.showValidationResult(errorResult);
+    }
+  }
+
+  showValidationResult(result) {
+    const container = document.getElementById('network-quiz-app');
+    if (!container) return;
+
+    const currentQuestion = this.questions[this.currentQuestionIndex];
+    const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
+    const completedQuestions = Object.keys(this.results).length;
+    const correctAnswers = Object.values(this.results).filter(result => result.isCorrect).length;
+
+    container.innerHTML = `
+      <div class="space-y-6">
+        <!-- Progress Bar -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary);">進捗</span>
+              <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                ${this.currentQuestionIndex + 1} / ${this.questions.length}
+              </span>
+            </div>
+            <div style="width: 100%; background: var(--border); border-radius: var(--radius-md); height: 8px;">
+              <div
+                style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 8px; border-radius: var(--radius-md); transition: all 0.3s ease; width: ${((this.currentQuestionIndex + 1) / this.questions.length) * 100}%;"
+              ></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${completedQuestions}</div>
+              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">提出済み</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color);">${correctAnswers}</div>
+              <div style="font-size: 0.75rem; color: var(--secondary-color); font-weight: 500;">合格</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">
+                ${Math.round((correctAnswers / completedQuestions) * 100)}%
+              </div>
+              <div style="font-size: 0.75rem; color: var(--accent-color); font-weight: 500;">合格率</div>
+            </div>
+            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
+              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                ${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">経過時間</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card" style="overflow: hidden; margin-bottom: 2rem;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, ${result.valid ? '#10b981, #059669' : '#ef4444, #dc2626'}); padding: 2rem; color: white;">
+            <div style="text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">
+                ${result.valid ? '🎉' : '❌'}
+              </div>
+              <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+                ${result.valid ? '合格です！' : '不合格です'}
+              </h2>
+              <p style="opacity: 0.9;">
+                課題 ${this.currentQuestionIndex + 1}: ${parseMarkdown(currentQuestion.title)}
+              </p>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 2rem;">
+            <div style="margin-bottom: 2rem;">
+              <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">判定結果</h3>
+              <div style="
+                background: ${result.valid ? '#f0fdf4' : '#fef2f2'};
+                border: 1px solid ${result.valid ? '#22c55e' : '#ef4444'};
+                border-radius: var(--radius-md);
+                padding: 1.5rem;
+                color: ${result.valid ? '#065f46' : '#991b1b'};
+              ">
+                <p style="margin: 0; line-height: 1.6;">
+                  ${result.message}
+                </p>
+              </div>
+            </div>
+
+            <!-- Explanation -->
+            ${currentQuestion.explanation ? `
+              <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">解説</h3>
+                <div style="
+                  background: var(--surface);
+                  border-radius: var(--radius-md);
+                  padding: 1.5rem;
+                  border-left: 4px solid var(--primary-color);
+                ">
+                  <div style="color: var(--text-secondary); line-height: 1.6;">
+                    ${parseMarkdown(currentQuestion.explanation)}
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Navigation -->
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+              <button
+                id="continue-button"
+                class="btn btn-primary"
+                style="display: flex; align-items: center; padding: 0.75rem 2rem;"
+              >
+                ${this.currentQuestionIndex === this.questions.length - 1 ? '結果を見る' : '次の課題へ'}
+                <svg style="width: 20px; height: 20px; margin-left: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      const continueButton = document.getElementById('continue-button');
+      if (continueButton) {
+        continueButton.addEventListener('click', () => this.continueAfterResult());
+      }
+    }, 0);
+  }
+
+  continueAfterResult() {
+    if (this.currentQuestionIndex < this.questions.length - 1) {
+      this.currentQuestionIndex++;
+      this.currentUploadedFile = null;
+      this.render();
+    } else {
+      this.isCompleted = true;
+      this.render();
     }
   }
 
@@ -626,7 +792,6 @@ class NetworkQuizSession {
     const correctAnswers = Object.values(this.results).filter(result => result.isCorrect).length;
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
 
-    // 100%達成時は修了証画面に遷移
     if (percentage === 100) {
       this.showingCertificate = true;
       this.render();
@@ -644,16 +809,16 @@ class NetworkQuizSession {
           <div style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); padding: 2rem; color: white;">
             <div style="text-align: center;">
               <div style="
-                font-size: 3rem; 
-                font-weight: 700; 
-                margin-bottom: 0.5rem; 
-                background: rgba(255,255,255,0.2); 
-                border-radius: 50%; 
-                width: 96px; 
-                height: 96px; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center; 
+                font-size: 3rem;
+                font-weight: 700;
+                margin-bottom: 0.5rem;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+                width: 96px;
+                height: 96px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 margin: 0 auto 1rem auto;
               ">
                 <span style="color: white;">${this.getScoreGrade(percentage)}</span>
@@ -662,12 +827,12 @@ class NetworkQuizSession {
               <div style="opacity: 0.9;">${correctAnswers} / ${totalQuestions} 課題合格</div>
             </div>
           </div>
-          
+
           <div style="padding: 2rem;">
             <div style="text-align: center; margin-bottom: 2rem;">
               <p style="font-size: 1.125rem; color: var(--text-primary);">${this.getScoreMessage(percentage)}</p>
             </div>
-            
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 2rem; text-align: center;">
               <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
                 <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${totalQuestions}</div>
@@ -716,20 +881,18 @@ class NetworkQuizSession {
       </div>
     `;
 
-    // Add event listeners for buttons
     setTimeout(() => {
       const retryButton = document.getElementById('retry-button');
       if (retryButton) {
         retryButton.addEventListener('click', () => {
-          // Reset quiz state for retry
           this.currentQuestionIndex = 0;
           this.results = {};
           this.startTime = new Date();
           this.isCompleted = false;
-          this.showingNameInput = false; // Skip name input since we already have the name
+          this.showingNameInput = false;
           this.showingCertificate = false;
           this.currentUploadedFile = null;
-          
+
           this.render();
         });
       }
@@ -739,7 +902,6 @@ class NetworkQuizSession {
   renderCertificate() {
     const container = document.getElementById('network-quiz-app');
     if (!container) return;
-
     const endTime = new Date();
     const timeSpent = Math.floor((endTime - this.startTime) / 1000);
     const formattedDate = endTime.toLocaleDateString('ja-JP', {
@@ -747,7 +909,6 @@ class NetworkQuizSession {
       month: 'long',
       day: 'numeric'
     });
-
     container.innerHTML = `
       <div style="max-width: 800px; margin: 0 auto; text-align: center;">
         <div style="margin-bottom: 2rem;">
@@ -756,25 +917,23 @@ class NetworkQuizSession {
             おめでとうございます！
           </h2>
           <p style="color: var(--text-secondary); font-size: 1.125rem;">
-            全課題クリアで修了証が発行されました
+            全問正解で修了証が発行されました
           </p>
         </div>
-
         <!-- Certificate Preview -->
         <div class="card" style="margin-bottom: 2rem; padding: 0; overflow: hidden; background: #f8fafb;">
           <div style="padding: 1rem; background: var(--surface); border-bottom: 1px solid var(--border);">
             <h3 style="margin: 0; color: var(--text-primary); font-weight: 600;">修了証プレビュー</h3>
           </div>
           <div style="padding: 2rem; background: white;">
-            <canvas 
-              id="certificate-canvas" 
-              width="800" 
-              height="600" 
+            <canvas
+              id="certificate-canvas"
+              width="800"
+              height="600"
               style="max-width: 100%; height: auto; border: 1px solid #e5e7eb;"
             ></canvas>
           </div>
         </div>
-
         <!-- Download Button -->
         <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
           <button
@@ -787,7 +946,7 @@ class NetworkQuizSession {
             </svg>
             修了証をダウンロード
           </button>
-          
+
           <div style="display: flex; gap: 1rem;">
             <button
               id="certificate-retry-button"
@@ -805,161 +964,30 @@ class NetworkQuizSession {
         </div>
       </div>
     `;
-
     // Generate certificate after DOM is ready
     setTimeout(() => {
       this.generateCertificate();
-      
+
       const downloadButton = document.getElementById('download-certificate-button');
       if (downloadButton) {
         downloadButton.addEventListener('click', () => this.downloadCertificate());
       }
-      
+
       const retryButton = document.getElementById('certificate-retry-button');
       if (retryButton) {
         retryButton.addEventListener('click', () => {
-          // Reset quiz state for retry
+          // Reset quiz state
           this.currentQuestionIndex = 0;
           this.results = {};
           this.startTime = new Date();
           this.isCompleted = false;
-          this.showingNameInput = false;
           this.showingCertificate = false;
-          this.currentUploadedFile = null;
-          
+          this.showingNameInput = false;
+
           this.render();
         });
       }
     }, 0);
-  }
-
-  generateCertificate() {
-    const canvas = document.getElementById('certificate-canvas');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#f8fafc');
-    gradient.addColorStop(1, '#e2e8f0');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-
-    // Border
-    ctx.strokeStyle = '#059669';
-    ctx.lineWidth = 8;
-    ctx.strokeRect(20, 20, width - 40, height - 40);
-
-    // Inner border
-    ctx.strokeStyle = '#047857';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, width - 80, height - 80);
-
-    // Title
-    ctx.fillStyle = '#1e293b';
-    ctx.font = 'bold 48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('修了証', width / 2, 120);
-
-    // Subtitle
-    ctx.font = '24px sans-serif';
-    ctx.fillStyle = '#475569';
-    ctx.fillText('Certificate of Completion', width / 2, 160);
-
-    // User name
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#0f172a';
-    ctx.fillText(this.userName, width / 2, 240);
-
-    // Course info
-    ctx.font = '20px sans-serif';
-    ctx.fillStyle = '#374151';
-    ctx.fillText('上記の方は、以下のネットワーク構築課題を', width / 2, 290);
-    ctx.fillText('100%の合格率で修了されました', width / 2, 320);
-
-    // Course title
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillStyle = '#047857';
-    ctx.fillText(`「${this.questionSet?.title || 'ネットワーク構築課題'}」`, width / 2, 370);
-
-    // Date
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    ctx.font = '18px sans-serif';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText(`発行日: ${dateStr}`, width / 2, 450);
-
-    // Site name
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillStyle = '#059669';
-    ctx.fillText('じょうほうらいふ', width / 2, 520);
-
-    // --- なりすまし防止情報 ---
-    // 追跡情報を収集
-    const trackingInfo = this.generateTrackingInfo();
-
-    // 下端に追跡情報を小さく表示（黄色で見やすく）
-    ctx.font = '10px monospace';
-    ctx.fillStyle = '#f59e0b';
-    ctx.textAlign = 'left';
-
-    const bottomY = height - 40;
-    ctx.fillText(`発行時刻: ${trackingInfo.timestamp}`, 43, bottomY - 20);
-    ctx.fillText(`アクセス元: ${trackingInfo.ipAddress}`, 43, bottomY - 5);
-
-    ctx.textAlign = 'right';
-    ctx.fillText(`端末: ${trackingInfo.userAgent}`, width - 43, bottomY - 20);
-    ctx.fillText(`画面: ${trackingInfo.screenInfo}`, width - 43, bottomY - 5);
-
-    // 中央下部に端末識別コードを配置
-    ctx.textAlign = 'center';
-    ctx.fillText(`端末識別: ${trackingInfo.deviceUserHash}`, width / 2, bottomY + 12);
-
-    // Decorative elements
-    ctx.fillStyle = '#10b981';
-    ctx.beginPath();
-    ctx.arc(150, 150, 20, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.fillStyle = '#059669';
-    ctx.beginPath();
-    ctx.arc(width - 150, 150, 20, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.fillStyle = '#047857';
-    ctx.beginPath();
-    ctx.arc(150, height - 150, 20, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.fillStyle = '#065f46';
-    ctx.beginPath();
-    ctx.arc(width - 150, height - 150, 20, 0, 2 * Math.PI);
-    ctx.fill();
-  }
-
-  downloadCertificate() {
-    const canvas = document.getElementById('certificate-canvas');
-    if (!canvas) return;
-
-    // Create download link
-    const link = document.createElement('a');
-    link.download = `修了証_${this.questionSet?.title || 'ネットワーク構築課題'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
-    link.href = canvas.toDataURL('image/png');
-    
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 
   renderError() {
@@ -973,9 +1001,9 @@ class NetworkQuizSession {
           課題データの読み込みに失敗しました
         </h3>
         <p class="text-gray-500 mb-4">
-          ネットワーク構築課題が見つかりませんでした。
+          ネットワーク構築課題①が見つかりませんでした。
         </p>
-        <button 
+        <button
           onclick="window.location.href='/quiz'"
           class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         >
@@ -983,185 +1011,6 @@ class NetworkQuizSession {
         </button>
       </div>
     `;
-  }
-
-  async evaluateNetwork() {
-    if (!this.currentUploadedFile) return;
-    
-    const currentQuestion = this.questions[this.currentQuestionIndex];
-    console.log('Evaluating network for question:', currentQuestion.id);
-    
-    try {
-      // Execute the validation function
-      const validationResult = eval(`(${currentQuestion.validation})`)(this.currentUploadedFile);
-      
-      console.log('Validation result:', validationResult);
-      
-      // Store result
-      this.results[currentQuestion.id] = {
-        isCorrect: validationResult.valid,
-        message: validationResult.message,
-        uploadedFile: this.currentUploadedFile
-      };
-      
-      // Show result and move to next question or complete
-      this.showValidationResult(validationResult);
-      
-    } catch (error) {
-      console.error('Error evaluating network:', error);
-      const errorResult = {
-        valid: false,
-        message: 'ネットワーク構築の判定中にエラーが発生しました。JSONファイルの形式を確認してください。'
-      };
-      
-      this.results[currentQuestion.id] = {
-        isCorrect: false,
-        message: errorResult.message,
-        uploadedFile: this.currentUploadedFile
-      };
-      
-      this.showValidationResult(errorResult);
-    }
-  }
-
-  showValidationResult(result) {
-    const container = document.getElementById('network-quiz-app');
-    if (!container) return;
-
-    const currentQuestion = this.questions[this.currentQuestionIndex];
-    const timeElapsed = Math.floor((new Date() - this.startTime) / 1000);
-    const completedQuestions = Object.keys(this.results).length;
-    const correctAnswers = Object.values(this.results).filter(result => result.isCorrect).length;
-
-    container.innerHTML = `
-      <div class="space-y-6">
-        <!-- Progress Bar -->
-        <div class="card" style="margin-bottom: 2rem;">
-          <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary);">進捗</span>
-              <span style="font-size: 0.875rem; color: var(--text-secondary);">
-                ${this.currentQuestionIndex + 1} / ${this.questions.length}
-              </span>
-            </div>
-            <div style="width: 100%; background: var(--border); border-radius: var(--radius-md); height: 8px;">
-              <div 
-                style="background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 8px; border-radius: var(--radius-md); transition: all 0.3s ease; width: ${((this.currentQuestionIndex + 1) / this.questions.length) * 100}%;"
-              ></div>
-            </div>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">
-            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">${completedQuestions}</div>
-              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">提出済み</div>
-            </div>
-            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--secondary-color);">${correctAnswers}</div>
-              <div style="font-size: 0.75rem; color: var(--secondary-color); font-weight: 500;">合格</div>
-            </div>
-            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">
-                ${Math.round((correctAnswers / completedQuestions) * 100)}%
-              </div>
-              <div style="font-size: 0.75rem; color: var(--accent-color); font-weight: 500;">合格率</div>
-            </div>
-            <div style="background: var(--surface); border-radius: var(--radius-md); padding: 1rem;">
-              <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
-                ${Math.floor(timeElapsed / 60)}:${(timeElapsed % 60).toString().padStart(2, '0')}
-              </div>
-              <div style="font-size: 0.75rem; color: var(--primary-color); font-weight: 500;">経過時間</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Result Card -->
-        <div class="card" style="overflow: hidden; margin-bottom: 2rem;">
-          <!-- Header -->
-          <div style="background: linear-gradient(135deg, ${result.valid ? '#10b981, #059669' : '#ef4444, #dc2626'}); padding: 2rem; color: white;">
-            <div style="text-align: center;">
-              <div style="font-size: 3rem; margin-bottom: 1rem;">
-                ${result.valid ? '🎉' : '❌'}
-              </div>
-              <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
-                ${result.valid ? '合格です！' : '不合格です'}
-              </h2>
-              <p style="opacity: 0.9;">
-                課題 ${this.currentQuestionIndex + 1}: ${parseMarkdown(currentQuestion.title)}
-              </p>
-            </div>
-          </div>
-
-          <!-- Content -->
-          <div style="padding: 2rem;">
-            <div style="margin-bottom: 2rem;">
-              <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">判定結果</h3>
-              <div style="
-                background: ${result.valid ? '#f0fdf4' : '#fef2f2'}; 
-                border: 1px solid ${result.valid ? '#22c55e' : '#ef4444'};
-                border-radius: var(--radius-md); 
-                padding: 1.5rem;
-                color: ${result.valid ? '#065f46' : '#991b1b'};
-              ">
-                <p style="margin: 0; line-height: 1.6;">
-                  ${result.message}
-                </p>
-              </div>
-            </div>
-
-            <!-- Explanation -->
-            ${currentQuestion.explanation ? `
-              <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">解説</h3>
-                <div style="
-                  background: var(--surface); 
-                  border-radius: var(--radius-md); 
-                  padding: 1.5rem;
-                  border-left: 4px solid var(--primary-color);
-                ">
-                  <div style="color: var(--text-secondary); line-height: 1.6;">
-                    ${parseMarkdown(currentQuestion.explanation)}
-                  </div>
-                </div>
-              </div>
-            ` : ''}
-
-            <!-- Navigation -->
-            <div style="display: flex; justify-content: center; gap: 1rem;">
-              <button
-                id="continue-button"
-                class="btn btn-primary"
-                style="display: flex; align-items: center; padding: 0.75rem 2rem;"
-              >
-                ${this.currentQuestionIndex === this.questions.length - 1 ? '結果を見る' : '次の課題へ'}
-                <svg style="width: 20px; height: 20px; margin-left: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Add event listener
-    setTimeout(() => {
-      const continueButton = document.getElementById('continue-button');
-      if (continueButton) {
-        continueButton.addEventListener('click', () => this.continueAfterResult());
-      }
-    }, 0);
-  }
-
-  continueAfterResult() {
-    if (this.currentQuestionIndex < this.questions.length - 1) {
-      this.currentQuestionIndex++;
-      this.currentUploadedFile = null; // Reset uploaded file for next question
-      this.render();
-    } else {
-      this.isCompleted = true;
-      this.render();
-    }
   }
 
   getDifficultyText(difficulty) {
@@ -1190,32 +1039,127 @@ class NetworkQuizSession {
 
   async tryGetIPAddress() {
     try {
-      // 複数のサービスを試行してIPアドレスを取得
       const response = await fetch('https://api.ipify.org?format=json');
       const data = await response.json();
       this.cachedIpAddress = data.ip;
     } catch (error) {
-      try {
-        // フォールバック: 別のサービス
-        const response = await fetch('https://httpbin.org/ip');
-        const data = await response.json();
-        this.cachedIpAddress = data.origin.split(',')[0].trim();
-      } catch (error2) {
-        // IPアドレス取得に失敗した場合の代替手段
-        this.cachedIpAddress = 'Unknown';
-      }
+      this.cachedIpAddress = 'Unknown';
     }
+  }
+
+  generateCertificate() {
+    const canvas = document.getElementById('certificate-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#f8fafc');
+    gradient.addColorStop(1, '#e2e8f0');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    // Border
+    ctx.strokeStyle = '#059669';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(20, 20, width - 40, height - 40);
+    // Inner border
+    ctx.strokeStyle = '#047857';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 40, width - 80, height - 80);
+    // Title
+    ctx.fillStyle = '#1e293b';
+    ctx.font = 'bold 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('修了証', width / 2, 120);
+    // Subtitle
+    ctx.font = '24px sans-serif';
+    ctx.fillStyle = '#475569';
+    ctx.fillText('Certificate of Completion', width / 2, 160);
+    // User name
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillStyle = '#0f172a';
+    ctx.fillText(this.userName, width / 2, 240);
+    // Course info
+    ctx.font = '20px sans-serif';
+    ctx.fillStyle = '#374151';
+    ctx.fillText('上記の方は、以下の課題を', width / 2, 290);
+    ctx.fillText('100%の正答率で修了されました', width / 2, 320);
+    // Course title
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#047857';
+    ctx.fillText(`「${this.questionSet?.title || 'ネットワーク構築課題①'}」`, width / 2, 370);
+    // Date
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText(`発行日: ${dateStr}`, width / 2, 450);
+    // Site name
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText('じょうほうらいふ', width / 2, 520);
+    // --- なりすまし防止情報 ---
+    // 追跡情報を収集
+    const trackingInfo = this.generateTrackingInfo();
+    // 下端に追跡情報を小さく表示（黄色で見やすく）
+    ctx.font = '10px monospace';
+    ctx.fillStyle = '#f59e0b';
+    ctx.textAlign = 'left';
+    const bottomY = height - 40;
+    ctx.fillText(`発行時刻: ${trackingInfo.timestamp}`, 43, bottomY - 20);
+    ctx.fillText(`アクセス元: ${trackingInfo.ipAddress}`, 43, bottomY - 5);
+    ctx.textAlign = 'right';
+    ctx.fillText(`端末: ${trackingInfo.userAgent}`, width - 43, bottomY - 20);
+    ctx.fillText(`画面: ${trackingInfo.screenInfo}`, width - 43, bottomY - 5);
+    // 中央下部に端末識別コードを配置
+    ctx.textAlign = 'center';
+    ctx.fillText(`端末識別: ${trackingInfo.deviceUserHash}`, width / 2, bottomY + 12);
+    // Decorative elements
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(150, 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#059669';
+    ctx.beginPath();
+    ctx.arc(width - 150, 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#047857';
+    ctx.beginPath();
+    ctx.arc(150, height - 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#065f46';
+    ctx.beginPath();
+    ctx.arc(width - 150, height - 150, 20, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+
+  downloadCertificate() {
+    const canvas = document.getElementById('certificate-canvas');
+    if (!canvas) return;
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `修了証_${this.questionSet?.title || 'ネットワーク構築課題①'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   generateTrackingInfo() {
     const now = new Date();
-
     // IPアドレス取得（非同期だが、できる限り試行）
     let ipAddress = this.cachedIpAddress || 'N/A';
     if (!this.cachedIpAddress) {
       this.tryGetIPAddress();
     }
-
     // User-Agent情報の簡略化
     const userAgent = navigator.userAgent;
     const browserInfo = userAgent.includes('Chrome') ? 'Chrome' :
@@ -1224,22 +1168,20 @@ class NetworkQuizSession {
     const osInfo = userAgent.includes('Windows') ? 'Win' :
                    userAgent.includes('Mac') ? 'Mac' :
                    userAgent.includes('Linux') ? 'Linux' : 'Other';
-
     // セッションID（ページ読み込み時に生成）
     if (!this.sessionId) {
       this.sessionId = this.generateSessionId();
     }
-
     // 端末識別コード（ブラウザフィンガープリントのみ）
     const deviceUserHash = this.generateDeviceUserHash(this.userName);
-
     return {
       timestamp: now.toLocaleString('ja-JP', {
         year: '2-digit',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit'
       }),
       ipAddress: ipAddress,
       userAgent: `${browserInfo}/${osInfo}`,
@@ -1247,6 +1189,34 @@ class NetworkQuizSession {
       sessionId: this.sessionId,
       deviceUserHash: deviceUserHash
     };
+  }
+
+  generateSessionId() {
+    // 8桁のランダムなセッションID
+    return Math.random().toString(36).substr(2, 8).toUpperCase();
+  }
+
+  generateDeviceUserHash(userName) {
+    // 永続化された端末IDを使用
+    return this.getOrCreateDeviceId();
+  }
+
+  getOrCreateDeviceId() {
+    // ローカルストレージから端末IDを取得、なければ新規作成
+    const DEVICE_ID_KEY = 'joholife_device_id';
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    if (!deviceId) {
+      // 初回アクセス時: 高精度フィンガープリンティングで端末IDを生成
+      console.log('端末ID初回生成中...');
+      const fingerprint = this.generateBrowserFingerprint();
+      deviceId = this.generateHash(fingerprint).substr(0, 8).toUpperCase();
+      // ローカルストレージに保存
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+      console.log('端末ID生成完了:', deviceId);
+    } else {
+      console.log('保存済み端末IDを使用:', deviceId);
+    }
+    return deviceId;
   }
 
   generateBrowserFingerprint() {
@@ -1263,62 +1233,52 @@ class NetworkQuizSession {
       colorDepth: screen.colorDepth || 'unknown',
       pixelDepth: screen.pixelDepth || 'unknown',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
-      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'yes' : 'no'
+      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0 ? 'yes' : 'no',
+      hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+      pixelRatio: window.devicePixelRatio || 1,
+      plugins: this.getPluginsList()
     };
-
     // Canvas Fingerprinting - GPU固有の描画特性
     const canvasFingerprint = this.generateCanvasFingerprint();
-
     // WebGL Fingerprinting - グラフィックカード情報
     const webglFingerprint = this.generateWebGLFingerprint();
-
     // Audio Context Fingerprinting - オーディオ処理の特性
     const audioFingerprint = this.generateAudioFingerprint();
-
     // すべてのフィンガープリントを組み合わせ
     const combinedFingerprint = {
-      ...basicFingerprint,
+      basic: basicFingerprint,
       canvas: canvasFingerprint,
       webgl: webglFingerprint,
       audio: audioFingerprint
     };
-
-    // フィンガープリントをハッシュ化
     return this.generateHash(JSON.stringify(combinedFingerprint)).substr(0, 12);
+  }
+
+  getPluginsList() {
+    try {
+      return Array.from(navigator.plugins || [])
+        .map(plugin => plugin.name)
+        .sort()
+        .join(',');
+    } catch (e) {
+      return 'unknown';
+    }
   }
 
   generateCanvasFingerprint() {
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-
       // 複雑な描画パターンを作成
       canvas.width = 200;
       canvas.height = 50;
-
       // テキスト描画（フォントレンダリングの違いを検出）
       ctx.textBaseline = 'top';
       ctx.font = '14px Arial';
       ctx.fillText('Canvas fingerprint test 🎯', 2, 2);
-
       // 図形描画（アンチエイリアシングの違いを検出）
       ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
       ctx.fillRect(50, 1, 62, 20);
-
-      // 円形描画
-      ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-      ctx.beginPath();
-      ctx.arc(50, 10, 20, 0, Math.PI * 2);
-      ctx.fill();
-
-      // グラデーション
-      const gradient = ctx.createLinearGradient(0, 0, 100, 0);
-      gradient.addColorStop(0, 'red');
-      gradient.addColorStop(1, 'blue');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(130, 1, 50, 20);
-
-      // Canvas内容をハッシュ化
       return this.generateHash(canvas.toDataURL()).substr(0, 8);
     } catch (e) {
       return 'canvas_error';
@@ -1329,9 +1289,7 @@ class NetworkQuizSession {
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-
       if (!gl) return 'no_webgl';
-
       const webglInfo = {
         vendor: gl.getParameter(gl.VENDOR),
         renderer: gl.getParameter(gl.RENDERER),
@@ -1346,11 +1304,9 @@ class NetworkQuizSession {
         maxFragmentUniformVectors: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
         maxVaryingVectors: gl.getParameter(gl.MAX_VARYING_VECTORS)
       };
-
       // 拡張機能情報も追加
       const extensions = gl.getSupportedExtensions();
       webglInfo.extensions = extensions ? extensions.sort().join(',') : '';
-
       return this.generateHash(JSON.stringify(webglInfo)).substr(0, 8);
     } catch (e) {
       return 'webgl_error';
@@ -1361,7 +1317,6 @@ class NetworkQuizSession {
     try {
       // Audio Context APIを使用してオーディオフィンガープリントを生成
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
       const audioInfo = {
         sampleRate: audioContext.sampleRate,
         maxChannelCount: audioContext.destination.maxChannelCount,
@@ -1371,36 +1326,6 @@ class NetworkQuizSession {
         channelCountMode: audioContext.destination.channelCountMode,
         channelInterpretation: audioContext.destination.channelInterpretation
       };
-
-      // オシレーターを使った音響特性の測定
-      const oscillator = audioContext.createOscillator();
-      const analyser = audioContext.createAnalyser();
-      const gainNode = audioContext.createGain();
-
-      oscillator.type = 'triangle';
-      oscillator.frequency.value = 1000;
-      gainNode.gain.value = 0; // 音を出さない
-
-      oscillator.connect(analyser);
-      analyser.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // 分析器の設定
-      analyser.fftSize = 1024;
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      // 短時間の分析データを取得
-      oscillator.start();
-      analyser.getByteFrequencyData(dataArray);
-      oscillator.stop();
-
-      // データの一部をフィンガープリントに使用
-      const audioSignature = Array.from(dataArray.slice(0, 10)).join(',');
-      audioInfo.signature = audioSignature;
-
-      audioContext.close();
-
       return this.generateHash(JSON.stringify(audioInfo)).substr(0, 8);
     } catch (e) {
       return 'audio_error';
@@ -1408,50 +1333,18 @@ class NetworkQuizSession {
   }
 
   generateHash(input) {
-    // 簡易的なハッシュ関数（本来はcrypto APIを使用すべき）
+    // 改良されたハッシュ関数
     let hash = 0;
     if (input.length === 0) return hash.toString();
     for (let i = 0; i < input.length; i++) {
       const char = input.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // 32bit整数に変換
+      hash = hash & hash; // 32bit integer
     }
     return Math.abs(hash).toString(16);
   }
-
-  generateSessionId() {
-    // 8桁のランダムなセッションID
-    return Math.random().toString(36).substr(2, 8).toUpperCase();
-  }
-
-  getOrCreateDeviceId() {
-    // ローカルストレージから端末IDを取得、なければ新規作成
-    const DEVICE_ID_KEY = 'joholife_device_id';
-    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
-
-    if (!deviceId) {
-      // 初回アクセス時: 高精度フィンガープリンティングで端末IDを生成
-      console.log('端末ID初回生成中...');
-      const fingerprint = this.generateBrowserFingerprint();
-      deviceId = this.generateHash(fingerprint).substr(0, 8).toUpperCase();
-
-      // ローカルストレージに保存
-      localStorage.setItem(DEVICE_ID_KEY, deviceId);
-      console.log('端末ID生成完了:', deviceId);
-    } else {
-      console.log('保存済み端末IDを使用:', deviceId);
-    }
-
-    return deviceId;
-  }
-
-  generateDeviceUserHash(userName) {
-    // 永続化された端末IDを使用
-    return this.getOrCreateDeviceId();
-  }
 }
 
-// File handling functions - make them globally accessible
 window.handleFileDrop = function(event) {
   const files = event.dataTransfer.files;
   if (files.length > 0) {
@@ -1477,25 +1370,22 @@ function processFile(file) {
     try {
       const networkData = JSON.parse(e.target.result);
       console.log('Uploaded network data:', networkData);
-      
-      // Store the uploaded file data
+
       networkQuizSession.currentUploadedFile = networkData;
-      
-      // Update UI
+
       const fileInfo = document.getElementById('file-info');
       const fileName = document.getElementById('file-name');
       const submitButton = document.getElementById('submit-button');
-      
+
       if (fileInfo && fileName && submitButton) {
         fileName.textContent = file.name;
         fileInfo.style.display = 'block';
-        
+
         submitButton.disabled = false;
         submitButton.className = 'btn btn-primary';
         submitButton.style.opacity = '1';
         submitButton.style.cursor = 'pointer';
-        
-        // Remove any existing event listeners and add new one
+
         submitButton.replaceWith(submitButton.cloneNode(true));
         const newSubmitButton = document.getElementById('submit-button');
         newSubmitButton.addEventListener('click', () => {
@@ -1504,20 +1394,18 @@ function processFile(file) {
           }
         });
       }
-      
+
     } catch (error) {
       console.error('Error parsing JSON:', error);
       alert('JSONファイルの形式が正しくありません。ネットワークシミュレータからエクスポートしたファイルを使用してください。');
     }
   };
-  
+
   reader.readAsText(file);
 }
 
-// Global reference for file handling
 let networkQuizSession;
 
-// Initialize the quiz session when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   networkQuizSession = new NetworkQuizSession();
 });
