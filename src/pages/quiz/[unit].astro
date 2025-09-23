@@ -312,6 +312,9 @@ class QuizSession {
     this.cachedIpAddress = null;
     this.tryGetIPAddress();
 
+    // 旧式の端末識別システムをクリア（新システムへの移行のため）
+    this.clearLegacyDeviceId();
+
     this.init();
   }
 
@@ -1453,29 +1456,62 @@ class QuizSession {
   }
 
   getOrCreateDeviceId() {
-    // ローカルストレージから端末IDを取得、なければ新規作成
-    const DEVICE_ID_KEY = 'joholife_device_id';
-    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    // この古いメソッドは廃止予定 - generateDeviceUserHashを使用してください
+    console.warn('getOrCreateDeviceId()は廃止予定です。generateDeviceUserHashを使用してください。');
+    return this.generateDeviceUserHash(this.userName || 'unknown');
+  }
 
-    if (!deviceId) {
-      // 初回アクセス時: 高精度フィンガープリンティングで端末IDを生成
-      console.log('端末ID初回生成中...');
-      const fingerprint = this.generateBrowserFingerprint();
-      deviceId = this.generateHash(fingerprint).substr(0, 8).toUpperCase();
+  generateMinimalBrowserFingerprint() {
+    // 最小限のブラウザ情報のみを使用（重複を避けるため）
+    const minimalData = {
+      // ブラウザの基本情報
+      userAgent: (navigator.userAgent || 'unknown').substring(0, 50), // 最初の50文字のみ
+      language: navigator.language || 'unknown',
+      platform: navigator.platform || 'unknown',
+      // 画面情報
+      screenResolution: `${screen.width}x${screen.height}`,
+      colorDepth: screen.colorDepth || 'unknown',
+      // タイムゾーン
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'
+    };
 
-      // ローカルストレージに保存
-      localStorage.setItem(DEVICE_ID_KEY, deviceId);
-      console.log('端末ID生成完了:', deviceId);
-    } else {
-      console.log('保存済み端末IDを使用:', deviceId);
-    }
-
-    return deviceId;
+    return JSON.stringify(minimalData);
   }
 
   generateDeviceUserHash(userName) {
-    // 永続化された端末IDを使用
-    return this.getOrCreateDeviceId();
+    // 名前が提供されていない場合は空文字を使用
+    const cleanUserName = (userName || '').trim();
+
+    if (!cleanUserName) {
+      console.warn('generateDeviceUserHash: 名前が提供されていません');
+      return 'NO-NAME-PROVIDED';
+    }
+
+    // 最小限のブラウザフィンガープリント + 名前で一意性を確保
+    const minimalFingerprint = this.generateMinimalBrowserFingerprint();
+    const combinedData = `${cleanUserName}|${minimalFingerprint}`;
+
+    // ハッシュ化して8文字の識別コードを生成
+    const deviceUserHash = this.generateHash(combinedData).substr(0, 8).toUpperCase();
+
+    console.log('端末識別コード生成:', {
+      userName: cleanUserName,
+      fingerprint: minimalFingerprint.substring(0, 100) + '...',
+      result: deviceUserHash
+    });
+
+    return deviceUserHash;
+  }
+
+  clearLegacyDeviceId() {
+    // 旧式の端末識別システムのデータをクリア
+    const LEGACY_DEVICE_ID_KEY = 'joholife_device_id';
+    const legacyDeviceId = localStorage.getItem(LEGACY_DEVICE_ID_KEY);
+
+    if (legacyDeviceId) {
+      console.log('旧式端末識別データを削除:', legacyDeviceId);
+      localStorage.removeItem(LEGACY_DEVICE_ID_KEY);
+    }
   }
 
   async tryGetIPAddress() {
