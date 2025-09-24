@@ -165,6 +165,9 @@ class NetworkSimulator {
         if (exportBtn) exportBtn.addEventListener('click', this.exportImage.bind(this));
         if (fileInput) fileInput.addEventListener('change', this.handleFileLoad.bind(this));
 
+        // ページ全体のドラッグ&ドロップ機能
+        this.setupDragAndDrop();
+
         // ダイアログイベント（要素存在確認）
         const cancelBtn = document.getElementById('cancel-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -7756,11 +7759,13 @@ class NetworkSimulator {
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                
+
                 // バージョンチェック
                 if (!data.version) {
                     throw new Error('不正なファイル形式です');
                 }
+
+                // ここに元のhandleFileLoadの処理をコピー
 
                 // 現在の構成をクリア（描画は後で行う）
                 this.devices.clear();
@@ -7784,7 +7789,7 @@ class NetworkSimulator {
                     // デバイスを即座にマップに追加（基本設定完了後、詳細設定の前）
                     this.devices.set(device.id, device);
                     deviceMap.set(device.id, device);
-                    
+
                     // LAN設定の復元（ルーター用）
                     if (deviceData.config.lan1) {
                         device.config.lan1 = { ...deviceData.config.lan1 };
@@ -7793,33 +7798,33 @@ class NetworkSimulator {
                             device.config.lan1.dhcpAllocatedIPs = new Map(deviceData.config.lan1.dhcpAllocatedIPs);
                         }
                     }
-                    
+
                     if (deviceData.config.lan2) {
                         device.config.lan2 = { ...deviceData.config.lan2 };
                         if (deviceData.config.lan2.dhcpAllocatedIPs) {
                             device.config.lan2.dhcpAllocatedIPs = new Map(deviceData.config.lan2.dhcpAllocatedIPs);
                         }
                     }
-                    
+
                     if (deviceData.config.lan3) {
                         device.config.lan3 = { ...deviceData.config.lan3 };
                         if (deviceData.config.lan3.dhcpAllocatedIPs) {
                             device.config.lan3.dhcpAllocatedIPs = new Map(deviceData.config.lan3.dhcpAllocatedIPs);
                         }
                     }
-                    
+
                     // WAN設定の復元（ルーター用）
                     if (deviceData.wanConfig) {
                         device.wanConfig = { ...deviceData.wanConfig };
                         // インターネットデバイス参照は後で復元
                         device.wanConfig.internetDevice = null;
                     }
-                    
+
                     // DNSテーブルの復元（DNSサーバー用）
                     if (deviceData.dnsTable) {
                         device.dnsTable = { ...deviceData.dnsTable };
                     }
-                    
+
                     // ポートを復元
                     device.ports.nics.forEach((port, index) => {
                         if (deviceData.ports.nics[index]) {
@@ -7838,52 +7843,45 @@ class NetworkSimulator {
                 data.connections.forEach(connectionData => {
                     const fromDevice = deviceMap.get(connectionData.from.deviceId);
                     const toDevice = deviceMap.get(connectionData.to.deviceId);
-                    
+
                     if (fromDevice && toDevice) {
                         const fromPort = fromDevice.ports.nics.find(p => p.id === connectionData.from.portId);
                         const toPort = toDevice.ports.nics.find(p => p.id === connectionData.to.portId);
-                        
+
                         if (fromPort && toPort) {
                             const connection = {
                                 id: connectionData.id,
-                                from: { device: fromDevice, port: fromPort },
-                                to: { device: toDevice, port: toPort }
+                                from: {
+                                    deviceId: fromDevice.id,
+                                    portId: fromPort.id,
+                                    device: fromDevice,
+                                    port: fromPort
+                                },
+                                to: {
+                                    deviceId: toDevice.id,
+                                    portId: toPort.id,
+                                    device: toDevice,
+                                    port: toPort
+                                },
+                                type: connectionData.type,
+                                selected: false
                             };
-                            
-                            this.connections.push(connection);
+
+                            // ポートに接続情報を設定
                             fromPort.connected = connection;
                             toPort.connected = connection;
-                        }
-                    }
-                });
 
-                // デバイス参照の復元（インターネット接続関連）
-                data.devices.forEach(deviceData => {
-                    const device = deviceMap.get(deviceData.id);
-                    
-                    // WAN設定のインターネットデバイス参照復元
-                    if (deviceData.wanConfig && deviceData.wanConfig.internetDevice) {
-                        const internetDevice = deviceMap.get(deviceData.wanConfig.internetDevice);
-                        if (internetDevice) {
-                            device.wanConfig.internetDevice = internetDevice;
-                        }
-                    }
-                    
-                    // 基本設定のインターネットデバイス参照復元
-                    if (deviceData.config.internetDevice) {
-                        const internetDevice = deviceMap.get(deviceData.config.internetDevice);
-                        if (internetDevice) {
-                            device.config.internetDevice = internetDevice;
+                            this.connections.push(connection);
                         }
                     }
                 });
 
                 // DHCPが有効なデバイスのIPアドレス表示を修正
                 this.refreshDHCPDevicesDisplay();
-                
+
                 // 全デバイスのlan1.ipAddressをconfig.ipAddressと同期（既存のファイル互換性のため）
                 this.syncLAN1Addresses();
-                
+
                 this.updateControlButtons();
 
                 // ファイル読み込み後は強制的にNICポジション更新を実行
@@ -7899,19 +7897,20 @@ class NetworkSimulator {
                     // デバッグ用: 描画後にデバイス数を確認
                     console.log(`描画完了: ${this.devices.size}個のデバイス, ${this.connections.length}個の接続`);
                 }, 50);
+                this.updateStatus('ファイルを読み込みました');
 
-                this.updateStatus('ネットワーク構成を読み込みました（全設定情報を含む）');
-                
             } catch (error) {
                 console.error('ファイル読み込みエラー:', error);
-                this.updateStatus('ファイル読み込みに失敗しました: ' + error.message);
+                this.updateStatus(`ファイル読み込みエラー: ${error.message}`);
             }
         };
 
-        reader.readAsText(file);
-        event.target.value = ''; // ファイル入力をリセット
-    }
+        reader.onerror = () => {
+            this.updateStatus('ファイル読み込みに失敗しました');
+        };
 
+        reader.readAsText(file);
+    }
     // DHCPが有効なデバイスの表示を更新
     refreshDHCPDevicesDisplay() {
         // 全デバイスをチェック
@@ -8270,8 +8269,323 @@ class NetworkSimulator {
         // 元の描画状態に戻す
         this.ctx.fillStyle = originalFillStyle;
         this.scheduleRender();
-        
+
         this.updateStatus('ネットワーク図を画像として保存しました');
+    }
+
+    // ドラッグ&ドロップ機能のセットアップ
+    setupDragAndDrop() {
+        console.log('ドラッグ&ドロップ機能を初期化中...');
+
+        // ドラッグオーバー状態を管理
+        this.isDragOver = false;
+        this.dragCounter = 0; // ドラッグエンター/リーブのカウンター
+
+        // 全ページでのデフォルトドラッグ動作を防止
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, this.preventDefaults.bind(this), false);
+        });
+
+        // ドラッグ&ドロップのメインイベント
+        document.addEventListener('dragenter', this.handleDragEnter.bind(this), false);
+        document.addEventListener('dragover', this.handleDragOver.bind(this), false);
+        document.addEventListener('dragleave', this.handleDragLeave.bind(this), false);
+        document.addEventListener('drop', this.handleFileDrop.bind(this), false);
+
+        console.log('ドラッグ&ドロップ機能の初期化完了');
+    }
+
+    // デフォルト動作を防止
+    preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // ドラッグエンター処理
+    handleDragEnter(e) {
+        this.dragCounter++;
+
+        // ファイルがドラッグされているかチェック
+        const hasFiles = e.dataTransfer && e.dataTransfer.types &&
+                         (e.dataTransfer.types.includes('Files') ||
+                          Array.from(e.dataTransfer.types).includes('Files'));
+
+        if (hasFiles) {
+            if (!this.isDragOver) {
+                this.isDragOver = true;
+                this.showDropOverlay(true);
+                console.log('ファイルドラッグ検出 - オーバーレイ表示');
+            }
+        }
+    }
+
+    // ドラッグオーバー処理
+    handleDragOver(e) {
+        const hasFiles = e.dataTransfer && e.dataTransfer.types &&
+                         (e.dataTransfer.types.includes('Files') ||
+                          Array.from(e.dataTransfer.types).includes('Files'));
+
+        if (hasFiles) {
+            e.dataTransfer.dropEffect = 'copy';
+            console.log('ドラッグオーバー中 - コピーエフェクト設定');
+        }
+    }
+
+    // ドラッグリーブ処理
+    handleDragLeave(e) {
+        this.dragCounter--;
+
+        // カウンターが0になったらページから離れたと判定
+        if (this.dragCounter <= 0) {
+            this.dragCounter = 0;
+            this.isDragOver = false;
+            this.showDropOverlay(false);
+            console.log('ドラッグリーブ - オーバーレイ非表示');
+        }
+    }
+
+    // ファイルドロップ処理
+    handleFileDrop(e) {
+        console.log('ファイルドロップイベント発生');
+
+        // ドラッグ状態をリセット
+        this.dragCounter = 0;
+        this.isDragOver = false;
+        this.showDropOverlay(false);
+
+        const files = e.dataTransfer.files;
+        console.log('ドロップされたファイル数:', files.length);
+
+        if (files.length > 0) {
+            const file = files[0];
+            console.log('ファイル情報:', {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
+
+            // JSONファイルかチェック
+            if (file.type === 'application/json' || file.name.toLowerCase().endsWith('.json')) {
+                console.log('JSONファイル検証OK:', file.name);
+                this.loadDroppedFile(file);
+            } else {
+                console.log('非対応ファイル:', file.type);
+                this.updateStatus('JSONファイルのみ読み込み可能です');
+            }
+        } else {
+            console.log('ファイルが検出されませんでした');
+        }
+    }
+
+    // ドロップされたファイルを読み込み
+    loadDroppedFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+
+                // バージョンチェック
+                if (!data.version) {
+                    throw new Error('不正なファイル形式です');
+                }
+
+                // handleFileLoadと同じデータ読み込み処理を直接実行
+
+                // 現在の構成をクリア（描画は後で行う）
+                this.devices.clear();
+                this.connections = [];
+                this.selectedDevice = null;
+                this.selectedConnection = null;
+                this.connectionStart = null;
+                this.nextZIndex = 1;
+
+                // デバイスを復元
+                const deviceMap = new Map();
+                data.devices.forEach(deviceData => {
+                    const device = this.createDevice(deviceData.type, deviceData.x, deviceData.y);
+                    device.id = deviceData.id;
+                    device.name = deviceData.name;
+                    device.width = deviceData.width;
+                    device.height = deviceData.height;
+                    // 基本設定の復元
+                    device.config = { ...deviceData.config };
+
+                    // デバイスを即座にマップに追加（基本設定完了後、詳細設定の前）
+                    this.devices.set(device.id, device);
+                    deviceMap.set(device.id, device);
+
+                    // LAN設定の復元（ルーター用）
+                    if (deviceData.config.lan1) {
+                        device.config.lan1 = { ...deviceData.config.lan1 };
+                        // DHCPアロケーションマップの復元
+                        if (deviceData.config.lan1.dhcpAllocatedIPs) {
+                            device.config.lan1.dhcpAllocatedIPs = new Map(deviceData.config.lan1.dhcpAllocatedIPs);
+                        }
+                    }
+
+                    if (deviceData.config.lan2) {
+                        device.config.lan2 = { ...deviceData.config.lan2 };
+                        if (deviceData.config.lan2.dhcpAllocatedIPs) {
+                            device.config.lan2.dhcpAllocatedIPs = new Map(deviceData.config.lan2.dhcpAllocatedIPs);
+                        }
+                    }
+
+                    if (deviceData.config.lan3) {
+                        device.config.lan3 = { ...deviceData.config.lan3 };
+                        if (deviceData.config.lan3.dhcpAllocatedIPs) {
+                            device.config.lan3.dhcpAllocatedIPs = new Map(deviceData.config.lan3.dhcpAllocatedIPs);
+                        }
+                    }
+
+                    // WAN設定の復元（ルーター用）
+                    if (deviceData.wanConfig) {
+                        device.wanConfig = { ...deviceData.wanConfig };
+                        // インターネットデバイス参照は後で復元
+                        device.wanConfig.internetDevice = null;
+                    }
+
+                    // DNSテーブルの復元（DNSサーバー用）
+                    if (deviceData.dnsTable) {
+                        device.dnsTable = { ...deviceData.dnsTable };
+                    }
+
+                    // ポートを復元
+                    device.ports.nics.forEach((port, index) => {
+                        if (deviceData.ports.nics[index]) {
+                            const portData = deviceData.ports.nics[index];
+                            port.id = portData.id;
+                            port.x = portData.x;
+                            port.y = portData.y;
+                            port.side = portData.side;
+                            // 接続情報は後で接続復元時に設定するため、ここでは初期化のみ
+                            port.connected = null;
+                        }
+                    });
+                });
+
+                // 接続を復元
+                data.connections.forEach(connectionData => {
+                    const fromDevice = deviceMap.get(connectionData.from.deviceId);
+                    const toDevice = deviceMap.get(connectionData.to.deviceId);
+
+                    if (fromDevice && toDevice) {
+                        const fromPort = fromDevice.ports.nics.find(p => p.id === connectionData.from.portId);
+                        const toPort = toDevice.ports.nics.find(p => p.id === connectionData.to.portId);
+
+                        if (fromPort && toPort) {
+                            const connection = {
+                                id: connectionData.id,
+                                from: {
+                                    deviceId: fromDevice.id,
+                                    portId: fromPort.id,
+                                    device: fromDevice,
+                                    port: fromPort
+                                },
+                                to: {
+                                    deviceId: toDevice.id,
+                                    portId: toPort.id,
+                                    device: toDevice,
+                                    port: toPort
+                                },
+                                type: connectionData.type,
+                                selected: false
+                            };
+
+                            // ポートに接続情報を設定
+                            fromPort.connected = connection;
+                            toPort.connected = connection;
+
+                            this.connections.push(connection);
+                        }
+                    }
+                });
+
+                // DHCPが有効なデバイスのIPアドレス表示を修正
+                this.refreshDHCPDevicesDisplay();
+
+                // 全デバイスのlan1.ipAddressをconfig.ipAddressと同期（既存のファイル互換性のため）
+                this.syncLAN1Addresses();
+
+                this.updateControlButtons();
+
+                // ファイル読み込み後は強制的にNICポジション更新を実行
+                this.lastNICUpdateFrame = null; // フレーム制限をリセット
+                this.updateAllDynamicNICPositions();
+
+                // ファイル読み込み後は即座に描画を実行
+                this.render();
+
+                // 少し遅延してもう一度描画を実行（確実に表示されるように）
+                setTimeout(() => {
+                    this.render();
+                    // デバッグ用: 描画後にデバイス数を確認
+                    console.log(`描画完了: ${this.devices.size}個のデバイス, ${this.connections.length}個の接続`);
+                }, 50);
+
+                this.updateStatus(`ファイル「${file.name}」を読み込みました`);
+
+            } catch (error) {
+                console.error('ファイル読み込みエラー:', error);
+                this.updateStatus(`ファイル読み込みエラー: ${error.message}`);
+            }
+        };
+
+        reader.onerror = () => {
+            this.updateStatus('ファイル読み込みに失敗しました');
+        };
+
+        reader.readAsText(file);
+    }
+
+    // ドロップオーバーレイの表示/非表示
+    showDropOverlay(show) {
+        let overlay = document.getElementById('drop-overlay');
+
+        if (show && !overlay) {
+            // オーバーレイを作成
+            overlay = document.createElement('div');
+            overlay.id = 'drop-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(59, 130, 246, 0.1);
+                border: 3px dashed #3b82f6;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                font-size: 2rem;
+                font-weight: bold;
+                color: #3b82f6;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            `;
+            overlay.innerHTML = `
+                <div>
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
+                    <div>JSONファイルをドロップして読み込み</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        } else if (!show && overlay) {
+            // オーバーレイを削除
+            overlay.remove();
+        }
+    }
+
+    // ポートIDでポートを検索
+    findPortById(device, portId) {
+        if (!device.ports || !device.ports.nics) return null;
+
+        for (const port of device.ports.nics) {
+            if (port.id === portId) {
+                return port;
+            }
+        }
+        return null;
     }
 }
 
