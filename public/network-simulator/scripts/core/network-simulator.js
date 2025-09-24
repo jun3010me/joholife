@@ -2187,13 +2187,13 @@ class NetworkSimulator {
     // 接続完了（NIC間接続・1対1制限）
     completeConnection(startPort, endPort) {
         console.log('接続完了試行:', startPort.type, '->', endPort.type);
-        
+
         // 接続の妥当性をチェック
-        // 注意: 同一デバイス間接続を許可（学習目的でループエラーを体験できるように）
-        // if (startPort.device === endPort.device) {
-        //     this.updateStatus('同じデバイス内のポート間は接続できません');
-        //     return;
-        // }
+        // 1. 同一NIC間接続の禁止
+        if (startPort.device === endPort.device && startPort.port.id === endPort.port.id) {
+            this.updateStatus('同じNIC同士は接続できません');
+            return;
+        }
         
         // 1対1制限：開始ポートが既に接続されているかチェック
         if (startPort.port.connected) {
@@ -4421,59 +4421,76 @@ class NetworkSimulator {
         }
         
         let cp1x, cp1y, cp2x, cp2y;
-        
-        // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
-        const dx = toPort.x - fromPort.x;
-        const dy = toPort.y - fromPort.y;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const normalizedDx = length > 0 ? dx / length : 0;
-        const normalizedDy = length > 0 ? dy / length : 0;
 
-        switch (fromPortData?.side) {
-            case 'right':
-                cp1x = fromPort.x + controlOffset;
-                cp1y = fromPort.y;
-                break;
-            case 'left':
-                cp1x = fromPort.x - controlOffset;
-                cp1y = fromPort.y;
-                break;
-            case 'top':
-                cp1x = fromPort.x;
-                cp1y = fromPort.y - controlOffset;
-                break;
-            case 'bottom':
-                cp1x = fromPort.x;
-                cp1y = fromPort.y + controlOffset;
-                break;
-            default:
-                // 相手の方向を考慮したデフォルト制御点
-                cp1x = fromPort.x + normalizedDx * controlOffset;
-                cp1y = fromPort.y + normalizedDy * controlOffset;
-        }
-        
-        // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
-        switch (toPortData?.side) {
-            case 'right':
-                cp2x = toPort.x + controlOffset;
-                cp2y = toPort.y;
-                break;
-            case 'left':
-                cp2x = toPort.x - controlOffset;
-                cp2y = toPort.y;
-                break;
-            case 'top':
-                cp2x = toPort.x;
-                cp2y = toPort.y - controlOffset;
-                break;
-            case 'bottom':
-                cp2x = toPort.x;
-                cp2y = toPort.y + controlOffset;
-                break;
-            default:
-                // 送信元から来る方向を考慮したデフォルト制御点
-                cp2x = toPort.x - normalizedDx * controlOffset;
-                cp2y = toPort.y - normalizedDy * controlOffset;
+        // 同一デバイス内の異なるNIC間接続の場合、視覚的に分かりやすいパスで表示
+        const isLoopConnection = actualFromDevice === actualToDevice && fromPortId !== toPortId;
+
+        if (isLoopConnection) {
+            // ループ接続の場合、デバイスの外側を迂回する大きなカーブを描画
+            const deviceCenterX = actualFromDevice.x + actualFromDevice.width / 2;
+            const deviceCenterY = actualFromDevice.y + actualFromDevice.height / 2;
+            const loopOffset = Math.max(actualFromDevice.width, actualFromDevice.height) * 0.8;
+
+            // デバイスの右側を迂回するパス
+            cp1x = fromPort.x + loopOffset;
+            cp1y = fromPort.y - loopOffset / 2;
+            cp2x = toPort.x + loopOffset;
+            cp2y = toPort.y + loopOffset / 2;
+        } else {
+            // 通常の接続の場合
+            // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
+            const dx = toPort.x - fromPort.x;
+            const dy = toPort.y - fromPort.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const normalizedDx = length > 0 ? dx / length : 0;
+            const normalizedDy = length > 0 ? dy / length : 0;
+
+            switch (fromPortData?.side) {
+                case 'right':
+                    cp1x = fromPort.x + controlOffset;
+                    cp1y = fromPort.y;
+                    break;
+                case 'left':
+                    cp1x = fromPort.x - controlOffset;
+                    cp1y = fromPort.y;
+                    break;
+                case 'top':
+                    cp1x = fromPort.x;
+                    cp1y = fromPort.y - controlOffset;
+                    break;
+                case 'bottom':
+                    cp1x = fromPort.x;
+                    cp1y = fromPort.y + controlOffset;
+                    break;
+                default:
+                    // 相手の方向を考慮したデフォルト制御点
+                    cp1x = fromPort.x + normalizedDx * controlOffset;
+                    cp1y = fromPort.y + normalizedDy * controlOffset;
+            }
+
+            // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
+            switch (toPortData?.side) {
+                case 'right':
+                    cp2x = toPort.x + controlOffset;
+                    cp2y = toPort.y;
+                    break;
+                case 'left':
+                    cp2x = toPort.x - controlOffset;
+                    cp2y = toPort.y;
+                    break;
+                case 'top':
+                    cp2x = toPort.x;
+                    cp2y = toPort.y - controlOffset;
+                    break;
+                case 'bottom':
+                    cp2x = toPort.x;
+                    cp2y = toPort.y + controlOffset;
+                    break;
+                default:
+                    // 送信元から来る方向を考慮したデフォルト制御点
+                    cp2x = toPort.x - normalizedDx * controlOffset;
+                    cp2y = toPort.y - normalizedDy * controlOffset;
+            }
         }
         
         console.log(`🔍 getConnectionPath: ${fromDevice.name} → ${toDevice.name}`);
@@ -6573,65 +6590,82 @@ class NetworkSimulator {
         
         // 制御点の計算（ポートの向きに応じて適切な方向に設定）
         const controlOffset = 30;
-        
+
         // 送信元ポートの制御点（ポートの向きに応じて外向きに）
         const fromPortData = this.getPortData(fromDevice, fromPortId);
         const toPortData = this.getPortData(toDevice, toPortId);
-        
-        let cp1x, cp1y, cp2x, cp2y;
-        
-        // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
-        const dx = toPort.x - fromPort.x;
-        const dy = toPort.y - fromPort.y;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        const normalizedDx = length > 0 ? dx / length : 0;
-        const normalizedDy = length > 0 ? dy / length : 0;
 
-        switch (fromPortData?.side) {
-            case 'right':
-                cp1x = fromPort.x + controlOffset;
-                cp1y = fromPort.y;
-                break;
-            case 'left':
-                cp1x = fromPort.x - controlOffset;
-                cp1y = fromPort.y;
-                break;
-            case 'top':
-                cp1x = fromPort.x;
-                cp1y = fromPort.y - controlOffset;
-                break;
-            case 'bottom':
-                cp1x = fromPort.x;
-                cp1y = fromPort.y + controlOffset;
-                break;
-            default:
-                // 相手の方向を考慮したデフォルト制御点
-                cp1x = fromPort.x + normalizedDx * controlOffset;
-                cp1y = fromPort.y + normalizedDy * controlOffset;
-        }
-        
-        // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
-        switch (toPortData?.side) {
-            case 'right':
-                cp2x = toPort.x + controlOffset;
-                cp2y = toPort.y;
-                break;
-            case 'left':
-                cp2x = toPort.x - controlOffset;
-                cp2y = toPort.y;
-                break;
-            case 'top':
-                cp2x = toPort.x;
-                cp2y = toPort.y - controlOffset;
-                break;
-            case 'bottom':
-                cp2x = toPort.x;
-                cp2y = toPort.y + controlOffset;
-                break;
-            default:
-                // 送信元から来る方向を考慮したデフォルト制御点
-                cp2x = toPort.x - normalizedDx * controlOffset;
-                cp2y = toPort.y - normalizedDy * controlOffset;
+        let cp1x, cp1y, cp2x, cp2y;
+
+        // 同一デバイス内の異なるNIC間接続の場合、視覚的に分かりやすいパスで表示
+        const isLoopConnection = fromDevice === toDevice && fromPortId !== toPortId;
+
+        if (isLoopConnection) {
+            // ループ接続の場合、デバイスの外側を迂回する大きなカーブを描画
+            const deviceCenterX = fromDevice.x + fromDevice.width / 2;
+            const deviceCenterY = fromDevice.y + fromDevice.height / 2;
+            const loopOffset = Math.max(fromDevice.width, fromDevice.height) * 0.8;
+
+            // デバイスの右側を迂回するパス
+            cp1x = fromPort.x + loopOffset;
+            cp1y = fromPort.y - loopOffset / 2;
+            cp2x = toPort.x + loopOffset;
+            cp2y = toPort.y + loopOffset / 2;
+        } else {
+            // 通常の接続の場合
+            // 送信元ポートの制御点を側面に応じて設定（相手に向かう方向）
+            const dx = toPort.x - fromPort.x;
+            const dy = toPort.y - fromPort.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const normalizedDx = length > 0 ? dx / length : 0;
+            const normalizedDy = length > 0 ? dy / length : 0;
+
+            switch (fromPortData?.side) {
+                case 'right':
+                    cp1x = fromPort.x + controlOffset;
+                    cp1y = fromPort.y;
+                    break;
+                case 'left':
+                    cp1x = fromPort.x - controlOffset;
+                    cp1y = fromPort.y;
+                    break;
+                case 'top':
+                    cp1x = fromPort.x;
+                    cp1y = fromPort.y - controlOffset;
+                    break;
+                case 'bottom':
+                    cp1x = fromPort.x;
+                    cp1y = fromPort.y + controlOffset;
+                    break;
+                default:
+                    // 相手の方向を考慮したデフォルト制御点
+                    cp1x = fromPort.x + normalizedDx * controlOffset;
+                    cp1y = fromPort.y + normalizedDy * controlOffset;
+            }
+
+            // 宛先ポートの制御点を側面に応じて設定（送信元から来る方向）
+            switch (toPortData?.side) {
+                case 'right':
+                    cp2x = toPort.x + controlOffset;
+                    cp2y = toPort.y;
+                    break;
+                case 'left':
+                    cp2x = toPort.x - controlOffset;
+                    cp2y = toPort.y;
+                    break;
+                case 'top':
+                    cp2x = toPort.x;
+                    cp2y = toPort.y - controlOffset;
+                    break;
+                case 'bottom':
+                    cp2x = toPort.x;
+                    cp2y = toPort.y + controlOffset;
+                    break;
+                default:
+                    // 送信元から来る方向を考慮したデフォルト制御点
+                    cp2x = toPort.x - normalizedDx * controlOffset;
+                    cp2y = toPort.y - normalizedDy * controlOffset;
+            }
         }
         
         this.ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, toPort.x, toPort.y);
