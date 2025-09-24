@@ -88,12 +88,16 @@ function setupTCPEventListeners(simulator) {
         const remoteDevice = data.session.connection.remoteDevice;
         simulator.updateStatus(`HTTP通信開始: ${localDevice.name || localDevice.id} → ${remoteDevice.name || remoteDevice.id}`);
         
-        // HTTPリクエストアニメーション（TCP表示がOFFでも表示）
-        console.log('🌐 HTTPリクエストアニメーション開始');
-        if (window.animateHTTPMessage) {
-            window.animateHTTPMessage(simulator, localDevice, remoteDevice, 'request');
+        // HTTPリクエストアニメーション（TCP表示がOFFの場合のみ表示）
+        if (window.showTCPPackets === false) {
+            console.log('🌐 HTTPリクエストアニメーション開始（TCP非表示モード）');
+            if (window.animateHTTPMessage) {
+                window.animateHTTPMessage(simulator, localDevice, remoteDevice, 'request');
+            } else {
+                console.warn('⚠️ animateHTTPMessage関数が見つかりません');
+            }
         } else {
-            console.warn('⚠️ animateHTTPMessage関数が見つかりません');
+            console.log('🔧 TCP表示ONのため、HTTPアニメーションをスキップ（TCP層で表示）');
         }
     });
     
@@ -105,19 +109,19 @@ function setupTCPEventListeners(simulator) {
         console.log('data.session exists:', !!data.session);
         console.log('data.session.connection exists:', !!(data.session && data.session.connection));
 
-        // HTTPレスポンスアニメーション（TCP表示がOFFでも表示）
-        if (window.animateHTTPMessage && data.session && data.session.connection) {
-            const localDevice = data.session.connection.localDevice;
-            const remoteDevice = data.session.connection.remoteDevice;
-            console.log('Animation devices - local:', localDevice?.name, 'remote:', remoteDevice?.name);
-            // サーバー → クライアント
-            window.animateHTTPMessage(simulator, remoteDevice, localDevice, 'response');
+        // HTTPレスポンスアニメーション（TCP表示がOFFの場合のみ表示）
+        if (window.showTCPPackets === false) {
+            if (window.animateHTTPMessage && data.session && data.session.connection) {
+                const localDevice = data.session.connection.localDevice;
+                const remoteDevice = data.session.connection.remoteDevice;
+                console.log('Animation devices - local:', localDevice?.name, 'remote:', remoteDevice?.name);
+                // サーバー → クライアント
+                window.animateHTTPMessage(simulator, remoteDevice, localDevice, 'response');
+            } else {
+                console.warn('⚠️ animateHTTPMessage関数またはセッション情報が見つかりません');
+            }
         } else {
-            console.warn('⚠️ animateHTTPMessage関数またはセッション情報が見つかりません');
-            console.warn('Details:');
-            console.warn('- animateHTTPMessage:', !!window.animateHTTPMessage);
-            console.warn('- data.session:', !!data.session);
-            console.warn('- data.session.connection:', !!(data.session && data.session.connection));
+            console.log('🔧 TCP表示ONのため、HTTPレスポンスアニメーションをスキップ（TCP層で表示）');
         }
     });
     

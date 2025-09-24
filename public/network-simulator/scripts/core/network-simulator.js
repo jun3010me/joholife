@@ -6494,8 +6494,8 @@ class NetworkSimulator {
         // デバイスを描画
         this.drawDevices();
         
-        // ペンディングデバイスを描画
-        if (this.pendingDevice) {
+        // ペンディングデバイスを描画（マップに追加されていない場合のみ）
+        if (this.pendingDevice && !this.devices.has(this.pendingDevice.id)) {
             this.drawDevice(this.pendingDevice);
         }
         
