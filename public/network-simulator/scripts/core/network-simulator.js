@@ -20,6 +20,12 @@ class NetworkSimulator {
         this.isPanning = false;
         this.lastPanPoint = null;
         this.touches = [];
+
+        // ユーザーインタラクション追跡（振動機能用）
+        this.userHasInteracted = false;
+
+        // ページレベルでの最初のユーザーインタラクションを検知
+        this.setupUserInteractionTracking();
         this.lastPinchDistance = null;
         this.lastPinchCenter = null;
         this.touchStartTime = 0;
@@ -216,6 +222,9 @@ class NetworkSimulator {
         // デバイスドラッグを有効化（横スクロールと競合しないよう調整）
         console.log('Setting up device drag handlers for all environments');
         
+        // デスクトップ環境では画面サイズに関係なくマウス操作を確保
+        const isDesktopMouse = !isTouchDevice || window.innerWidth >= 1024;
+
         // 論理回路シミュレータのアプローチを採用：パレット全体でタッチ処理
         if (isNarrowScreen) {
             console.log('🍎 Narrow screen: Setting up palette-level touch handling');
@@ -270,8 +279,16 @@ class NetworkSimulator {
                 console.error('❌ PaletteContent not found! Cannot add touch listeners');
             }
             
-            // 狭い画面では個別アイテムのイベントは追加しない（パレット全体で処理）
-            console.log('🚫 Narrow screen: No individual item handlers (handled by palette)');
+            // 狭い画面でもデスクトップマウス環境なら個別アイテムハンドラーを設定
+            if (isDesktopMouse) {
+                console.log('🖱️ Desktop mouse detected: Adding individual item handlers despite narrow screen');
+                items.forEach((item, index) => {
+                    console.log(`🔧 Setting up item ${index}: ${item.dataset.deviceType}`);
+                    item.addEventListener('mousedown', this.startDeviceDrag.bind(this));
+                });
+            } else {
+                console.log('🚫 Pure mobile: No individual item handlers (handled by palette)');
+            }
         } else {
             console.log('🖥️ Wide screen: Setting up individual item handling');
             console.log(`📋 Found ${items.length} device items to setup`);
@@ -444,12 +461,42 @@ class NetworkSimulator {
         this.setupGlobalTouchHandlers();
         console.log('✅ Global touch handlers set up for touch drag');
         
-        // バイブレーション
-        if (navigator.vibrate) {
-            navigator.vibrate(30);
-        }
+        // バイブレーション（安全に実行）
+        this.safeVibrate(30);
     }
 
+
+    // ユーザーインタラクション検知の設定
+    setupUserInteractionTracking() {
+        const events = ['touchstart', 'touchend', 'mousedown', 'mouseup', 'click'];
+        const trackInteraction = (e) => {
+            this.userHasInteracted = true;
+            console.log('ユーザーインタラクションを検知しました');
+            // イベントリスナーを一度だけ実行するため削除
+            events.forEach(event => {
+                document.removeEventListener(event, trackInteraction, true);
+            });
+        };
+
+        // すべてのユーザーインタラクションイベントをキャプチャフェーズで監視
+        // ただし、イベントの進行は妨げない（preventDefault しない）
+        events.forEach(event => {
+            document.addEventListener(event, trackInteraction, true);
+        });
+    }
+
+    // 安全な振動機能（ユーザーインタラクション後のみ実行）
+    safeVibrate(duration) {
+        try {
+            if (this.userHasInteracted && navigator.vibrate && typeof navigator.vibrate === 'function') {
+                navigator.vibrate(duration);
+            } else if (!this.userHasInteracted) {
+                console.log('振動スキップ: ユーザーインタラクション待ち');
+            }
+        } catch (error) {
+            console.warn('振動機能の実行に失敗しました:', error);
+        }
+    }
 
     // スマート動作判定デバイスドラッグ（タップ後の動きで判定）
     startDeviceDragDelayed(e) {
@@ -686,10 +733,8 @@ class NetworkSimulator {
             // 長押し成功時にデバイスを直接作成
             this.createDeviceFromLongPress(deviceType, startX, startY);
             
-            // 視覚的フィードバック（バイブレーション）
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            // 視覚的フィードバック（バイブレーション、安全に実行）
+            this.safeVibrate(50);
         }, 200);
         console.log('Long press timer set with ID:', this.longPressTimer);
         
@@ -1342,7 +1387,7 @@ class NetworkSimulator {
     createDevice(deviceType, x, y) {
         const id = `${deviceType}-${Date.now()}`;
         const deviceCount = Array.from(this.devices.values()).filter(d => d.type === deviceType).length + 1;
-        
+
         return {
             id,
             type: deviceType,
@@ -1351,7 +1396,7 @@ class NetworkSimulator {
             y: y,
             width: 80,
             height: deviceType === 'router' ? 75 : 70, // ルーターのみ5px高く
-            config: {
+            config: deviceType === 'internet' ? this.createInternetConfig(deviceCount) : {
                 ipAddress: deviceType === 'onu' ? '' : this.getDefaultIP(deviceType, deviceCount), // ONUはIPアドレスなし
                 subnetMask: deviceType === 'onu' ? '' : '255.255.255.0', // ONUはサブネットマスクなし
                 defaultGateway: deviceType === 'onu' ? '' : '192.168.1.1', // ONUはゲートウェイなし
@@ -1396,9 +1441,98 @@ class NetworkSimulator {
             } : undefined,
             zIndex: this.nextZIndex++,
             ports: this.getDevicePorts(deviceType)
+            // インターネットデバイスは新しいISP方式を使うため、従来のglobalIPPoolは不要
         };
     }
-    
+
+    // インターネットデバイス用の設定を作成
+    createInternetConfig(deviceCount) {
+        return {
+            // インターネットデバイスはDHCPサーバーとしてのみ機能（クライアントとしては機能しない）
+            ipAddress: '', // インターネットデバイスはIPアドレス不要
+            subnetMask: '',
+            defaultGateway: '',
+            dhcpEnabled: false, // インターネットデバイス自体はDHCPクライアントではない
+
+            // ISP1-6のDHCPサーバー設定（全て同一セグメント）
+            isp1: {
+                dhcpEnabled: true,
+                name: 'ISP1',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1', // ISP1のゲートウェイIP
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.10',
+                dhcpPoolEnd: '203.0.113.50',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+            isp2: {
+                dhcpEnabled: true,
+                name: 'ISP2',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1', // 同じセグメント
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.51',
+                dhcpPoolEnd: '203.0.113.90',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+            isp3: {
+                dhcpEnabled: true,
+                name: 'ISP3',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1',
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.91',
+                dhcpPoolEnd: '203.0.113.130',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+            isp4: {
+                dhcpEnabled: true,
+                name: 'ISP4',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1',
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.131',
+                dhcpPoolEnd: '203.0.113.170',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+            isp5: {
+                dhcpEnabled: true,
+                name: 'ISP5',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1',
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.171',
+                dhcpPoolEnd: '203.0.113.210',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+            isp6: {
+                dhcpEnabled: true,
+                name: 'ISP6',
+                network: '203.0.113.0',
+                ipAddress: '203.0.113.1',
+                subnetMask: '255.255.255.0',
+                dhcpPoolStart: '203.0.113.211',
+                dhcpPoolEnd: '203.0.113.250',
+                dhcpAllocatedIPs: new Map(),
+                gateway: '203.0.113.1'
+            },
+
+            // DHCP共通設定
+            dhcpLeaseTime: 3600,
+
+            // 後方互換性のため既存の設定も維持（isp1をデフォルトとして使用）
+            dhcpServerEnabled: true,
+            dhcpPoolStart: '203.0.113.10',
+            dhcpPoolEnd: '203.0.113.250',
+            dhcpAllocatedIPs: new Map()
+        };
+    }
+
     // 実際のデバイスドラッグ開始（狭い画面用）
     startActualDeviceDrag(deviceType, event) {
         console.log('startActualDeviceDrag called with:', deviceType);
@@ -2258,9 +2392,41 @@ class NetworkSimulator {
         // LAN側DHCP処理: PC/サーバー等がルーターのLANポートに接続された場合
         this.checkAndAssignLANIP(connection);
 
+        // インターネット側DHCP処理: PC/サーバー等がONU経由でインターネットに接続された場合
+        this.checkAndAssignInternetDHCP(connection);
+
         // 接続開始状態をクリア
         this.connectionStart = null;
         this.scheduleRender();
+    }
+
+    // インターネット側DHCP処理（PC ↔ ONU接続時の自動グローバルIP割り当て）
+    checkAndAssignInternetDHCP(connection) {
+        const fromDevice = connection.from.device;
+        const toDevice = connection.to.device;
+
+        let clientDevice = null;
+
+        // PC/サーバーがONUに接続された場合をチェック
+        if ((fromDevice.type === 'pc' || fromDevice.type === 'server') && toDevice.type === 'onu') {
+            clientDevice = fromDevice;
+        } else if ((toDevice.type === 'pc' || toDevice.type === 'server') && fromDevice.type === 'onu') {
+            clientDevice = toDevice;
+        }
+
+        if (clientDevice) {
+            console.log(`🌐 インターネット側DHCP処理開始: ${clientDevice.name}`);
+
+            // インターネット接続を確認してグローバルIP自動割り当て
+            const success = this.checkAndAssignInternetIP(clientDevice);
+
+            if (success) {
+                console.log(`✅ ${clientDevice.name} に自動的にグローバルIPを割り当て完了`);
+                this.updateStatus(`${clientDevice.name} にグローバルIPアドレスが自動割り当てされました`);
+            } else {
+                console.log(`❌ ${clientDevice.name} のグローバルIP自動割り当てに失敗`);
+            }
+        }
     }
 
     // スイッチ関連接続の処理（スイッチ経由でのDHCP対応）
@@ -2507,8 +2673,8 @@ class NetworkSimulator {
                     if (otherDevice.wanConfig && otherDevice.wanConfig.dhcpEnabled) {
                         console.log('🌐 ONU経由でのWAN IP割り当て開始:', otherDevice.name);
                         
-                        // グローバルIPを割り当て
-                        const globalIP = this.assignGlobalIP(otherDevice, internetDevice);
+                        // グローバルIPを割り当て（ISP1から順に試す）
+                        const globalIP = this.assignGlobalIP(otherDevice, internetDevice, 'isp1');
                         if (globalIP) {
                             // WAN設定を更新
                             if (!otherDevice.wanConfig) {
@@ -2544,8 +2710,8 @@ class NetworkSimulator {
                 if (otherDevice.config && otherDevice.config.dhcpEnabled) {
                     console.log('🌐 ONU経由でのデバイス IP割り当て開始:', otherDevice.name, '(' + otherDevice.type + ')');
                     
-                    // グローバルIPを割り当て
-                    const globalIP = this.assignGlobalIP(otherDevice, internetDevice);
+                    // グローバルIPを割り当て（ISP1から順に試す）
+                    const globalIP = this.assignGlobalIP(otherDevice, internetDevice, 'isp1');
                     if (globalIP) {
                         // 設定を更新
                         otherDevice.config.ipAddress = globalIP.ip;
@@ -2766,7 +2932,7 @@ class NetworkSimulator {
                 targetDevice.config.dhcpEnabled;
             console.log('🔍 インターネット接続検出:', targetDevice.name, 'DHCP:', dhcpEnabled, 'isWAN:', isWANConnection);
             console.log('🔍 WAN設定確認:', targetDevice.wanConfig);
-            const globalIP = this.assignGlobalIP(targetDevice, internet);
+            const globalIP = this.assignGlobalIP(targetDevice, internet, 'isp1');
             console.log('🔍 割り当てられたグローバルIP:', globalIP);
             
             if (globalIP) {
@@ -2829,9 +2995,14 @@ class NetworkSimulator {
         }
     }
 
-    // グローバルIP割り当て
-    assignGlobalIP(router, internet) {
-        // インターネットデバイスから利用可能なグローバルIPを取得
+    // グローバルIP割り当て（ISP別対応）
+    assignGlobalIP(device, internet, preferredISP = null) {
+        // インターネットデバイスのtype確認と新しいISP設定がある場合は新しい方式
+        if (internet.type === 'internet' && internet.config && internet.config.isp1) {
+            return this.assignGlobalIPFromISP(device, internet, preferredISP);
+        }
+
+        // 従来のグローバルIPプール方式（後方互換性）
         if (!internet.globalIPPool) {
             // グローバルIPプールを初期化（テスト用IP範囲を使用）
             internet.globalIPPool = {
@@ -2842,9 +3013,9 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             };
         }
-        
+
         const pool = internet.globalIPPool;
-        
+
         // 利用可能なIPアドレスを検索
         for (let i = pool.startIP; i <= pool.endIP; i++) {
             const candidateIP = `203.0.113.${i}`;
@@ -2853,12 +3024,72 @@ class NetworkSimulator {
                 return {
                     ip: candidateIP,
                     gateway: pool.gateway,
-                    network: pool.network
+                    network: pool.network,
+                    isp: 'default'
                 };
             }
         }
-        
+
         console.warn('グローバルIPプールが枯渇しました');
+        return null;
+    }
+
+    // ISP別グローバルIP割り当て
+    assignGlobalIPFromISP(device, internet, preferredISP = null) {
+        const config = internet.config;
+        const isps = ['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'];
+
+        console.log(`🔍 ISP別IP割り当て開始: ${device.name} <- ${internet.name}`);
+        console.log(`🔍 利用可能なISP:`, isps.map(id => `${id}(${config[id]?.dhcpEnabled ? 'ON' : 'OFF'})`).join(', '));
+
+        // 優先ISPが指定されている場合はそのISPから先に試す
+        let searchOrder = isps.slice();
+        if (preferredISP && isps.includes(preferredISP)) {
+            searchOrder = [preferredISP, ...isps.filter(isp => isp !== preferredISP)];
+        }
+
+        // ISP別にIP割り当てを試行
+        for (const ispId of searchOrder) {
+            const isp = config[ispId];
+            if (!isp || !isp.dhcpEnabled) continue;
+
+            // IPアドレス範囲をパース
+            const startOctets = isp.dhcpPoolStart.split('.');
+            const endOctets = isp.dhcpPoolEnd.split('.');
+            const startLastOctet = parseInt(startOctets[3]);
+            const endLastOctet = parseInt(endOctets[3]);
+            const networkBase = startOctets.slice(0, 3).join('.');
+
+            // dhcpAllocatedIPsがMapでない場合は新しいMapを作成
+            if (!(isp.dhcpAllocatedIPs instanceof Map)) {
+                console.log(`⚠️  ${ispId}のdhcpAllocatedIPsをMapに変換中...`);
+                isp.dhcpAllocatedIPs = new Map();
+            }
+
+            // 利用可能なIPアドレスを検索
+            for (let i = startLastOctet; i <= endLastOctet; i++) {
+                const candidateIP = `${networkBase}.${i}`;
+                if (!isp.dhcpAllocatedIPs.has(candidateIP)) {
+                    isp.dhcpAllocatedIPs.set(candidateIP, {
+                        device: device,
+                        assignedAt: new Date(),
+                        leaseTime: config.dhcpLeaseTime
+                    });
+
+                    console.log(`✅ ${ispId.toUpperCase()}からグローバルIP割り当て:`, candidateIP, 'to', device.name);
+                    return {
+                        ip: candidateIP,
+                        gateway: isp.gateway,
+                        network: isp.network,
+                        subnetMask: isp.subnetMask,
+                        isp: ispId,
+                        ispName: isp.name
+                    };
+                }
+            }
+        }
+
+        console.warn('全ISPのグローバルIPプールが枯渇しました');
         return null;
     }
 
@@ -4677,8 +4908,13 @@ class NetworkSimulator {
             if (basicNetworkConfig) {
                 basicNetworkConfig.style.display = 'none';
             }
+        } else if (this.selectedDevice.type === 'internet') {
+            // インターネットデバイスの場合は基本ネットワーク設定を非表示
+            if (basicNetworkConfig) {
+                basicNetworkConfig.style.display = 'none';
+            }
         } else {
-            // ルーター以外の場合は基本ネットワーク設定を表示し、値を設定
+            // その他のデバイス（PC、サーバー、DNS等）の場合は基本ネットワーク設定を表示し、値を設定
             if (basicNetworkConfig) {
                 basicNetworkConfig.style.display = 'block';
             }
@@ -4739,7 +4975,7 @@ class NetworkSimulator {
         if (dnsServerSection && this.selectedDevice.type === 'dns') {
             dnsServerSection.style.display = 'block';
             this.loadDNSTable();
-            
+
             // DNS レコード追加ボタンのイベントリスナー設定
             const addDnsRecordBtn = document.getElementById('add-dns-record');
             addDnsRecordBtn.removeEventListener('click', this.addDNSRecord);
@@ -4748,8 +4984,17 @@ class NetworkSimulator {
             dnsServerSection.style.display = 'none';
         }
 
+        // インターネットデバイス設定（インターネットデバイスのみ表示）
+        const internetIspSection = document.getElementById('internet-isp-section');
+        if (internetIspSection && this.selectedDevice.type === 'internet') {
+            internetIspSection.style.display = 'block';
+            this.loadInternetISPConfig();
+        } else if (internetIspSection) {
+            internetIspSection.style.display = 'none';
+        }
+
         // DHCP有効時はIP設定を無効化（ルーター以外）
-        if (this.selectedDevice.type !== 'router') {
+        if (this.selectedDevice.type !== 'router' && this.selectedDevice.type !== 'internet') {
             this.toggleIPFields(this.selectedDevice.config.dhcpEnabled);
         }
 
@@ -4778,6 +5023,29 @@ class NetworkSimulator {
         
         // ダイアログのドラッグ機能を初期化
         this.initializeDialogDragging('device-config-dialog');
+    }
+
+    // インターネットデバイスのISP設定を読み込み
+    loadInternetISPConfig() {
+        const config = this.selectedDevice.config;
+
+        console.log('🔍 インターネットデバイス設定を読み込み中:', this.selectedDevice.name);
+
+        // ISP1-6の設定を読み込み
+        ['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'].forEach(ispId => {
+            const isp = config[ispId];
+            if (isp) {
+                console.log(`${ispId}: ${isp.dhcpPoolStart} - ${isp.dhcpPoolEnd} (DHCP: ${isp.dhcpEnabled})`);
+                document.getElementById(`${ispId}-dhcp-enabled`).checked = isp.dhcpEnabled;
+                document.getElementById(`${ispId}-pool-start`).value = isp.dhcpPoolStart;
+                document.getElementById(`${ispId}-pool-end`).value = isp.dhcpPoolEnd;
+            } else {
+                console.warn(`${ispId}の設定が見つかりません`);
+            }
+        });
+
+        // 共通設定を読み込み
+        document.getElementById('isp-lease-time').value = config.dhcpLeaseTime || 3600;
     }
 
     // WAN設定読み込み
@@ -6158,8 +6426,12 @@ class NetworkSimulator {
         // 基本設定の更新（全デバイス共通）
         this.currentDeviceConfig.name = name;
 
-        // ルーター以外のデバイスの場合のみ基本ネットワーク設定を処理
-        if (this.currentDeviceConfig.type !== 'router') {
+        // インターネットデバイスの場合はISP設定を処理
+        if (this.currentDeviceConfig.type === 'internet') {
+            this.saveInternetISPConfig();
+        }
+        // ルーター以外かつインターネット以外のデバイスの場合のみ基本ネットワーク設定を処理
+        else if (this.currentDeviceConfig.type !== 'router') {
             const ipAddress = document.getElementById('ip-address').value;
             const subnetMask = document.getElementById('subnet-mask').value;
             const defaultGateway = document.getElementById('default-gateway').value;
@@ -6411,6 +6683,64 @@ class NetworkSimulator {
         this.hideDeviceConfig();
         this.updateStatus(`${name} の設定を更新しました`);
         this.scheduleRender();
+    }
+
+    // インターネットデバイスのISP設定を保存
+    saveInternetISPConfig() {
+        const config = this.currentDeviceConfig.config;
+
+        // ISP1-6の設定を保存
+        ['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'].forEach(ispId => {
+            const isp = config[ispId];
+            if (isp) {
+                // チェックボックスとプール設定を取得
+                const dhcpEnabled = document.getElementById(`${ispId}-dhcp-enabled`).checked;
+                const poolStart = document.getElementById(`${ispId}-pool-start`).value;
+                const poolEnd = document.getElementById(`${ispId}-pool-end`).value;
+
+                // IPアドレス範囲の検証
+                if (dhcpEnabled) {
+                    if (!this.isValidIP(poolStart) || !this.isValidIP(poolEnd)) {
+                        alert(`${ispId.toUpperCase()}のIPプール設定が無効です。有効なIPアドレスを入力してください。`);
+                        return false;
+                    }
+
+                    // 開始IPと終了IPの妥当性チェック
+                    const startOctets = poolStart.split('.').map(n => parseInt(n));
+                    const endOctets = poolEnd.split('.').map(n => parseInt(n));
+
+                    if (startOctets[3] >= endOctets[3]) {
+                        alert(`${ispId.toUpperCase()}のIPプール設定が無効です。開始IPは終了IPより小さくしてください。`);
+                        return false;
+                    }
+                }
+
+                // 設定を更新
+                isp.dhcpEnabled = dhcpEnabled;
+                isp.dhcpPoolStart = poolStart;
+                isp.dhcpPoolEnd = poolEnd;
+
+                // 既存の割り当てをクリア（設定変更時）
+                // dhcpAllocatedIPsがMapでない場合は新しいMapを作成
+                if (!(isp.dhcpAllocatedIPs instanceof Map)) {
+                    isp.dhcpAllocatedIPs = new Map();
+                } else {
+                    isp.dhcpAllocatedIPs.clear();
+                }
+
+                console.log(`✅ ${ispId.toUpperCase()}設定更新:`, {
+                    enabled: dhcpEnabled,
+                    start: poolStart,
+                    end: poolEnd
+                });
+            }
+        });
+
+        // 共通設定を保存
+        const leaseTime = parseInt(document.getElementById('isp-lease-time').value) || 3600;
+        config.dhcpLeaseTime = leaseTime;
+
+        return true;
     }
 
     // IPアドレス検証
@@ -7825,6 +8155,20 @@ class NetworkSimulator {
                         device.dnsTable = { ...deviceData.dnsTable };
                     }
 
+                    // インターネットデバイスのISP設定復元
+                    if (device.type === 'internet' && deviceData.config) {
+                        ['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'].forEach(ispId => {
+                            if (deviceData.config[ispId]) {
+                                device.config[ispId] = { ...deviceData.config[ispId] };
+                                // DHCPアロケーションマップの復元
+                                if (deviceData.config[ispId].dhcpAllocatedIPs) {
+                                    device.config[ispId].dhcpAllocatedIPs = new Map(deviceData.config[ispId].dhcpAllocatedIPs);
+                                }
+                            }
+                        });
+                        console.log('🔧 インターネットデバイスのISP設定を復元:', device.name);
+                    }
+
                     // ポートを復元
                     device.ports.nics.forEach((port, index) => {
                         if (deviceData.ports.nics[index]) {
@@ -8068,11 +8412,11 @@ class NetworkSimulator {
             return false;
         }
 
-        const { internetDevice, onuDevice } = internetConnection;
-        console.log(`インターネット接続発見: ${device.name} -> ${onuDevice.name} -> ${internetDevice.name}`);
+        const { internetDevice, onuDevice, ispPort } = internetConnection;
+        console.log(`インターネット接続発見: ${device.name} -> ${onuDevice.name} -> ${internetDevice.name} (${ispPort})`);
 
-        // 利用可能なグローバルIPを取得
-        const globalIP = this.getAvailableGlobalIP(internetDevice);
+        // 接続されているISPポートを使用してグローバルIPを取得
+        const globalIP = this.getAvailableGlobalIP(internetDevice, ispPort);
 
         if (!globalIP) {
             console.log(`❌ グローバルIP取得失敗: ${device.name} - 利用可能なIPがありません`);
@@ -8107,37 +8451,64 @@ class NetworkSimulator {
         }
     }
 
-    // 利用可能なグローバルIPアドレスを取得（assignGlobalIPと同様のロジック）
-    getAvailableGlobalIP(internetDevice) {
-        // インターネットデバイスのグローバルIPプールを確認
-        if (!internetDevice.globalIPPool) {
-            // グローバルIPプールを初期化
-            internetDevice.globalIPPool = {
-                network: '203.0.113.0',
-                startIP: 10,
-                endIP: 250,
-                assignedIPs: new Set(),
-                gateway: '203.0.113.1'
-            };
+    // 利用可能なグローバルIPアドレスを取得（ISP-based assignment）
+    getAvailableGlobalIP(internetDevice, preferredISP = 'isp1') {
+        console.log(`getAvailableGlobalIP: インターネット ${internetDevice.name} からISP ${preferredISP} でIP取得開始`);
+
+        // インターネットデバイスのISP設定を確認
+        if (!internetDevice.config || !internetDevice.config[preferredISP]) {
+            console.warn(`ISP設定が見つかりません: ${preferredISP}`);
+            return null;
         }
 
-        const pool = internetDevice.globalIPPool;
+        const ispConfig = internetDevice.config[preferredISP];
+
+        // DHCPが有効でない場合は割り当てない
+        if (!ispConfig.dhcpEnabled) {
+            console.log(`ISP ${preferredISP} のDHCPが無効です`);
+            return null;
+        }
+
+        // Map オブジェクトの妥当性チェックと修復
+        if (!ispConfig.dhcpAllocatedIPs || typeof ispConfig.dhcpAllocatedIPs.has !== 'function') {
+            console.log(`ISP ${preferredISP} のMapオブジェクトを修復中...`);
+            ispConfig.dhcpAllocatedIPs = new Map(
+                ispConfig.dhcpAllocatedIPs instanceof Map ? ispConfig.dhcpAllocatedIPs :
+                Array.isArray(ispConfig.dhcpAllocatedIPs) ? ispConfig.dhcpAllocatedIPs :
+                Object.entries(ispConfig.dhcpAllocatedIPs || {})
+            );
+        }
+
+        console.log(`ISP ${preferredISP} のDHCPプール範囲: ${ispConfig.dhcpPoolStart} - ${ispConfig.dhcpPoolEnd}`);
+
+        // IPアドレス範囲をパース（既存のロジックと同様）
+        const startOctets = ispConfig.dhcpPoolStart.split('.');
+        const endOctets = ispConfig.dhcpPoolEnd.split('.');
+        const startLastOctet = parseInt(startOctets[3]);
+        const endLastOctet = parseInt(endOctets[3]);
+        const networkBase = startOctets.slice(0, 3).join('.');
 
         // 利用可能なIPアドレスを検索
-        for (let i = pool.startIP; i <= pool.endIP; i++) {
-            const candidateIP = `203.0.113.${i}`;
-            if (!pool.assignedIPs.has(candidateIP)) {
-                // IPアドレスをプールに追加（実際に割り当て）
-                pool.assignedIPs.add(candidateIP);
+        for (let octet = startLastOctet; octet <= endLastOctet; octet++) {
+            const candidateIP = `${networkBase}.${octet}`;
+
+            if (!ispConfig.dhcpAllocatedIPs.has(candidateIP)) {
+                // IPアドレスを割り当て
+                ispConfig.dhcpAllocatedIPs.set(candidateIP, new Date().toISOString());
+
+                console.log(`ISP ${preferredISP} から ${candidateIP} を割り当て`);
+                console.log(`現在の割り当て済みIP数: ${ispConfig.dhcpAllocatedIPs.size}`);
+
                 return {
                     ip: candidateIP,
-                    gateway: pool.gateway,
-                    network: pool.network
+                    gateway: ispConfig.gateway || '203.0.113.1',
+                    network: ispConfig.network || '203.0.113.0',
+                    isp: preferredISP
                 };
             }
         }
 
-        console.warn('グローバルIPプールが枯渇しました');
+        console.warn(`ISP ${preferredISP} のDHCPプールが枯渇しました`);
         return null;
     }
 
@@ -8155,9 +8526,10 @@ class NetworkSimulator {
 
             if (onuDevice) {
                 // ONUのインターネット接続をチェック
-                const internetDevice = this.getONUInternetConnection(onuDevice);
-                if (internetDevice) {
-                    return { internetDevice, onuDevice };
+                const internetConnection = this.getONUInternetConnection(onuDevice);
+                if (internetConnection) {
+                    const { internetDevice, ispPort } = internetConnection;
+                    return { internetDevice, onuDevice, ispPort };
                 }
             }
         }
@@ -8165,19 +8537,23 @@ class NetworkSimulator {
         return null;
     }
 
-    // ONUのインターネット接続を取得
+    // ONUのインターネット接続を取得（ISPポート情報も含む）
     getONUInternetConnection(onuDevice) {
         for (const connection of this.connections) {
             let internetDevice = null;
+            let ispPort = null;
 
             if (connection.from.device === onuDevice && connection.to.device.type === 'internet') {
                 internetDevice = connection.to.device;
+                ispPort = connection.to.port?.id; // インターネット側のポートID
             } else if (connection.to.device === onuDevice && connection.from.device.type === 'internet') {
                 internetDevice = connection.from.device;
+                ispPort = connection.from.port?.id; // インターネット側のポートID
             }
 
-            if (internetDevice) {
-                return internetDevice;
+            if (internetDevice && ispPort) {
+                console.log(`🔍 ONU ${onuDevice.name} がインターネット ${internetDevice.name} の ${ispPort} に接続`);
+                return { internetDevice, ispPort };
             }
         }
 
@@ -8447,6 +8823,20 @@ class NetworkSimulator {
                     // DNSテーブルの復元（DNSサーバー用）
                     if (deviceData.dnsTable) {
                         device.dnsTable = { ...deviceData.dnsTable };
+                    }
+
+                    // インターネットデバイスのISP設定復元
+                    if (device.type === 'internet' && deviceData.config) {
+                        ['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'].forEach(ispId => {
+                            if (deviceData.config[ispId]) {
+                                device.config[ispId] = { ...deviceData.config[ispId] };
+                                // DHCPアロケーションマップの復元
+                                if (deviceData.config[ispId].dhcpAllocatedIPs) {
+                                    device.config[ispId].dhcpAllocatedIPs = new Map(deviceData.config[ispId].dhcpAllocatedIPs);
+                                }
+                            }
+                        });
+                        console.log('🔧 インターネットデバイスのISP設定を復元:', device.name);
                     }
 
                     // ポートを復元

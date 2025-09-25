@@ -186,6 +186,152 @@
             </div>
         </div>
 
+        <!-- インターネット専用のISP DHCP設定 -->
+        <div id="internet-isp-section" style="display: none;">
+            <hr style="margin: 16px 0; border: none; border-top: 1px solid #ddd;">
+            <h4 style="margin-bottom: 16px; color: #333;">ISP DHCPサーバー設定</h4>
+            <p style="margin-bottom: 16px; color: #666; font-size: 14px;">
+                このインターネットデバイスは6つのISPを提供し、すべて同一セグメント（203.0.113.0/24）のグローバルIPアドレスを配布します。
+            </p>
+
+            <!-- ISP1 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP1</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp1-dhcp-enabled" style="margin-right: 8px;">
+                            ISP1 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp1-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp1-pool-start" placeholder="203.0.113.10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp1-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp1-pool-end" placeholder="203.0.113.50">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP2 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP2</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp2-dhcp-enabled" style="margin-right: 8px;">
+                            ISP2 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp2-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp2-pool-start" placeholder="203.0.113.51">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp2-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp2-pool-end" placeholder="203.0.113.90">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP3 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP3</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp3-dhcp-enabled" style="margin-right: 8px;">
+                            ISP3 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp3-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp3-pool-start" placeholder="203.0.113.91">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp3-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp3-pool-end" placeholder="203.0.113.130">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP4 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP4</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp4-dhcp-enabled" style="margin-right: 8px;">
+                            ISP4 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp4-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp4-pool-start" placeholder="203.0.113.131">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp4-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp4-pool-end" placeholder="203.0.113.170">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP5 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP5</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp5-dhcp-enabled" style="margin-right: 8px;">
+                            ISP5 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp5-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp5-pool-start" placeholder="203.0.113.171">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp5-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp5-pool-end" placeholder="203.0.113.210">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISP6 設定 -->
+            <div class="isp-section">
+                <div class="isp-section-header">ISP6</div>
+                <div class="isp-section-content">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="isp6-dhcp-enabled" style="margin-right: 8px;">
+                            ISP6 DHCPサーバーを有効にする
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp6-pool-start">IPプール開始アドレス</label>
+                        <input type="text" class="form-input" id="isp6-pool-start" placeholder="203.0.113.211">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="isp6-pool-end">IPプール終了アドレス</label>
+                        <input type="text" class="form-input" id="isp6-pool-end" placeholder="203.0.113.250">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 共通設定 -->
+            <div class="form-group" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;">
+                <label class="form-label" for="isp-lease-time">DHCPリース時間（秒）</label>
+                <input type="number" class="form-input" id="isp-lease-time" placeholder="3600" value="3600">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">共通ゲートウェイ: 203.0.113.1</label>
+                <label class="form-label">サブネットマスク: 255.255.255.0</label>
+            </div>
+        </div>
+
         <div class="dialog-buttons">
             <button class="dialog-button secondary" id="cancel-btn">キャンセル</button>
             <button class="dialog-button primary" id="save-btn">保存</button>
