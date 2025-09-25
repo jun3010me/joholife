@@ -1240,8 +1240,8 @@ class QuizSession {
     `;
 
     // Generate certificate after DOM is ready
-    setTimeout(() => {
-      this.generateCertificate();
+    setTimeout(async () => {
+      await this.generateCertificate();
       
       const downloadButton = document.getElementById('download-certificate-button');
       if (downloadButton) {
@@ -1271,7 +1271,7 @@ class QuizSession {
     }, 0);
   }
 
-  generateCertificate() {
+  async generateCertificate() {
     const canvas = document.getElementById('certificate-canvas');
     if (!canvas) return;
 
@@ -1343,8 +1343,8 @@ class QuizSession {
     ctx.fillText('じょうほうらいふ', width / 2, 520);
 
     // --- なりすまし防止情報 ---
-    // 追跡情報を収集
-    const trackingInfo = this.generateTrackingInfo();
+    // 追跡情報を収集（非同期対応）
+    const trackingInfo = await this.generateTrackingInfo();
 
     // 下端に追跡情報を小さく表示（黄色で見やすく）
     ctx.font = '10px monospace';
@@ -1400,7 +1400,7 @@ class QuizSession {
     document.body.removeChild(link);
   }
 
-  generateTrackingInfo() {
+  async generateTrackingInfo() {
     const now = new Date();
 
     // IPアドレス取得（非同期だが、できる限り試行）
@@ -1423,8 +1423,8 @@ class QuizSession {
       this.sessionId = this.generateSessionId();
     }
 
-    // 端末識別コード（ブラウザフィンガープリントのみ）
-    const deviceUserHash = this.generateDeviceUserHash(this.userName);
+    // 端末識別コード（強化されたブラウザフィンガープリント使用）
+    const deviceUserHash = await this.generateDeviceUserHash(this.userName);
 
     return {
       timestamp: now.toLocaleString('ja-JP', {
@@ -1455,10 +1455,10 @@ class QuizSession {
     return this.generateHash(input).substr(0, 6).toUpperCase();
   }
 
-  getOrCreateDeviceId() {
+  async getOrCreateDeviceId() {
     // この古いメソッドは廃止予定 - generateDeviceUserHashを使用してください
     console.warn('getOrCreateDeviceId()は廃止予定です。generateDeviceUserHashを使用してください。');
-    return this.generateDeviceUserHash(this.userName || 'unknown');
+    return await this.generateDeviceUserHash(this.userName || 'unknown');
   }
 
   generateMinimalBrowserFingerprint() {
@@ -1478,7 +1478,48 @@ class QuizSession {
     return JSON.stringify(minimalData);
   }
 
-  generateDeviceUserHash(userName) {
+  generateEnhancedBrowserFingerprint() {
+    // 強力なブラウザフィンガープリント（既存のメソッドを組み合わせ）
+    const enhancedData = {
+      // 基本情報（全体を取得）
+      userAgent: navigator.userAgent || 'unknown',
+      language: navigator.language || 'unknown',
+      languages: (navigator.languages || []).join(','),
+      platform: navigator.platform || 'unknown',
+      cookieEnabled: navigator.cookieEnabled,
+      doNotTrack: navigator.doNotTrack,
+
+      // 画面情報（詳細）
+      screenResolution: `${screen.width}x${screen.height}`,
+      availScreenResolution: `${screen.availWidth}x${screen.availHeight}`,
+      colorDepth: screen.colorDepth || 'unknown',
+      pixelDepth: screen.pixelDepth || 'unknown',
+
+      // タイムゾーンと時刻
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown',
+      timezoneOffset: new Date().getTimezoneOffset(),
+
+      // Canvas, WebGL, Audio フィンガープリント
+      canvasFingerprint: this.generateCanvasFingerprint(),
+      webglFingerprint: this.generateWebGLFingerprint(),
+      audioFingerprint: this.generateAudioFingerprint(),
+
+      // プラグイン情報
+      plugins: this.getPluginsList(),
+
+      // 追加のブラウザ情報
+      hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+      deviceMemory: navigator.deviceMemory || 'unknown',
+      connection: navigator.connection ? {
+        effectiveType: navigator.connection.effectiveType,
+        downlink: navigator.connection.downlink
+      } : 'unknown'
+    };
+
+    return JSON.stringify(enhancedData);
+  }
+
+  async generateDeviceUserHash(userName) {
     // 名前が提供されていない場合は空文字を使用
     const cleanUserName = (userName || '').trim();
 
@@ -1487,17 +1528,32 @@ class QuizSession {
       return 'NO-NAME-PROVIDED';
     }
 
-    // 最小限のブラウザフィンガープリント + 名前で一意性を確保
-    const minimalFingerprint = this.generateMinimalBrowserFingerprint();
-    const combinedData = `${cleanUserName}|${minimalFingerprint}`;
+    // localStorage キーを生成（名前ごとに識別コードを保存）
+    const storageKey = `joholife_device_hash_${cleanUserName}`;
 
-    // ハッシュ化して8文字の識別コードを生成
-    const deviceUserHash = this.generateHash(combinedData).substr(0, 8).toUpperCase();
+    // localStorage から既存の識別コードを取得
+    const existingHash = localStorage.getItem(storageKey);
+    if (existingHash) {
+      console.log('端末識別コード（localStorage から取得）:', existingHash);
+      return existingHash;
+    }
 
-    console.log('端末識別コード生成:', {
+    // 新規生成の場合は、永続的な基準を使用（セッションID除去）
+    // 強力なブラウザフィンガープリント + 名前で一意性を確保
+    const enhancedFingerprint = this.generateEnhancedBrowserFingerprint();
+    const combinedData = `${cleanUserName}|${enhancedFingerprint}`;
+
+    // SHA-256ハッシュ化して12文字の識別コードを生成
+    const deviceUserHash = (await this.generateSHA256Hash(combinedData)).substr(0, 12).toUpperCase();
+
+    // localStorage に永続保存
+    localStorage.setItem(storageKey, deviceUserHash);
+
+    console.log('端末識別コード生成（新規作成・永続保存）:', {
       userName: cleanUserName,
-      fingerprint: minimalFingerprint.substring(0, 100) + '...',
-      result: deviceUserHash
+      fingerprint: enhancedFingerprint.substring(0, 100) + '...',
+      result: deviceUserHash,
+      persistent: true
     });
 
     return deviceUserHash;
@@ -1512,6 +1568,35 @@ class QuizSession {
       console.log('旧式端末識別データを削除:', legacyDeviceId);
       localStorage.removeItem(LEGACY_DEVICE_ID_KEY);
     }
+  }
+
+  clearDeviceHashForUser(userName) {
+    // 特定ユーザーの端末識別コードを削除（デバッグ用）
+    const cleanUserName = (userName || '').trim();
+    if (!cleanUserName) return;
+
+    const storageKey = `joholife_device_hash_${cleanUserName}`;
+    const existingHash = localStorage.getItem(storageKey);
+
+    if (existingHash) {
+      localStorage.removeItem(storageKey);
+      console.log(`端末識別コードを削除しました: ${cleanUserName} -> ${existingHash}`);
+    }
+  }
+
+  clearAllDeviceHashes() {
+    // 全ての端末識別コードを削除（デバッグ用）
+    const keys = Object.keys(localStorage);
+    let removedCount = 0;
+
+    keys.forEach(key => {
+      if (key.startsWith('joholife_device_hash_')) {
+        localStorage.removeItem(key);
+        removedCount++;
+      }
+    });
+
+    console.log(`${removedCount}個の端末識別コードを削除しました`);
   }
 
   async tryGetIPAddress() {
@@ -1706,7 +1791,7 @@ class QuizSession {
   }
 
   generateHash(input) {
-    // 改良されたハッシュ関数
+    // 改良されたハッシュ関数（旧式）
     let hash = 0;
     if (input.length === 0) return hash.toString();
 
@@ -1714,6 +1799,35 @@ class QuizSession {
       const char = input.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // 32bit integer
+    }
+    return Math.abs(hash).toString(16);
+  }
+
+  async generateSHA256Hash(input) {
+    // SHA-256ハッシュ関数（Web Crypto API使用）
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(input);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    } catch (error) {
+      console.warn('SHA-256ハッシュ生成に失敗、フォールバック:', error);
+      // フォールバック: 改良されたシンプルハッシュ
+      return this.generateEnhancedHash(input);
+    }
+  }
+
+  generateEnhancedHash(input) {
+    // 改良されたシンプルハッシュ（SHA-256が利用できない場合のフォールバック）
+    let hash = 0x811c9dc5; // FNV offset basis
+    if (input.length === 0) return hash.toString(16);
+
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash ^= char;
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
     return Math.abs(hash).toString(16);
   }
