@@ -2709,9 +2709,13 @@ class NetworkSimulator {
                 // DHCPが有効な場合、直接IP割り当てを実行
                 if (otherDevice.config && otherDevice.config.dhcpEnabled) {
                     console.log('🌐 ONU経由でのデバイス IP割り当て開始:', otherDevice.name, '(' + otherDevice.type + ')');
-                    
-                    // グローバルIPを割り当て（ISP1から順に試す）
-                    const globalIP = this.assignGlobalIP(otherDevice, internetDevice, 'isp1');
+
+                    // ONU → インターネット接続のISPポートを判定
+                    const onuToInternetISP = this.detectONUInternetISP(onuDevice, internetDevice);
+                    console.log('🔍 ONU経由のISP判定結果:', onuToInternetISP);
+
+                    // グローバルIPを割り当て（判定されたISPを使用）
+                    const globalIP = this.assignGlobalIP(otherDevice, internetDevice, onuToInternetISP);
                     if (globalIP) {
                         // 設定を更新
                         otherDevice.config.ipAddress = globalIP.ip;
@@ -2932,7 +2936,12 @@ class NetworkSimulator {
                 targetDevice.config.dhcpEnabled;
             console.log('🔍 インターネット接続検出:', targetDevice.name, 'DHCP:', dhcpEnabled, 'isWAN:', isWANConnection);
             console.log('🔍 WAN設定確認:', targetDevice.wanConfig);
-            const globalIP = this.assignGlobalIP(targetDevice, internet, 'isp1');
+
+            // 直接接続時のISPポート判定
+            const connectedISP = this.detectConnectedISP(targetDevice, internet);
+            console.log('🔍 検出されたISPポート:', connectedISP);
+
+            const globalIP = this.assignGlobalIP(targetDevice, internet, connectedISP);
             console.log('🔍 割り当てられたグローバルIP:', globalIP);
             
             if (globalIP) {
@@ -2993,6 +3002,51 @@ class NetworkSimulator {
                 this.scheduleRender();
             }
         }
+    }
+
+    // ONU → インターネット接続のISPポート判定
+    detectONUInternetISP(onuDevice, internetDevice) {
+        // ONU → インターネット間の接続を検索
+        for (const connection of this.connections) {
+            let internetPort = null;
+
+            if (connection.from.device === onuDevice && connection.to.device === internetDevice) {
+                internetPort = connection.to.port?.id; // インターネット側のポートID
+            } else if (connection.to.device === onuDevice && connection.from.device === internetDevice) {
+                internetPort = connection.from.port?.id; // インターネット側のポートID
+            }
+
+            if (internetPort) {
+                console.log(`🔍 ONU-インターネット接続検出: ${onuDevice.name} -> ${internetDevice.name} (${internetPort})`);
+                return internetPort; // isp1, isp2, ... として返される
+            }
+        }
+
+        console.log(`🔍 ONU-インターネット接続が見つからず、デフォルトISP1を使用`);
+        return 'isp1'; // デフォルト
+    }
+
+    // 直接接続時のISPポート判定
+    detectConnectedISP(clientDevice, internetDevice) {
+        // デバイス間の接続を検索
+        for (const connection of this.connections) {
+            let internetPort = null;
+
+            // クライアント → インターネット接続をチェック
+            if (connection.from.device === clientDevice && connection.to.device === internetDevice) {
+                internetPort = connection.to.port?.id; // インターネット側のポートID
+            } else if (connection.to.device === clientDevice && connection.from.device === internetDevice) {
+                internetPort = connection.from.port?.id; // インターネット側のポートID
+            }
+
+            if (internetPort) {
+                console.log(`🔍 直接接続検出: ${clientDevice.name} -> ${internetDevice.name} (${internetPort})`);
+                return internetPort; // isp1, isp2, ... として返される
+            }
+        }
+
+        console.log(`🔍 直接接続が見つからず、デフォルトISP1を使用`);
+        return 'isp1'; // デフォルト
     }
 
     // グローバルIP割り当て（ISP別対応）
