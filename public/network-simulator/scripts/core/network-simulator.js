@@ -2673,8 +2673,12 @@ class NetworkSimulator {
                     if (otherDevice.wanConfig && otherDevice.wanConfig.dhcpEnabled) {
                         console.log('🌐 ONU経由でのWAN IP割り当て開始:', otherDevice.name);
                         
-                        // グローバルIPを割り当て（ISP1から順に試す）
-                        const globalIP = this.assignGlobalIP(otherDevice, internetDevice, 'isp1');
+                        // ONU → インターネット接続のISPポートを判定
+                        const onuToInternetISP = this.detectONUInternetISP(onuDevice, internetDevice);
+                        console.log('🔍 ONU経由のルーターWAN ISP判定結果:', onuToInternetISP);
+
+                        // グローバルIPを割り当て（判定されたISPを使用）
+                        const globalIP = this.assignGlobalIP(otherDevice, internetDevice, onuToInternetISP);
                         if (globalIP) {
                             // WAN設定を更新
                             if (!otherDevice.wanConfig) {
@@ -2937,9 +2941,26 @@ class NetworkSimulator {
             console.log('🔍 インターネット接続検出:', targetDevice.name, 'DHCP:', dhcpEnabled, 'isWAN:', isWANConnection);
             console.log('🔍 WAN設定確認:', targetDevice.wanConfig);
 
-            // 直接接続時のISPポート判定
-            const connectedISP = this.detectConnectedISP(targetDevice, internet);
-            console.log('🔍 検出されたISPポート:', connectedISP);
+            // ISPポート判定（直接接続 vs ONU経由で判定方法を切り替え）
+            let connectedISP = null;
+
+            // ONU経由接続かどうかを判定
+            const isViaONU = this.isConnectionViaONU(targetDevice, internet);
+            if (isViaONU) {
+                // ONU経由の場合、ONUデバイスを探してISP判定
+                const onuDevice = this.findONUBetween(targetDevice, internet);
+                if (onuDevice) {
+                    connectedISP = this.detectONUInternetISP(onuDevice, internet);
+                    console.log('🔍 ONU経由ISPポート判定:', connectedISP, 'ONU:', onuDevice.name);
+                } else {
+                    connectedISP = 'isp1'; // フォールバック
+                    console.log('🔍 ONUデバイスが見つからず、デフォルトISP1を使用');
+                }
+            } else {
+                // 直接接続の場合
+                connectedISP = this.detectConnectedISP(targetDevice, internet);
+                console.log('🔍 直接接続ISPポート判定:', connectedISP);
+            }
 
             const globalIP = this.assignGlobalIP(targetDevice, internet, connectedISP);
             console.log('🔍 割り当てられたグローバルIP:', globalIP);
@@ -3047,6 +3068,51 @@ class NetworkSimulator {
 
         console.log(`🔍 直接接続が見つからず、デフォルトISP1を使用`);
         return 'isp1'; // デフォルト
+    }
+
+    // ONU経由の接続かどうかを判定
+    isConnectionViaONU(targetDevice, internetDevice) {
+        // targetDevice → ONU → internetDevice のパスが存在するかチェック
+        for (const connection of this.connections) {
+            // targetDevice → ONU 接続をチェック
+            if ((connection.from.device === targetDevice && connection.to.device.type === 'onu') ||
+                (connection.to.device === targetDevice && connection.from.device.type === 'onu')) {
+
+                const onuDevice = connection.from.device === targetDevice ?
+                    connection.to.device : connection.from.device;
+
+                // ONU → internetDevice 接続をチェック
+                for (const onuConnection of this.connections) {
+                    if ((onuConnection.from.device === onuDevice && onuConnection.to.device === internetDevice) ||
+                        (onuConnection.to.device === onuDevice && onuConnection.from.device === internetDevice)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // targetDeviceとinternetDeviceの間にあるONUデバイスを見つける
+    findONUBetween(targetDevice, internetDevice) {
+        for (const connection of this.connections) {
+            // targetDevice → ONU 接続をチェック
+            if ((connection.from.device === targetDevice && connection.to.device.type === 'onu') ||
+                (connection.to.device === targetDevice && connection.from.device.type === 'onu')) {
+
+                const onuDevice = connection.from.device === targetDevice ?
+                    connection.to.device : connection.from.device;
+
+                // ONU → internetDevice 接続をチェック
+                for (const onuConnection of this.connections) {
+                    if ((onuConnection.from.device === onuDevice && onuConnection.to.device === internetDevice) ||
+                        (onuConnection.to.device === onuDevice && onuConnection.from.device === internetDevice)) {
+                        return onuDevice;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     // グローバルIP割り当て（ISP別対応）
