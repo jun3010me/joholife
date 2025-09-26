@@ -1404,6 +1404,8 @@ class NetworkSimulator {
                 // 複数LAN対応のDHCP設定
                 lan1: {
                     ipAddress: this.getDefaultIP(deviceType, deviceCount),
+                    subnetMask: '255.255.255.0',
+                    defaultGateway: this.getDefaultIP(deviceType, deviceCount),
                     dhcpEnabled: deviceType === 'router',
                     dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 1),
                     dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 1),
@@ -1411,6 +1413,8 @@ class NetworkSimulator {
                 },
                 lan2: {
                     ipAddress: this.getLAN2DefaultIP(deviceType, deviceCount),
+                    subnetMask: '255.255.255.0',
+                    defaultGateway: this.getLAN2DefaultIP(deviceType, deviceCount),
                     dhcpEnabled: false,
                     dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 2),
                     dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 2),
@@ -1418,6 +1422,8 @@ class NetworkSimulator {
                 },
                 lan3: {
                     ipAddress: this.getLAN3DefaultIP(deviceType, deviceCount),
+                    subnetMask: '255.255.255.0',
+                    defaultGateway: this.getLAN3DefaultIP(deviceType, deviceCount),
                     dhcpEnabled: false,
                     dhcpPoolStart: this.getDHCPPoolStart(deviceType, deviceCount, 3),
                     dhcpPoolEnd: this.getDHCPPoolEnd(deviceType, deviceCount, 3),
@@ -2575,8 +2581,17 @@ class NetworkSimulator {
         if (assignedIP) {
             // IPアドレスとネットワーク設定を更新
             clientDevice.config.ipAddress = assignedIP.ip;
-            clientDevice.config.subnetMask = '255.255.255.0';
-            clientDevice.config.defaultGateway = lanConfig.ipAddress;
+            clientDevice.config.subnetMask = lanConfig.subnetMask || '255.255.255.0';
+            clientDevice.config.defaultGateway = lanConfig.defaultGateway || lanConfig.ipAddress;
+
+            console.log('🔧 DHCP設定更新:', {
+                client: clientDevice.name,
+                ip: assignedIP.ip,
+                subnet: clientDevice.config.subnetMask,
+                gateway: clientDevice.config.defaultGateway,
+                lanSubnet: lanConfig.subnetMask,
+                lanGateway: lanConfig.defaultGateway
+            });
             clientDevice.config.dnsServers = ['8.8.8.8', '8.8.4.4'];
             
             // lan1.ipAddress も同期して更新
@@ -6543,6 +6558,9 @@ class NetworkSimulator {
 
         const name = document.getElementById('device-name').value;
 
+        // DHCP状態変更の検出用（設定更新前に保存）
+        const originalDhcpState = this.currentDeviceConfig.config ? this.currentDeviceConfig.config.dhcpEnabled : false;
+
         // 基本設定の更新（全デバイス共通）
         this.currentDeviceConfig.name = name;
 
@@ -6750,14 +6768,21 @@ class NetworkSimulator {
             this.redistributeDHCPAddresses(this.currentDeviceConfig);
         }
 
-        // DHCP有効デバイスのIPアドレス取得を試行（ルーター以外のデバイスのみ）
+        // ルーター以外のデバイスでDHCP状態変更に応じた追加処理
         if (this.currentDeviceConfig.type !== 'router') {
             const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
-            if (dhcpEnabled) {
+
+            // 関数冒頭で保存したDHCP状態を使用
+            const wasUsingDHCP = originalDhcpState; // 変更前の状態
+            const nowUsingDHCP = dhcpEnabled; // 変更後の状態
+
+            // 固定IP → DHCPに変更された場合のみ、DHCP要求を実行
+            if (!wasUsingDHCP && nowUsingDHCP) {
+                console.log(`🔄 DHCP有効化: ${this.currentDeviceConfig.name} - DHCP要求を実行`);
                 // 前の静的IPアドレスをバックアップ
                 const previousStaticIP = this.currentDeviceConfig.config.ipAddress;
 
-                // DHCP要求を実行
+                // DHCP要求を実行（固定IP → DHCP切り替え時のみ）
                 const success = this.requestDHCPAddress(this.currentDeviceConfig);
 
                 if (!success) {
@@ -6770,6 +6795,15 @@ class NetworkSimulator {
                         this.currentDeviceConfig.config.ipAddress = this.getDefaultIP(this.currentDeviceConfig.type, 1);
                     }
                 }
+            } else if (wasUsingDHCP && !nowUsingDHCP) {
+                console.log(`🔄 DHCP無効化: ${this.currentDeviceConfig.name} - 手動IP設定に切り替え`);
+                // DHCP → 固定IP: 手動設定に切り替え（既に上の処理で設定済み）
+            } else if (wasUsingDHCP && nowUsingDHCP) {
+                console.log(`⏭️ DHCP継続: ${this.currentDeviceConfig.name} - 現在のIPを保持、再要求をスキップ`);
+                // DHCP → DHCP: 既存のIPアドレスを保持、再要求しない（これが問題解決のポイント）
+            } else {
+                console.log(`⏭️ 固定IP継続: ${this.currentDeviceConfig.name} - 変更なし`);
+                // 固定IP → 固定IP: 変更なし
             }
         }
 
@@ -6798,11 +6832,156 @@ class NetworkSimulator {
             console.log('DNSテーブル保存:', dnsTable);
         }
 
-        // 設定変更後、関連デバイスのDHCP状態を再評価
-        this.refreshConnectedDevicesDHCP(this.currentDeviceConfig);
+        // ルーターの場合、既存の接続に対してDHCP設定を再適用
+        if (this.currentDeviceConfig.type === 'router') {
+            this.reapplyDHCPToExistingConnections(this.currentDeviceConfig);
+        }
+
         this.hideDeviceConfig();
         this.updateStatus(`${name} の設定を更新しました`);
         this.scheduleRender();
+    }
+
+    // 既存接続に対してDHCP設定を再適用
+    reapplyDHCPToExistingConnections(router) {
+        console.log('🔄 DHCP設定変更 - 既存接続を再評価開始:', router.name);
+
+        // このルーターに接続されているすべてのデバイスを探す
+        const connectedDevices = this.getConnectedDHCPClients(router);
+
+        console.log('🔍 接続デバイス数:', connectedDevices.length);
+
+        connectedDevices.forEach(clientInfo => {
+            const { client, lanConfig, connectionType } = clientInfo;
+            console.log(`🔄 ${client.name} の設定を再適用中... (${connectionType})`);
+
+            // DHCP有効かチェック
+            if (!client.config || !client.config.dhcpEnabled) {
+                console.log(`⏭️ ${client.name} はDHCP無効のためスキップ`);
+                return;
+            }
+
+            if (!lanConfig || !lanConfig.dhcpEnabled) {
+                console.log(`⏭️ ${router.name} の対応LANでDHCP無効のためスキップ`);
+                return;
+            }
+
+            // 既存のリースを保持しつつ、設定のみ更新
+            const currentIP = client.config.ipAddress;
+
+            if (currentIP && currentIP !== '0.0.0.0') {
+                // 現在のIPを保持して設定だけ更新
+                client.config.subnetMask = lanConfig.subnetMask || '255.255.255.0';
+                client.config.defaultGateway = lanConfig.defaultGateway || lanConfig.ipAddress;
+
+                console.log(`✅ ${client.name} 設定更新完了:`, {
+                    ip: currentIP,
+                    subnet: client.config.subnetMask,
+                    gateway: client.config.defaultGateway
+                });
+
+                this.updateStatus(`🔄 ${client.name} のDHCP設定を更新しました (IP: ${currentIP})`);
+            } else {
+                // IPが未割り当ての場合は新規割り当て
+                this.assignDHCPToClient(client, router, null, connectionType);
+            }
+        });
+
+        console.log('✅ DHCP設定再適用完了');
+    }
+
+    // ルーターに接続されているDHCPクライアントを取得
+    getConnectedDHCPClients(router) {
+        const connectedClients = [];
+
+        // 直接接続を検索
+        this.connections.forEach(connection => {
+            let client = null;
+            let routerPort = null;
+
+            // 接続パターンを特定
+            if (connection.from.device === router &&
+                ['pc', 'server', 'dns'].includes(connection.to.device.type)) {
+                client = connection.to.device;
+                routerPort = connection.from.port;
+            } else if (connection.to.device === router &&
+                       ['pc', 'server', 'dns'].includes(connection.from.device.type)) {
+                client = connection.from.device;
+                routerPort = connection.to.port;
+            }
+
+            if (client && routerPort) {
+                // どのLANに接続されているかを判定
+                const lanConfig = this.determineLANConnection(client, router);
+                if (lanConfig) {
+                    connectedClients.push({
+                        client: client,
+                        lanConfig: lanConfig,
+                        connectionType: 'direct'
+                    });
+                }
+            }
+        });
+
+        // スイッチ経由の接続も検索
+        this.findSwitchConnectedClients(router, connectedClients);
+
+        return connectedClients;
+    }
+
+    // スイッチ経由で接続されているクライアントを再帰的に検索
+    findSwitchConnectedClients(router, connectedClients, visitedSwitches = new Set()) {
+        this.connections.forEach(connection => {
+            let switchDevice = null;
+
+            // ルーター ↔ スイッチ の接続を探す
+            if (connection.from.device === router && connection.to.device.type === 'switch') {
+                switchDevice = connection.to.device;
+            } else if (connection.to.device === router && connection.from.device.type === 'switch') {
+                switchDevice = connection.from.device;
+            }
+
+            if (switchDevice && !visitedSwitches.has(switchDevice.id)) {
+                visitedSwitches.add(switchDevice.id);
+
+                // このスイッチに接続されているクライアントを探す
+                this.connections.forEach(switchConnection => {
+                    let client = null;
+
+                    if (switchConnection.from.device === switchDevice &&
+                        ['pc', 'server', 'dns'].includes(switchConnection.to.device.type)) {
+                        client = switchConnection.to.device;
+                    } else if (switchConnection.to.device === switchDevice &&
+                               ['pc', 'server', 'dns'].includes(switchConnection.from.device.type)) {
+                        client = switchConnection.from.device;
+                    }
+
+                    if (client) {
+                        // 重複チェック
+                        const alreadyAdded = connectedClients.some(info => info.client.id === client.id);
+                        if (!alreadyAdded) {
+                            const lanConfig = this.determineLANConnection(client, router);
+                            if (lanConfig) {
+                                connectedClients.push({
+                                    client: client,
+                                    lanConfig: lanConfig,
+                                    connectionType: 'switch'
+                                });
+                            }
+                        }
+                    }
+
+                    // 多段スイッチの場合、再帰的に検索
+                    if (switchConnection.from.device === switchDevice &&
+                        switchConnection.to.device.type === 'switch') {
+                        this.findSwitchConnectedClients(router, connectedClients, visitedSwitches);
+                    } else if (switchConnection.to.device === switchDevice &&
+                               switchConnection.from.device.type === 'switch') {
+                        this.findSwitchConnectedClients(router, connectedClients, visitedSwitches);
+                    }
+                });
+            }
+        });
     }
 
     // インターネットデバイスのISP設定を保存
@@ -7325,17 +7504,20 @@ class NetworkSimulator {
             }
             
             // LANインターフェースのIP表示（device.config.lan[123].ipAddress から取得）
-            if (device.config.lan1 && device.config.lan1.ipAddress && 
+            if (device.config.lan1 && device.config.lan1.ipAddress &&
                 device.config.lan1.ipAddress !== '0.0.0.0') {
-                ipLines.push(`LAN1: ${device.config.lan1.ipAddress}/24`);
+                const lan1Cidr = this.subnetMaskToCIDR(device.config.lan1.subnetMask || '255.255.255.0');
+                ipLines.push(`LAN1: ${device.config.lan1.ipAddress}/${lan1Cidr}`);
             }
-            if (device.config.lan2 && device.config.lan2.ipAddress && 
+            if (device.config.lan2 && device.config.lan2.ipAddress &&
                 device.config.lan2.ipAddress !== '0.0.0.0') {
-                ipLines.push(`LAN2: ${device.config.lan2.ipAddress}/24`);
+                const lan2Cidr = this.subnetMaskToCIDR(device.config.lan2.subnetMask || '255.255.255.0');
+                ipLines.push(`LAN2: ${device.config.lan2.ipAddress}/${lan2Cidr}`);
             }
-            if (device.config.lan3 && device.config.lan3.ipAddress && 
+            if (device.config.lan3 && device.config.lan3.ipAddress &&
                 device.config.lan3.ipAddress !== '0.0.0.0') {
-                ipLines.push(`LAN3: ${device.config.lan3.ipAddress}/24`);
+                const lan3Cidr = this.subnetMaskToCIDR(device.config.lan3.subnetMask || '255.255.255.0');
+                ipLines.push(`LAN3: ${device.config.lan3.ipAddress}/${lan3Cidr}`);
             }
             
             // 基本IPが設定されている場合（デフォルトLANとして、他に表示されていない場合のみ）
@@ -8680,48 +8862,6 @@ class NetworkSimulator {
         return null;
     }
 
-    // 関連デバイスのDHCP状態を更新
-    refreshConnectedDevicesDHCP(changedDevice) {
-        // ルーターの設定が変更された場合、接続されたデバイスのDHCP状態を更新
-        if (changedDevice.type === 'router') {
-            this.connections.forEach(connection => {
-                let connectedDevice = null;
-
-                // ルーターに直接または間接的に接続されたデバイスを特定
-                if (connection.from.device === changedDevice) {
-                    connectedDevice = connection.to.device;
-                } else if (connection.to.device === changedDevice) {
-                    connectedDevice = connection.from.device;
-                }
-
-                if (connectedDevice && connectedDevice.config && connectedDevice.config.dhcpEnabled) {
-                    console.log(`Refreshing DHCP for ${connectedDevice.name} due to router change`);
-                    this.requestDHCPAddress(connectedDevice);
-                }
-
-                // スイッチ経由の接続もチェック
-                if (connectedDevice && connectedDevice.type === 'switch') {
-                    this.connections.forEach(switchConnection => {
-                        let switchConnectedDevice = null;
-
-                        if (switchConnection.from.device === connectedDevice) {
-                            switchConnectedDevice = switchConnection.to.device;
-                        } else if (switchConnection.to.device === connectedDevice) {
-                            switchConnectedDevice = switchConnection.from.device;
-                        }
-
-                        if (switchConnectedDevice &&
-                            switchConnectedDevice !== changedDevice &&
-                            switchConnectedDevice.config &&
-                            switchConnectedDevice.config.dhcpEnabled) {
-                            console.log(`Refreshing DHCP for ${switchConnectedDevice.name} via switch ${connectedDevice.name}`);
-                            this.requestDHCPAddress(switchConnectedDevice);
-                        }
-                    });
-                }
-            });
-        }
-    }
 
     // デバイスに接続されたルーターを取得
     getConnectedRouters(device) {
