@@ -84,7 +84,10 @@ class NetworkSimulator {
         // タッチ・マウスイベント重複防止
         this.lastTouchTime = 0;
         this.touchEventProcessed = false;
-        
+
+        // ファイル読み込み処理の重複実行防止
+        this.isLoadingFile = false;
+
         this.init();
     }
     
@@ -8355,12 +8358,17 @@ class NetworkSimulator {
             }
         }));
 
+        // TCP詳細チェックボックスの状態を取得
+        const tcpCheckbox = document.getElementById('tcp-visibility-checkbox');
+        const showTCPDetails = tcpCheckbox ? tcpCheckbox.checked : false;
+
         // 保存データの構造
         const data = {
             version: "1.0",
             timestamp: new Date().toISOString(),
             devices: devicesData,
-            connections: connectionsData
+            connections: connectionsData,
+            tcpDetailsVisible: showTCPDetails
         };
 
         // JSONファイルとしてダウンロード
@@ -8386,6 +8394,15 @@ class NetworkSimulator {
     handleFileLoad(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        // 重複実行防止チェック
+        if (this.isLoadingFile) {
+            console.log('ファイル読み込み処理中のため、重複実行をスキップします');
+            event.target.value = ''; // input要素もクリア
+            return;
+        }
+
+        this.isLoadingFile = true;
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -8543,16 +8560,51 @@ class NetworkSimulator {
                     // デバッグ用: 描画後にデバイス数を確認
                     console.log(`描画完了: ${this.devices.size}個のデバイス, ${this.connections.length}個の接続`);
                 }, 50);
+
+                // TCP詳細チェックボックスの状態を復元（後方互換性を考慮）
+                if (data.tcpDetailsVisible !== undefined) {
+                    console.log(`ファイルからTCP詳細状態を読み込み: ${data.tcpDetailsVisible}`);
+                    // 少し遅延させて確実に復元処理を実行
+                    setTimeout(() => {
+                        const tcpCheckbox = document.getElementById('tcp-visibility-checkbox');
+                        console.log(`TCPチェックボックス要素:`, tcpCheckbox);
+                        if (tcpCheckbox) {
+                            console.log(`復元前のチェック状態: ${tcpCheckbox.checked}`);
+                            tcpCheckbox.checked = data.tcpDetailsVisible;
+                            console.log(`復元後のチェック状態: ${tcpCheckbox.checked}`);
+                            // グローバル変数も更新
+                            window.showTCPPackets = data.tcpDetailsVisible;
+                            console.log(`グローバル変数 showTCPPackets: ${window.showTCPPackets}`);
+                            // changeイベントを手動で発火させて、関連する処理も実行
+                            const changeEvent = new Event('change');
+                            tcpCheckbox.dispatchEvent(changeEvent);
+                            console.log(`TCP詳細表示状態を復元: ${data.tcpDetailsVisible ? 'ON' : 'OFF'}`);
+                        } else {
+                            console.error('TCPチェックボックスが見つかりませんでした');
+                        }
+                    }, 100);
+                }
+
                 this.updateStatus('ファイルを読み込みました');
 
             } catch (error) {
                 console.error('ファイル読み込みエラー:', error);
                 this.updateStatus(`ファイル読み込みエラー: ${error.message}`);
+            } finally {
+                // ファイル読み込み処理完了後、成功・失敗に関わらずfile input要素をクリア
+                // これによりchangeイベントの重複発火を防止
+                event.target.value = '';
+                // 重複実行防止フラグもリセット
+                this.isLoadingFile = false;
             }
         };
 
         reader.onerror = () => {
             this.updateStatus('ファイル読み込みに失敗しました');
+            // エラー時もfile input要素をクリア
+            event.target.value = '';
+            // 重複実行防止フラグもリセット
+            this.isLoadingFile = false;
         };
 
         reader.readAsText(file);
@@ -9171,6 +9223,30 @@ class NetworkSimulator {
                     // デバッグ用: 描画後にデバイス数を確認
                     console.log(`描画完了: ${this.devices.size}個のデバイス, ${this.connections.length}個の接続`);
                 }, 50);
+
+                // TCP詳細チェックボックスの状態を復元（後方互換性を考慮）
+                if (data.tcpDetailsVisible !== undefined) {
+                    console.log(`ファイルからTCP詳細状態を読み込み: ${data.tcpDetailsVisible}`);
+                    // 少し遅延させて確実に復元処理を実行
+                    setTimeout(() => {
+                        const tcpCheckbox = document.getElementById('tcp-visibility-checkbox');
+                        console.log(`TCPチェックボックス要素:`, tcpCheckbox);
+                        if (tcpCheckbox) {
+                            console.log(`復元前のチェック状態: ${tcpCheckbox.checked}`);
+                            tcpCheckbox.checked = data.tcpDetailsVisible;
+                            console.log(`復元後のチェック状態: ${tcpCheckbox.checked}`);
+                            // グローバル変数も更新
+                            window.showTCPPackets = data.tcpDetailsVisible;
+                            console.log(`グローバル変数 showTCPPackets: ${window.showTCPPackets}`);
+                            // changeイベントを手動で発火させて、関連する処理も実行
+                            const changeEvent = new Event('change');
+                            tcpCheckbox.dispatchEvent(changeEvent);
+                            console.log(`TCP詳細表示状態を復元: ${data.tcpDetailsVisible ? 'ON' : 'OFF'}`);
+                        } else {
+                            console.error('TCPチェックボックスが見つかりませんでした');
+                        }
+                    }, 100);
+                }
 
                 this.updateStatus(`ファイル「${file.name}」を読み込みました`);
 
