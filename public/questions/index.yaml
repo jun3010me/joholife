@@ -18,3 +18,5 @@ questionSets:
   - subnet_mask_conversion
   - subnet_calculation
   - subnet_address_calculation
+  - network-construction-6
+  - network-construction-7

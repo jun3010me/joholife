@@ -1,0 +1,260 @@
+id: network-construction-7
+title: ネットワーク構築課題⑦
+description: サブネット分割（/28）による複数ネットワークの構築
+icon: 🔢
+difficulty: hard
+estimatedTime: 40
+category: ネットワーク構築
+tags:
+  - ネットワーク設計
+  - サブネット分割
+  - CIDR
+  - DHCP設定
+  - ルーティング
+  - Ping疎通テスト
+
+# この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
+questions:
+  - id: network_construction_7
+    type: file-analysis
+    title: サブネット分割（/28）による複数ネットワークの構築
+    description: |
+      **課題概要**
+
+      192.168.1.0/28 のネットワークを16個に分割し、異なるネットワーク間の通信を構築してください。
+
+      **ネットワーク要件**
+      - PC3台（PC-1、PC-2、PC-3）
+      - スイッチ1台
+      - ルーター1台
+
+      **接続要件**
+      1. PC-1とPC-2をスイッチに接続
+      2. スイッチをルーターのLAN1ポートに接続
+      3. PC-3をルーターのLAN2ポートに直接接続
+
+      **ルーターLAN1の設定**
+      - IPアドレス: 1つ目のネットワークの最初のホストアドレス
+      - サブネットマスク: ネットワークに必要なビット数から計算する
+      - デフォルトゲートウェイ: 1つ目のネットワークの最初のホストアドレス
+      - DHCP有効化: ON
+      - DHCPプール開始: 1つ目のネットワークの2台目のホストアドレス
+      - DHCPプール終了: 1つ目のネットワークの最後のホストアドレス
+      - PC-1にDHCPでIPアドレスを自動割り当て
+
+      **ルーターLAN2の設定**
+      - IPアドレス: 2つ目のネットワークの最初のホストアドレス
+      - サブネットマスク: ネットワークに必要なビット数から計算する
+      - デフォルトゲートウェイ: 2つ目のネットワークの最初のホストアドレス
+      - DHCP有効化: ON
+      - DHCPプール開始: 2つ目のネットワークの2台目のホストアドレス
+      - DHCPプール終了: 2つ目のネットワークの最後のホストアドレス
+      - PC-3にDHCPでIPアドレスを自動割り当て
+
+      **PC設定要件**
+      - PC-1: DHCPを有効化し、LAN1から自動でIPアドレスを取得
+      - PC-2: DHCPを無効化し、2つ目のネットワークのホストアドレスを手動で設定
+      - PC-3: DHCPを有効化し、LAN2から自動でIPアドレスを取得
+
+      **Ping疎通テスト要件**
+      - PC-1 → PC-2: 失敗 （異なるネットワークセグメント、ルーターを経由できない）
+      - PC-1 → PC-3: 成功 （ルーターを経由して異なるネットワークセグメント間で通信可能）
+      - PC-2 → PC-3: 失敗 （PC2とPC3が異なるネットワークに所属しているため）
+
+      **評価ポイント**
+      - サブネットマスク計算
+      - 2つのサブネット範囲の正確な計算
+      - ルーターの各LANポートへの適切な設定
+      - DHCP範囲の正確な設定（ネットワークアドレスとブロードキャストアドレスを除外）
+      - 異なるネットワークセグメント間のルーティング理解
+      - Ping疎通テストによる動作確認
+
+    # ファイル操作課題の特別な設定
+    downloadFile: "/network-simulator/exercises/network-construction-7-problem.json"
+    expectedChanges:
+      # ルーターLAN1の設定（1つ目のネットワーク: 192.168.1.0/28）
+      - deviceName: "ルーター-1"
+        property: "config.lan1.ipAddress"
+        expectedPattern: "192.168.1.1"
+        explanation: "ルーターLAN1のIPアドレスは1つ目のネットワーク（192.168.1.0/28）の最初のホストアドレス 192.168.1.1 である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan1.subnetMask"
+        expectedPattern: "255.255.255.240"
+        explanation: "ルーターLAN1のサブネットマスクは /28 に対応する 255.255.255.240 である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターLAN1でDHCPを有効化してPC-1にIPアドレスを配布する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpPoolStart"
+        expectedPattern: "192.168.1.2"
+        explanation: "LAN1のDHCPプール開始アドレスは 192.168.1.2（ネットワークアドレス 192.168.1.0 とゲートウェイ 192.168.1.1 を除く最初のアドレス）である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan1.dhcpPoolEnd"
+        expectedPattern: "192.168.1.14"
+        explanation: "LAN1のDHCPプール終了アドレスは 192.168.1.14（ブロードキャストアドレス 192.168.1.15 を除く最後のアドレス）である必要があります"
+        excludeValues: []
+
+      # ルーターLAN2の設定（2つ目のネットワーク: 192.168.1.16/28）
+      - deviceName: "ルーター-1"
+        property: "config.lan2.ipAddress"
+        expectedPattern: "192.168.1.17"
+        explanation: "ルーターLAN2のIPアドレスは2つ目のネットワーク（192.168.1.16/28）の最初のホストアドレス 192.168.1.17 である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan2.subnetMask"
+        expectedPattern: "255.255.255.240"
+        explanation: "ルーターLAN2のサブネットマスクは /28 に対応する 255.255.255.240 である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan2.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターLAN2でDHCPを有効化してPC-3にIPアドレスを配布する必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan2.dhcpPoolStart"
+        expectedPattern: "192.168.1.18"
+        explanation: "LAN2のDHCPプール開始アドレスは 192.168.1.18（ネットワークアドレス 192.168.1.16 とゲートウェイ 192.168.1.17 を除く最初のアドレス）である必要があります"
+        excludeValues: []
+      - deviceName: "ルーター-1"
+        property: "config.lan2.dhcpPoolEnd"
+        expectedPattern: "192.168.1.30"
+        explanation: "LAN2のDHCPプール終了アドレスは 192.168.1.30（ブロードキャストアドレス 192.168.1.31 を除く最後のアドレス）である必要があります"
+        excludeValues: []
+
+      # ルーターDHCPサーバー有効化
+      - deviceName: "ルーター-1"
+        property: "config.dhcpServerEnabled"
+        expectedPattern: "true"
+        explanation: "ルーターでDHCPサーバー機能を有効化する必要があります"
+        excludeValues: []
+
+      # PC-1の設定（1つ目のネットワークからDHCP取得）
+      - deviceName: "PC-1"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-1でDHCPを有効化してルーターLAN1からIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.(2|3|4|5|6|7|8|9|1[0-4])$"
+        explanation: "PC-1はルーターLAN1のDHCPから 192.168.1.2～192.168.1.14 の範囲のIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.subnetMask"
+        expectedPattern: "255.255.255.240"
+        explanation: "PC-1のサブネットマスクは /28 に対応する 255.255.255.240 である必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "config.defaultGateway"
+        expectedPattern: "192.168.1.1"
+        explanation: "PC-1のデフォルトゲートウェイはルーターLAN1のIPアドレス 192.168.1.1 である必要があります"
+        excludeValues: []
+
+      # PC-2の設定（2つ目のネットワークに手動設定）
+      - deviceName: "PC-2"
+        property: "config.dhcpEnabled"
+        expectedPattern: "false"
+        explanation: "PC-2はDHCPを無効化して手動でIPアドレスを設定する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.ipAddress"
+        expectedPattern: "192.168.1.19"
+        explanation: "PC-2のIPアドレスは2つ目のネットワーク（192.168.1.16/28）の 192.168.1.19 に手動設定する必要があります"
+        excludeValues: []
+      - deviceName: "PC-2"
+        property: "config.subnetMask"
+        expectedPattern: "255.255.255.240"
+        explanation: "PC-2のサブネットマスクは /28 に対応する 255.255.255.240 である必要があります"
+        excludeValues: []
+
+      # PC-3の設定（2つ目のネットワークからDHCP取得）
+      - deviceName: "PC-3"
+        property: "config.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "PC-3でDHCPを有効化してルーターLAN2からIPアドレスを自動取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-3"
+        property: "config.ipAddress"
+        expectedPattern: "^192\\.168\\.1\\.(1[8-9]|2[0-9]|30)$"
+        explanation: "PC-3はルーターLAN2のDHCPから 192.168.1.18～192.168.1.30 の範囲のIPアドレスを取得する必要があります"
+        excludeValues: []
+      - deviceName: "PC-3"
+        property: "config.subnetMask"
+        expectedPattern: "255.255.255.240"
+        explanation: "PC-3のサブネットマスクは /28 に対応する 255.255.255.240 である必要があります"
+        excludeValues: []
+      - deviceName: "PC-3"
+        property: "config.defaultGateway"
+        expectedPattern: "192.168.1.17"
+        explanation: "PC-3のデフォルトゲートウェイはルーターLAN2のIPアドレス 192.168.1.17 である必要があります"
+        excludeValues: []
+
+    points: 300
+    difficulty: hard
+    tags:
+      - ネットワーク構築
+      - サブネット分割
+      - CIDR計算
+      - DHCP設定
+      - ルーティング
+      - セグメント分離
+
+    # 通常の選択肢は使用しない（ファイル操作課題のため）
+    options: []
+    explanation: |
+      **解答解説**
+
+      この課題では、CIDR表記（/28）を使用したサブネット分割と、複数ネットワークセグメント間のルーティングを学びました。
+
+      **サブネット計算のポイント:**
+      1. **/28とは**: ネットワークビット28個、ホストビット4個
+         - サブネットマスク: 11111111.11111111.11111111.11110000 = **255.255.255.240**
+         - ホスト数: 2⁴ - 2 = **14台** （ネットワークアドレスとブロードキャストアドレスを除く）
+
+      2. **1つ目のネットワーク（192.168.1.0/28）**:
+         - ネットワークアドレス: 192.168.1.0
+         - 使用可能範囲: 192.168.1.1 ～ 192.168.1.14
+         - ブロードキャストアドレス: 192.168.1.15
+
+      3. **2つ目のネットワーク（192.168.1.16/28）**:
+         - ネットワークアドレス: 192.168.1.16
+         - 使用可能範囲: 192.168.1.17 ～ 192.168.1.30
+         - ブロードキャストアドレス: 192.168.1.31
+
+      **ルーティングのポイント:**
+      - **PC-1（192.168.1.2）→ PC-2（192.168.1.19）**: 失敗
+        - PC-1は192.168.1.0/28ネットワーク、PC-2は192.168.1.16/28ネットワーク
+        - PC-2は1つ目のネットワークに接続されているが、2つ目のネットワークのIPアドレスを持つため、ルーターを経由できない
+
+      - **PC-1（192.168.1.2）→ PC-3（192.168.1.18）**: 成功
+        - ルーターがLAN1とLAN2の間でパケットを転送
+        - ルーターは両方のネットワークのゲートウェイとして機能
+
+      - **PC-2（192.168.1.19）→ PC-3（192.168.1.18）**: 成功
+        - 両方とも192.168.1.16/28ネットワークに属する
+        - サブネットマスクが正しく設定されていれば同一セグメント内で通信可能
+
+      **学習ポイント:**
+      - **サブネット計算**: CIDRからサブネットマスクへの変換
+      - **アドレス範囲の理解**: ネットワークアドレス、使用可能範囲、ブロードキャストアドレス
+      - **DHCPプールの設定**: ネットワークアドレスとブロードキャストアドレスを除外
+      - **ルーティングの基礎**: 異なるネットワークセグメント間の通信
+      - **ネットワーク分離**: サブネットによる論理的な分離
+
+      **実際の現場では:**
+      - 社内ネットワークの部署別セグメント分割
+      - VLANとサブネット分割の組み合わせ
+      - セキュリティポリシーに基づくネットワーク分離
+      - 効率的なIPアドレス管理とVLSM（可変長サブネットマスク）
+
+      **発展課題:**
+      このネットワークに以下を追加することを考えてみましょう：
+      - 3つ目のネットワーク（192.168.1.32/28）の追加
+      - ルーターのアクセスコントロールリスト（ACL）設定
+      - 異なるサブネット間の通信制御
+      - より小さいサブネット（/29、/30）の設計

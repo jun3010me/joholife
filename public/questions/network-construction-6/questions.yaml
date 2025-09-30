@@ -1,0 +1,114 @@
+id: network-construction-6
+title: ネットワーク構築課題⑥
+description: PC-Webサーバー間のHTTP通信とTCP詳細表示
+icon: 🌐
+difficulty: easy
+estimatedTime: 15
+category: ネットワーク構築
+tags:
+  - ネットワーク設計
+  - HTTP通信
+  - TCP詳細
+  - 直接接続
+
+# この課題は通常の選択式問題ではなく、ファイル操作による実習形式です
+questions:
+  - id: network_construction_6
+    type: file-analysis
+    title: PC-Webサーバー間のHTTP通信とTCP詳細表示
+    description: |
+      **課題概要**
+
+      PC1とWebサーバーを直接LANケーブルで接続し、TCP詳細を有効にしてHTTP通信のシミュレートを行ってください。
+
+      **構成要件**
+      - PC1とWebサーバーを1台ずつ配置
+      - LANケーブルで直接接続
+      - 同じネットワークセグメント内のIPアドレス設定
+      - TCP詳細機能を有効化
+
+      **設定要件**
+      1. **デバイス配置**
+         - PC1を配置
+         - Webサーバーを配置
+
+      2. **接続設定**
+         - PC1とWebサーバーをLANケーブルで直接接続
+
+      3. **IPアドレス設定**
+         - PC1とWebサーバーのIPアドレスを同じネットワークセグメント内に設定
+         - 例：PC1=192.168.0.1、Webサーバー=192.168.0.2（サブネットマスク：255.255.255.0）
+
+      4. **TCP詳細設定**
+         - 画面右下の「TCP詳細」にチェックを入れる
+
+      **判定項目**
+      - PCとWebサーバーが接続されている
+      - IPアドレスが同じセグメント内に設定されている
+      - TCP詳細機能が有効になっている
+
+      **完了後の確認**
+      設定完了後、PC1からWebサーバーへのHTTP通信を実行し、TCP詳細でパケットの流れを確認してください。
+
+    # ファイル操作課題の特別な設定
+    downloadFile: "/network-simulator/exercises/network-construction-6-problem.json"
+    expectedChanges:
+      - deviceName: "PC-1"
+        property: "exists"
+        expectedPattern: "true"
+        explanation: "PC-1が配置されている必要があります"
+        excludeValues: []
+      - deviceName: "Webサーバー-1"
+        property: "exists"
+        expectedPattern: "true"
+        explanation: "Webサーバーが配置されている必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "connected_to_server"
+        expectedPattern: "true"
+        explanation: "PCとWebサーバーがLANケーブルで接続されている必要があります"
+        excludeValues: []
+      - deviceName: "PC-1"
+        property: "same_segment_as_server"
+        expectedPattern: "true"
+        explanation: "PCとWebサーバーが同じネットワークセグメント内にIPアドレスを持つ必要があります"
+        excludeValues: []
+      - property: "tcpDetailsVisible"
+        expectedPattern: "true"
+        explanation: "TCP詳細機能が有効になっている必要があります"
+        excludeValues: []
+
+    points: 100
+    difficulty: easy
+    tags:
+      - 基本設定
+      - HTTP通信
+      - TCP詳細
+
+    # 通常の選択肢は使用しない（ファイル操作課題のため）
+    options: []
+    explanation: |
+      **解答解説**
+
+      この課題では、最もシンプルなネットワーク構成でのHTTP通信とTCPプロトコルの詳細表示を学習できます。
+
+      **学習ポイント:**
+      1. **直接接続の理解**: ハブやスイッチを経由しない最もシンプルな接続方法
+      2. **IPアドレス設計**: 同じセグメント内での通信設定
+      3. **TCP詳細表示**: パケットレベルでの通信の可視化
+
+      **実際のネットワークでの応用:**
+      - デバイス間の直接接続テスト
+      - TCPプロトコルの動作確認
+      - ネットワークトラブルシューティング
+
+      **TCP詳細で確認できる内容:**
+      - SYN/SYN-ACK/ACKの3ウェイハンドシェイク
+      - HTTPリクエスト/レスポンスの送受信
+      - FIN/ACKによる接続終了
+
+      **発展課題:**
+      この構成をベースに以下を試してみましょう：
+      - 異なるネットワークセグメントでの通信（失敗を確認）
+      - スイッチやルーターを介した通信の比較
+      - TCPとUDPの違いの理解

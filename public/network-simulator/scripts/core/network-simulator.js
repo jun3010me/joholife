@@ -8278,28 +8278,31 @@ class NetworkSimulator {
                 // LAN設定（ルーター用）
                 lan1: device.config.lan1 ? {
                     ipAddress: device.config.lan1.ipAddress,
+                    subnetMask: device.config.lan1.subnetMask,
                     dhcpEnabled: device.config.lan1.dhcpEnabled,
                     dhcpPoolStart: device.config.lan1.dhcpPoolStart,
                     dhcpPoolEnd: device.config.lan1.dhcpPoolEnd,
-                    dhcpAllocatedIPs: device.config.lan1.dhcpAllocatedIPs ? 
+                    dhcpAllocatedIPs: device.config.lan1.dhcpAllocatedIPs ?
                         Array.from(device.config.lan1.dhcpAllocatedIPs.entries()) : []
                 } : undefined,
-                
+
                 lan2: device.config.lan2 ? {
                     ipAddress: device.config.lan2.ipAddress,
+                    subnetMask: device.config.lan2.subnetMask,
                     dhcpEnabled: device.config.lan2.dhcpEnabled,
                     dhcpPoolStart: device.config.lan2.dhcpPoolStart,
                     dhcpPoolEnd: device.config.lan2.dhcpPoolEnd,
-                    dhcpAllocatedIPs: device.config.lan2.dhcpAllocatedIPs ? 
+                    dhcpAllocatedIPs: device.config.lan2.dhcpAllocatedIPs ?
                         Array.from(device.config.lan2.dhcpAllocatedIPs.entries()) : []
                 } : undefined,
-                
+
                 lan3: device.config.lan3 ? {
                     ipAddress: device.config.lan3.ipAddress,
+                    subnetMask: device.config.lan3.subnetMask,
                     dhcpEnabled: device.config.lan3.dhcpEnabled,
                     dhcpPoolStart: device.config.lan3.dhcpPoolStart,
                     dhcpPoolEnd: device.config.lan3.dhcpPoolEnd,
-                    dhcpAllocatedIPs: device.config.lan3.dhcpAllocatedIPs ? 
+                    dhcpAllocatedIPs: device.config.lan3.dhcpAllocatedIPs ?
                         Array.from(device.config.lan3.dhcpAllocatedIPs.entries()) : []
                 } : undefined,
                 
