@@ -212,30 +212,54 @@ async function loadAvailableQuestionSets() {
     if (!response.ok) {
       throw new Error(`Failed to load question sets index: ${response.status}`);
     }
-    
+
     const yamlContent = await response.text();
-    console.log('Loaded index YAML:', yamlContent);
-    
+    console.log('Loaded index YAML');
+
     const questionSets = [];
-    
-    // Simple parsing for the index file
+
+    // Parse the new structured YAML format
     const lines = yamlContent.split('\n');
+    let currentSet = null;
+
     for (let line of lines) {
       const trimmed = line.trim();
-      if (trimmed.startsWith('- ')) {
-        const setId = trimmed.substring(2).trim();
-        console.log(`Loading question set: ${setId}`);
-        const questionSet = await loadQuestionSet(setId);
-        if (questionSet) {
-          console.log(`Successfully loaded: ${setId}`, questionSet.title);
-          questionSets.push(questionSet);
-        } else {
-          console.error(`Failed to load question set: ${setId}`);
+
+      // New question set starts with "- id:"
+      if (trimmed.startsWith('- id:')) {
+        if (currentSet) {
+          questionSets.push(currentSet);
         }
+        currentSet = {
+          id: trimmed.substring(5).trim()
+        };
+      } else if (currentSet && trimmed.includes(':')) {
+        // Parse other properties
+        const colonIndex = trimmed.indexOf(':');
+        const key = trimmed.substring(0, colonIndex).trim();
+        let value = trimmed.substring(colonIndex + 1).trim();
+
+        // Remove quotes if present
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+
+        // Convert estimatedTime to number
+        if (key === 'estimatedTime') {
+          value = parseInt(value, 10);
+        }
+
+        currentSet[key] = value;
       }
     }
-    
-    console.log('Loaded question sets:', questionSets);
+
+    // Don't forget the last set
+    if (currentSet) {
+      questionSets.push(currentSet);
+    }
+
+    console.log(`Loaded ${questionSets.length} question sets from index`);
     return questionSets;
   } catch (error) {
     console.error('Error loading available question sets:', error);
@@ -299,13 +323,13 @@ class QuizApp {
                       <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      ${questionSet.estimatedTime}分
+                      約${questionSet.estimatedTime}分
                     </span>
                     <span style="display: flex; align-items: center;">
                       <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      ${questionSet.questions.length}問
+                      ${questionSet.difficulty === 'easy' ? '初級' : questionSet.difficulty === 'medium' ? '中級' : '上級'}
                     </span>
                   </div>
                 </div>
