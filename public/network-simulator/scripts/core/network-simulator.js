@@ -3458,11 +3458,11 @@ class NetworkSimulator {
             return { isReachable: false, reason: '無効なサブネットマスクが設定されています' };
         }
         
-        // 両方向での直接通信可能性をチェック
-        if (this.canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetSubnet)) {
-            // 両方向で同一サブネット内なら直接通信可能
-            return { 
-                isReachable: true, 
+        // 両方向での直接通信可能性をチェック（物理セグメント分離も考慮）
+        if (this.canCommunicateDirectly(sourceDevice, targetDevice)) {
+            // 両方向で同一サブネット内かつ物理的に同一セグメント内なら直接通信可能
+            return {
+                isReachable: true,
                 reason: '同一サブネット内での直接通信',
                 routingType: 'direct'
             };
@@ -3820,16 +3820,96 @@ class NetworkSimulator {
         return network1 === network2;
     }
     
-    // 両方向のサブネット判定（より厳密）
-    canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetSubnet) {
+    // 両方向のサブネット判定（物理セグメント分離も考慮）
+    canCommunicateDirectly(sourceDevice, targetDevice) {
+        const sourceIP = sourceDevice.config.ipAddress;
+        const sourceSubnet = sourceDevice.config.subnetMask;
+        const targetIP = targetDevice.config.ipAddress;
+        const targetSubnet = targetDevice.config.subnetMask;
+
         // 送信元から見て送信先が同一サブネット内か
         const sourceCanReachTarget = this.isInSameSubnet(sourceIP, targetIP, sourceSubnet);
-        
+
         // 送信先から見て送信元が同一サブネット内か
         const targetCanReachSource = this.isInSameSubnet(targetIP, sourceIP, targetSubnet);
-        
-        // 両方向で通信可能な場合のみ直接通信可能
-        return sourceCanReachTarget && targetCanReachSource;
+
+        // IPレベルで通信不可能な場合は即座にfalse
+        if (!sourceCanReachTarget || !targetCanReachSource) {
+            return false;
+        }
+
+        // IPレベルで通信可能でも、物理的なセグメント分離をチェック
+        return this.areInSamePhysicalSegment(sourceDevice, targetDevice);
+    }
+
+    // 物理的に同一セグメント内にいるかチェック
+    areInSamePhysicalSegment(sourceDevice, targetDevice) {
+        // 同じデバイスなら同一セグメント
+        if (sourceDevice === targetDevice) {
+            return true;
+        }
+
+        // 物理経路を取得
+        const path = this.findDirectPath(sourceDevice, targetDevice);
+
+        // 物理接続がない場合は異なるセグメント
+        if (!path || path.length === 0) {
+            console.log(`🚫 物理接続なし: ${sourceDevice.name} と ${targetDevice.name}`);
+            return false;
+        }
+
+        // 経路上にルーターがある場合は異なるセグメント
+        // ルーターは複数のセグメントを分離する境界デバイス
+        const hasRouterInPath = path.some((device, index) => {
+            // 送信元・送信先以外でルーターがある場合
+            return device.type === 'router' && index !== 0 && index !== path.length - 1;
+        });
+
+        if (hasRouterInPath) {
+            console.log(`🚫 ルーター経由: ${sourceDevice.name} と ${targetDevice.name} は異なるセグメント`);
+            console.log(`📍 経路: ${path.map(d => d.name).join(' → ')}`);
+            return false;
+        }
+
+        // 送信先がルーターの場合、同じルーターの異なるポート間は異なるセグメント
+        if (targetDevice.type === 'router') {
+            return this.checkSameRouterPortCommunication(sourceDevice, targetDevice);
+        }
+
+        // 送信元がルーターの場合も同様
+        if (sourceDevice.type === 'router') {
+            return this.checkSameRouterPortCommunication(targetDevice, sourceDevice);
+        }
+
+        console.log(`✅ 同一セグメント: ${sourceDevice.name} と ${targetDevice.name}`);
+        return true;
+    }
+
+    // 同じルーターの異なるポート間の通信チェック
+    checkSameRouterPortCommunication(clientDevice, routerDevice) {
+        // クライアントが接続されているルーターのポート（LAN1/LAN2）を判定
+        const clientLAN = this.determineLANConnection(clientDevice, routerDevice);
+
+        // ルーターのどのIPアドレスに対する通信かを判定
+        const routerIP = routerDevice.config.ipAddress;
+        const lan1IP = routerDevice.config.lan1?.ipAddress;
+        const lan2IP = routerDevice.config.lan2?.ipAddress;
+
+        console.log(`🔍 ルーター通信チェック: ${clientDevice.name}(LAN${clientLAN}) → ${routerDevice.name}`);
+        console.log(`📍 ルーターIP: ${routerIP}, LAN1: ${lan1IP}, LAN2: ${lan2IP}`);
+
+        // クライアントが接続されているLANのIPアドレスなら通信可能
+        if (clientLAN === 1 && (routerIP === lan1IP || routerIP === routerDevice.config.ipAddress)) {
+            console.log(`✅ LAN1内通信: ${clientDevice.name} → ${routerDevice.name}`);
+            return true;
+        }
+        if (clientLAN === 2 && routerIP === lan2IP) {
+            console.log(`✅ LAN2内通信: ${clientDevice.name} → ${routerDevice.name}`);
+            return true;
+        }
+
+        console.log(`🚫 セグメント越え通信: ${clientDevice.name}(LAN${clientLAN}) → ${routerDevice.name}(${routerIP})`);
+        return false;
     }
     
     // 詳細なサブネット不一致の理由を取得
@@ -4024,11 +4104,11 @@ class NetworkSimulator {
         
         // デフォルトゲートウェイ設定エラー：同一サブネット内のスイッチまでは到達可能
         if (reason.includes('デフォルトゲートウェイが無効') || reason.includes('ゲートウェイ')) {
-            // 両方向で同一サブネット内なら直接通信できるので、最初のスイッチまで到達
-            if (path.length > 1 && this.canCommunicateDirectly(sourceIP, sourceSubnet, targetIP, targetDevice.config.subnetMask)) {
+            // 両方向で同一サブネット内かつ物理的に同一セグメント内なら直接通信できるので、最初のスイッチまで到達
+            if (path.length > 1 && this.canCommunicateDirectly(sourceDevice, targetDevice)) {
                 return Math.min(2, path.length); // 最初のスイッチまで
             }
-            return 1; // 異なるサブネットなら送信元から出られない
+            return 1; // 異なるサブネットまたは異なるセグメントなら送信元から出られない
         }
         
         // 物理接続がない場合：送信元から出られない
