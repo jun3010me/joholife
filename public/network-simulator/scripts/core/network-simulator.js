@@ -5539,7 +5539,7 @@ class NetworkSimulator {
         // IPアドレスが無効な場合、キャンバス表示用の現在の値を確認
         if (!currentIP || currentIP === '0.0.0.0' || currentIP === '') {
             // デバイスを再描画するために最新の設定を確認
-            this.redraw();
+            this.scheduleRender();
             currentIP = sourceDevice.config.ipAddress || 'IP未設定';
         }
         if (sourceDeviceIp) sourceDeviceIp.textContent = `(${currentIP})`;
