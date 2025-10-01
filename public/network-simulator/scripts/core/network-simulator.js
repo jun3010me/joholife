@@ -8767,26 +8767,17 @@ class NetworkSimulator {
                 if (lanConfig && lanConfig.dhcpEnabled) {
                     const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, device, router);
                     if (assignedIP && assignedIP !== '0.0.0.0') {
-                        console.log(`DHCP: ${device.name} got IP ${assignedIP} from ${router.name} ${connectedLanPort}`);
-                        return assignedIP;
+                        console.log(`✅ DHCP: ${device.name} got IP ${assignedIP.ip} from ${router.name} ${connectedLanPort}`);
+                        device.config.ipAddress = assignedIP.ip;
+                        device.config.subnetMask = lanConfig.subnetMask || '255.255.255.0';
+                        device.config.defaultGateway = lanConfig.ipAddress;
+                        return assignedIP.ip;
                     }
+                } else {
+                    console.log(`⚠️ ${router.name}の${connectedLanPort}はDHCPが無効です`);
                 }
             } else {
-                console.log(`Warning: Could not determine LAN port for device ${device.name}. Available connections:`,
-                    this.connections.filter(c => c.from.device === device || c.to.device === device));
-                // フォールバック: 従来の方式（すべてのLANをチェック）
-                const lanConfigs = ['lan1', 'lan2', 'lan3'];
-
-                for (const lanKey of lanConfigs) {
-                    const lanConfig = router.config[lanKey];
-                    if (lanConfig && lanConfig.dhcpEnabled) {
-                        const assignedIP = this.allocateDHCPAddressFromLAN(lanConfig, device, router);
-                        if (assignedIP && assignedIP !== '0.0.0.0') {
-                            console.log(`DHCP fallback: ${device.name} got IP ${assignedIP} from ${router.name} ${lanKey}`);
-                            return assignedIP;
-                        }
-                    }
-                }
+                console.log(`❌ ${device.name}のLANポートを特定できませんでした (ルーター: ${router.name})`);
             }
         }
         return null;
@@ -8804,15 +8795,19 @@ class NetworkSimulator {
             // ルーター側のポートIDからLAN番号を特定
             let routerPortId;
             if (directConnection.from.device === router) {
-                routerPortId = directConnection.from.port.id;
+                routerPortId = directConnection.from.port?.id || directConnection.from.portId;
             } else {
-                routerPortId = directConnection.to.port.id;
+                routerPortId = directConnection.to.port?.id || directConnection.to.portId;
             }
+
+            console.log(`🔍 直接接続でのLANポート判定: ${device.name} → ${router.name}, ポートID: ${routerPortId}`);
 
             // ポートIDからLAN番号を判定
             if (routerPortId === 'lan1') return 'lan1';
             if (routerPortId === 'lan2') return 'lan2';
             if (routerPortId === 'lan3') return 'lan3';
+
+            console.log(`⚠️ 警告: ルーターポート ${routerPortId} はLAN1-3ではありません`);
         }
 
         // 間接接続（スイッチ経由）の場合
@@ -8827,18 +8822,23 @@ class NetworkSimulator {
                 // スイッチとルーター間の接続からLANポートを特定
                 let routerPortId;
                 if (switchToRouterConnection.from.device === router) {
-                    routerPortId = switchToRouterConnection.from.port.id;
+                    routerPortId = switchToRouterConnection.from.port?.id || switchToRouterConnection.from.portId;
                 } else {
-                    routerPortId = switchToRouterConnection.to.port.id;
+                    routerPortId = switchToRouterConnection.to.port?.id || switchToRouterConnection.to.portId;
                 }
+
+                console.log(`🔍 スイッチ経由でのLANポート判定: ${device.name} → ${switchDevice.name} → ${router.name}, ポートID: ${routerPortId}`);
 
                 // ポートIDからLAN番号を判定
                 if (routerPortId === 'lan1') return 'lan1';
                 if (routerPortId === 'lan2') return 'lan2';
                 if (routerPortId === 'lan3') return 'lan3';
+
+                console.log(`⚠️ 警告: ルーターポート ${routerPortId} はLAN1-3ではありません`);
             }
         }
 
+        console.log(`❌ ${device.name} → ${router.name} のLAN接続を特定できませんでした`);
         return null; // 接続が見つからない場合
     }
 
