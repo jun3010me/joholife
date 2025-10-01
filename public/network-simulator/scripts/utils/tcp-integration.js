@@ -52,9 +52,7 @@ function setupTCPEventListeners(simulator) {
     });
     
     // セグメント送信イベント（アニメーション表示）
-    window.tcpManager.addEventListener('segmentSent', (data) => {
-        animateTCPSegment(simulator, data);
-    });
+    // 注意: このハンドラーはnetwork-simulator.jsで処理されます
     
     // データ受信イベント（HTTPセッションに転送）
     window.tcpManager.addEventListener('dataReceived', (data) => {

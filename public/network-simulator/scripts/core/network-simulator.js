@@ -9573,12 +9573,7 @@ function setupTCPEventListeners(simulator) {
     
     // セグメント送信イベント（アニメーション表示）
     window.tcpManager.addEventListener('segmentSent', (data) => {
-        // animation-helper.jsのanimateTCPSegment関数を使用
-        if (typeof window.animateTCPSegment === 'function') {
-            window.animateTCPSegment(simulator, data);
-        } else {
-            console.error('animateTCPSegment関数が見つかりません（animation-helper.js）');
-        }
+        animateTCPSegment(simulator, data);
     });
     
     // HTTP関連イベントはtcp-integration.jsで処理
