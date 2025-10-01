@@ -2606,8 +2606,8 @@ class NetworkSimulator {
             console.log('✅ LAN DHCP割り当て完了 (' + connectionDesc + '):', clientDevice.name, 'IP:', assignedIP.ip, 'ゲートウェイ:', lanConfig.ipAddress, '(' + lanName + ')');
             this.updateStatus(`🔗 ${clientDevice.name} が ${routerDevice.name}の${lanName}から${connectionDesc}でIP ${assignedIP.ip} を取得しました`);
             
-            // デバイス表示を更新
-            this.scheduleRender();
+            // デバイス表示を即座に更新（DHCP配信時の描画遅延を防ぐ）
+            this.render();
         } else {
             console.log('❌ LAN DHCP割り当てに失敗:', clientDevice.name, '→', routerDevice.name);
             this.updateStatus(`❌ ${routerDevice.name}のDHCPプールが満杯のため、${clientDevice.name}にIPを割り当てできませんでした`);
@@ -2714,8 +2714,8 @@ class NetworkSimulator {
                             console.log('✅ ONU経由WAN設定完了:', otherDevice.name, 'IP:', globalIP.ip);
                             this.updateStatus(`🌐 ${otherDevice.name} のWANがONU経由でグローバルIP ${globalIP.ip} を取得しました`);
                             
-                            // デバイス表示を更新
-                            this.scheduleRender();
+                            // デバイス表示を即座に更新（DHCP配信時の描画遅延を防ぐ）
+                            this.render();
                         } else {
                             console.log('❌ グローバルIP割り当てに失敗:', otherDevice.name);
                         }
@@ -2756,8 +2756,8 @@ class NetworkSimulator {
                         console.log('✅ ONU経由デバイス設定完了:', otherDevice.name, '(' + otherDevice.type + ')', 'IP:', globalIP.ip);
                         this.updateStatus(`🌐 ${otherDevice.name} がONU経由でグローバルIP ${globalIP.ip} を取得しました`);
                         
-                        // デバイス表示を更新
-                        this.scheduleRender();
+                        // デバイス表示を即座に更新（DHCP配信時の描画遅延を防ぐ）
+                        this.render();
                     } else {
                         console.log('❌ グローバルIP割り当てに失敗:', otherDevice.name);
                     }
@@ -3037,8 +3037,8 @@ class NetworkSimulator {
                 
                 console.log('インターネット自動設定完了:', targetDevice.name, 'IP:', globalIP.ip, 'Gateway:', globalIP.gateway);
                 
-                // デバイスの表示を更新
-                this.scheduleRender();
+                // デバイスの表示を即座に更新（DHCP配信時の描画遅延を防ぐ）
+                this.render();
             }
         }
     }
@@ -3933,16 +3933,40 @@ class NetworkSimulator {
         return '不明なサブネット不一致';
     }
     
-    // サブネットマスクをCIDR表記に変換
+    // サブネットマスクをCIDR表記に変換（最適化 + キャッシュ）
     subnetMaskToCIDR(subnetMask) {
+        // キャッシュされた結果を確認
+        if (!this.cidrCache) {
+            this.cidrCache = new Map();
+            // 一般的なサブネットマスクを事前にキャッシュ
+            this.cidrCache.set('255.255.255.0', 24);
+            this.cidrCache.set('255.255.0.0', 16);
+            this.cidrCache.set('255.0.0.0', 8);
+            this.cidrCache.set('255.255.255.128', 25);
+            this.cidrCache.set('255.255.255.192', 26);
+            this.cidrCache.set('255.255.255.224', 27);
+            this.cidrCache.set('255.255.255.240', 28);
+            this.cidrCache.set('255.255.255.248', 29);
+            this.cidrCache.set('255.255.255.252', 30);
+        }
+
+        if (this.cidrCache.has(subnetMask)) {
+            return this.cidrCache.get(subnetMask);
+        }
+
+        // キャッシュにない場合は計算（最適化されたアルゴリズム）
         const subnetInt = this.ipToInt(subnetMask);
-        // 1のビット数を数える
+
+        // 高速なビットカウント（Brian Kernighan's algorithm）
         let cidr = 0;
         let mask = subnetInt;
         while (mask) {
-            cidr += mask & 1;
-            mask >>>= 1;
+            mask &= mask - 1; // 最下位の1ビットをクリア
+            cidr++;
         }
+
+        // 結果をキャッシュ
+        this.cidrCache.set(subnetMask, cidr);
         return cidr;
     }
     

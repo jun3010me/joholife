@@ -972,22 +972,6 @@ class QuizSession {
               </div>
             </div>
 
-            <!-- Overall Explanation -->
-            ${currentQuestion.explanation ? `
-              <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">詳しい解説</h3>
-                <div style="
-                  background: var(--surface); 
-                  border-radius: var(--radius-md); 
-                  padding: 1.5rem;
-                  border-left: 4px solid var(--primary-color);
-                ">
-                  <div style="color: var(--text-secondary); line-height: 1.6;">
-                    ${parseMarkdown(currentQuestion.explanation)}
-                  </div>
-                </div>
-              </div>
-            ` : ''}
 
             <!-- Navigation -->
             <div style="display: flex; justify-content: center; gap: 1rem;">
