@@ -163,8 +163,8 @@ questions:
         excludeValues: []
       - deviceName: "PC-2"
         property: "config.ipAddress"
-        expectedPattern: "192.168.1.19"
-        explanation: "PC-2のIPアドレスは2つ目のネットワーク（192.168.1.16/28）の 192.168.1.19 に手動設定する必要があります"
+        expectedPattern: "^192\\.168\\.1\\.(1[7-9]|2[0-9]|30)$"
+        explanation: "PC-2のIPアドレスは2つ目のネットワーク（192.168.1.16/28）のホスト範囲 192.168.1.17～192.168.1.30 のいずれかに手動設定する必要があります"
         excludeValues: []
       - deviceName: "PC-2"
         property: "config.subnetMask"
