@@ -8239,24 +8239,34 @@ class NetworkSimulator {
         
         // 各クライアントに新しいIPアドレスを割り当て
         let redistributedCount = 0;
-        
+
         for (const { client, lanConfig } of affectedClients) {
             const oldIP = client.config.ipAddress;
-            
+            const lanName = this.getLANName(router, lanConfig);
+
+            // ★★★ 重要: LANのDHCP有効性を再確認 ★★★
+            if (!lanConfig || !lanConfig.dhcpEnabled) {
+                console.log(`⏭️ ${client.name} の${lanName}はDHCP無効のため再配布をスキップ`);
+                // リースを削除してIPをクリア
+                this.clearClientLease(client, lanConfig);
+                client.config.ipAddress = '0.0.0.0';
+                continue;
+            }
+
             // 現在のリースを削除（新しい範囲で再割り当てするため）
             this.clearClientLease(client, lanConfig);
-            
+
             // 新しいIPアドレスを要求
             const success = this.requestDHCPAddress(client);
-            
+
             if (success) {
                 redistributedCount++;
-                console.log(`再配布成功: ${client.name} ${oldIP} -> ${client.config.ipAddress}`);
-                
+                console.log(`✅ 再配布成功: ${client.name} ${oldIP} -> ${client.config.ipAddress} (${lanName})`);
+
                 // ステータスメッセージを更新
                 this.updateStatus(`🔄 DHCP再配布: ${client.name} ${oldIP} -> ${client.config.ipAddress}`);
             } else {
-                console.log(`再配布失敗: ${client.name} (${oldIP})`);
+                console.log(`❌ 再配布失敗: ${client.name} (${oldIP}, ${lanName})`);
             }
         }
         
