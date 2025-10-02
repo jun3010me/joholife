@@ -7918,74 +7918,23 @@ class NetworkSimulator {
                     lan2Enabled: router.config.lan2?.dhcpEnabled,
                     lan3Enabled: router.config.lan3?.dhcpEnabled
                 });
-                
-                // ポート0-1: LAN1, ポート2: LAN2, ポート3-5: LAN3 として判定
-                if (routerPortIndex <= 1 && router.config.lan1?.dhcpEnabled) {
-                    console.log('✅ LAN1を選択 (ポート:', routerPortIndex, ')');
+
+                // ポート0-1: LAN1, ポート2: LAN2, ポート3-5: LAN3 として判定（DHCP有効性は考慮しない）
+                if (routerPortIndex <= 1) {
+                    console.log('✅ LAN1を選択 (ポート:', routerPortIndex, ', DHCP:', router.config.lan1?.dhcpEnabled ? '有効' : '無効', ')');
                     return router.config.lan1;
-                } else if (routerPortIndex === 2 && router.config.lan2?.dhcpEnabled) {
-                    console.log('✅ LAN2を選択 (ポート:', routerPortIndex, ')');
+                } else if (routerPortIndex === 2) {
+                    console.log('✅ LAN2を選択 (ポート:', routerPortIndex, ', DHCP:', router.config.lan2?.dhcpEnabled ? '有効' : '無効', ')');
                     return router.config.lan2;
-                } else if (routerPortIndex >= 3 && router.config.lan3?.dhcpEnabled) {
-                    console.log('✅ LAN3を選択 (ポート:', routerPortIndex, ')');
+                } else if (routerPortIndex >= 3) {
+                    console.log('✅ LAN3を選択 (ポート:', routerPortIndex, ', DHCP:', router.config.lan3?.dhcpEnabled ? '有効' : '無効', ')');
                     return router.config.lan3;
                 }
-                console.log('❌ ポート判定で有効なLANが見つからない');
+                console.log('❌ ポート番号からLANを判定できませんでした');
             }
         }
-        
-        // フォールバック1: スイッチ経由の場合、スイッチの位置で判定
-        const switchInPath = this.findSwitchInPath(pathToRouter);
-        if (switchInPath) {
-            const switchX = switchInPath.x;
-            const routerX = router.x;
-            const distance = Math.abs(switchX - routerX);
-            
-            // スイッチとルーター間の距離でLANを判定
-            if (distance < 100 && router.config.lan1?.dhcpEnabled) {
-                return router.config.lan1;
-            } else if (distance < 200 && router.config.lan2?.dhcpEnabled) {
-                return router.config.lan2;
-            } else if (router.config.lan3?.dhcpEnabled) {
-                return router.config.lan3;
-            }
-        }
-        
-        // フォールバック2: クライアントの位置に基づく判定
-        const clientX = client.x;
-        const routerX = router.x;
-        const distance = Math.abs(clientX - routerX);
-        
-        // 距離に基づいてLANを推測（近い順に割り当て）
-        if (distance < 150 && router.config.lan1?.dhcpEnabled) {
-            return router.config.lan1;
-        } else if (distance < 300 && router.config.lan2?.dhcpEnabled) {
-            return router.config.lan2;
-        } else if (router.config.lan3?.dhcpEnabled) {
-            return router.config.lan3;
-        }
-        
-        // 最後のフォールバック: 有効なLANから順に割り当て
-        console.log('🔧 フォールバック処理開始 - LAN状態:', {
-            lan1: router.config.lan1?.dhcpEnabled,
-            lan2: router.config.lan2?.dhcpEnabled,
-            lan3: router.config.lan3?.dhcpEnabled
-        });
-        
-        if (router.config.lan1?.dhcpEnabled) {
-            console.log('✅ フォールバック: LAN1を選択');
-            return router.config.lan1;
-        }
-        if (router.config.lan2?.dhcpEnabled) {
-            console.log('✅ フォールバック: LAN2を選択');
-            return router.config.lan2;
-        }
-        if (router.config.lan3?.dhcpEnabled) {
-            console.log('✅ LAN3を選択');
-            return router.config.lan3;
-        }
-        
-        console.log('❌ 利用可能なLANが見つかりません');
+
+        console.log('❌ LAN接続を判定できませんでした:', client.name, '→', router.name);
         return null;
     }
 
