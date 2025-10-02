@@ -197,6 +197,10 @@ async function loadNetworkQuestions() {
           return { valid: false, message: 'PC-2のサブネットマスクが正しくありません。ネットワークを16個に分割するために必要なサブネットマスクを計算して設定してください（現在: ' + pc2.config.subnetMask + '）' };
         }
 
+        if (pc2.config.defaultGateway !== '192.168.1.17') {
+          return { valid: false, message: 'PC-2のデフォルトゲートウェイが正しくありません。2つ目のネットワークの最初のホストアドレスを設定してください（現在: ' + pc2.config.defaultGateway + '）' };
+        }
+
         // PC-3 settings validation (DHCP from LAN2: 192.168.1.18-30)
         if (!pc3.config.dhcpEnabled) {
           return { valid: false, message: 'PC-3でDHCPを有効化してルーターLAN2からIPアドレスを自動取得する必要があります' };
