@@ -184,13 +184,13 @@ async function loadNetworkQuestions() {
           return { valid: false, message: 'PC-1のデフォルトゲートウェイが正しくありません。1つ目のネットワークのルーターIPアドレスを設定してください（現在: ' + pc1.config.defaultGateway + '）' };
         }
 
-        // PC-2 settings validation (Manual: 192.168.1.19)
+        // PC-2 settings validation (Manual: 192.168.1.17-30)
         if (pc2.config.dhcpEnabled) {
           return { valid: false, message: 'PC-2はDHCPを無効化して手動でIPアドレスを設定する必要があります' };
         }
 
-        if (pc2.config.ipAddress !== '192.168.1.19') {
-          return { valid: false, message: 'PC-2のIPアドレスが正しくありません。2つ目のネットワークの使用可能なホストアドレスを手動設定してください（現在: ' + pc2.config.ipAddress + '）' };
+        if (!pc2.config.ipAddress || !pc2.config.ipAddress.match(/^192\.168\.1\.(1[7-9]|2[0-9]|30)$/)) {
+          return { valid: false, message: 'PC-2のIPアドレスが正しくありません。2つ目のネットワーク（192.168.1.16/28）のホスト範囲 192.168.1.17～192.168.1.30 のいずれかを手動設定してください（現在: ' + pc2.config.ipAddress + '）' };
         }
 
         if (pc2.config.subnetMask !== '255.255.255.240') {
