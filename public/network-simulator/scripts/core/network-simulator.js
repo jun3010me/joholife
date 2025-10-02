@@ -6952,6 +6952,11 @@ class NetworkSimulator {
     // 既存接続に対してDHCP設定を再適用
     reapplyDHCPToExistingConnections(router) {
         console.log('🔄 DHCP設定変更 - 既存接続を再評価開始:', router.name);
+        console.log('🔍 ルーター設定状態:', {
+            lan1_dhcp: router.config.lan1?.dhcpEnabled,
+            lan2_dhcp: router.config.lan2?.dhcpEnabled,
+            lan3_dhcp: router.config.lan3?.dhcpEnabled
+        });
 
         // このルーターに接続されているすべてのデバイスを探す
         const connectedDevices = this.getConnectedDHCPClients(router);
@@ -6960,7 +6965,8 @@ class NetworkSimulator {
 
         connectedDevices.forEach(clientInfo => {
             const { client, lanConfig, connectionType } = clientInfo;
-            console.log(`🔄 ${client.name} の設定を再適用中... (${connectionType})`);
+            const lanName = this.getLANName(router, lanConfig);
+            console.log(`🔄 ${client.name} の設定を再適用中... (${connectionType}, ${lanName})`);
 
             // DHCP有効かチェック
             if (!client.config || !client.config.dhcpEnabled) {
@@ -6968,8 +6974,16 @@ class NetworkSimulator {
                 return;
             }
 
-            if (!lanConfig || !lanConfig.dhcpEnabled) {
-                console.log(`⏭️ ${router.name} の対応LANでDHCP無効のためスキップ`);
+            // ★★★ 重要: lanConfigのDHCP状態を再確認（設定保存直後の最新状態を取得）★★★
+            const currentLanDhcpEnabled = lanConfig?.dhcpEnabled || false;
+            console.log(`🔍 ${lanName} DHCP状態チェック:`, {
+                lanConfig: lanConfig ? 'あり' : 'なし',
+                dhcpEnabled: currentLanDhcpEnabled,
+                lanConfigObject: lanConfig
+            });
+
+            if (!lanConfig || !currentLanDhcpEnabled) {
+                console.log(`⏭️ ${router.name} の${lanName}でDHCP無効のためスキップ (dhcpEnabled: ${currentLanDhcpEnabled})`);
                 return;
             }
 
@@ -6984,12 +6998,14 @@ class NetworkSimulator {
                 console.log(`✅ ${client.name} 設定更新完了:`, {
                     ip: currentIP,
                     subnet: client.config.subnetMask,
-                    gateway: client.config.defaultGateway
+                    gateway: client.config.defaultGateway,
+                    lan: lanName
                 });
 
-                this.updateStatus(`🔄 ${client.name} のDHCP設定を更新しました (IP: ${currentIP})`);
+                this.updateStatus(`🔄 ${client.name} のDHCP設定を更新しました (IP: ${currentIP}, ${lanName})`);
             } else {
-                // IPが未割り当ての場合は新規割り当て
+                // IPが未割り当ての場合は新規割り当て（DHCP有効なLANのみ）
+                console.log(`🆕 ${client.name} に新規IP割り当て (${lanName}, DHCP: ${currentLanDhcpEnabled})`);
                 this.assignDHCPToClient(client, router, null, connectionType);
             }
         });
