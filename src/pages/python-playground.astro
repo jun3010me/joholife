@@ -100,6 +100,8 @@ import Layout from '../layouts/Layout.astro';
         let variableState = {};
         let loopCounts = {};
         let recursionData = {};
+        let outputLineCount = 0;
+        const MAX_OUTPUT_LINES = 10000; // 最大出力行数
 
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
@@ -208,12 +210,36 @@ for i in range(3):
                 pyodide = await window.loadPyodide({
                     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
                     stdout: (text) => {
-                        appendOutput(text, 'stdout');
+                        // テキストを改行で分割して1行ずつ追加
+                        const lines = text.split('\n');
+                        for (let i = 0; i < lines.length; i++) {
+                            if (i === lines.length - 1 && lines[i] === '') continue;
+                            appendOutput(lines[i], 'stdout');
+                        }
                     },
                     stderr: (text) => {
-                        appendOutput(text, 'stderr');
+                        const lines = text.split('\n');
+                        for (let i = 0; i < lines.length; i++) {
+                            if (i === lines.length - 1 && lines[i] === '') continue;
+                            appendOutput(lines[i], 'stderr');
+                        }
                     }
                 });
+
+                // stdoutのバッファリングを無効化
+                pyodide.runPython(`
+import sys
+import io
+
+class UnbufferedTextIO(io.TextIOWrapper):
+    def write(self, s):
+        super().write(s)
+        self.flush()
+        return len(s)
+
+sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
+sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+                `);
 
                 console.log('Pyodide loaded successfully');
 
@@ -245,18 +271,44 @@ builtins.input = custom_input
             }
         }
 
-        // 出力エリアにテキストを追加
+        // 出力エリアにテキストを追加（1行ずつリアルタイム）
         function appendOutput(text, type = 'stdout') {
             const outputArea = document.getElementById('output-area');
+
+            // 最大行数チェック
+            if (outputLineCount >= MAX_OUTPUT_LINES) {
+                if (outputLineCount === MAX_OUTPUT_LINES) {
+                    const warningLine = document.createElement('div');
+                    warningLine.className = 'output-line info';
+                    warningLine.textContent = `\n⚠️ 出力が${MAX_OUTPUT_LINES}行を超えました。これ以上の出力は省略されます。`;
+                    outputArea.appendChild(warningLine);
+                    outputLineCount++;
+                }
+                return;
+            }
+
+            // 「実行中...」メッセージを最初の出力で削除
+            const runningMsg = outputArea.querySelector('.running-msg');
+            if (runningMsg) {
+                runningMsg.remove();
+            }
+
             if (outputArea.querySelector('.loading') || outputArea.querySelector('.ready')) {
                 outputArea.innerHTML = '';
             }
-            
+
+            // 1行ずつ即座に追加
             const outputLine = document.createElement('div');
             outputLine.className = `output-line ${type}`;
             outputLine.textContent = text;
             outputArea.appendChild(outputLine);
-            outputArea.scrollTop = outputArea.scrollHeight;
+
+            outputLineCount++;
+
+            // スクロールは適度に（100行ごと）
+            if (outputLineCount % 100 === 0) {
+                outputArea.scrollTop = outputArea.scrollHeight;
+            }
         }
 
         // 変数トラッカーの更新
@@ -284,7 +336,7 @@ builtins.input = custom_input
         }
 
         // ループカウンターの更新
-        function updateLoopTracker(counts, codeLines) {
+        function updateLoopTracker(counts, codeLines, loopIterations) {
             const tracker = document.getElementById('loop-tracker');
             if (Object.keys(counts).length === 0) {
                 tracker.innerHTML = '<div class="debug-empty">ループはまだ実行されていません</div>';
@@ -292,37 +344,82 @@ builtins.input = custom_input
             }
 
             let html = '<div class="loop-list">';
-            // 行番号でソート
-            const sortedEntries = Object.entries(counts).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
 
-            // 最大実行回数を取得（プログレスバー用）
-            const maxCount = Math.max(...Object.values(counts));
+            // ループごとにグループ化
+            const loopGroups = {};
+            for (const [line, count] of Object.entries(counts)) {
+                // この行がどのループに属するか探す
+                let belongsToLoop = null;
+                for (const loopLine of Object.keys(loopIterations)) {
+                    const loopLineNum = parseInt(loopLine);
+                    const currentLineNum = parseInt(line);
+                    if (currentLineNum > loopLineNum) {
+                        belongsToLoop = loopLine;
+                    }
+                }
 
-            for (const [line, count] of sortedEntries) {
-                const lineNum = parseInt(line);
-                const codeSnippet = codeLines[lineNum - 1] || '';
-                const trimmedCode = codeSnippet.trim();
+                if (!belongsToLoop) {
+                    // ループ行から最も近いループを探す
+                    const sortedLoops = Object.keys(loopIterations).map(Number).sort((a, b) => a - b);
+                    for (const loopLine of sortedLoops) {
+                        if (loopLine < parseInt(line)) {
+                            belongsToLoop = loopLine.toString();
+                        }
+                    }
+                }
 
-                // プログレスバーの幅を計算
-                const percentage = (count / maxCount) * 100;
+                if (belongsToLoop) {
+                    if (!loopGroups[belongsToLoop]) {
+                        loopGroups[belongsToLoop] = [];
+                    }
+                    loopGroups[belongsToLoop].push([line, count]);
+                }
+            }
 
-                // 実行回数を視覚化（ドット表示）
-                const dots = '●'.repeat(Math.min(count, 10)) + (count > 10 ? '...' : '');
+            // ループごとに表示
+            for (const [loopLine, lines] of Object.entries(loopGroups)) {
+                const loopLineNum = parseInt(loopLine);
+                const loopCodeSnippet = codeLines[loopLineNum - 1] || '';
+                const iterations = loopIterations[loopLine]?.iterations || 0;
 
                 html += `
-                    <div class="loop-item">
-                        <div class="loop-info">
-                            <span class="loop-line">行 ${line}</span>
-                            <span class="loop-iterations">${dots}</span>
-                            <span class="loop-count">${count}回</span>
+                    <div class="loop-group">
+                        <div class="loop-header">
+                            <span class="loop-header-line">行 ${loopLine}</span>
+                            <span class="loop-iteration-count">🔄 ${iterations}回ループ</span>
                         </div>
-                        <div class="loop-progress-bar">
-                            <div class="loop-progress-fill" style="width: ${percentage}%"></div>
-                        </div>
-                        <div class="loop-code">${escapeHtml(trimmedCode)}</div>
-                    </div>
+                        <div class="loop-header-code">${escapeHtml(loopCodeSnippet.trim())}</div>
                 `;
+
+                // 行番号でソート
+                const sortedLines = lines.sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+                const maxCount = Math.max(...lines.map(l => l[1]));
+
+                for (const [line, count] of sortedLines) {
+                    const lineNum = parseInt(line);
+                    const codeSnippet = codeLines[lineNum - 1] || '';
+                    const trimmedCode = codeSnippet.trim();
+                    const percentage = (count / maxCount) * 100;
+                    const dots = '●'.repeat(Math.min(count, 10)) + (count > 10 ? '...' : '');
+
+                    html += `
+                        <div class="loop-item">
+                            <div class="loop-info">
+                                <span class="loop-line">行 ${line}</span>
+                                <span class="loop-iterations">${dots}</span>
+                                <span class="loop-count">${count}回</span>
+                            </div>
+                            <div class="loop-progress-bar">
+                                <div class="loop-progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                            <div class="loop-code">${escapeHtml(trimmedCode)}</div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
             }
+
             html += '</div>';
             tracker.innerHTML = html;
         }
@@ -376,6 +473,7 @@ builtins.input = custom_input
             variableState = {};
             loopCounts = {};
             recursionData = {};
+            outputLineCount = 0;
             updateVariableTracker({});
             updateLoopTracker({});
             updateRecursionTracker({});
@@ -406,9 +504,8 @@ builtins.input = custom_input
             const runBtn = document.getElementById('run-btn');
 
             // 出力エリアとデバッグ情報をクリア
-            outputArea.innerHTML = '';
+            outputArea.innerHTML = '<div class="running-msg">🔄 実行中...<br><small style="color: #94a3b8;">※大量の出力は実行完了後に表示されます</small></div>';
             clearDebugInfo();
-            appendOutput('🔄 実行中...', 'info');
             runBtn.disabled = true;
 
             try {
@@ -419,6 +516,7 @@ import json
 import re
 
 __loop_counts__ = {}
+__loop_iterations__ = {}  # ループごとの反復回数を記録
 __variables__ = {}
 __all_variables__ = {}  # すべての変数を収集
 __recursion_data__ = {}  # 再帰情報を追跡
@@ -439,7 +537,7 @@ def __get_indent__(line_text):
     return len(line_text) - len(line_text.lstrip())
 
 def __tracer__(frame, event, arg):
-    global __loop_counts__, __variables__, __all_variables__, __recursion_data__, __call_stack__
+    global __loop_counts__, __loop_iterations__, __variables__, __all_variables__, __recursion_data__, __call_stack__
     global __tracing_enabled__, __loop_stack__, __in_loop__
 
     # ユーザーコードのみを追跡（<exec>ファイル名でフィルタ）
@@ -451,8 +549,14 @@ def __tracer__(frame, event, arg):
     if event == 'call' and __tracing_enabled__:
         func_name = frame.f_code.co_name
 
+        # 除外する関数名
+        excluded_funcs = {
+            '<module>', '<listcomp>', '<dictcomp>', '<setcomp>', '<genexpr>',
+            'write', 'flush', 'custom_input', 'custom_print'
+        }
+
         # メイン実行や組み込み関数を除外
-        if func_name not in ['<module>', '<listcomp>'] and not func_name.startswith('__'):
+        if func_name not in excluded_funcs and not func_name.startswith('_'):
             # スタックに追加
             if func_name not in __call_stack__:
                 __call_stack__[func_name] = 0
@@ -489,14 +593,17 @@ def __tracer__(frame, event, arg):
             if __is_loop_start__(line_text):
                 __loop_stack__.append({
                     'line': lineno,
-                    'indent': current_indent
+                    'indent': current_indent,
+                    'iterations': 0
                 })
                 __in_loop__ = True
 
             # ループ本体内の行をカウント
             elif __loop_stack__:
                 # 現在のループのインデントレベル
-                loop_indent = __loop_stack__[-1]['indent']
+                loop_info = __loop_stack__[-1]
+                loop_indent = loop_info['indent']
+                loop_line = loop_info['line']
 
                 # インデントがループより深い = ループ本体内
                 if current_indent > loop_indent:
@@ -504,6 +611,16 @@ def __tracer__(frame, event, arg):
                         __loop_counts__[lineno] += 1
                     else:
                         __loop_counts__[lineno] = 1
+
+                    # ループの最初の行に戻ったら反復回数をカウント
+                    # （ループ本体の最小行番号を基準に判定）
+                    if loop_line not in __loop_iterations__:
+                        __loop_iterations__[loop_line] = {'iterations': 0, 'first_body_line': lineno}
+
+                    # 最初の本体行に戻ってきたら反復回数を増やす
+                    if lineno == __loop_iterations__[loop_line]['first_body_line']:
+                        __loop_iterations__[loop_line]['iterations'] += 1
+
                 # インデントが戻った = ループ終了
                 elif current_indent <= loop_indent:
                     __loop_stack__.pop()
@@ -512,25 +629,33 @@ def __tracer__(frame, event, arg):
 
     # すべての変数を収集（グローバル + ローカル）
     if event in ['line', 'call', 'return'] and __tracing_enabled__:
-        # グローバル変数を取得
+        # ローカル変数のみを取得（関数内の変数）
+        locals_dict = frame.f_locals.copy()
+
+        # グローバル変数を取得（ユーザー定義のみ）
         globals_dict = frame.f_globals.copy()
 
-        # ローカル変数を取得
-        locals_dict = frame.f_locals.copy()
+        # 除外するキー
+        excluded_keys = {
+            'sys', 'json', 're', 'io', 'builtins', 'prompt',
+            'UnbufferedTextIO', 'self', 's', 'custom_input'
+        }
 
         # 組み合わせて、内部変数やモジュールを除外
         for k, v in {**globals_dict, **locals_dict}.items():
-            if (not k.startswith('__') and
+            if (not k.startswith('_') and
+                k not in excluded_keys and
                 not callable(v) and
-                str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>'] and
-                k not in ['sys', 'json', 're']):
+                'TextIO' not in str(type(v)) and
+                '<_io.' not in str(v) and
+                str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>']):
                 try:
                     # シリアライズ可能な値のみ保存
                     json.dumps(v)
                     __all_variables__[k] = v
                 except:
-                    # シリアライズできない場合は文字列表現を保存
-                    __all_variables__[k] = str(v)
+                    # シリアライズできない値はスキップ
+                    pass
 
     return __tracer__
 `;
@@ -553,6 +678,10 @@ def __tracer__(frame, event, arg):
                 await pyodide.runPythonAsync('__tracing_enabled__ = False');
                 await pyodide.runPythonAsync('sys.settrace(None)');
 
+                // 最終的なスクロール
+                const outputArea = document.getElementById('output-area');
+                outputArea.scrollTop = outputArea.scrollHeight;
+
                 // 変数、ループカウント、再帰データを取得
                 const variables = pyodide.globals.get('__all_variables__');
                 const loopCountsRaw = pyodide.globals.get('__loop_counts__');
@@ -566,9 +695,16 @@ def __tracer__(frame, event, arg):
 
                 if (loopCountsRaw) {
                     const loopCountsObj = loopCountsRaw.toJs({dict_converter: Object.fromEntries});
-                    // すべてのループ本体行を表示（インデントでフィルタ済み）
                     loopCounts = loopCountsObj;
-                    updateLoopTracker(loopCounts, codeLines);
+
+                    // ループ反復回数を取得
+                    const loopIterationsRaw = pyodide.globals.get('__loop_iterations__');
+                    let loopIterationsObj = {};
+                    if (loopIterationsRaw) {
+                        loopIterationsObj = loopIterationsRaw.toJs({dict_converter: Object.fromEntries});
+                    }
+
+                    updateLoopTracker(loopCounts, codeLines, loopIterationsObj);
                 }
 
                 if (recursionDataRaw) {
@@ -576,15 +712,21 @@ def __tracer__(frame, event, arg):
                     updateRecursionTracker(recursionData);
                 }
 
+                // 「実行中...」が残っていたら削除
+                const runningMsg = outputArea.querySelector('.running-msg');
+                if (runningMsg) {
+                    runningMsg.remove();
+                }
+
                 // 結果がある場合は表示
                 if (result !== undefined && result !== null && result !== '') {
                     appendOutput(`結果: ${result}`, 'info');
                 }
 
-                // 実行完了メッセージ
-                setTimeout(() => {
-                    appendOutput('✅ 実行完了', 'info');
-                }, 100);
+                // 出力がなかった場合のみメッセージ表示
+                if (outputArea.children.length === 0) {
+                    appendOutput('✅ 実行完了（出力なし）', 'info');
+                }
 
             } catch (error) {
                 console.error('Python実行エラー:', error);
@@ -802,11 +944,21 @@ def __tracer__(frame, event, arg):
             color: #10b981;
         }
 
-        .loading, .ready {
+        .loading, .ready, .running-msg {
             color: #64748b;
             font-style: italic;
             text-align: center;
             padding: 20px;
+        }
+
+        .running-msg {
+            color: #3b82f6;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .error {
@@ -954,14 +1106,61 @@ def __tracer__(frame, event, arg):
             text-align: right;
         }
 
+        .loop-group {
+            margin-bottom: 20px;
+            background: #fffbeb;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #f59e0b;
+        }
+
+        .loop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .loop-header-line {
+            font-weight: 700;
+            color: #92400e;
+            font-size: 15px;
+        }
+
+        .loop-iteration-count {
+            background: #f59e0b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .loop-header-code {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
         .loop-item {
             background: #fef3c7;
             padding: 12px;
             border-radius: 8px;
-            border-left: 4px solid #f59e0b;
+            border-left: 4px solid #fbbf24;
             display: flex;
             flex-direction: column;
             gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .loop-item:last-child {
+            margin-bottom: 0;
         }
 
         .loop-info {
