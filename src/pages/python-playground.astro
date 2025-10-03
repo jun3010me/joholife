@@ -46,6 +46,35 @@ import Layout from '../layouts/Layout.astro';
             </div>
         </div>
 
+        <div class="debug-panels">
+            <div class="debug-panel">
+                <div class="debug-header">
+                    <h3>🔍 変数トラッカー</h3>
+                </div>
+                <div id="variable-tracker" class="debug-content">
+                    <div class="debug-empty">変数はまだありません</div>
+                </div>
+            </div>
+
+            <div class="debug-panel">
+                <div class="debug-header">
+                    <h3>🔄 ループ実行カウンター</h3>
+                </div>
+                <div id="loop-tracker" class="debug-content">
+                    <div class="debug-empty">ループはまだ実行されていません</div>
+                </div>
+            </div>
+
+            <div class="debug-panel">
+                <div class="debug-header">
+                    <h3>🔁 再帰トラッカー</h3>
+                </div>
+                <div id="recursion-tracker" class="debug-content">
+                    <div class="debug-empty">再帰関数はまだ呼ばれていません</div>
+                </div>
+            </div>
+        </div>
+
         <div class="help-section">
             <h3>💡 使い方</h3>
             <ul>
@@ -68,6 +97,9 @@ import Layout from '../layouts/Layout.astro';
         let isWaitingForInput = false;
         let inputResolver = null;
         let codeEditor = null;
+        let variableState = {};
+        let loopCounts = {};
+        let recursionData = {};
 
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
@@ -227,6 +259,128 @@ builtins.input = custom_input
             outputArea.scrollTop = outputArea.scrollHeight;
         }
 
+        // 変数トラッカーの更新
+        function updateVariableTracker(variables) {
+            const tracker = document.getElementById('variable-tracker');
+            if (Object.keys(variables).length === 0) {
+                tracker.innerHTML = '<div class="debug-empty">変数はまだありません</div>';
+                return;
+            }
+
+            let html = '<div class="variable-list">';
+            for (const [name, value] of Object.entries(variables)) {
+                const valueStr = JSON.stringify(value);
+                const typeStr = typeof value;
+                html += `
+                    <div class="variable-item">
+                        <span class="var-name">${name}</span>
+                        <span class="var-type">${typeStr}</span>
+                        <span class="var-value">${valueStr}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            tracker.innerHTML = html;
+        }
+
+        // ループカウンターの更新
+        function updateLoopTracker(counts, codeLines) {
+            const tracker = document.getElementById('loop-tracker');
+            if (Object.keys(counts).length === 0) {
+                tracker.innerHTML = '<div class="debug-empty">ループはまだ実行されていません</div>';
+                return;
+            }
+
+            let html = '<div class="loop-list">';
+            // 行番号でソート
+            const sortedEntries = Object.entries(counts).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+
+            // 最大実行回数を取得（プログレスバー用）
+            const maxCount = Math.max(...Object.values(counts));
+
+            for (const [line, count] of sortedEntries) {
+                const lineNum = parseInt(line);
+                const codeSnippet = codeLines[lineNum - 1] || '';
+                const trimmedCode = codeSnippet.trim();
+
+                // プログレスバーの幅を計算
+                const percentage = (count / maxCount) * 100;
+
+                // 実行回数を視覚化（ドット表示）
+                const dots = '●'.repeat(Math.min(count, 10)) + (count > 10 ? '...' : '');
+
+                html += `
+                    <div class="loop-item">
+                        <div class="loop-info">
+                            <span class="loop-line">行 ${line}</span>
+                            <span class="loop-iterations">${dots}</span>
+                            <span class="loop-count">${count}回</span>
+                        </div>
+                        <div class="loop-progress-bar">
+                            <div class="loop-progress-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="loop-code">${escapeHtml(trimmedCode)}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            tracker.innerHTML = html;
+        }
+
+        // HTMLエスケープ用ヘルパー関数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 再帰トラッカーの更新
+        function updateRecursionTracker(data) {
+            const tracker = document.getElementById('recursion-tracker');
+            if (Object.keys(data).length === 0) {
+                tracker.innerHTML = '<div class="debug-empty">再帰関数はまだ呼ばれていません</div>';
+                return;
+            }
+
+            let html = '<div class="recursion-list">';
+
+            for (const [funcName, info] of Object.entries(data)) {
+                const maxDepth = info.max_depth;
+                const totalCalls = info.total_calls;
+                const depthBars = '━'.repeat(Math.min(maxDepth, 20));
+
+                html += `
+                    <div class="recursion-item">
+                        <div class="recursion-header">
+                            <span class="recursion-name">${funcName}()</span>
+                            <span class="recursion-stats">
+                                <span class="stat-badge">呼出: ${totalCalls}回</span>
+                                <span class="stat-badge depth">深さ: ${maxDepth}</span>
+                            </span>
+                        </div>
+                        <div class="recursion-depth-bar">
+                            <div class="depth-fill" style="width: ${Math.min(maxDepth * 10, 100)}%">
+                                ${depthBars}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            tracker.innerHTML = html;
+        }
+
+        // デバッグ情報のクリア
+        function clearDebugInfo() {
+            variableState = {};
+            loopCounts = {};
+            recursionData = {};
+            updateVariableTracker({});
+            updateLoopTracker({});
+            updateRecursionTracker({});
+        }
+
         // コード実行
         async function runCode() {
             if (!pyodide) {
@@ -242,7 +396,7 @@ builtins.input = custom_input
                 const fallbackEditor = document.getElementById('fallback-editor');
                 code = fallbackEditor ? fallbackEditor.value.trim() : '';
             }
-            
+
             if (!code) {
                 appendOutput('実行するコードを入力してください。', 'stderr');
                 return;
@@ -250,26 +404,188 @@ builtins.input = custom_input
 
             const outputArea = document.getElementById('output-area');
             const runBtn = document.getElementById('run-btn');
-            
-            // 出力エリアをクリア
+
+            // 出力エリアとデバッグ情報をクリア
             outputArea.innerHTML = '';
+            clearDebugInfo();
             appendOutput('🔄 実行中...', 'info');
             runBtn.disabled = true;
 
             try {
-                // コードを実行
+                // トレーサーを設定するPythonコード
+                const tracerCode = `
+import sys
+import json
+import re
+
+__loop_counts__ = {}
+__variables__ = {}
+__all_variables__ = {}  # すべての変数を収集
+__recursion_data__ = {}  # 再帰情報を追跡
+__call_stack__ = {}  # 関数呼び出しスタック
+__user_code_file__ = '<exec>'
+__tracing_enabled__ = False
+__user_code_lines__ = []
+__loop_stack__ = []  # ループのネストを追跡
+__in_loop__ = False
+
+def __is_loop_start__(line_text):
+    """行がforまたはwhileで始まるかチェック"""
+    stripped = line_text.lstrip()
+    return stripped.startswith('for ') or stripped.startswith('while ')
+
+def __get_indent__(line_text):
+    """行のインデントレベルを取得"""
+    return len(line_text) - len(line_text.lstrip())
+
+def __tracer__(frame, event, arg):
+    global __loop_counts__, __variables__, __all_variables__, __recursion_data__, __call_stack__
+    global __tracing_enabled__, __loop_stack__, __in_loop__
+
+    # ユーザーコードのみを追跡（<exec>ファイル名でフィルタ）
+    filename = frame.f_code.co_filename
+    if filename != __user_code_file__:
+        return __tracer__
+
+    # 関数呼び出しと再帰の追跡
+    if event == 'call' and __tracing_enabled__:
+        func_name = frame.f_code.co_name
+
+        # メイン実行や組み込み関数を除外
+        if func_name not in ['<module>', '<listcomp>'] and not func_name.startswith('__'):
+            # スタックに追加
+            if func_name not in __call_stack__:
+                __call_stack__[func_name] = 0
+            __call_stack__[func_name] += 1
+
+            current_depth = __call_stack__[func_name]
+
+            # 再帰データを記録
+            if func_name not in __recursion_data__:
+                __recursion_data__[func_name] = {
+                    'total_calls': 0,
+                    'max_depth': 0
+                }
+
+            __recursion_data__[func_name]['total_calls'] += 1
+            if current_depth > __recursion_data__[func_name]['max_depth']:
+                __recursion_data__[func_name]['max_depth'] = current_depth
+
+    # 関数からの戻り
+    if event == 'return' and __tracing_enabled__:
+        func_name = frame.f_code.co_name
+        if func_name in __call_stack__ and __call_stack__[func_name] > 0:
+            __call_stack__[func_name] -= 1
+
+    # ループのカウント（行番号ベース）
+    if event == 'line' and __tracing_enabled__:
+        lineno = frame.f_lineno
+
+        if lineno <= len(__user_code_lines__):
+            line_text = __user_code_lines__[lineno - 1]
+            current_indent = __get_indent__(line_text)
+
+            # ループの開始を検出
+            if __is_loop_start__(line_text):
+                __loop_stack__.append({
+                    'line': lineno,
+                    'indent': current_indent
+                })
+                __in_loop__ = True
+
+            # ループ本体内の行をカウント
+            elif __loop_stack__:
+                # 現在のループのインデントレベル
+                loop_indent = __loop_stack__[-1]['indent']
+
+                # インデントがループより深い = ループ本体内
+                if current_indent > loop_indent:
+                    if lineno in __loop_counts__:
+                        __loop_counts__[lineno] += 1
+                    else:
+                        __loop_counts__[lineno] = 1
+                # インデントが戻った = ループ終了
+                elif current_indent <= loop_indent:
+                    __loop_stack__.pop()
+                    if not __loop_stack__:
+                        __in_loop__ = False
+
+    # すべての変数を収集（グローバル + ローカル）
+    if event in ['line', 'call', 'return'] and __tracing_enabled__:
+        # グローバル変数を取得
+        globals_dict = frame.f_globals.copy()
+
+        # ローカル変数を取得
+        locals_dict = frame.f_locals.copy()
+
+        # 組み合わせて、内部変数やモジュールを除外
+        for k, v in {**globals_dict, **locals_dict}.items():
+            if (not k.startswith('__') and
+                not callable(v) and
+                str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>'] and
+                k not in ['sys', 'json', 're']):
+                try:
+                    # シリアライズ可能な値のみ保存
+                    json.dumps(v)
+                    __all_variables__[k] = v
+                except:
+                    # シリアライズできない場合は文字列表現を保存
+                    __all_variables__[k] = str(v)
+
+    return __tracer__
+`;
+
+                // トレーサーを設定
+                await pyodide.runPythonAsync(tracerCode);
+
+                // ユーザーコードの行を設定（インデント判定用）
+                const codeLines = code.split('\n');
+                pyodide.globals.set('__user_code_lines__', codeLines);
+
+                // トレーサーを有効化してからユーザーコードを実行
+                await pyodide.runPythonAsync('sys.settrace(__tracer__)');
+                await pyodide.runPythonAsync('__tracing_enabled__ = True');
+
+                // ユーザーコードを実行
                 const result = await pyodide.runPythonAsync(code);
-                
+
+                // トレーサーを無効化
+                await pyodide.runPythonAsync('__tracing_enabled__ = False');
+                await pyodide.runPythonAsync('sys.settrace(None)');
+
+                // 変数、ループカウント、再帰データを取得
+                const variables = pyodide.globals.get('__all_variables__');
+                const loopCountsRaw = pyodide.globals.get('__loop_counts__');
+                const recursionDataRaw = pyodide.globals.get('__recursion_data__');
+
+                // JavaScriptオブジェクトに変換
+                if (variables) {
+                    variableState = variables.toJs({dict_converter: Object.fromEntries});
+                    updateVariableTracker(variableState);
+                }
+
+                if (loopCountsRaw) {
+                    const loopCountsObj = loopCountsRaw.toJs({dict_converter: Object.fromEntries});
+                    // すべてのループ本体行を表示（インデントでフィルタ済み）
+                    loopCounts = loopCountsObj;
+                    updateLoopTracker(loopCounts, codeLines);
+                }
+
+                if (recursionDataRaw) {
+                    recursionData = recursionDataRaw.toJs({dict_converter: Object.fromEntries});
+                    updateRecursionTracker(recursionData);
+                }
+
                 // 結果がある場合は表示
                 if (result !== undefined && result !== null && result !== '') {
                     appendOutput(`結果: ${result}`, 'info');
                 }
-                
+
                 // 実行完了メッセージ
                 setTimeout(() => {
                     appendOutput('✅ 実行完了', 'info');
                 }, 100);
-                
+
             } catch (error) {
                 console.error('Python実行エラー:', error);
                 appendOutput(`エラー: ${error.message}`, 'stderr');
@@ -316,6 +632,7 @@ builtins.input = custom_input
                 }
             }
             document.getElementById('output-area').innerHTML = '<div class="ready">コードを入力して実行ボタンを押してください。</div>';
+            clearDebugInfo();
         }
 
         // イベントリスナーの設定
@@ -559,48 +876,277 @@ builtins.input = custom_input
             border-bottom: none;
         }
 
+        /* デバッグパネル */
+        .debug-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .debug-panel {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+        }
+
+        .debug-header h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .debug-content {
+            padding: 15px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .debug-empty {
+            color: #94a3b8;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .variable-list, .loop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .variable-item {
+            background: #f8fafc;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .var-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .var-type {
+            font-size: 11px;
+            color: #64748b;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .var-value {
+            color: #059669;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .loop-item {
+            background: #fef3c7;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .loop-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loop-line {
+            font-weight: 600;
+            color: #92400e;
+            min-width: 50px;
+        }
+
+        .loop-iterations {
+            color: #f59e0b;
+            font-size: 14px;
+            letter-spacing: 2px;
+            flex: 1;
+        }
+
+        .loop-count {
+            color: #b45309;
+            font-weight: 600;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .loop-progress-bar {
+            height: 6px;
+            background: #fde68a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .loop-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .loop-code {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+            color: #1e293b;
+            border: 1px solid #fde68a;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+
+        /* 再帰トラッカー */
+        .recursion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .recursion-item {
+            background: #f0f9ff;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .recursion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .recursion-name {
+            font-weight: 700;
+            color: #1e40af;
+            font-size: 15px;
+        }
+
+        .recursion-stats {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            background: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #475569;
+            font-weight: 500;
+            border: 1px solid #dbeafe;
+        }
+
+        .stat-badge.depth {
+            background: #dbeafe;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .recursion-depth-bar {
+            background: #dbeafe;
+            border-radius: 4px;
+            padding: 6px 8px;
+            overflow-x: auto;
+        }
+
+        .depth-fill {
+            color: #3b82f6;
+            font-weight: 700;
+            font-family: monospace;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
         /* レスポンシブ対応 */
         @media (max-width: 768px) {
             .playground-content {
                 grid-template-columns: 1fr;
             }
-            
+
+            .debug-panels {
+                grid-template-columns: 1fr;
+            }
+
             .section-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 12px;
             }
-            
+
             .section-header h3 {
                 font-size: 1.1rem;
             }
-            
+
             .controls {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
                 gap: 6px;
                 width: 100%;
             }
-            
+
             .btn {
                 padding: 10px 8px;
                 font-size: 0.8rem;
             }
-            
+
             #code-editor-container {
                 height: 350px;
             }
-            
+
             .CodeMirror {
                 height: 350px !important;
             }
-            
+
             .CodeMirror-scroll {
                 min-height: 350px !important;
             }
-            
+
             #output-area {
                 height: 350px;
+            }
+
+            .debug-content {
+                max-height: 300px;
+            }
+
+            .variable-item {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .var-value {
+                text-align: left;
             }
         }
 
