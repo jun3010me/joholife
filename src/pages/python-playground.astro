@@ -35,6 +35,10 @@ import Layout from '../layouts/Layout.astro';
                 <div class="section-header">
                     <h3>📤 実行結果</h3>
                     <div class="status">
+                        <label class="error-lang-toggle">
+                            <input type="checkbox" id="japanese-error-toggle" checked>
+                            <span>エラーを日本語化する</span>
+                        </label>
                         <span id="python-status">Pythonエンジンを読み込み中...</span>
                     </div>
                 </div>
@@ -116,14 +120,7 @@ import Layout from '../layouts/Layout.astro';
                 // CodeMirrorエディタを初期化
                 const editorElement = document.getElementById('code-editor');
                 codeEditor = CodeMirror(editorElement, {
-                    value: `print("Hello, Python!")
-print("1 + 1 =", 1 + 1)
-
-name = input("あなたの名前を入力してください: ")
-print("こんにちは、" + name + "さん!")
-
-for i in range(3):
-    print("カウント:", i)`,
+                    value: '',
                     mode: 'python',
                     theme: 'material-darker',
                     lineNumbers: true,
@@ -431,6 +428,118 @@ builtins.input = custom_input
             return div.innerHTML;
         }
 
+        // Pythonエラーを日本語に翻訳
+        function translatePythonError(errorMessage) {
+            // エラーメッセージを行ごとに処理
+            const lines = errorMessage.split('\n');
+            const translatedLines = [];
+
+            for (let line of lines) {
+                let translatedLine = line;
+
+                // よくあるエラーメッセージのパターンを日本語化
+                const errorPatterns = [
+                    // SyntaxError系（詳細版）
+                    { pattern: /SyntaxError: invalid syntax\. Perhaps you forgot a comma\?/i, replacement: '文法エラー: カンマ（,）を忘れていませんか？' },
+                    { pattern: /SyntaxError: expected ':'/i, replacement: '文法エラー: コロン（:）が必要です（if、for、while、def、classの後ろには必ずコロンが必要です）' },
+                    { pattern: /SyntaxError: expected '\('/i, replacement: '文法エラー: 開き括弧 ( が必要です' },
+                    { pattern: /SyntaxError: expected '\)'/i, replacement: '文法エラー: 閉じ括弧 ) が必要です' },
+                    { pattern: /SyntaxError: '(.+?)' was never closed/i, replacement: '文法エラー: $1 が閉じられていません' },
+                    { pattern: /SyntaxError: closing parenthesis '\)' does not match opening parenthesis '\['/i, replacement: '文法エラー: 括弧の種類が合っていません（[ で開いたら ] で閉じる必要があります）' },
+                    { pattern: /SyntaxError: closing parenthesis '\)' does not match opening parenthesis '\{'/i, replacement: '文法エラー: 括弧の種類が合っていません（{ で開いたら } で閉じる必要があります）' },
+                    { pattern: /SyntaxError: unmatched '\)'/i, replacement: '文法エラー: 閉じ括弧 ) に対応する開き括弧がありません' },
+                    { pattern: /SyntaxError: unmatched '\]'/i, replacement: '文法エラー: 閉じ括弧 ] に対応する開き括弧がありません' },
+                    { pattern: /SyntaxError: unmatched '\}'/i, replacement: '文法エラー: 閉じ括弧 } に対応する開き括弧がありません' },
+                    { pattern: /SyntaxError: EOL while scanning string literal/i, replacement: '文法エラー: 文字列の閉じ括弧（\'または"）が足りません（文字列を開始したら同じ括弧で閉じる必要があります）' },
+                    { pattern: /SyntaxError: unexpected EOF while parsing/i, replacement: '文法エラー: カッコや括弧が閉じられていません（プログラムの途中で終わっています）' },
+                    { pattern: /SyntaxError: invalid character '(.+?)'/i, replacement: '文法エラー: 使えない文字「$1」が含まれています（全角文字や特殊文字が紛れ込んでいませんか？）' },
+                    { pattern: /SyntaxError: invalid character in identifier/i, replacement: '文法エラー: 変数名や関数名に使えない文字が含まれています（全角文字が紛れ込んでいませんか？）' },
+                    { pattern: /SyntaxError: cannot assign to (.+)/i, replacement: '文法エラー: $1 に値を代入することはできません' },
+                    { pattern: /SyntaxError: invalid syntax/i, replacement: '文法エラー: 書き方が間違っています（コロン、括弧、カンマなどを確認してください）' },
+                    { pattern: /SyntaxError: /i, replacement: '文法エラー: ' },
+
+                    // NameError系
+                    { pattern: /NameError: name '(.+?)' is not defined/i, replacement: '変数エラー: 「$1」という変数や関数が見つかりません（定義されていないか、スペルミスの可能性があります）' },
+                    { pattern: /NameError: /i, replacement: '変数エラー: ' },
+
+                    // TypeError系
+                    { pattern: /TypeError: unsupported operand type\(s\) for \+: '(.+?)' and '(.+?)'/i, replacement: '型エラー: $1と$2を「+」で足すことはできません（異なる型同士の計算はできません）' },
+                    { pattern: /TypeError: unsupported operand type\(s\) for -: '(.+?)' and '(.+?)'/i, replacement: '型エラー: $1と$2を「-」で引くことはできません（異なる型同士の計算はできません）' },
+                    { pattern: /TypeError: unsupported operand type\(s\) for \*: '(.+?)' and '(.+?)'/i, replacement: '型エラー: $1と$2を「*」で掛けることはできません（異なる型同士の計算はできません）' },
+                    { pattern: /TypeError: unsupported operand type\(s\) for \/: '(.+?)' and '(.+?)'/i, replacement: '型エラー: $1と$2を「/」で割ることはできません（異なる型同士の計算はできません）' },
+                    { pattern: /TypeError: can only concatenate str .+ to str/i, replacement: '型エラー: 文字列には文字列しか連結できません（数値を連結したい場合は str() で文字列に変換してください）' },
+                    { pattern: /TypeError: '(.+?)' object is not subscriptable/i, replacement: '型エラー: $1 には [ ] でアクセスできません（リストや文字列ではありません）' },
+                    { pattern: /TypeError: '(.+?)' object is not callable/i, replacement: '型エラー: $1 は関数ではないので ( ) で呼び出せません' },
+                    { pattern: /TypeError: (.+?)\(\) missing (\d+) required positional argument/i, replacement: '型エラー: $1() 関数に必要な引数が $2 個足りません' },
+                    { pattern: /TypeError: (.+?)\(\) takes (\d+) positional argument but (\d+) were given/i, replacement: '型エラー: $1() 関数は $2 個の引数しか受け取れませんが、$3 個の引数が渡されています' },
+                    { pattern: /TypeError: /i, replacement: '型エラー: ' },
+
+                    // ValueError系
+                    { pattern: /ValueError: invalid literal for int\(\) with base (.+?): '(.+?)'/i, replacement: '値エラー: 「$2」を数値（整数）に変換できません（数字以外の文字が含まれています）' },
+                    { pattern: /ValueError: invalid literal for float\(\): '(.+?)'/i, replacement: '値エラー: 「$1」を小数（float）に変換できません（数字以外の文字が含まれています）' },
+                    { pattern: /ValueError: not enough values to unpack \(expected (\d+), got (\d+)\)/i, replacement: '値エラー: 展開する値が足りません（$1個必要ですが、$2個しかありません）' },
+                    { pattern: /ValueError: too many values to unpack \(expected (\d+)\)/i, replacement: '値エラー: 展開する値が多すぎます（$1個しか受け取れません）' },
+                    { pattern: /ValueError: /i, replacement: '値エラー: ' },
+
+                    // IndexError系
+                    { pattern: /IndexError: list index out of range/i, replacement: 'インデックスエラー: リストの範囲外を参照しようとしています（リストの長さを超えた位置にアクセスしています）' },
+                    { pattern: /IndexError: string index out of range/i, replacement: 'インデックスエラー: 文字列の範囲外を参照しようとしています（文字列の長さを超えた位置にアクセスしています）' },
+                    { pattern: /IndexError: tuple index out of range/i, replacement: 'インデックスエラー: タプルの範囲外を参照しようとしています（タプルの長さを超えた位置にアクセスしています）' },
+                    { pattern: /IndexError: /i, replacement: 'インデックスエラー: ' },
+
+                    // KeyError系
+                    { pattern: /KeyError: '(.+?)'/i, replacement: 'キーエラー: 辞書に「$1」というキーが存在しません（スペルミスや存在しないキーにアクセスしています）' },
+                    { pattern: /KeyError: (\d+)/i, replacement: 'キーエラー: 辞書に $1 というキーが存在しません' },
+                    { pattern: /KeyError: /i, replacement: 'キーエラー: ' },
+
+                    // AttributeError系
+                    { pattern: /AttributeError: '(.+?)' object has no attribute '(.+?)'/i, replacement: '属性エラー: $1 には「$2」という属性やメソッドがありません（スペルミスや存在しないメソッドを呼び出しています）' },
+                    { pattern: /AttributeError: /i, replacement: '属性エラー: ' },
+
+                    // ZeroDivisionError系
+                    { pattern: /ZeroDivisionError: division by zero/i, replacement: 'ゼロ除算エラー: 0で割ることはできません（割る数が0になっていませんか？）' },
+                    { pattern: /ZeroDivisionError: /i, replacement: 'ゼロ除算エラー: ' },
+
+                    // IndentationError系
+                    { pattern: /IndentationError: expected an indented block after '(.+?)'/i, replacement: 'インデントエラー: $1 の後にはインデント（字下げ）が必要です' },
+                    { pattern: /IndentationError: expected an indented block/i, replacement: 'インデントエラー: ここにはインデント（字下げ）が必要です（if、for、while、def の次の行は必ず字下げします）' },
+                    { pattern: /IndentationError: unexpected indent/i, replacement: 'インデントエラー: 予期しないインデント（字下げ）があります（ここに字下げは必要ありません）' },
+                    { pattern: /IndentationError: unindent does not match any outer indentation level/i, replacement: 'インデントエラー: インデント（字下げ）の深さが合っていません（字下げの数を確認してください）' },
+                    { pattern: /IndentationError: /i, replacement: 'インデントエラー: ' },
+
+                    // RecursionError系
+                    { pattern: /RecursionError: maximum recursion depth exceeded/i, replacement: '再帰エラー: 関数の呼び出しが深すぎます（無限ループになっている可能性があります。終了条件を確認してください）' },
+                    { pattern: /RecursionError: /i, replacement: '再帰エラー: ' },
+
+                    // ImportError系
+                    { pattern: /ImportError: No module named '(.+?)'/i, replacement: 'インポートエラー: 「$1」というモジュールが見つかりません（このブラウザ環境では使えないモジュールです）' },
+                    { pattern: /ImportError: /i, replacement: 'インポートエラー: ' },
+
+                    // ModuleNotFoundError系
+                    { pattern: /ModuleNotFoundError: No module named '(.+?)'/i, replacement: 'モジュール未検出エラー: 「$1」というモジュールが見つかりません（このブラウザ環境では使えないモジュールです）' },
+
+                    // その他のメッセージ
+                    { pattern: /File "<exec>", line (\d+)/i, replacement: '📍 $1行目でエラーが発生しました' },
+                    { pattern: /Traceback \(most recent call last\):/i, replacement: '🔍 エラーの詳細:' },
+                    { pattern: /\^+/i, replacement: '  ↑ この部分に問題があります' },
+                ];
+
+                // パターンマッチングで翻訳
+                for (const { pattern, replacement } of errorPatterns) {
+                    if (pattern.test(translatedLine)) {
+                        translatedLine = translatedLine.replace(pattern, replacement);
+                        break; // 最初にマッチしたパターンのみ適用
+                    }
+                }
+
+                translatedLines.push(translatedLine);
+            }
+
+            // 最初の行に「❌ エラーが発生しました」を追加
+            const result = ['❌ エラーが発生しました:', '', ...translatedLines];
+            return result.join('\n');
+        }
+
         // 再帰トラッカーの更新
         function updateRecursionTracker(data) {
             const tracker = document.getElementById('recursion-tracker');
@@ -730,7 +839,14 @@ def __tracer__(frame, event, arg):
 
             } catch (error) {
                 console.error('Python実行エラー:', error);
-                appendOutput(`エラー: ${error.message}`, 'stderr');
+
+                // チェックボックスの状態を確認
+                const japaneseErrorToggle = document.getElementById('japanese-error-toggle');
+                const useJapanese = japaneseErrorToggle ? japaneseErrorToggle.checked : true;
+
+                // エラーメッセージを日本語化するかどうか
+                const errorMessage = useJapanese ? translatePythonError(error.message) : `エラー:\n${error.message}`;
+                appendOutput(errorMessage, 'stderr');
             } finally {
                 runBtn.disabled = false;
             }
@@ -855,6 +971,34 @@ def __tracer__(frame, event, arg):
         .status {
             font-size: 14px;
             color: #64748b;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .error-lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #475569;
+            user-select: none;
+        }
+
+        .error-lang-toggle input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .error-lang-toggle span {
+            white-space: nowrap;
+        }
+
+        .error-lang-toggle:hover {
+            color: #1e293b;
         }
 
         #code-editor-container {
