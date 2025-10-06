@@ -296,6 +296,62 @@ class QuizApp {
       isLoading: false
     };
 
+    // カテゴリ定義と順序
+    const categoryConfig = [
+      {
+        id: 'digital',
+        title: 'デジタル化',
+        icon: '💾',
+        order: ['binary_conversion', 'hex_conversion', 'image_digitization', 'logic-circuits']
+      },
+      {
+        id: 'ethics',
+        title: '情報モラル',
+        icon: '⚖️',
+        order: ['copyright', 'industrial', 'portrait', 'moraru', 'sports_festival_smartphone']
+      },
+      {
+        id: 'network',
+        title: 'ネットワーク',
+        icon: '🌐',
+        order: [
+          'network1', 'network2',
+          'network-construction', 'network-troubleshooting', 'network-construction-3',
+          'network-construction-4', 'network-construction-5',
+          'subnet_mask_conversion', 'subnet_calculation', 'subnet_address_calculation',
+          'network-construction-6', 'network-construction-7'
+        ]
+      }
+    ];
+
+    // カテゴリごとに問題セットをグループ化
+    const categorizedSets = {};
+    categoryConfig.forEach(category => {
+      categorizedSets[category.id] = {
+        ...category,
+        sets: []
+      };
+    });
+
+    // 各問題セットを対応するカテゴリに振り分け
+    this.questionSets.forEach(questionSet => {
+      for (const category of categoryConfig) {
+        if (category.order.includes(questionSet.id)) {
+          categorizedSets[category.id].sets.push(questionSet);
+          break;
+        }
+      }
+    });
+
+    // カテゴリの順序で並べ替え、各カテゴリ内も定義された順序に従う
+    Object.values(categorizedSets).forEach(category => {
+      category.sets.sort((a, b) => {
+        const indexA = category.order.indexOf(a.id);
+        const indexB = category.order.indexOf(b.id);
+        return indexA - indexB;
+      });
+    });
+
     // Render UnitSelector component
     // Note: In a real implementation, you'd use React's render method
     // For now, we'll handle the navigation in a simpler way
@@ -310,34 +366,58 @@ class QuizApp {
             学習したい単元を選択してください
           </p>
         </div>
-        <div class="learning-grid">
-          ${this.questionSets.map(questionSet => `
-            <a href="/quiz/${questionSet.id}" class="topic-card-link">
-              <div class="topic-card bg-gradient-to-br ${this.getDifficultyColor(questionSet.difficulty)}">
-                <div class="topic-icon">${questionSet.icon}</div>
-                <h3>${questionSet.title}</h3>
-                <p>${questionSet.description}</p>
-                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; color: rgba(255,255,255,0.8); margin-top: 1rem;">
-                  <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span style="display: flex; align-items: center;">
-                      <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      約${questionSet.estimatedTime}分
-                    </span>
-                    <span style="display: flex; align-items: center;">
-                      <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      ${questionSet.difficulty === 'easy' ? '初級' : questionSet.difficulty === 'medium' ? '中級' : '上級'}
-                    </span>
-                  </div>
-                </div>
-                <div class="topic-arrow">→</div>
+
+        ${categoryConfig.map(category => {
+          const categorySets = categorizedSets[category.id].sets;
+          if (categorySets.length === 0) return '';
+
+          return `
+            <div style="margin-bottom: 3rem;">
+              <h3 style="
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 1.5rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 3px solid var(--primary-color);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              ">
+                <span style="font-size: 1.75rem;">${category.icon}</span>
+                ${category.title}
+              </h3>
+              <div class="learning-grid">
+                ${categorySets.map(questionSet => `
+                  <a href="/quiz/${questionSet.id}" class="topic-card-link">
+                    <div class="topic-card bg-gradient-to-br ${this.getDifficultyColor(questionSet.difficulty)}">
+                      <div class="topic-icon">${questionSet.icon}</div>
+                      <h3>${questionSet.title}</h3>
+                      <p>${questionSet.description}</p>
+                      <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; color: rgba(255,255,255,0.8); margin-top: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                          <span style="display: flex; align-items: center;">
+                            <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            約${questionSet.estimatedTime}分
+                          </span>
+                          <span style="display: flex; align-items: center;">
+                            <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            ${questionSet.difficulty === 'easy' ? '初級' : questionSet.difficulty === 'medium' ? '中級' : '上級'}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="topic-arrow">→</div>
+                    </div>
+                  </a>
+                `).join('')}
               </div>
-            </a>
-          `).join('')}
-        </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   }
