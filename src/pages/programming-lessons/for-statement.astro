@@ -1,0 +1,719 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const title = "for文 - プログラミングレッスン";
+const description = "Pythonのfor文について、繰り返し処理の基本から応用まで段階的に学習します";
+
+const steps = [
+    {
+        id: 1,
+        title: 'for文の基本',
+        description: 'for文を使うと、同じ処理を繰り返し実行できます。リストの中身を1つずつ取り出して処理を行います。',
+        code: 'for i in [1, 2, 3]:\n    print(i)',
+        explanation: 'for文は「〜のそれぞれについて」という意味です。この例では、リスト [1, 2, 3] の各要素を順番に変数iに代入して、print(i)を実行します。インデント（字下げ）は4つの半角スペースまたはTabキーで作ります。'
+    },
+    {
+        id: 2,
+        title: 'range関数（基本）',
+        description: 'range関数を使うと、連続した数値を簡単に生成できます。for文と組み合わせて使います。',
+        code: 'for i in range(5):\n    print(i)',
+        explanation: 'range(5)は0から4までの5個の数値を生成します。range(n)は0からn-1までの数値を作るので、5回繰り返したいときはrange(5)と書きます。この例では0, 1, 2, 3, 4が順番に表示されます。'
+    },
+    {
+        id: 3,
+        title: 'range関数（開始と終了）',
+        description: 'range関数に2つの数値を指定すると、開始と終了の値を決められます。',
+        code: 'for i in range(1, 6):\n    print(i)',
+        explanation: 'range(1, 6)は1から5までの数値を生成します。開始の値は含まれますが、終了の値は含まれません。つまり、1, 2, 3, 4, 5が表示されます。'
+    },
+    {
+        id: 4,
+        title: 'range関数（ステップ）',
+        description: 'range関数に3つの数値を指定すると、増減の幅（ステップ）を決められます。',
+        code: 'for i in range(0, 11, 2):\n    print(i)',
+        explanation: 'range(0, 11, 2)は0から10までの範囲で、2ずつ増やした数値を生成します。つまり、0, 2, 4, 6, 8, 10が表示されます。偶数だけを取り出したいときなどに便利です。'
+    },
+    {
+        id: 5,
+        title: '変数の累積加算（a = a + 1）',
+        description: '変数に値を加算して更新する方法を学びます。これは繰り返し処理で頻繁に使われます。',
+        code: 'a = 0\nfor i in range(5):\n    a = a + 1\n    print(a)',
+        explanation: 'a = a + 1は「aの現在の値に1を足して、その結果をaに代入する」という意味です。最初はa=0で、ループのたびに1ずつ増えていきます。1, 2, 3, 4, 5が順番に表示されます。'
+    },
+    {
+        id: 6,
+        title: '合計値の計算',
+        description: 'for文を使って、複数の数値の合計を計算してみましょう。',
+        code: 'total = 0\nfor i in range(1, 6):\n    total = total + i\nprint(total)',
+        explanation: 'totalという変数を0で初期化し、1から5までの数値を順番に足していきます。total = total + iで、totalに現在のiの値を加算します。最終的に1+2+3+4+5=15が表示されます。'
+    },
+    {
+        id: 7,
+        title: '九九の表示',
+        description: 'for文を使って九九の一の段を表示してみましょう。',
+        code: 'for i in range(1, 10):\n    result = 1 * i\n    print(result)',
+        explanation: 'range(1, 10)で1から9までの数値を生成し、1にiを掛けた結果を表示します。result = 1 * iで計算結果を変数に保存してから表示しています。'
+    },
+    {
+        id: 8,
+        title: 'カウントダウン',
+        description: 'range関数のステップを負の数にすると、数を減らしていくことができます。',
+        code: 'for i in range(5, 0, -1):\n    print(i)\nprint("発射！")',
+        explanation: 'range(5, 0, -1)は5から1まで1ずつ減らした数値を生成します。開始が5、終了が0（含まない）、ステップが-1なので、5, 4, 3, 2, 1が表示されます。ループの外でprint("発射！")を実行して、カウントダウンを完成させます。'
+    },
+    {
+        id: 9,
+        title: '偶数の合計',
+        description: 'range関数とif文を組み合わせて、条件に合う数値だけを処理することができます。',
+        code: 'total = 0\nfor i in range(1, 11):\n    if i % 2 == 0:\n        total = total + i\nprint(total)',
+        explanation: '1から10までの数値のうち、偶数（i % 2 == 0）だけを合計します。%は余りを求める演算子で、2で割った余りが0なら偶数です。2+4+6+8+10=30が表示されます。'
+    },
+    {
+        id: 10,
+        title: '実践：掛け算の練習',
+        description: 'for文を使って、任意の数の掛け算の段を表示するプログラムを作りましょう。',
+        code: 'num = int(input("何の段？: "))\nfor i in range(1, 10):\n    result = num * i\n    print(result)',
+        explanation: 'ユーザーから数値を入力してもらい、その数の掛け算の段（1倍から9倍まで）を表示します。numに入力された数値が入り、range(1, 10)で1から9までの数値を生成して掛け算を繰り返します。'
+    }
+];
+---
+
+<Layout title={title} description={description}>
+    <div class="lesson-container">
+        <header class="lesson-header">
+            <a href="/programming-lessons" class="back-link">← レッスン一覧に戻る</a>
+            <h1>🔁 for文</h1>
+            <p>繰り返し処理の基本を学びましょう</p>
+        </header>
+
+        <div class="lesson-content">
+            <div class="steps-section">
+                <h2>📝 学習ステップ</h2>
+                {steps.map((step) => (
+                    <div class="step-card" id={`step-${step.id}`}>
+                        <div class="step-header">
+                            <span class="step-number">Step {step.id}</span>
+                            <h3>{step.title}</h3>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">{step.description}</p>
+                            <div class="code-example">
+                                <div class="code-header">
+                                    <span>💻 コード例（手で入力してみましょう）</span>
+                                </div>
+                                <pre><code class="python-code no-select" data-code-content={step.code}></code></pre>
+                            </div>
+                            <div class="explanation">
+                                <strong>💡 解説：</strong>
+                                <p style="white-space: pre-line;">{step.explanation}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div class="editor-section">
+                <div class="editor-sticky">
+                    <h2>🐍 Pythonエディタ</h2>
+                    <p class="editor-hint">左のコード例を入力して実行してみましょう！</p>
+
+                    <div class="editor-controls">
+                        <button id="run-btn" class="btn btn-primary" disabled>
+                            ▶️ 実行
+                        </button>
+                        <button id="clear-btn" class="btn btn-secondary">
+                            🗑️ クリア
+                        </button>
+                    </div>
+
+                    <div id="code-editor-container">
+                        <div id="code-editor"></div>
+                    </div>
+
+                    <div class="output-section">
+                        <div class="output-header">
+                            <span>📤 実行結果</span>
+                            <span id="python-status" class="status">準備中...</span>
+                        </div>
+                        <div id="output-area">
+                            <div class="loading">🔄 Pythonエンジンを読み込み中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
+
+    <script>
+        let pyodide = null;
+        let codeEditor = null;
+
+        // CodeMirrorの読み込みと初期化
+        async function initCodeEditor() {
+            try {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js');
+
+                const editorElement = document.getElementById('code-editor');
+                codeEditor = CodeMirror(editorElement, {
+                    value: '',
+                    mode: 'python',
+                    theme: 'material-darker',
+                    lineNumbers: true,
+                    indentUnit: 4,
+                    indentWithTabs: false,
+                    autoCloseBrackets: true,
+                    lineWrapping: true,
+                    extraKeys: {
+                        "Ctrl-Enter": function(cm) { runCode(); },
+                        "Tab": function(cm) {
+                            if (cm.somethingSelected()) {
+                                cm.indentSelection("add");
+                            } else {
+                                cm.replaceSelection("    ");
+                            }
+                        }
+                    }
+                });
+
+                codeEditor.setSize(null, 300);
+            } catch (error) {
+                console.error('Failed to initialize CodeMirror:', error);
+            }
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Pyodideの読み込み
+        async function loadPyodide() {
+            try {
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+
+                statusElement.textContent = '初期化中...';
+
+                if (!window.loadPyodide) {
+                    await loadScript('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js');
+                }
+
+                pyodide = await window.loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+                    stdout: (text) => appendOutput(text, 'stdout'),
+                    stderr: (text) => appendOutput(text, 'stderr')
+                });
+
+                // stdoutのバッファリングを無効化
+                await pyodide.runPython(`
+import sys
+import io
+
+class UnbufferedTextIO(io.TextIOWrapper):
+    def write(self, s):
+        super().write(s)
+        self.flush()
+        return len(s)
+
+sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
+sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+                `);
+
+                // input関数をブラウザのpromptを使うようにオーバーライド
+                await pyodide.runPython(`
+import builtins
+from js import prompt
+
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+# 組み込みのinput関数を置き換え
+builtins.input = custom_input
+                `);
+
+                statusElement.textContent = '✅ 準備完了';
+                outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
+
+                document.getElementById('run-btn').disabled = false;
+            } catch (error) {
+                console.error('Pyodide読み込みエラー:', error);
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+                statusElement.textContent = '❌ エラー';
+                outputArea.innerHTML = `<div class="error">エラーが発生しました: ${error.message}</div>`;
+            }
+        }
+
+        function appendOutput(text, type = 'stdout') {
+            const outputArea = document.getElementById('output-area');
+
+            if (outputArea.querySelector('.loading') || outputArea.querySelector('.ready')) {
+                outputArea.innerHTML = '';
+            }
+
+            const lines = text.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                if (i === lines.length - 1 && lines[i] === '') continue;
+                const outputLine = document.createElement('div');
+                outputLine.className = `output-line ${type}`;
+                outputLine.textContent = lines[i];
+                outputArea.appendChild(outputLine);
+            }
+
+            outputArea.scrollTop = outputArea.scrollHeight;
+        }
+
+        async function runCode() {
+            if (!pyodide) {
+                appendOutput('Pythonエンジンがまだ読み込まれていません', 'stderr');
+                return;
+            }
+
+            const code = codeEditor ? codeEditor.getValue().trim() : '';
+            if (!code) {
+                appendOutput('コードを入力してください', 'stderr');
+                return;
+            }
+
+            const outputArea = document.getElementById('output-area');
+            outputArea.innerHTML = '';
+
+            try {
+                await pyodide.runPythonAsync(code);
+            } catch (error) {
+                appendOutput(`エラー: ${error.message}`, 'stderr');
+            }
+        }
+
+        function clearCode() {
+            if (codeEditor) {
+                codeEditor.setValue('');
+            }
+            document.getElementById('output-area').innerHTML = '<div class="ready">コードを入力して実行してください</div>';
+        }
+
+        // スクロール位置に応じてエディタのスタイルを調整
+        function setupScrollBehavior() {
+            const editorSticky = document.querySelector('.editor-sticky');
+            const editorSection = document.querySelector('.editor-section');
+            const stepsSection = document.querySelector('.steps-section');
+
+            if (!editorSticky || !editorSection || !stepsSection) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            // 親要素の高さを左側のステップセクションに合わせる
+            function adjustEditorSectionHeight() {
+                const stepsHeight = stepsSection.offsetHeight;
+                editorSection.style.minHeight = `${stepsHeight}px`;
+            }
+
+            // 初回実行
+            adjustEditorSectionHeight();
+
+            // ウィンドウリサイズ時にも調整
+            window.addEventListener('resize', adjustEditorSectionHeight);
+        }
+
+        // コード例の表示
+        function displayCodeExamples() {
+            document.querySelectorAll('.python-code').forEach(codeElement => {
+                const code = codeElement.getAttribute('data-code-content');
+                if (code) {
+                    codeElement.textContent = code;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            displayCodeExamples();
+            await initCodeEditor();
+            loadPyodide();
+            setupScrollBehavior();
+
+            document.getElementById('run-btn').addEventListener('click', runCode);
+            document.getElementById('clear-btn').addEventListener('click', clearCode);
+        });
+    </script>
+
+    <style>
+        /* Layout.astroの.main-contentの制約を上書き */
+        :global(.main-content) {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        .lesson-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            overflow: visible;
+            height: auto;
+        }
+
+        .lesson-header {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .lesson-header h1 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-header p {
+            font-size: 1.125rem;
+            color: #64748b;
+        }
+
+        .lesson-content {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 2rem;
+            align-items: flex-start;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .steps-section {
+            overflow: visible;
+        }
+
+        .editor-section {
+            position: relative;
+            will-change: transform;
+            height: 100%;
+            align-self: stretch;
+        }
+
+        .steps-section h2 {
+            font-size: 1.75rem;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            scroll-margin-top: 2rem;
+        }
+
+        .step-header {
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.375rem;
+            color: #1e293b;
+            margin-top: 0.5rem;
+        }
+
+        .step-description {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            border: 1px solid #30363d;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #161b22;
+            color: #c9d1d9;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .code-example pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+            background: #0d1117;
+            white-space: pre;
+        }
+
+        .code-example pre code {
+            display: block;
+        }
+
+        .code-example code {
+            color: #c9d1d9 !important;
+            font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace !important;
+            font-size: 0.9375rem !important;
+            line-height: 1.6 !important;
+            font-weight: 400 !important;
+        }
+
+        .python-code {
+            color: #c9d1d9 !important;
+            background: transparent !important;
+        }
+
+        /* コード例を選択不可にする */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: default;
+        }
+
+        /* preタグも選択不可に */
+        .code-example pre {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .explanation {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .explanation strong {
+            color: #1e40af;
+        }
+
+        .explanation p {
+            margin: 0.5rem 0 0 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .editor-sticky {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 5rem !important;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+            max-height: calc(100vh - 6rem);
+            overflow-y: auto;
+            z-index: 50;
+            align-self: flex-start;
+            will-change: transform;
+        }
+
+        .editor-sticky:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-section h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .editor-hint {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9375rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        #code-editor-container {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .CodeMirror {
+            height: 300px !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .output-section {
+            margin-top: 1rem;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .status {
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        #output-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.875rem;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .output-line {
+            margin-bottom: 0.25rem;
+        }
+
+        .output-line.stderr {
+            color: #ef4444;
+        }
+
+        .loading, .ready {
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error {
+            color: #ef4444;
+            padding: 1rem;
+        }
+
+        /* デスクトップ: stickyを確実に適用 */
+        @media (min-width: 1025px) {
+            .lesson-content {
+                display: grid;
+                grid-template-columns: 1fr 500px;
+            }
+
+            .editor-sticky {
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: 5rem !important;
+                max-height: calc(100vh - 6rem) !important;
+            }
+        }
+
+        /* タブレット・モバイル: staticに戻す */
+        @media (max-width: 1024px) {
+            .lesson-content {
+                grid-template-columns: 1fr !important;
+            }
+
+            .editor-sticky {
+                position: static !important;
+                max-height: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 1rem;
+            }
+
+            .CodeMirror {
+                height: 250px !important;
+                font-size: 13px;
+            }
+
+            #output-area {
+                max-height: 200px;
+                font-size: 0.8125rem;
+            }
+        }
+    </style>
+</Layout>
