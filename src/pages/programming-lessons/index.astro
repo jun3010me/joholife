@@ -1,0 +1,290 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const lessons = [
+    {
+        id: 'print',
+        title: 'print関数',
+        description: 'print関数を使って文字列や数値を表示する方法を学びます',
+        icon: '📢',
+        difficulty: 'easy',
+        estimatedTime: 10,
+        color: 'from-blue-500 to-indigo-600'
+    },
+    // 今後追加予定のレッスン
+    // {
+    //     id: 'variables',
+    //     title: '変数',
+    //     description: '変数の使い方とデータ型について学びます',
+    //     icon: '📦',
+    //     difficulty: 'easy',
+    //     estimatedTime: 15,
+    //     color: 'from-green-500 to-teal-600'
+    // },
+];
+
+const difficultyLabels = {
+    easy: '初級',
+    medium: '中級',
+    hard: '上級'
+};
+
+const difficultyColors = {
+    easy: '#10b981',
+    medium: '#f59e0b',
+    hard: '#ef4444'
+};
+---
+
+<Layout
+    title="プログラミングレッスン - じょうほうらいふ"
+    description="Pythonのコードを実際に実行しながら学習できるプログラミングレッスン"
+>
+    <div class="lessons-container">
+        <header class="page-header">
+            <h1>💻 プログラミングレッスン</h1>
+            <p class="header-description">Pythonのコードを実際に実行しながら、プログラミングの基礎を学びましょう！</p>
+        </header>
+
+        <section class="lessons-section">
+            <h2>📚 レッスン一覧</h2>
+            <div class="lessons-grid">
+                {lessons.map(lesson => {
+                    const gradientMap = {
+                        'from-blue-500 to-indigo-600': 'linear-gradient(to bottom right, #3b82f6, #4f46e5)',
+                        'from-green-500 to-teal-600': 'linear-gradient(to bottom right, #22c55e, #0d9488)',
+                        'from-purple-500 to-pink-600': 'linear-gradient(to bottom right, #a855f7, #db2777)',
+                        'from-yellow-500 to-orange-600': 'linear-gradient(to bottom right, #eab308, #ea580c)',
+                        'from-red-500 to-rose-600': 'linear-gradient(to bottom right, #ef4444, #e11d48)'
+                    };
+                    const gradient = gradientMap[lesson.color] || gradientMap['from-blue-500 to-indigo-600'];
+
+                    return (
+                        <a href={`/programming-lessons/${lesson.id}`} class="lesson-card-link">
+                            <div class="lesson-card" style={`background: ${gradient}`}>
+                                <div class="lesson-icon">{lesson.icon}</div>
+                                <div class="lesson-content">
+                                    <h3>{lesson.title}</h3>
+                                    <p>{lesson.description}</p>
+                                    <div class="lesson-meta">
+                                        <span class="difficulty-badge" style={`background-color: ${difficultyColors[lesson.difficulty]}`}>
+                                            {difficultyLabels[lesson.difficulty]}
+                                        </span>
+                                        <span class="time-badge">
+                                            ⏱️ {lesson.estimatedTime}分
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="lesson-arrow">→</div>
+                            </div>
+                        </a>
+                    );
+                })}
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>💡 レッスンの進め方</h2>
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-icon">📖</div>
+                    <h3>1. 説明を読む</h3>
+                    <p>各ステップの説明をよく読んで、何をするのか理解しましょう</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">💻</div>
+                    <h3>2. コードを入力</h3>
+                    <p>エディタにコードを入力して、実際に動かしてみましょう</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">▶️</div>
+                    <h3>3. 実行して確認</h3>
+                    <p>実行ボタンを押して、結果を確認しましょう</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <h3>4. 試行錯誤</h3>
+                    <p>コードを変更して、いろいろ試してみましょう</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <style>
+        .lessons-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .header-description {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: #64748b;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .lessons-section {
+            margin-bottom: 3rem;
+        }
+
+        .lessons-section h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: #1e293b;
+            margin-bottom: 2rem;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .lesson-card-link {
+            text-decoration: none;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .lesson-card-link:hover {
+            transform: translateY(-4px);
+        }
+
+        .lesson-card {
+            position: relative;
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .lesson-card:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .lesson-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-content {
+            flex: 1;
+        }
+
+        .lesson-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+
+        .lesson-card p {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-badge, .time-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .lesson-arrow {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 0.7;
+            transition: transform 0.3s ease;
+        }
+
+        .lesson-card:hover .lesson-arrow {
+            transform: translateX(0.5rem);
+        }
+
+        .info-section {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h2 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            color: #1e293b;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-card h3 {
+            font-size: 1.125rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            font-size: 0.875rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .lessons-container {
+                padding: 1rem;
+            }
+
+            .lessons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</Layout>
