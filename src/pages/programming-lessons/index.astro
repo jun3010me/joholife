@@ -56,6 +56,15 @@ const lessons = [
         estimatedTime: 25,
         color: 'from-purple-500 to-pink-600'
     },
+    {
+        id: 'while-statement',
+        title: 'while文',
+        description: '条件による繰り返しとbreak/continueの使い方を学びます',
+        icon: '🔄',
+        difficulty: 'easy',
+        estimatedTime: 25,
+        color: 'from-cyan-500 to-blue-600'
+    },
 ];
 
 const difficultyLabels = {
@@ -90,7 +99,8 @@ const difficultyColors = {
                         'from-green-500 to-teal-600': 'linear-gradient(to bottom right, #22c55e, #0d9488)',
                         'from-purple-500 to-pink-600': 'linear-gradient(to bottom right, #a855f7, #db2777)',
                         'from-yellow-500 to-orange-600': 'linear-gradient(to bottom right, #eab308, #ea580c)',
-                        'from-red-500 to-rose-600': 'linear-gradient(to bottom right, #ef4444, #e11d48)'
+                        'from-red-500 to-rose-600': 'linear-gradient(to bottom right, #ef4444, #e11d48)',
+                        'from-cyan-500 to-blue-600': 'linear-gradient(to bottom right, #06b6d4, #2563eb)'
                     };
                     const gradient = gradientMap[lesson.color] || gradientMap['from-blue-500 to-indigo-600'];
 
