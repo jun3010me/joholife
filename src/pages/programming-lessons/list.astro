@@ -1,0 +1,735 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const steps = [
+    {
+        id: 1,
+        title: '配列(リスト)とは何か',
+        description: '配列(リスト)は、複数のデータをまとめて扱うことができる便利な機能です。Pythonでは角括弧 [ ] を使って表現します。',
+        code: '# リストの例\nfruits = ["りんご", "バナナ", "オレンジ"]\nprint(fruits)',
+        explanation: 'リストを使うと、複数の値を1つの変数にまとめて保存できます。この例では"りんご"、"バナナ"、"オレンジ"という3つの文字列をfruitsという1つのリストに格納しています。'
+    },
+    {
+        id: 2,
+        title: 'リストの作り方',
+        description: 'リストは角括弧 [ ] の中に、カンマ , で区切ってデータを並べることで作成できます。',
+        code: '# 空のリスト\nempty_list = []\n\n# 数値のリスト\nnumbers = [10, 20, 30, 40, 50]\n\n# 文字列のリスト\ncolors = ["赤", "青", "黄色"]\n\nprint(numbers)\nprint(colors)',
+        explanation: 'リストには数値、文字列、さらには他のリストなど、様々な種類のデータを入れることができます。空のリストも作成できます。'
+    },
+    {
+        id: 3,
+        title: 'リストの要素にアクセスする',
+        description: 'リストの中の個別の要素には、インデックス(番号)を使ってアクセスできます。インデックスは0から始まります。',
+        code: 'fruits = ["りんご", "バナナ", "オレンジ", "ぶどう"]\n\n# 最初の要素（インデックス0）\nprint(fruits[0])\n\n# 2番目の要素（インデックス1）\nprint(fruits[1])\n\n# 最後の要素（インデックス-1）\nprint(fruits[-1])',
+        explanation: 'リスト名[インデックス]の形式で要素にアクセスできます。インデックスは0から始まるので、最初の要素は[0]です。マイナスの値を使うと、後ろから数えることができます（-1は最後の要素）。'
+    },
+    {
+        id: 4,
+        title: 'リストの要素を変更する',
+        description: 'インデックスを指定して、リストの要素を変更することができます。',
+        code: 'colors = ["赤", "青", "黄色"]\nprint("変更前:", colors)\n\n# 2番目の要素を変更\ncolors[1] = "緑"\nprint("変更後:", colors)',
+        explanation: 'リスト[インデックス] = 新しい値の形式で、既存の要素を新しい値に置き換えることができます。この例では"青"を"緑"に変更しています。'
+    },
+    {
+        id: 5,
+        title: 'len関数でリストの長さを調べる',
+        description: 'len()関数を使うと、リストに何個の要素が入っているかを調べることができます。',
+        code: 'fruits = ["りんご", "バナナ", "オレンジ"]\nlength = len(fruits)\nprint("フルーツの数:", length)\n\nnumbers = [10, 20, 30, 40, 50]\nprint("数値の個数:", len(numbers))',
+        explanation: 'len()関数はリストの要素数を返します。この関数はリスト以外にも、文字列の長さなどを調べるときにも使えます。'
+    },
+    {
+        id: 6,
+        title: 'リストに要素を追加する',
+        description: 'append()メソッドを使うと、リストの最後に新しい要素を追加できます。',
+        code: 'fruits = ["りんご", "バナナ"]\nprint("追加前:", fruits)\n\n# 要素を追加\nfruits.append("オレンジ")\nprint("追加後:", fruits)\n\nfruits.append("ぶどう")\nprint("さらに追加:", fruits)',
+        explanation: 'リスト.append(追加したい値)の形式で、リストの最後に新しい要素を追加できます。何度でも追加できるので、リストを動的に拡張できます。'
+    },
+    {
+        id: 7,
+        title: 'リストとfor文の組み合わせ①',
+        description: 'for文を使うと、リストの全ての要素に対して順番に処理を実行できます。',
+        code: 'fruits = ["りんご", "バナナ", "オレンジ"]\n\n# リストの各要素を順番に表示\nfor fruit in fruits:\n    print(fruit + "が好きです")',
+        explanation: 'for 変数名 in リスト名: の形式で、リストの要素を1つずつ取り出して処理できます。この例では、各フルーツに対して「○○が好きです」と表示しています。'
+    },
+    {
+        id: 8,
+        title: 'リストとfor文の組み合わせ②',
+        description: 'range()関数とlen()関数を組み合わせて、インデックスを使った繰り返し処理もできます。',
+        code: 'scores = [85, 92, 78, 95, 88]\n\nfor i in range(len(scores)):\n    print(f"{i+1}番目の点数: {scores[i]}点")',
+        explanation: 'range(len(リスト))で0からリストの長さ-1までの数値を生成し、それをインデックスとして使用できます。この方法は、要素の位置(番号)も一緒に使いたい時に便利です。'
+    },
+    {
+        id: 9,
+        title: 'リストとwhile文の組み合わせ',
+        description: 'while文でもリストの要素を処理できます。インデックスを使った方法を見てみましょう。',
+        code: 'animals = ["犬", "猫", "うさぎ", "ハムスター"]\nindex = 0\n\nwhile index < len(animals):\n    print(f"{index+1}: {animals[index]}")\n    index += 1',
+        explanation: 'while文では、インデックス用の変数を用意し、条件を満たす間繰り返します。index < len(animals)という条件で、リストの全要素を処理できます。ただし、リストの処理にはfor文を使う方が一般的で読みやすいです。'
+    },
+    {
+        id: 10,
+        title: '実践例：買い物リストの管理',
+        description: 'これまで学んだことを使って、買い物リストを管理するプログラムを作ってみましょう。',
+        code: '# 買い物リスト\nshopping_list = ["牛乳", "卵", "パン"]\n\nprint("=== 買い物リスト ===\")\nfor i in range(len(shopping_list)):\n    print(f"{i+1}. {shopping_list[i]}")\n\n# 新しい商品を追加\nshopping_list.append("バター")\nshopping_list.append("チーズ")\n\nprint("\\n=== 更新後のリスト ===\")\nfor i in range(len(shopping_list)):\n    print(f"{i+1}. {shopping_list[i]}")\n\nprint(f"\\n合計 {len(shopping_list)} 個の商品")',
+        explanation: 'リスト、len()関数、append()メソッド、for文を組み合わせた実践的な例です。買い物リストに商品を追加し、番号付きで表示し、合計個数を表示しています。これらの機能を組み合わせることで、様々な便利なプログラムを作ることができます。'
+    }
+];
+---
+
+<Layout title="配列(リスト) - プログラミングレッスン">
+    <div class="lesson-container">
+        <header class="lesson-header">
+            <a href="/programming-lessons" class="back-link">← レッスン一覧に戻る</a>
+            <h1>📋 配列(リスト)</h1>
+            <p>複数のデータをまとめて扱う配列(リスト)の使い方を学びましょう</p>
+        </header>
+
+        <div class="lesson-content">
+            <div class="steps-section">
+                <h2>📝 学習ステップ</h2>
+                {steps.map((step, index) => (
+                    <div class="step-card" id={`step-${step.id}`}>
+                        <div class="step-header">
+                            <span class="step-number">Step {step.id}</span>
+                            <h3>{step.title}</h3>
+                        </div>
+                        <div class="step-content">
+                            <p class="step-description">{step.description}</p>
+                            <div class="code-example">
+                                <div class="code-header">
+                                    <span>💻 コード例（手で入力してみましょう）</span>
+                                </div>
+                                <pre><code class="python-code no-select" data-code-content={step.code}></code></pre>
+                            </div>
+                            <div class="explanation">
+                                <strong>💡 解説：</strong>
+                                <p>{step.explanation}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div class="editor-section">
+                <div class="editor-sticky">
+                    <h2>🐍 Pythonエディタ</h2>
+                    <p class="editor-hint">左のコード例を入力して実行してみましょう！</p>
+
+                    <div class="editor-controls">
+                        <button id="run-btn" class="btn btn-primary" disabled>
+                            ▶️ 実行
+                        </button>
+                        <button id="clear-btn" class="btn btn-secondary">
+                            🗑️ クリア
+                        </button>
+                    </div>
+
+                    <div id="code-editor-container">
+                        <div id="code-editor"></div>
+                    </div>
+
+                    <div class="output-section">
+                        <div class="output-header">
+                            <span>📤 実行結果</span>
+                            <span id="python-status" class="status">準備中...</span>
+                        </div>
+                        <div id="output-area">
+                            <div class="loading">🔄 Pythonエンジンを読み込み中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
+
+    <script>
+        let pyodide = null;
+        let codeEditor = null;
+
+        // CodeMirrorの読み込みと初期化
+        async function initCodeEditor() {
+            try {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js');
+
+                const editorElement = document.getElementById('code-editor');
+                codeEditor = CodeMirror(editorElement, {
+                    value: '',
+                    mode: 'python',
+                    theme: 'material-darker',
+                    lineNumbers: true,
+                    indentUnit: 4,
+                    indentWithTabs: false,
+                    autoCloseBrackets: true,
+                    lineWrapping: true,
+                    extraKeys: {
+                        "Ctrl-Enter": function(cm) { runCode(); },
+                        "Tab": function(cm) {
+                            if (cm.somethingSelected()) {
+                                cm.indentSelection("add");
+                            } else {
+                                cm.replaceSelection("    ");
+                            }
+                        }
+                    }
+                });
+
+                codeEditor.setSize(null, 300);
+            } catch (error) {
+                console.error('Failed to initialize CodeMirror:', error);
+            }
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Pyodideの読み込み
+        async function loadPyodide() {
+            try {
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+
+                statusElement.textContent = '初期化中...';
+
+                if (!window.loadPyodide) {
+                    await loadScript('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js');
+                }
+
+                pyodide = await window.loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+                    stdout: (text) => appendOutput(text, 'stdout'),
+                    stderr: (text) => appendOutput(text, 'stderr')
+                });
+
+                await pyodide.runPython(`
+import sys
+import io
+
+class UnbufferedTextIO(io.TextIOWrapper):
+    def write(self, s):
+        super().write(s)
+        self.flush()
+        return len(s)
+
+sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
+sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+                `);
+
+                statusElement.textContent = '✅ 準備完了';
+                outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
+
+                document.getElementById('run-btn').disabled = false;
+            } catch (error) {
+                console.error('Pyodide読み込みエラー:', error);
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+                statusElement.textContent = '❌ エラー';
+                outputArea.innerHTML = `<div class="error">エラーが発生しました: ${error.message}</div>`;
+            }
+        }
+
+        function appendOutput(text, type = 'stdout') {
+            const outputArea = document.getElementById('output-area');
+
+            if (outputArea.querySelector('.loading') || outputArea.querySelector('.ready')) {
+                outputArea.innerHTML = '';
+            }
+
+            const lines = text.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                if (i === lines.length - 1 && lines[i] === '') continue;
+                const outputLine = document.createElement('div');
+                outputLine.className = `output-line ${type}`;
+                outputLine.textContent = lines[i];
+                outputArea.appendChild(outputLine);
+            }
+
+            outputArea.scrollTop = outputArea.scrollHeight;
+        }
+
+        async function runCode() {
+            if (!pyodide) {
+                appendOutput('Pythonエンジンがまだ読み込まれていません', 'stderr');
+                return;
+            }
+
+            const code = codeEditor ? codeEditor.getValue().trim() : '';
+            if (!code) {
+                appendOutput('コードを入力してください', 'stderr');
+                return;
+            }
+
+            const outputArea = document.getElementById('output-area');
+            outputArea.innerHTML = '';
+
+            try {
+                await pyodide.runPythonAsync(code);
+            } catch (error) {
+                appendOutput(`エラー: ${error.message}`, 'stderr');
+            }
+        }
+
+        function clearCode() {
+            if (codeEditor) {
+                codeEditor.setValue('');
+            }
+            document.getElementById('output-area').innerHTML = '<div class="ready">コードを入力して実行してください</div>';
+        }
+
+
+        // スクロール位置に応じてエディタのスタイルを調整
+        function setupScrollBehavior() {
+            const editorSticky = document.querySelector('.editor-sticky');
+            const editorSection = document.querySelector('.editor-section');
+            const stepsSection = document.querySelector('.steps-section');
+
+            if (!editorSticky || !editorSection || !stepsSection) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            // 親要素の高さを左側のステップセクションに合わせる
+            function adjustEditorSectionHeight() {
+                const stepsHeight = stepsSection.offsetHeight;
+                editorSection.style.minHeight = `${stepsHeight}px`;
+                console.log('Adjusted editor section height to:', stepsHeight, 'px');
+            }
+
+            // 初回実行
+            adjustEditorSectionHeight();
+
+            // ウィンドウリサイズ時にも調整
+            window.addEventListener('resize', adjustEditorSectionHeight);
+
+            // デバッグ情報を出力
+            console.log('Editor sticky element:', editorSticky);
+            console.log('Computed position:', window.getComputedStyle(editorSticky).position);
+            console.log('Computed top:', window.getComputedStyle(editorSticky).top);
+            console.log('Parent height:', editorSection.offsetHeight, 'px');
+            console.log('Sticky element height:', editorSticky.offsetHeight, 'px');
+            console.log('Steps section height:', stepsSection.offsetHeight, 'px');
+
+            let ticking = false;
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const rect = editorSticky.getBoundingClientRect();
+                        const isStuck = rect.top <= 80; // top: 5rem = 80px
+
+                        if (isStuck) {
+                            editorSticky.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+                        } else {
+                            editorSticky.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.05)';
+                        }
+
+                        ticking = false;
+                    });
+
+                    ticking = true;
+                }
+            });
+        }
+
+        // コード例を表示
+        function displayCodeExamples() {
+            document.querySelectorAll('.python-code').forEach(codeElement => {
+                const code = codeElement.getAttribute('data-code-content');
+                if (code) {
+                    codeElement.textContent = code;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            displayCodeExamples();
+            await initCodeEditor();
+            loadPyodide();
+            setupScrollBehavior();
+
+            document.getElementById('run-btn').addEventListener('click', runCode);
+            document.getElementById('clear-btn').addEventListener('click', clearCode);
+        });
+    </script>
+
+    <style>
+        /* Layout.astroの.main-contentの制約を上書き */
+        :global(.main-content) {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        .lesson-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            overflow: visible;
+            height: auto;
+        }
+
+        .lesson-header {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .lesson-header h1 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-header p {
+            font-size: 1.125rem;
+            color: #64748b;
+        }
+
+        .lesson-content {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 2rem;
+            align-items: flex-start;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .steps-section {
+            overflow: visible;
+        }
+
+        .editor-section {
+            position: relative;
+            will-change: transform;
+            /* 親要素の高さを100%にして、左側のステップに追従させる */
+            height: 100%;
+            align-self: stretch; /* 親のグリッドの高さいっぱいに伸ばす */
+        }
+
+        .steps-section h2 {
+            font-size: 1.75rem;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            scroll-margin-top: 2rem;
+        }
+
+        .step-header {
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1, #9333ea);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.375rem;
+            color: #1e293b;
+            margin-top: 0.5rem;
+        }
+
+        .step-description {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .code-example {
+            background: #0d1117;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            border: 1px solid #30363d;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #161b22;
+            color: #c9d1d9;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #30363d;
+        }
+
+
+        .code-example pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+            background: #0d1117;
+            white-space: pre;
+        }
+
+        .code-example pre code {
+            display: block;
+        }
+
+        .code-example code {
+            color: #c9d1d9 !important;
+            font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace !important;
+            font-size: 0.9375rem !important;
+            line-height: 1.6 !important;
+            font-weight: 400 !important;
+        }
+
+        .python-code {
+            color: #c9d1d9 !important;
+            background: transparent !important;
+        }
+
+        /* コード例を選択不可にする */
+        .no-select {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+            cursor: default;
+        }
+
+        /* preタグも選択不可に */
+        .code-example pre {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .explanation {
+            background: #f0f9ff;
+            border-left: 4px solid #6366f1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .explanation strong {
+            color: #4f46e5;
+        }
+
+        .explanation p {
+            margin: 0.5rem 0 0 0;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .editor-sticky {
+            position: -webkit-sticky !important; /* Safari対応 */
+            position: sticky !important;
+            top: 5rem !important; /* navbarの高さ(4rem) + 余白(1rem) */
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+            max-height: calc(100vh - 6rem);
+            overflow-y: auto;
+            z-index: 50;
+            align-self: flex-start;
+            will-change: transform;
+        }
+
+        .editor-sticky:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-section h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .editor-hint {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9375rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        #code-editor-container {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .CodeMirror {
+            height: 300px !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .output-section {
+            margin-top: 1rem;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .status {
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        #output-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.875rem;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .output-line {
+            margin-bottom: 0.25rem;
+        }
+
+        .output-line.stderr {
+            color: #ef4444;
+        }
+
+        .loading, .ready {
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error {
+            color: #ef4444;
+            padding: 1rem;
+        }
+
+        /* デスクトップ: stickyを確実に適用 */
+        @media (min-width: 1025px) {
+            .lesson-content {
+                display: grid;
+                grid-template-columns: 1fr 500px;
+            }
+
+            .editor-sticky {
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: 5rem !important;
+                max-height: calc(100vh - 6rem) !important;
+            }
+        }
+
+        /* タブレット・モバイル: staticに戻す */
+        @media (max-width: 1024px) {
+            .lesson-content {
+                grid-template-columns: 1fr !important;
+            }
+
+            .editor-sticky {
+                position: static !important;
+                max-height: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .lesson-container {
+                padding: 1rem;
+            }
+
+            .CodeMirror {
+                height: 250px !important;
+                font-size: 13px;
+            }
+
+            #output-area {
+                max-height: 200px;
+                font-size: 0.8125rem;
+            }
+        }
+    </style>
+</Layout>

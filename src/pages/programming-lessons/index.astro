@@ -65,6 +65,15 @@ const lessons = [
         estimatedTime: 25,
         color: 'from-cyan-500 to-blue-600'
     },
+    {
+        id: 'list',
+        title: '配列(リスト)',
+        description: '複数のデータをまとめて扱う配列(リスト)の使い方を学びます',
+        icon: '📋',
+        difficulty: 'easy',
+        estimatedTime: 30,
+        color: 'from-indigo-500 to-purple-600'
+    },
 ];
 
 const difficultyLabels = {
@@ -100,7 +109,8 @@ const difficultyColors = {
                         'from-purple-500 to-pink-600': 'linear-gradient(to bottom right, #a855f7, #db2777)',
                         'from-yellow-500 to-orange-600': 'linear-gradient(to bottom right, #eab308, #ea580c)',
                         'from-red-500 to-rose-600': 'linear-gradient(to bottom right, #ef4444, #e11d48)',
-                        'from-cyan-500 to-blue-600': 'linear-gradient(to bottom right, #06b6d4, #2563eb)'
+                        'from-cyan-500 to-blue-600': 'linear-gradient(to bottom right, #06b6d4, #2563eb)',
+                        'from-indigo-500 to-purple-600': 'linear-gradient(to bottom right, #6366f1, #9333ea)'
                     };
                     const gradient = gradientMap[lesson.color] || gradientMap['from-blue-500 to-indigo-600'];
 
