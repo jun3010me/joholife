@@ -1,0 +1,1351 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+    const indexPath = path.join(process.cwd(), 'public', 'programming-exercises', 'index.yaml');
+    const indexContent = fs.readFileSync(indexPath, 'utf8');
+    const index = yaml.load(indexContent);
+
+    return index.exerciseSets.map((exerciseId) => ({
+        params: { exercise: exerciseId }
+    }));
+}
+
+const { exercise } = Astro.params;
+
+const exercisePath = path.join(process.cwd(), 'public', 'programming-exercises', `${exercise}.yaml`);
+const exerciseContent = fs.readFileSync(exercisePath, 'utf8');
+const exerciseData = yaml.load(exerciseContent);
+
+const title = `${exerciseData.title} - プログラミング演習`;
+const description = exerciseData.description;
+---
+
+<Layout title={title} description={description}>
+    <div class="exercise-container">
+        <header class="exercise-header">
+            <a href="/quiz" class="back-link">← 問題演習一覧に戻る</a>
+            <h1>{exerciseData.icon} {exerciseData.title}</h1>
+            <p>{exerciseData.description}</p>
+        </header>
+
+        <div class="exercise-content">
+            <div class="problem-section">
+                <div class="problem-card">
+                    <h2>📋 問題文</h2>
+                    <p class="problem-statement">{exerciseData.problem.statement}</p>
+                </div>
+
+                {exerciseData.problem.input && (
+                    <div class="io-card">
+                        <h3>📥 入力</h3>
+                        <p>{exerciseData.problem.input}</p>
+                    </div>
+                )}
+
+                <div class="io-card">
+                    <h3>📤 出力</h3>
+                    <p>{exerciseData.problem.output}</p>
+                </div>
+
+                {exerciseData.testCases && exerciseData.testCases.length > 0 && (
+                    <div class="examples-section">
+                        <h2>💡 入出力例</h2>
+                        {exerciseData.testCases.slice(0, 3).map((testCase, index) => (
+                            <div class="example-card">
+                                <h3>例 {index + 1}</h3>
+                                {testCase.input && testCase.input.trim() !== '' && (
+                                    <div class="example-io">
+                                        <strong>入力：</strong>
+                                        <pre><code>{testCase.input}</code></pre>
+                                    </div>
+                                )}
+                                <div class="example-io">
+                                    <strong>出力：</strong>
+                                    <pre><code>{testCase.output}</code></pre>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {exerciseData.hints && exerciseData.hints.length > 0 && (
+                    <div class="hints-section">
+                        <h3>💡 ヒント</h3>
+                        <ul>
+                            {exerciseData.hints.map(hint => (
+                                <li>{hint}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+            </div>
+
+            <div class="editor-section">
+                <div class="editor-sticky">
+                    <h2>🐍 Pythonエディタ</h2>
+                    <p class="editor-hint">問題を解くプログラムを入力してください</p>
+
+                    <div class="editor-controls">
+                        <button id="run-btn" class="btn btn-primary" disabled>
+                            ▶️ 実行
+                        </button>
+                        <button id="clear-btn" class="btn btn-secondary">
+                            🗑️ クリア
+                        </button>
+                        <button id="judge-btn" class="btn btn-success" disabled>
+                            ✅ 判定
+                        </button>
+                    </div>
+
+                    <div id="code-editor-container">
+                        <div id="code-editor"></div>
+                    </div>
+
+                    <div class="output-section">
+                        <div class="output-header">
+                            <span>📤 実行結果</span>
+                            <span id="python-status" class="status">準備中...</span>
+                        </div>
+                        <div id="output-area">
+                            <div class="loading">🔄 Pythonエンジンを読み込み中...</div>
+                        </div>
+                    </div>
+
+                    <div class="judge-result-section" id="judge-result" style="display: none;">
+                        <div class="judge-header">
+                            <span>⚖️ 判定結果</span>
+                        </div>
+                        <div id="judge-result-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修了証モーダル -->
+    <div id="certificate-modal" class="modal" style="display: none;">
+        <div class="modal-content-cert">
+            <div style="margin-bottom: 2rem; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+                <h2 style="font-size: 2rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">
+                    おめでとうございます！
+                </h2>
+                <p style="color: #64748b; font-size: 1.125rem;">
+                    合格しました
+                </p>
+            </div>
+
+            <div style="margin-bottom: 2rem; padding: 0; overflow: hidden; background: #f8fafb; border-radius: 0.5rem;">
+                <div style="padding: 1rem; background: white; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="margin: 0; color: #1e293b; font-weight: 600;">修了証プレビュー</h3>
+                </div>
+                <div style="padding: 2rem; background: white;">
+                    <canvas
+                        id="certificate-canvas"
+                        width="1200"
+                        height="900"
+                        style="max-width: 100%; height: auto; border: 1px solid #e5e7eb;"
+                    ></canvas>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="download-btn" class="btn btn-primary">📥 修了証をダウンロード</button>
+                <button id="close-modal-btn" class="btn btn-secondary">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 氏名入力モーダル -->
+    <div id="name-modal" class="modal" style="display: flex;">
+        <div class="modal-content">
+            <h2>氏名を入力してください</h2>
+            <p>修了証発行のため、氏名を入力してください。</p>
+            <input type="text" id="user-name-input" placeholder="山田 太郎" class="name-input">
+            <button id="start-btn" class="btn btn-primary">開始</button>
+        </div>
+    </div>
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
+
+    <script define:vars={{ testCases: exerciseData.testCases, exerciseTitle: exerciseData.title }}>
+        let pyodide = null;
+        let codeEditor = null;
+        let userName = '';
+        let passedAllTests = false;
+        let submittedCode = '';
+
+        // テストケースをグローバルスコープに保存
+        window.exerciseTestCases = testCases;
+        window.exerciseTitle = exerciseTitle;
+
+        // CodeMirrorの読み込みと初期化
+        async function initCodeEditor() {
+            try {
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js');
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js');
+
+                const editorElement = document.getElementById('code-editor');
+                codeEditor = CodeMirror(editorElement, {
+                    value: '',
+                    mode: 'python',
+                    theme: 'material-darker',
+                    lineNumbers: true,
+                    indentUnit: 4,
+                    indentWithTabs: false,
+                    autoCloseBrackets: true,
+                    lineWrapping: true,
+                    extraKeys: {
+                        "Ctrl-Enter": function(cm) { runCode(); },
+                        "Tab": function(cm) {
+                            if (cm.somethingSelected()) {
+                                cm.indentSelection("add");
+                            } else {
+                                cm.replaceSelection("    ");
+                            }
+                        }
+                    }
+                });
+
+                codeEditor.setSize(null, 400);
+            } catch (error) {
+                console.error('Failed to initialize CodeMirror:', error);
+            }
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Pyodideの読み込み
+        async function loadPyodide() {
+            try {
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+
+                statusElement.textContent = '初期化中...';
+
+                if (!window.loadPyodide) {
+                    await loadScript('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js');
+                }
+
+                pyodide = await window.loadPyodide({
+                    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+                    stdout: (text) => appendOutput(text, 'stdout'),
+                    stderr: (text) => appendOutput(text, 'stderr')
+                });
+
+                // stdoutのバッファリングを無効化
+                await pyodide.runPython(`
+import sys
+import io
+
+class UnbufferedTextIO(io.TextIOWrapper):
+    def write(self, s):
+        super().write(s)
+        self.flush()
+        return len(s)
+
+sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
+sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+                `);
+
+                // input関数をブラウザのpromptを使うようにオーバーライド
+                await pyodide.runPython(`
+import builtins
+from js import prompt
+
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+# 組み込みのinput関数を置き換え
+builtins.input = custom_input
+                `);
+
+                statusElement.textContent = '✅ 準備完了';
+                outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
+
+                document.getElementById('run-btn').disabled = false;
+                document.getElementById('judge-btn').disabled = false;
+            } catch (error) {
+                console.error('Pyodide読み込みエラー:', error);
+                const statusElement = document.getElementById('python-status');
+                const outputArea = document.getElementById('output-area');
+                statusElement.textContent = '❌ エラー';
+                outputArea.innerHTML = `<div class="error">エラーが発生しました: ${error.message}</div>`;
+            }
+        }
+
+        function appendOutput(text, type = 'stdout') {
+            const outputArea = document.getElementById('output-area');
+
+            if (outputArea.querySelector('.loading') || outputArea.querySelector('.ready')) {
+                outputArea.innerHTML = '';
+            }
+
+            const lines = text.split('\n');
+            for (let i = 0; i < lines.length; i++) {
+                if (i === lines.length - 1 && lines[i] === '') continue;
+                const outputLine = document.createElement('div');
+                outputLine.className = `output-line ${type}`;
+                outputLine.textContent = lines[i];
+                outputArea.appendChild(outputLine);
+            }
+
+            outputArea.scrollTop = outputArea.scrollHeight;
+        }
+
+        async function runCode() {
+            if (!pyodide) {
+                appendOutput('Pythonエンジンがまだ読み込まれていません', 'stderr');
+                return;
+            }
+
+            const code = codeEditor ? codeEditor.getValue().trim() : '';
+            if (!code) {
+                appendOutput('コードを入力してください', 'stderr');
+                return;
+            }
+
+            const outputArea = document.getElementById('output-area');
+            outputArea.innerHTML = '';
+
+            try {
+                await pyodide.runPythonAsync(code);
+            } catch (error) {
+                appendOutput(`エラー: ${error.message}`, 'stderr');
+            }
+        }
+
+        async function judgeCode() {
+            if (!pyodide) {
+                alert('Pythonエンジンがまだ読み込まれていません');
+                return;
+            }
+
+            const code = codeEditor ? codeEditor.getValue().trim() : '';
+            if (!code) {
+                alert('コードを入力してください');
+                return;
+            }
+
+            const judgeResultSection = document.getElementById('judge-result');
+            const judgeResultContent = document.getElementById('judge-result-content');
+            judgeResultSection.style.display = 'block';
+            judgeResultContent.innerHTML = '<div class="judging">⏳ 判定中...</div>';
+
+            let allPassed = true;
+            let results = [];
+
+            for (let i = 0; i < window.exerciseTestCases.length; i++) {
+                const testCase = window.exerciseTestCases[i];
+
+                try {
+                    // Pythonの実行環境をリセット
+                    await pyodide.runPythonAsync('import sys; sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__');
+
+                    // 出力をキャプチャするためのセットアップ
+                    let output = '';
+                    await pyodide.runPythonAsync(`
+import sys
+import io
+
+class CaptureOutput(io.TextIOWrapper):
+    def __init__(self):
+        self.output = []
+
+    def write(self, s):
+        self.output.append(s)
+        return len(s)
+
+    def get_output(self):
+        return ''.join(self.output)
+
+_capture = CaptureOutput()
+sys.stdout = _capture
+                    `);
+
+                    // 入力がある場合はモックする
+                    if (testCase.input && testCase.input.trim() !== '') {
+                        const inputs = testCase.input.split('\n');
+                        await pyodide.runPythonAsync(`
+import builtins
+
+_inputs = ${JSON.stringify(inputs)}
+_input_index = 0
+
+def mock_input(prompt=""):
+    global _input_index
+    if _input_index < len(_inputs):
+        result = _inputs[_input_index]
+        _input_index += 1
+        return result
+    return ""
+
+builtins.input = mock_input
+                        `);
+                    }
+
+                    // ユーザーのコードを実行
+                    await pyodide.runPythonAsync(code);
+
+                    // 出力を取得
+                    output = await pyodide.runPythonAsync('_capture.get_output()');
+
+                    // 出力を正規化（末尾の改行を削除）
+                    const normalizedOutput = output.trim();
+                    const expectedOutput = testCase.output.trim();
+
+                    const passed = normalizedOutput === expectedOutput;
+
+                    results.push({
+                        testCase: i + 1,
+                        passed: passed,
+                        expected: expectedOutput,
+                        actual: normalizedOutput
+                    });
+
+                    if (!passed) {
+                        allPassed = false;
+                    }
+                } catch (error) {
+                    results.push({
+                        testCase: i + 1,
+                        passed: false,
+                        expected: testCase.output.trim(),
+                        actual: `エラー: ${error.message}`,
+                        error: true
+                    });
+                    allPassed = false;
+                }
+            }
+
+            // 判定結果を表示
+            let resultHTML = '<div class="judge-results">';
+
+            // HTMLエスケープ関数
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            for (const result of results) {
+                const icon = result.passed ? '✅' : '❌';
+                const status = result.passed ? 'AC (Accepted)' : 'WA (Wrong Answer)';
+                const statusClass = result.passed ? 'test-passed' : 'test-failed';
+
+                resultHTML += `
+                    <div class="test-result ${statusClass}">
+                        <div class="test-header">
+                            <span>${icon} テストケース ${result.testCase}</span>
+                            <span class="test-status">${status}</span>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-output">
+                                <strong>期待される出力：</strong>
+                                <pre><code>${escapeHtml(result.expected)}</code></pre>
+                            </div>
+                            <div class="test-output">
+                                <strong>あなたの出力：</strong>
+                                <pre><code>${escapeHtml(result.actual)}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (allPassed) {
+                resultHTML += `
+                    <div class="final-result success">
+                        <h3>🎉 全てのテストケースに合格しました！</h3>
+                        <p>おめでとうございます。この問題をクリアしました。</p>
+                    </div>
+                `;
+                passedAllTests = true;
+                submittedCode = code;
+                showCertificate();
+            } else {
+                resultHTML += `
+                    <div class="final-result failure">
+                        <h3>❌ 一部のテストケースに失敗しました</h3>
+                        <p>もう一度確認して、コードを修正してください。</p>
+                    </div>
+                `;
+            }
+
+            resultHTML += '</div>';
+            judgeResultContent.innerHTML = resultHTML;
+        }
+
+        function clearCode() {
+            if (codeEditor) {
+                codeEditor.setValue('');
+            }
+            document.getElementById('output-area').innerHTML = '<div class="ready">コードを入力して実行してください</div>';
+
+            const judgeResultSection = document.getElementById('judge-result');
+            judgeResultSection.style.display = 'none';
+        }
+
+        async function showCertificate() {
+            const modal = document.getElementById('certificate-modal');
+            modal.style.display = 'flex';
+
+            // Canvas で修了証を生成
+            setTimeout(() => {
+                generateCertificate();
+            }, 100);
+        }
+
+        async function generateCertificate() {
+            const canvas = document.getElementById('certificate-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#f8fafc');
+            gradient.addColorStop(1, '#e2e8f0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Border
+            ctx.strokeStyle = '#059669';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(20, 20, width - 40, height - 40);
+
+            // Inner border
+            ctx.strokeStyle = '#047857';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(40, 40, width - 80, height - 80);
+
+            // Title
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 48px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('修了証', width / 2, 120);
+
+            // Subtitle
+            ctx.font = '24px sans-serif';
+            ctx.fillStyle = '#475569';
+            ctx.fillText('Certificate of Completion', width / 2, 160);
+
+            // User name
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = '#0f172a';
+            ctx.fillText(userName, width / 2, 240);
+
+            // Course info
+            ctx.font = '20px sans-serif';
+            ctx.fillStyle = '#374151';
+            ctx.fillText('上記の方は、以下の課題において', width / 2, 290);
+            ctx.fillText('合格して修了されました', width / 2, 320);
+
+            // Course title
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillStyle = '#047857';
+            ctx.fillText(exerciseTitle, width / 2, 370);
+
+            // Date
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            ctx.font = '18px sans-serif';
+            ctx.fillStyle = '#6b7280';
+            ctx.fillText(`発行日: ${dateStr}`, width / 2, 430);
+
+            // Submitted code section
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#1e293b';
+            ctx.fillText('提出コード', width / 2, 480);
+
+            // Code box
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(100, 510, width - 200, 280);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(100, 510, width - 200, 280);
+
+            // Code text
+            ctx.font = '16px monospace';
+            ctx.fillStyle = '#dc2626';
+            ctx.textAlign = 'left';
+
+            const codeLines = submittedCode.split('\n');
+            let y = 540;
+            for (let i = 0; i < codeLines.length && i < 13; i++) {
+                const line = codeLines[i].substring(0, 100);
+                ctx.fillText(line, 120, y);
+                y += 20;
+            }
+            if (codeLines.length > 13) {
+                ctx.fillText('...', 120, y);
+            }
+
+            // Site name
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = '#059669';
+            ctx.fillText('じょうほうらいふ', width / 2, 840);
+
+            // --- なりすまし防止情報 ---
+            const trackingInfo = await generateTrackingInfo();
+
+            // 下端に追跡情報を小さく表示（黄色で見やすく）
+            ctx.font = '10px monospace';
+            ctx.fillStyle = '#f59e0b';
+            ctx.textAlign = 'left';
+
+            const bottomY = height - 40;
+            ctx.fillText(`発行時刻: ${trackingInfo.timestamp}`, 43, bottomY - 20);
+            ctx.fillText(`アクセス元: ${trackingInfo.ipAddress}`, 43, bottomY - 5);
+
+            ctx.textAlign = 'right';
+            ctx.fillText(`端末: ${trackingInfo.userAgent}`, width - 43, bottomY - 20);
+            ctx.fillText(`画面: ${trackingInfo.screenInfo}`, width - 43, bottomY - 5);
+
+            // 中央下部に端末識別コードを配置
+            ctx.textAlign = 'center';
+            ctx.fillText(`端末識別: ${trackingInfo.deviceUserHash}`, width / 2, bottomY + 12);
+
+            // Decorative elements
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(150, 150, 20, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#059669';
+            ctx.beginPath();
+            ctx.arc(width - 150, 150, 20, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#047857';
+            ctx.beginPath();
+            ctx.arc(150, height - 150, 20, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.fillStyle = '#065f46';
+            ctx.beginPath();
+            ctx.arc(width - 150, height - 150, 20, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        async function generateTrackingInfo() {
+            const now = new Date();
+
+            // IPアドレス取得（簡易版）
+            let ipAddress = 'N/A';
+
+            // User-Agent情報の簡略化
+            const userAgent = navigator.userAgent;
+            const browserInfo = userAgent.includes('Chrome') ? 'Chrome' :
+                               userAgent.includes('Firefox') ? 'Firefox' :
+                               userAgent.includes('Safari') ? 'Safari' : 'Other';
+            const osInfo = userAgent.includes('Windows') ? 'Win' :
+                           userAgent.includes('Mac') ? 'Mac' :
+                           userAgent.includes('Linux') ? 'Linux' : 'Other';
+
+            // 端末識別コード生成
+            const deviceUserHash = await generateDeviceUserHash(userName);
+
+            return {
+                timestamp: now.toLocaleString('ja-JP', {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }),
+                ipAddress: ipAddress,
+                userAgent: `${browserInfo}/${osInfo}`,
+                screenInfo: `${screen.width}x${screen.height}`,
+                deviceUserHash: deviceUserHash
+            };
+        }
+
+        async function generateDeviceUserHash(userName) {
+            // ブラウザフィンガープリント生成
+            const fingerprint = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screen: `${screen.width}x${screen.height}x${screen.colorDepth}`,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+
+            const fingerprintStr = JSON.stringify(fingerprint) + userName;
+
+            // SHA-256ハッシュ生成
+            const msgUint8 = new TextEncoder().encode(fingerprintStr);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            return hashHex.substring(0, 12).toUpperCase();
+        }
+
+        async function downloadCertificate() {
+            const canvas = document.getElementById('certificate-canvas');
+            if (!canvas) return;
+
+            try {
+                const link = document.createElement('a');
+                link.download = `修了証_${exerciseTitle}_${userName}_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Failed to download certificate:', error);
+                alert('修了証のダウンロードに失敗しました。');
+            }
+        }
+
+        // スクロール位置に応じてエディタのスタイルを調整
+        function setupScrollBehavior() {
+            const editorSticky = document.querySelector('.editor-sticky');
+            const editorSection = document.querySelector('.editor-section');
+            const problemSection = document.querySelector('.problem-section');
+
+            if (!editorSticky || !editorSection || !problemSection) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            function adjustEditorSectionHeight() {
+                const problemHeight = problemSection.offsetHeight;
+                editorSection.style.minHeight = `${problemHeight}px`;
+            }
+
+            adjustEditorSectionHeight();
+            window.addEventListener('resize', adjustEditorSectionHeight);
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 氏名入力モーダルの処理
+            const nameModal = document.getElementById('name-modal');
+            const userNameInput = document.getElementById('user-name-input');
+            const startBtn = document.getElementById('start-btn');
+
+            // ローカルストレージから氏名を読み込み
+            const savedName = localStorage.getItem('userName');
+            if (savedName) {
+                userName = savedName;
+                userNameInput.value = savedName;
+                nameModal.style.display = 'none';
+            }
+
+            startBtn.addEventListener('click', () => {
+                const name = userNameInput.value.trim();
+                if (name) {
+                    userName = name;
+                    localStorage.setItem('userName', name);
+                    nameModal.style.display = 'none';
+                } else {
+                    alert('氏名を入力してください');
+                }
+            });
+
+            userNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    startBtn.click();
+                }
+            });
+
+            await initCodeEditor();
+            loadPyodide();
+            setupScrollBehavior();
+
+            document.getElementById('run-btn').addEventListener('click', runCode);
+            document.getElementById('clear-btn').addEventListener('click', clearCode);
+            document.getElementById('judge-btn').addEventListener('click', judgeCode);
+            document.getElementById('download-btn').addEventListener('click', downloadCertificate);
+            document.getElementById('close-modal-btn').addEventListener('click', () => {
+                document.getElementById('certificate-modal').style.display = 'none';
+            });
+        });
+    </script>
+
+    <style is:global>
+        /* 動的に生成される判定結果のスタイル */
+        .test-output pre {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.5rem !important;
+            border-radius: 0.25rem !important;
+            border: 1px solid #1e293b !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+            font-size: 0.875rem !important;
+            margin: 0 !important;
+        }
+
+        .test-output pre code {
+            color: #e2e8f0 !important;
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            font-size: inherit !important;
+        }
+
+        #judge-result-content code {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 0.25rem !important;
+        }
+
+        #judge-result-content pre code {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+    </style>
+
+    <style>
+        :global(.main-content) {
+            max-width: 100% !important;
+            padding: 0 !important;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        .exercise-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            overflow: visible;
+            height: auto;
+        }
+
+        .exercise-header {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .exercise-header h1 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .exercise-header p {
+            font-size: 1.125rem;
+            color: #64748b;
+        }
+
+        .exercise-content {
+            display: grid;
+            grid-template-columns: 1fr 550px;
+            gap: 2rem;
+            align-items: flex-start;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .problem-section {
+            overflow: visible;
+        }
+
+        .editor-section {
+            position: relative;
+            will-change: transform;
+            height: 100%;
+            align-self: stretch;
+        }
+
+        .problem-card, .io-card, .example-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-card pre, .io-card pre, .example-card pre {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.75rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #334155 !important;
+            margin: 0.5rem 0 !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+        }
+
+        .problem-card code, .io-card code, .example-card code {
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 0.25rem !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+        }
+
+        .problem-card pre code, .io-card pre code, .example-card pre code {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .problem-card h2, .io-card h3 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .problem-statement {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: #475569;
+        }
+
+        .examples-section h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+
+        .example-card h3 {
+            font-size: 1.125rem;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+        }
+
+        .example-io {
+            margin-bottom: 0.75rem;
+        }
+
+        .example-io strong {
+            color: #475569;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .example-io pre {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.75rem !important;
+            border-radius: 0.5rem !important;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+            font-size: 0.9375rem !important;
+            border: 1px solid #334155 !important;
+            margin: 0 !important;
+        }
+
+        .example-io pre code {
+            color: #e2e8f0 !important;
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            font-size: inherit !important;
+        }
+
+        .hints-section {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hints-section h3 {
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+
+        .hints-section ul {
+            color: #78350f;
+            line-height: 1.8;
+        }
+
+        .editor-sticky {
+            position: -webkit-sticky !important;
+            position: sticky !important;
+            top: 5rem !important;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+            max-height: calc(100vh - 6rem);
+            overflow-y: auto;
+            z-index: 50;
+            align-self: flex-start;
+            will-change: transform;
+        }
+
+        .editor-sticky:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-section h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .editor-hint {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9375rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        #code-editor-container {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .CodeMirror {
+            height: 400px !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .output-section {
+            margin-top: 1rem;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .status {
+            font-size: 0.8125rem;
+            color: #64748b;
+        }
+
+        #output-area {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 0.875rem;
+            min-height: 150px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .output-line {
+            margin-bottom: 0.25rem;
+        }
+
+        .output-line.stderr {
+            color: #ef4444;
+        }
+
+        .loading, .ready {
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .error {
+            color: #ef4444;
+            padding: 1rem;
+        }
+
+        .judge-result-section {
+            margin-top: 1rem;
+        }
+
+        .judge-header {
+            padding: 0.75rem 1rem;
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        #judge-result-content {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .judging {
+            text-align: center;
+            padding: 2rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .test-result {
+            background: #0f172a;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-result.test-passed {
+            border-left: 4px solid #22c55e;
+        }
+
+        .test-result.test-failed {
+            border-left: 4px solid #ef4444;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .test-status {
+            font-size: 0.875rem;
+        }
+
+        .test-details {
+            font-size: 0.875rem;
+        }
+
+        .test-output {
+            margin-bottom: 0.5rem;
+        }
+
+        .test-output strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .test-output pre {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.5rem !important;
+            border-radius: 0.25rem !important;
+            overflow-x: auto;
+            border: 1px solid #1e293b !important;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+            font-size: 0.875rem !important;
+            margin: 0 !important;
+        }
+
+        .test-output pre code {
+            color: #e2e8f0 !important;
+            background: transparent !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            font-size: inherit !important;
+        }
+
+        #judge-result-content code {
+            background: #000000 !important;
+            color: #e2e8f0 !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 0.25rem !important;
+        }
+
+        #judge-result-content pre code {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        .final-result {
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .final-result.success {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        .final-result.failure {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .final-result h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        /* モーダル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content-cert {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.125rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        @media (min-width: 1025px) {
+            .exercise-content {
+                display: grid;
+                grid-template-columns: 1fr 550px;
+            }
+
+            .editor-sticky {
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: 5rem !important;
+                max-height: calc(100vh - 6rem) !important;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .exercise-content {
+                grid-template-columns: 1fr !important;
+            }
+
+            .editor-sticky {
+                position: static !important;
+                max-height: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .exercise-container {
+                padding: 1rem;
+            }
+
+            .CodeMirror {
+                height: 300px !important;
+                font-size: 13px;
+            }
+
+            #output-area {
+                max-height: 150px;
+                font-size: 0.8125rem;
+            }
+        }
+    </style>
+</Layout>

@@ -276,11 +276,89 @@ class QuizApp {
   async init() {
     try {
       this.questionSets = await loadAvailableQuestionSets();
+
+      // プログラミング問題セットを読み込み
+      const programmingSets = await this.loadProgrammingExercises();
+      this.questionSets = [...this.questionSets, ...programmingSets];
+
       this.render();
     } catch (error) {
       console.error('Error loading question sets:', error);
       this.renderError();
     }
+  }
+
+  async loadProgrammingExercises() {
+    try {
+      const response = await fetch('/programming-exercises/index.yaml');
+      if (!response.ok) {
+        console.log('No programming exercises found');
+        return [];
+      }
+
+      const yamlContent = await response.text();
+      const lines = yamlContent.split('\n');
+      const exerciseIds = [];
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('- ')) {
+          exerciseIds.push(trimmed.substring(2).trim());
+        }
+      }
+
+      const exercises = [];
+      for (const exerciseId of exerciseIds) {
+        const exerciseResponse = await fetch(`/programming-exercises/${exerciseId}.yaml`);
+        if (exerciseResponse.ok) {
+          const exerciseYaml = await exerciseResponse.text();
+          const exercise = this.parseProgrammingExercise(exerciseYaml);
+          exercises.push(exercise);
+        }
+      }
+
+      return exercises;
+    } catch (error) {
+      console.error('Error loading programming exercises:', error);
+      return [];
+    }
+  }
+
+  parseProgrammingExercise(yamlContent) {
+    const lines = yamlContent.split('\n');
+    const exercise = {
+      id: '',
+      title: '',
+      description: '',
+      icon: '🐍',
+      difficulty: 'easy',
+      estimatedTime: 10,
+      category: 'プログラミング'
+    };
+
+    for (let line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.includes(':')) {
+        const colonIndex = trimmed.indexOf(':');
+        const key = trimmed.substring(0, colonIndex).trim();
+        let value = trimmed.substring(colonIndex + 1).trim();
+
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+
+        if (key === 'estimatedTime') {
+          value = parseInt(value, 10);
+        }
+
+        if (['id', 'title', 'description', 'icon', 'difficulty', 'estimatedTime', 'category'].includes(key)) {
+          exercise[key] = value;
+        }
+      }
+    }
+
+    return exercise;
   }
 
   render() {
@@ -321,6 +399,13 @@ class QuizApp {
           'subnet_mask_conversion', 'subnet_calculation', 'subnet_address_calculation',
           'network-construction-6', 'network-construction-7'
         ]
+      },
+      {
+        id: 'programming',
+        title: 'プログラミング',
+        icon: '🐍',
+        order: ['hello-world'],
+        isProgramming: true
       }
     ];
 
@@ -388,8 +473,12 @@ class QuizApp {
                 ${category.title}
               </h3>
               <div class="learning-grid">
-                ${categorySets.map(questionSet => `
-                  <a href="/quiz/${questionSet.id}" class="topic-card-link">
+                ${categorySets.map(questionSet => {
+                  const href = category.isProgramming
+                    ? `/programming-exercise/${questionSet.id}`
+                    : `/quiz/${questionSet.id}`;
+                  return `
+                  <a href="${href}" class="topic-card-link">
                     <div class="topic-card bg-gradient-to-br ${this.getDifficultyColor(questionSet.difficulty)}">
                       <div class="topic-icon">${questionSet.icon}</div>
                       <h3>${questionSet.title}</h3>
@@ -413,7 +502,8 @@ class QuizApp {
                       <div class="topic-arrow">→</div>
                     </div>
                   </a>
-                `).join('')}
+                `;
+                }).join('')}
               </div>
             </div>
           `;

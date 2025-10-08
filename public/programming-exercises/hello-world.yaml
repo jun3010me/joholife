@@ -1,0 +1,34 @@
+id: hello-world
+title: プログラミング課題①
+description: print関数を使って文字列を出力する基本的なプログラムを作成します
+icon: 🐍
+difficulty: easy
+estimatedTime: 5
+category: プログラミング
+tags:
+  - Python
+  - print関数
+  - 基礎
+
+problem:
+  statement: print関数を使って「Hello World!」と出力するプログラムを作成せよ。
+  input: なし
+  output: Hello World!
+
+testCases:
+  - id: 1
+    input: ""
+    output: "Hello World!"
+  - id: 2
+    input: ""
+    output: "Hello World!"
+  - id: 3
+    input: ""
+    output: "Hello World!"
+
+solution: |
+  print("Hello World!")
+
+hints:
+  - print関数は文字列をダブルクォート（"）で囲んで使います
+  - 文字列の最後に感嘆符（!）を忘れずに
