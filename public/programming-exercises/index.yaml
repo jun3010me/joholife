@@ -2,3 +2,5 @@ exerciseSets:
   - hello-world
   - multiplication
   - conditional
+  - for-loop
+  - list-loop
