@@ -121,6 +121,13 @@ const steps = [
                         <button id="clear-btn" class="btn btn-secondary">
                             🗑️ クリア
                         </button>
+                        <button id="save-btn" class="btn btn-success">
+                            💾 保存
+                        </button>
+                        <button id="load-btn" class="btn btn-info">
+                            📂 読込
+                        </button>
+                        <input type="file" id="file-input" accept=".py" style="display: none;">
                     </div>
 
                     <div id="code-editor-container">
@@ -287,6 +294,100 @@ sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_bufferin
             document.getElementById('output-area').innerHTML = '<div class="ready">コードを入力して実行してください</div>';
         }
 
+        // 保存機能
+        function saveCode() {
+            if (!codeEditor) {
+                alert('エディタが初期化されていません');
+                return;
+            }
+
+            const code = codeEditor.getValue();
+            if (!code.trim()) {
+                alert('保存するコードがありません');
+                return;
+            }
+
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'code.py';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 読込機能
+        function loadCode() {
+            const fileInput = document.getElementById('file-input');
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.py')) {
+                alert('.pyファイルを選択してください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (codeEditor) {
+                    codeEditor.setValue(e.target.result);
+                }
+            };
+            reader.readAsText(file);
+
+            // ファイル入力をリセット（同じファイルを再度読み込めるようにする）
+            event.target.value = '';
+        }
+
+        // ドラッグ&ドロップ機能
+        function setupDragAndDrop() {
+            const editorContainer = document.getElementById('code-editor-container');
+
+            editorContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.borderColor = '#3b82f6';
+                editorContainer.style.backgroundColor = '#eff6ff';
+            });
+
+            editorContainer.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.borderColor = '#e2e8f0';
+                editorContainer.style.backgroundColor = 'transparent';
+            });
+
+            editorContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.borderColor = '#e2e8f0';
+                editorContainer.style.backgroundColor = 'transparent';
+
+                const files = e.dataTransfer.files;
+                if (files.length === 0) return;
+
+                const file = files[0];
+                if (!file.name.endsWith('.py')) {
+                    alert('.pyファイルをドロップしてください');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (codeEditor) {
+                        codeEditor.setValue(event.target.result);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
 
         // スクロール位置に応じてエディタのスタイルを調整
         function setupScrollBehavior() {
@@ -357,9 +458,13 @@ sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_bufferin
             await initCodeEditor();
             loadPyodide();
             setupScrollBehavior();
+            setupDragAndDrop();
 
             document.getElementById('run-btn').addEventListener('click', runCode);
             document.getElementById('clear-btn').addEventListener('click', clearCode);
+            document.getElementById('save-btn').addEventListener('click', saveCode);
+            document.getElementById('load-btn').addEventListener('click', loadCode);
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
         });
     </script>
 
@@ -624,11 +729,30 @@ sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_bufferin
             background: #475569;
         }
 
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-info {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0284c7;
+        }
+
         #code-editor-container {
             border: 2px solid #e2e8f0;
             border-radius: 0.5rem;
             overflow: hidden;
             margin-bottom: 1rem;
+            transition: border-color 0.2s, background-color 0.2s;
         }
 
         .CodeMirror {
