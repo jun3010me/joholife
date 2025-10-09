@@ -4,3 +4,5 @@ exerciseSets:
   - conditional
   - for-loop
   - list-loop
+  - sum-calculation
+  - linear-search
