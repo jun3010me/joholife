@@ -6,3 +6,4 @@ exerciseSets:
   - list-loop
   - sum-calculation
   - linear-search
+  - binary-search

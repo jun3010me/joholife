@@ -1,0 +1,64 @@
+id: binary-search
+title: プログラミング課題⑧
+description: 二分探索のプログラムを完成させる問題です
+icon: 🔎
+difficulty: medium
+estimatedTime: 20
+category: プログラミング
+tags:
+  - Python
+  - 二分探索
+  - アルゴリズム
+
+problem:
+  statement: コードを編集し、二分探索のプログラムを完成させよ。
+  input: 探索したい数値を入力
+  output: 発見したら、「発見,[繰り返した回数]」を出力
+
+testCases:
+  - id: 1
+    input: "2"
+    output: "発見, 3"
+  - id: 2
+    input: "7"
+    output: "発見, 1"
+  - id: 3
+    input: "13"
+    output: "発見, 2"
+
+solution: |
+  primes = [2, 3, 5, 7, 11, 13, 17]
+  n = int(input())
+  i = 0
+  j = 6
+  for k in range(len(primes)):
+      m = int((i + j)/2)
+      if primes[m]==n:
+          print("発見,",k+1)
+          break
+      if n > primes[m]:
+          i = m + 1
+      else:
+          j = m - 1
+
+initialCode: |
+  primes = [2, 3, 5, 7, 11, 13, 17]
+  n = int(input())
+  i = 0
+  j = 6
+  for k in range(len(primes)):
+      m = int(ほげほげ)
+      if primes[ほげ]==n:
+          print("発見,",k+1)
+          break
+      if ほげ > primes[m]:
+          i = ほげほげ
+      else:
+          j = ほげほげ
+
+hints:
+  - 二分探索は配列の中央値と比較して探索範囲を半分にしていきます
+  - 中央値mは(i + j)/2で求められます
+  - 探索値nが中央値より大きい場合、左側の範囲は不要なのでi = m + 1とします
+  - 探索値nが中央値より小さい場合、右側の範囲は不要なのでj = m - 1とします
+  - k+1が繰り返した回数になります
