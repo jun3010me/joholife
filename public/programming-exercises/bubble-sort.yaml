@@ -1,0 +1,48 @@
+id: bubble-sort
+title: プログラミング課題⑨
+description: バブルソートのプログラムを完成させる問題です
+icon: 🔄
+difficulty: hard
+estimatedTime: 25
+category: プログラミング
+tags:
+  - Python
+  - ソート
+  - アルゴリズム
+
+problem:
+  statement: コードを編集し、バブルソートのプログラムを完成させよ。
+  input: なし
+  output: 昇順に並べ替えた配列を出力
+
+testCases:
+  - id: 1
+    input: ""
+    output: "[2, 3, 5, 7, 11]"
+
+solution: |
+  primes = [11, 3, 7, 2, 5]
+  for i in range(len(primes)-1,0,-1):
+      for j in range(i):
+          if primes[j] > primes[j + 1]:
+              tmp = primes[j]
+              primes[j] = primes[j + 1]
+              primes[j + 1] = tmp
+  print(primes)
+
+initialCode: |
+  primes = [11, 3, 7, 2, 5]
+  for i in range(ほげ,0,-1):
+      for j in range(ほげ):
+          if primes[ほげ] > primes[ほげ]:
+              tmp = primes[ほげ]
+              primes[ほげ] = primes[ほげ]
+              primes[ほげ] = tmp
+  print(primes)
+
+hints:
+  - バブルソートは隣り合う要素を比較して交換を繰り返すアルゴリズムです
+  - 外側のループは配列の末尾から減らしていきます
+  - 内側のループは0からi未満まで回します
+  - 隣同士の数値を比較して、大きい方を後ろに移動させます
+  - 一時変数tmpを使って値を交換します

@@ -7,3 +7,4 @@ exerciseSets:
   - sum-calculation
   - linear-search
   - binary-search
+  - bubble-sort
