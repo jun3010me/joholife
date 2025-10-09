@@ -1,0 +1,48 @@
+id: selection-sort
+title: プログラミング課題⑩
+description: 選択ソートのプログラムを完成させる問題です
+icon: 🎯
+difficulty: hard
+estimatedTime: 25
+category: プログラミング
+tags:
+  - Python
+  - ソート
+  - アルゴリズム
+
+problem:
+  statement: コードを編集し、選択ソートのプログラムを完成させよ。
+  input: なし
+  output: 昇順に並べ替えた配列を出力
+
+testCases:
+  - id: 1
+    input: ""
+    output: "[2, 3, 5, 7, 11]"
+
+solution: |
+  primes = [11, 3, 7, 2, 5]
+  for i in range(len(primes)-1):
+      for j in range(i,len(primes)):
+          if primes[i] > primes[j]:
+              tmp = primes[i]
+              primes[i] = primes[j]
+              primes[j] = tmp
+  print(primes)
+
+initialCode: |
+  primes = [11, 3, 7, 2, 5]
+  for i in range(ほげ):
+      for j in range(i,ほげ):
+          if primes[ほげ] > primes[ほげ]:
+              tmp = primes[ほげ]
+              primes[ほげ] = primes[ほげ]
+              primes[ほげ] = tmp
+  print(primes)
+
+hints:
+  - 選択ソートは未整列部分から最小値を見つけて先頭と交換するアルゴリズムです
+  - 外側のループは配列の先頭から末尾の手前まで進みます
+  - 内側のループは現在位置iから配列の末尾まで回します
+  - 最小値を見つけたら、先頭の要素と交換します
+  - 一時変数tmpを使って値を交換します
