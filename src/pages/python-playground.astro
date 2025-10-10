@@ -24,6 +24,13 @@ import Layout from '../layouts/Layout.astro';
                         <button id="example-btn" class="btn btn-secondary">
                             📚 サンプル
                         </button>
+                        <button id="save-btn" class="btn btn-success">
+                            💾 保存
+                        </button>
+                        <button id="load-btn" class="btn btn-info">
+                            📂 読込
+                        </button>
+                        <input type="file" id="file-input" accept=".py" style="display: none;">
                     </div>
                 </div>
                 <div id="code-editor-container">
@@ -893,6 +900,100 @@ def __tracer__(frame, event, arg):
             clearDebugInfo();
         }
 
+        // 保存機能
+        function saveCode() {
+            if (!codeEditor) {
+                alert('エディタが初期化されていません');
+                return;
+            }
+
+            const code = codeEditor.getValue();
+            if (!code.trim()) {
+                alert('保存するコードがありません');
+                return;
+            }
+
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `python_playground_${new Date().toISOString().split('T')[0]}.py`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 読込機能
+        function loadCode() {
+            const fileInput = document.getElementById('file-input');
+            fileInput.click();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.py')) {
+                alert('.pyファイルを選択してください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (codeEditor) {
+                    codeEditor.setValue(e.target.result);
+                }
+            };
+            reader.readAsText(file);
+
+            // ファイル入力をリセット（同じファイルを再度読み込めるようにする）
+            event.target.value = '';
+        }
+
+        // ドラッグ&ドロップ機能
+        function setupDragAndDrop() {
+            const editorContainer = document.getElementById('code-editor-container');
+
+            editorContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.border = '3px dashed #3b82f6';
+                editorContainer.style.background = 'rgba(59, 130, 246, 0.05)';
+            });
+
+            editorContainer.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.border = '2px solid #e2e8f0';
+                editorContainer.style.background = '';
+            });
+
+            editorContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editorContainer.style.border = '2px solid #e2e8f0';
+                editorContainer.style.background = '';
+
+                const files = e.dataTransfer.files;
+                if (files.length === 0) return;
+
+                const file = files[0];
+                if (!file.name.endsWith('.py')) {
+                    alert('.pyファイルをドロップしてください');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    if (codeEditor) {
+                        codeEditor.setValue(event.target.result);
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
         // イベントリスナーの設定
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, starting CodeMirror and Pyodide initialization...');
@@ -913,6 +1014,12 @@ def __tracer__(frame, event, arg):
             document.getElementById('run-btn').addEventListener('click', runCode);
             document.getElementById('clear-btn').addEventListener('click', clearCode);
             document.getElementById('example-btn').addEventListener('click', insertSampleCode);
+            document.getElementById('save-btn').addEventListener('click', saveCode);
+            document.getElementById('load-btn').addEventListener('click', loadCode);
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
+
+            // ドラッグ&ドロップ機能を有効化
+            setupDragAndDrop();
         });
     </script>
 
@@ -1144,6 +1251,24 @@ def __tracer__(frame, event, arg):
 
         .btn-secondary:hover {
             background: #475569;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-info {
+            background: #06b6d4;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #0891b2;
         }
 
         .help-section {
