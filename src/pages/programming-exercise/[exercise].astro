@@ -36,7 +36,11 @@ const description = exerciseData.description;
             <div class="problem-section">
                 <div class="problem-card">
                     <h2>📋 問題文</h2>
-                    <p class="problem-statement">{exerciseData.problem.statement}</p>
+                    <div class="problem-statement" set:html={exerciseData.problem.statement
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>')
+                    } />
                 </div>
 
                 {exerciseData.problem.input && (

@@ -9,3 +9,4 @@ exerciseSets:
   - binary-search
   - bubble-sort
   - selection-sort
+  - leap-year
