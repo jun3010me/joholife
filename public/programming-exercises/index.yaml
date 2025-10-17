@@ -10,3 +10,4 @@ exerciseSets:
   - bubble-sort
   - selection-sort
   - leap-year
+  - gcd-euclidean

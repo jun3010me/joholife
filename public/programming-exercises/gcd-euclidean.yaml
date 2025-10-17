@@ -1,0 +1,59 @@
+id: gcd-euclidean
+title: プログラミング課題⑫（ユークリッドの互除法による最大公約数）
+description: 2つの数値を入力し、ユークリッドの互除法を用いて最大公約数を求める
+icon: 🔢
+difficulty: medium
+estimatedTime: 10
+category: プログラミング
+tags:
+  - Python
+  - アルゴリズム
+  - 数学
+
+problem:
+  statement: |
+    2つの数値を入力し、ユークリッドの互除法を用いて最大公約数を求めるプログラムを作成せよ。
+
+    ユークリッドの互除法は、2つの整数の最大公約数を求める効率的なアルゴリズムです。
+    大きい数を小さい数で割った余りを求め、その余りが0になるまで繰り返します。
+  input: |
+    A
+    B
+
+    2つの正の整数A, Bが入力されます。
+  output: |
+    数値Aと数値Bの最大公約数を出力
+
+testCases:
+  - id: 1
+    input: "3355\n2379"
+    output: "61"
+  - id: 2
+    input: "884\n323"
+    output: "17"
+  - id: 3
+    input: "667\n493"
+    output: "29"
+
+solution: |
+  dai = int(input())
+  sho = int(input())
+  while dai%sho>0:
+      amari = dai%sho
+      dai = sho
+      sho = amari
+  print(sho)
+
+initialCode: |
+  dai = int(input())
+  sho = int(input())
+  while 繰り返しを続ける条件>0:
+      amari = ほげ
+      dai = ほげ
+      sho = ほげ
+  print(ほげ)
+
+hints:
+  - ユークリッドの互除法では、大きい数を小さい数で割った余りを繰り返し計算します
+  - 余りが0になったとき、その時の割る数（sho）が最大公約数です
+  - while文の条件は「余りが0より大きい」つまり「dai%sho>0」です
