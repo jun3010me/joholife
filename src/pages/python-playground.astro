@@ -598,6 +598,8 @@ builtins.input = custom_input
         // コード実行
         async function runCode() {
             if (!pyodide) {
+                const outputArea = document.getElementById('output-area');
+                outputArea.innerHTML = '';
                 appendOutput('Pythonエンジンがまだ読み込まれていません。しばらく待ってから再試行してください。', 'stderr');
                 return;
             }
@@ -612,6 +614,8 @@ builtins.input = custom_input
             }
 
             if (!code) {
+                const outputArea = document.getElementById('output-area');
+                outputArea.innerHTML = '';
                 appendOutput('実行するコードを入力してください。', 'stderr');
                 return;
             }
@@ -619,7 +623,11 @@ builtins.input = custom_input
             const outputArea = document.getElementById('output-area');
             const runBtn = document.getElementById('run-btn');
 
-            // 出力エリアとデバッグ情報をクリア
+            // 出力エリアを完全にクリア（以前のエラーや出力を確実に削除）
+            outputArea.innerHTML = '';
+            outputLineCount = 0;
+
+            // 実行中メッセージを表示
             outputArea.innerHTML = '<div class="running-msg">🔄 実行中...<br><small style="color: #94a3b8;">※大量の出力は実行完了後に表示されます</small></div>';
             clearDebugInfo();
             runBtn.disabled = true;
@@ -846,6 +854,11 @@ def __tracer__(frame, event, arg):
 
             } catch (error) {
                 console.error('Python実行エラー:', error);
+
+                // エラー時も出力エリアを完全にクリアしてから表示
+                const outputArea = document.getElementById('output-area');
+                outputArea.innerHTML = '';
+                outputLineCount = 0;
 
                 // チェックボックスの状態を確認
                 const japaneseErrorToggle = document.getElementById('japanese-error-toggle');

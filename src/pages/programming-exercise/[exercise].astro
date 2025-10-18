@@ -315,12 +315,16 @@ builtins.input = custom_input
 
         async function runCode() {
             if (!pyodide) {
+                const outputArea = document.getElementById('output-area');
+                outputArea.innerHTML = '';
                 appendOutput('Pythonエンジンがまだ読み込まれていません', 'stderr');
                 return;
             }
 
             const code = codeEditor ? codeEditor.getValue().trim() : '';
             if (!code) {
+                const outputArea = document.getElementById('output-area');
+                outputArea.innerHTML = '';
                 appendOutput('コードを入力してください', 'stderr');
                 return;
             }
@@ -331,6 +335,8 @@ builtins.input = custom_input
             try {
                 await pyodide.runPythonAsync(code);
             } catch (error) {
+                // エラー時も出力エリアを完全にクリアしてから表示
+                outputArea.innerHTML = '';
                 appendOutput(`エラー: ${error.message}`, 'stderr');
             }
         }
