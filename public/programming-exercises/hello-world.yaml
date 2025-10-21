@@ -19,12 +19,6 @@ testCases:
   - id: 1
     input: ""
     output: "Hello World!"
-  - id: 2
-    input: ""
-    output: "Hello World!"
-  - id: 3
-    input: ""
-    output: "Hello World!"
 
 solution: |
   print("Hello World!")
