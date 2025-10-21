@@ -855,18 +855,23 @@ def __tracer__(frame, event, arg):
             } catch (error) {
                 console.error('Python実行エラー:', error);
 
-                // エラー時も出力エリアを完全にクリアしてから表示
+                // Pyodideがstderrに出力していない場合のみ、エラーメッセージを追加
+                // （outputAreaを再度クリアしないことで、遅延したstderrコールバックによる
+                //   古いエラー表示を防ぐ）
                 const outputArea = document.getElementById('output-area');
-                outputArea.innerHTML = '';
-                outputLineCount = 0;
 
-                // チェックボックスの状態を確認
-                const japaneseErrorToggle = document.getElementById('japanese-error-toggle');
-                const useJapanese = japaneseErrorToggle ? japaneseErrorToggle.checked : true;
+                if (outputArea.children.length === 0 || outputArea.querySelector('.running-msg')) {
+                    outputArea.innerHTML = '';
+                    outputLineCount = 0;
 
-                // エラーメッセージを日本語化するかどうか
-                const errorMessage = useJapanese ? translatePythonError(error.message) : `エラー:\n${error.message}`;
-                appendOutput(errorMessage, 'stderr');
+                    // チェックボックスの状態を確認
+                    const japaneseErrorToggle = document.getElementById('japanese-error-toggle');
+                    const useJapanese = japaneseErrorToggle ? japaneseErrorToggle.checked : true;
+
+                    // エラーメッセージを日本語化するかどうか
+                    const errorMessage = useJapanese ? translatePythonError(error.message) : `エラー:\n${error.message}`;
+                    appendOutput(errorMessage, 'stderr');
+                }
             } finally {
                 runBtn.disabled = false;
             }

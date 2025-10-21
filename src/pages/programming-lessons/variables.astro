@@ -269,9 +269,12 @@ sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_bufferin
             try {
                 await pyodide.runPythonAsync(code);
             } catch (error) {
-                // エラー時も出力エリアを完全にクリアしてから表示
-                outputArea.innerHTML = '';
-                appendOutput(`エラー: ${error.message}`, 'stderr');
+                // Pyodideがstderrに出力していない場合のみ、エラーメッセージを追加
+                // （outputAreaを再度クリアしないことで、遅延したstderrコールバックによる
+                //   古いエラー表示を防ぐ）
+                if (outputArea.children.length === 0) {
+                    appendOutput(`エラー: ${error.message}`, 'stderr');
+                }
             }
         }
 
