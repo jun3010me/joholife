@@ -11,3 +11,4 @@ exerciseSets:
   - selection-sort
   - leap-year
   - gcd-euclidean
+  - prime-number

@@ -1,0 +1,50 @@
+id: prime-number
+title: プログラミング課題⑬(素数判定)
+description: 入力された数値が素数かどうかを判定するプログラムを作成します
+icon: 🔢
+difficulty: hard
+estimatedTime: 15
+category: プログラミング
+tags:
+  - Python
+  - 素数
+  - 数学
+  - アルゴリズム
+
+problem:
+  statement: 数値を入力し、その数値が素数か判定するプログラムを作成せよ。
+  input: 数値を入力
+  output: 素数なら「素数です」と出力、素数でなければ「素数ではありません」と出力
+
+testCases:
+  - id: 1
+    input: "7"
+    output: "素数です"
+  - id: 2
+    input: "144"
+    output: "素数ではありません"
+  - id: 3
+    input: "4649"
+    output: "素数です"
+
+solution: |
+  num = int(input())
+  prime = 1
+
+  for i in range(2,num):
+      if num % i == 0:
+          prime = 0
+          break
+
+  if prime == 1:
+      print("素数です")
+  else:
+      print("素数ではありません")
+
+hints:
+  - 素数とは、1とその数自身以外に約数を持たない自然数です
+  - 2からその数-1までの範囲で割り切れる数があれば素数ではありません
+  - "ヒント用のコード例：\nnum = int(input())\nprime = 1\n\nfor i in range(2,num):\n    if ほげ % ほげ == 0:\n        prime = ほげ\n        break\n\nif prime == ほげ:\n    print(\"素数です\")\nelse:\n    print(\"素数ではありません\")"
+  - num % i == 0 は「numがiで割り切れる」という意味です
+  - prime変数は素数フラグとして使用します（1=素数、0=素数でない）
+  - breakを使うと、約数が見つかった時点でループを抜けられます
