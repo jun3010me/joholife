@@ -41,10 +41,23 @@ solution: |
   else:
       print("素数ではありません")
 
+initialCode: |
+  num = int(input())
+  prime = 1
+
+  for i in range(2,num):
+      if ほげ % ほげ == 0:
+          prime = ほげ
+          break
+
+  if prime == ほげ:
+      print("素数です")
+  else:
+      print("素数ではありません")
+
 hints:
   - 素数とは、1とその数自身以外に約数を持たない自然数です
   - 2からその数-1までの範囲で割り切れる数があれば素数ではありません
-  - "ヒント用のコード例：\nnum = int(input())\nprime = 1\n\nfor i in range(2,num):\n    if ほげ % ほげ == 0:\n        prime = ほげ\n        break\n\nif prime == ほげ:\n    print(\"素数です\")\nelse:\n    print(\"素数ではありません\")"
   - num % i == 0 は「numがiで割り切れる」という意味です
   - prime変数は素数フラグとして使用します（1=素数、0=素数でない）
   - breakを使うと、約数が見つかった時点でループを抜けられます
