@@ -13,3 +13,4 @@ exerciseSets:
   - gcd-euclidean
   - prime-number
   - decimal-to-binary-conversion
+  - binary-to-decimal-conversion
