@@ -1,0 +1,55 @@
+id: decimal-to-binary-conversion
+title: プログラミング課題⑭
+description: 10進数を2進数に変換するプログラムを作成する課題
+icon: 🔢
+difficulty: hard
+estimatedTime: 20
+category: プログラミング
+tags:
+  - Python
+  - 進数変換
+  - アルゴリズム
+
+problem:
+  statement: |
+    10進数を入力すると、その数値を2進数に変換するプログラムを作成せよ。
+  input: 10進数を入力
+  output: 入力された数値を2進数に変換した値を出力
+
+testCases:
+  - id: 1
+    input: "240"
+    output: "11110000"
+  - id: 2
+    input: "255"
+    output: "11111111"
+  - id: 3
+    input: "192"
+    output: "11000000"
+
+solution: |
+  n = int(input())
+  nishin = 0
+  keta = 1
+  while n > 0:
+      nishin = nishin + n % 2 * keta
+      n = n // 2
+      keta = keta * 10
+  print(nishin)
+
+initialCode: |
+  n = int(input())
+  nishin = 0
+  keta = 1
+  while n > 0:
+      nishin = nishin + ほげ
+      n = n // ほげ
+      keta = keta ほげ
+  print(ほげ)
+
+hints:
+  - 2進数への変換は、10進数を2で割った余りを繰り返し取得することで実現できます
+  - n % 2 で2で割った余りが求められます
+  - n // 2 で2で割った商（整数部分）が求められます
+  - ketaは10倍ずつ増やしていきます（1, 10, 100, 1000...）
+  - 最終的にnishinに2進数の各桁を組み立てていきます
