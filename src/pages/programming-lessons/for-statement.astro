@@ -302,14 +302,35 @@ builtins.input = custom_input
             outputArea.innerHTML = '';
 
             try {
+                // Pyodideの実行環境を完全にリセット（エラー状態のクリア）
+                await pyodide.runPythonAsync(`
+import sys
+import io
+
+# エラー状態をクリア
+if hasattr(sys, 'last_value'):
+    del sys.last_value
+if hasattr(sys, 'last_type'):
+    del sys.last_type
+if hasattr(sys, 'last_traceback'):
+    del sys.last_traceback
+
+# stdout/stderrを再初期化
+class UnbufferedTextIO(io.TextIOWrapper):
+    def write(self, s):
+        super().write(s)
+        self.flush()
+        return len(s)
+
+sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
+sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+                `);
+
+                // ユーザーのコードを実行
                 await pyodide.runPythonAsync(code);
             } catch (error) {
-                // Pyodideがstderrに出力していない場合のみ、エラーメッセージを追加
-                // （outputAreaを再度クリアしないことで、遅延したstderrコールバックによる
-                //   古いエラー表示を防ぐ）
-                if (outputArea.children.length === 0) {
-                    appendOutput(`エラー: ${error.message}`, 'stderr');
-                }
+                // エラーをクリーンに表示
+                appendOutput(`エラー: ${error.message}`, 'stderr');
             }
         }
 
