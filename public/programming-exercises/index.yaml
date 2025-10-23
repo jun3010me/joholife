@@ -12,3 +12,4 @@ exerciseSets:
   - leap-year
   - gcd-euclidean
   - prime-number
+  - decimal-to-binary-conversion
