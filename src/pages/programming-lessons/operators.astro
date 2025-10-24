@@ -230,6 +230,19 @@ sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_bufferin
 sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
                 `);
 
+                // input関数をブラウザのpromptを使うようにオーバーライド
+                await pyodide.runPython(`
+import builtins
+from js import prompt
+
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+# 組み込みのinput関数を置き換え
+builtins.input = custom_input
+                `);
+
                 statusElement.textContent = '✅ 準備完了';
                 outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
 
