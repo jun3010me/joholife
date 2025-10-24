@@ -333,9 +333,11 @@ builtins.input = custom_input
             outputArea.innerHTML = '';
 
             try {
-                // Pyodideのエラー状態をクリア
+                // 実行環境をクリーンアップ
                 await pyodide.runPythonAsync(`
 import sys
+import builtins
+from js import prompt
 
 # エラー状態をクリア
 if hasattr(sys, 'last_value'):
@@ -344,6 +346,25 @@ if hasattr(sys, 'last_type'):
     del sys.last_type
 if hasattr(sys, 'last_traceback'):
     del sys.last_traceback
+
+# 判定で使用した可能性のあるグローバル変数を削除
+if '_inputs' in globals():
+    del globals()['_inputs']
+if '_input_index' in globals():
+    del globals()['_input_index']
+if '_capture' in globals():
+    del globals()['_capture']
+
+# input関数が正しく設定されているか確認・修正
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+builtins.input = custom_input
+
+# 標準出力を元に戻す
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stderr__
                 `);
 
                 // ユーザーのコードを実行
@@ -455,6 +476,36 @@ builtins.input = mock_input
                     });
                     allPassed = false;
                 }
+            }
+
+            // 判定終了後、環境をクリーンアップしてinput()を元に戻す
+            try {
+                await pyodide.runPythonAsync(`
+import builtins
+from js import prompt
+
+# 判定で使用したグローバル変数を削除
+if '_inputs' in globals():
+    del globals()['_inputs']
+if '_input_index' in globals():
+    del globals()['_input_index']
+if '_capture' in globals():
+    del globals()['_capture']
+
+# input関数を元のcustom_inputに戻す
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+builtins.input = custom_input
+
+# 標準出力を元に戻す
+import sys
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stderr__
+                `);
+            } catch (error) {
+                console.error('環境クリーンアップエラー:', error);
             }
 
             // 判定結果を表示
