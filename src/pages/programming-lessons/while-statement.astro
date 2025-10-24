@@ -302,9 +302,11 @@ builtins.input = custom_input
             outputArea.innerHTML = '';
 
             try {
-                // Pyodideのエラー状態をクリア
+                // 実行環境をクリーンアップ
                 await pyodide.runPythonAsync(`
 import sys
+import builtins
+from js import prompt
 
 # エラー状態をクリア
 if hasattr(sys, 'last_value'):
@@ -313,6 +315,13 @@ if hasattr(sys, 'last_type'):
     del sys.last_type
 if hasattr(sys, 'last_traceback'):
     del sys.last_traceback
+
+# input関数が正しく設定されているか確認
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+builtins.input = custom_input
                 `);
 
                 // ユーザーのコードを実行
