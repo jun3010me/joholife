@@ -265,6 +265,10 @@ class UnbufferedTextIO(io.TextIOWrapper):
 
 sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
 sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+
+# カスタムストリームへの参照を保存（判定後の復元用）
+sys._custom_stdout = sys.stdout
+sys._custom_stderr = sys.stderr
                 `);
 
                 // input関数をブラウザのpromptを使うようにオーバーライド
@@ -362,9 +366,9 @@ def custom_input(prompt_text=""):
 
 builtins.input = custom_input
 
-# 標準出力を元に戻す
-sys.stdout = sys.__stdout__
-sys.stderr = sys.__stderr__
+# 標準出力をカスタムストリームに戻す
+sys.stdout = sys._custom_stdout
+sys.stderr = sys._custom_stderr
                 `);
 
                 // ユーザーのコードを実行
@@ -400,7 +404,7 @@ sys.stderr = sys.__stderr__
 
                 try {
                     // Pythonの実行環境をリセット
-                    await pyodide.runPythonAsync('import sys; sys.stdout = sys.__stdout__; sys.stderr = sys.__stderr__');
+                    await pyodide.runPythonAsync('import sys; sys.stdout = sys._custom_stdout; sys.stderr = sys._custom_stderr');
 
                     // 出力をキャプチャするためのセットアップ
                     let output = '';
@@ -499,10 +503,10 @@ def custom_input(prompt_text=""):
 
 builtins.input = custom_input
 
-# 標準出力を元に戻す
+# 標準出力をカスタムストリームに戻す
 import sys
-sys.stdout = sys.__stdout__
-sys.stderr = sys.__stderr__
+sys.stdout = sys._custom_stdout
+sys.stderr = sys._custom_stderr
                 `);
             } catch (error) {
                 console.error('環境クリーンアップエラー:', error);
