@@ -911,14 +911,24 @@ class QuizSession {
                   const isUserSelected = this.isOptionSelected(currentQuestion.id, option.id);
                   const isCorrectOption = option.isCorrect;
 
-                  // sports_festival_smartphone の場合は全ての選択肢を表示、それ以外はユーザーが選んだ不正解の選択肢のみ表示
-                  const isSportsUnits = this.questionSet.id === 'sports_festival_smartphone';
-                  if (!isSportsUnits && (!isUserSelected || isCorrectOption)) {
+                  // 不正解時にも正解を表示する問題演習のリスト
+                  const showAnswerWhenWrong = [
+                    'sports_festival_smartphone',
+                    'binary_conversion',
+                    'hex_conversion',
+                    'image_digitization',
+                    'copyright',
+                    'industrial',
+                    'portrait',
+                    'moraru'
+                  ].includes(this.questionSet.id);
+
+                  if (!showAnswerWhenWrong && (!isUserSelected || isCorrectOption)) {
                     return '';
                   }
 
-                  // sports_festival_smartphone の場合で選択していない選択肢はスキップ
-                  if (isSportsUnits && !isUserSelected && !isCorrectOption) {
+                  // 不正解時に正解表示する場合で選択していない選択肢はスキップ
+                  if (showAnswerWhenWrong && !isUserSelected && !isCorrectOption) {
                     return '';
                   }
 
