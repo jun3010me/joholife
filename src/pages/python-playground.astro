@@ -1164,14 +1164,19 @@ def __tracer__(frame, event, arg):
             border-left: 2px solid #2563eb;
         }
 
+        /* 選択範囲の色を調整（より見やすく、透明度を下げる） */
         .CodeMirror-selected {
-            background: rgba(37, 99, 235, 0.2);
+            background: rgba(128, 203, 196, 0.4) !important;
         }
 
-        .CodeMirror-line::selection, 
-        .CodeMirror-line > span::selection, 
+        .CodeMirror-focused .CodeMirror-selected {
+            background: rgba(128, 203, 196, 0.5) !important;
+        }
+
+        .CodeMirror-line::selection,
+        .CodeMirror-line > span::selection,
         .CodeMirror-line > span > span::selection {
-            background: rgba(37, 99, 235, 0.2);
+            background: rgba(128, 203, 196, 0.4);
         }
 
         /* フォールバックエディタのスタイル */
