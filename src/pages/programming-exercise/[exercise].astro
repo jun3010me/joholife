@@ -1164,6 +1164,15 @@ sys.stderr = sys._custom_stderr
             font-size: 14px;
         }
 
+        /* CodeMirrorの選択範囲の色を調整（より見やすく、透明度を下げる） */
+        .CodeMirror-selected {
+            background: rgba(128, 203, 196, 0.4) !important;
+        }
+
+        .CodeMirror-focused .CodeMirror-selected {
+            background: rgba(128, 203, 196, 0.5) !important;
+        }
+
         .output-section {
             margin-top: 1rem;
         }
