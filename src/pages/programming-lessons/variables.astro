@@ -754,7 +754,18 @@ builtins.input = custom_input
         }
 
         /* CodeMirrorの選択範囲の色を調整（より見やすく、透明度を下げる） */
-        .CodeMirror-selected {
+        .CodeMirror.cm-s-material-darker .CodeMirror-selected {
+            background: rgba(128, 203, 196, 0.4) !important;
+        }
+
+        .CodeMirror.cm-s-material-darker.CodeMirror-focused .CodeMirror-selected {
+            background: rgba(128, 203, 196, 0.5) !important;
+        }
+
+        /* ネイティブ選択もカバー */
+        .CodeMirror-line::selection,
+        .CodeMirror-line > span::selection,
+        .CodeMirror-line > span > span::selection {
             background: rgba(128, 203, 196, 0.4) !important;
         }
 
