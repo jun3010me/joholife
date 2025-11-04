@@ -3867,36 +3867,52 @@ import Layout from '../layouts/Layout.astro';
                 appContainer.style.boxSizing = 'border-box';
                 console.log('Forced app-container styles applied');
             }
-            
+
             // キャンバスコンテナのサイズが確定するまで待つ
             const canvasContainer = document.querySelector('.canvas-container');
             if (!canvasContainer) {
                 console.log('Canvas container not found, retrying...');
-                setTimeout(initializeSimulator, 50);
+                setTimeout(initializeSimulator, 100);
                 return;
             }
-            
+
             // コンテナのサイズが0でない場合のみ初期化
             const containerRect = canvasContainer.getBoundingClientRect();
             if (containerRect.width === 0 || containerRect.height === 0) {
                 console.log('Canvas container size not ready:', containerRect, 'retrying...');
-                setTimeout(initializeSimulator, 50);
+                setTimeout(initializeSimulator, 100);
                 return;
             }
-            
+
             console.log('Canvas container ready:', containerRect);
             new MobileCircuitSimulator();
         }
 
+        // より確実な初期化のため、requestAnimationFrameで複数フレーム待つ
+        function waitForLayout(callback, framesLeft = 3) {
+            if (framesLeft <= 0) {
+                callback();
+                return;
+            }
+            requestAnimationFrame(() => {
+                waitForLayout(callback, framesLeft - 1);
+            });
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             // iOS Safari で Safe Area やレイアウト計算の完了を待つ
-            if (navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mobile')) {
-                // iOS Safari の場合はさらに待つ
-                setTimeout(initializeSimulator, 200);
-            } else {
-                // 他のブラウザでも少し待つ
-                setTimeout(initializeSimulator, 100);
-            }
+            const isIOSSafari = navigator.userAgent.includes('Safari') && navigator.userAgent.includes('Mobile');
+
+            // requestAnimationFrameで複数フレーム待ってから初期化
+            waitForLayout(() => {
+                if (isIOSSafari) {
+                    // iOS Safari の場合はさらに待つ（ビューポート確定のため）
+                    setTimeout(initializeSimulator, 300);
+                } else {
+                    // 他のブラウザでも少し待つ
+                    setTimeout(initializeSimulator, 100);
+                }
+            });
         });
     </script>
 </Layout>
