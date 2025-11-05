@@ -33,8 +33,13 @@ solution: |
       goukei += i
   print(goukei)
 
+forbiddenPatterns:
+  - pattern: "sum("
+    reason: "この課題ではforまたはwhileを使って総和を求めてください"
+  - pattern: "//2"
+    reason: "総和の公式（n*(n+1)//2）を使わずに、forまたはwhileで計算してください"
+
 hints:
   - input()で受け取った値は文字列なので、int()で整数に変換する必要があります
   - 変数goukeiを0で初期化してから、for文で1ずつ加算していきます
   - range(a+1)とすることで、1からaまでの数値を順番に処理できます
-  - 総和を求める公式: n*(n+1)/2 を使う方法もあります
