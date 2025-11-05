@@ -178,7 +178,7 @@ const description = exerciseData.description;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
 
-    <script define:vars={{ testCases: exerciseData.testCases, exerciseTitle: exerciseData.title, initialCode: exerciseData.initialCode || '' }}>
+    <script define:vars={{ testCases: exerciseData.testCases, exerciseTitle: exerciseData.title, initialCode: exerciseData.initialCode || '', forbiddenPatterns: exerciseData.forbiddenPatterns || [] }}>
         let pyodide = null;
         let codeEditor = null;
         let userName = '';
@@ -188,6 +188,7 @@ const description = exerciseData.description;
         // テストケースをグローバルスコープに保存
         window.exerciseTestCases = testCases;
         window.exerciseTitle = exerciseTitle;
+        window.forbiddenPatterns = forbiddenPatterns;
 
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
@@ -548,15 +549,44 @@ sys.stderr = sys._custom_stderr
             }
 
             if (allPassed) {
-                resultHTML += `
-                    <div class="final-result success">
-                        <h3>🎉 全てのテストケースに合格しました！</h3>
-                        <p>おめでとうございます。この問題をクリアしました。</p>
-                    </div>
-                `;
-                passedAllTests = true;
-                submittedCode = code;
-                showCertificate();
+                // 禁止文字列チェック
+                let forbiddenFound = [];
+                if (window.forbiddenPatterns && window.forbiddenPatterns.length > 0) {
+                    for (const forbiddenItem of window.forbiddenPatterns) {
+                        if (code.includes(forbiddenItem.pattern)) {
+                            forbiddenFound.push(forbiddenItem);
+                        }
+                    }
+                }
+
+                if (forbiddenFound.length > 0) {
+                    // 禁止文字列が見つかった場合
+                    resultHTML += `
+                        <div class="final-result forbidden">
+                            <h3>⚠️ 禁止された構文が含まれています</h3>
+                            <p>全てのテストケースには合格しましたが、以下の理由により修了証は発行されません：</p>
+                            <ul class="forbidden-list">
+                    `;
+                    for (const item of forbiddenFound) {
+                        resultHTML += `<li><code>${escapeHtml(item.pattern)}</code> - ${escapeHtml(item.reason)}</li>`;
+                    }
+                    resultHTML += `
+                            </ul>
+                            <p>コードを修正して、もう一度判定してください。</p>
+                        </div>
+                    `;
+                } else {
+                    // 禁止文字列がない場合、正常に合格
+                    resultHTML += `
+                        <div class="final-result success">
+                            <h3>🎉 全てのテストケースに合格しました！</h3>
+                            <p>おめでとうございます。この問題をクリアしました。</p>
+                        </div>
+                    `;
+                    passedAllTests = true;
+                    submittedCode = code;
+                    showCertificate();
+                }
             } else {
                 resultHTML += `
                     <div class="final-result failure">
@@ -1362,8 +1392,34 @@ sys.stderr = sys._custom_stderr
             color: #fca5a5;
         }
 
+        .final-result.forbidden {
+            background: #78350f;
+            color: #fcd34d;
+        }
+
         .final-result h3 {
             margin-bottom: 0.5rem;
+        }
+
+        .forbidden-list {
+            text-align: left;
+            margin: 1rem auto;
+            max-width: 600px;
+        }
+
+        .forbidden-list li {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .forbidden-list code {
+            color: #fef3c7;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
         }
 
         /* モーダル */
