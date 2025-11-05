@@ -60,6 +60,12 @@ solution: |
   else:
       print("平年です")
 
+forbiddenPatterns:
+  - pattern: " and "
+    reason: "この課題ではif文を3回使って段階的に判定してください（論理演算子andは使わない）"
+  - pattern: " or "
+    reason: "この課題ではif文を3回使って段階的に判定してください（論理演算子orは使わない）"
+
 hints:
   - うるう年の判定には3つの条件があります
   - フラグ変数を使って、うるう年かどうかを記録しておくと便利です
