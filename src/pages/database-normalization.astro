@@ -388,6 +388,11 @@ import Layout from '../layouts/Layout.astro';
       cursor: grabbing;
     }
 
+    #db-normalization-page table.excel-table thead th.drop-target {
+      border-left: 4px solid #10b981 !important;
+      background: #d1fae5 !important;
+    }
+
     #db-normalization-page table.excel-table tbody td {
       background: white !important;
       color: #475569 !important;
@@ -804,6 +809,36 @@ import Layout from '../layouts/Layout.astro';
             draggedFromTable = null;
           });
 
+          // ドロップイベント（列の並び替え用）
+          th.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (draggedFromTable === table.id && draggedColumn !== column.id) {
+              th.classList.add('drop-target');
+            }
+          });
+
+          th.addEventListener('dragleave', (e) => {
+            th.classList.remove('drop-target');
+          });
+
+          th.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            th.classList.remove('drop-target');
+
+            if (draggedFromTable === table.id && draggedColumn !== column.id) {
+              // 同じテーブル内での並び替え
+              reorderColumns(table.id, draggedColumn, column.id);
+              selectedColumns.clear();
+              renderTables();
+            } else if (draggedFromTable !== table.id) {
+              // 別テーブルからの移動（指定位置に挿入）
+              moveColumnsToPosition(Array.from(selectedColumns), draggedFromTable, table.id, column.id);
+              selectedColumns.clear();
+              renderTables();
+            }
+          });
+
           headerRow.appendChild(th);
         });
 
@@ -865,6 +900,34 @@ import Layout from '../layouts/Layout.astro';
       const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
       fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
       toTable.columns = toTable.columns.concat(columnsToMove);
+    }
+
+    // 列を指定位置に移動
+    function moveColumnsToPosition(columnIds, fromTableId, toTableId, targetColumnId) {
+      const fromTable = state.tables.find(t => t.id === fromTableId);
+      const toTable = state.tables.find(t => t.id === toTableId);
+
+      const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
+      fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
+
+      const targetIndex = toTable.columns.findIndex(c => c.id === targetColumnId);
+      toTable.columns.splice(targetIndex, 0, ...columnsToMove);
+    }
+
+    // 同じテーブル内で列を並び替え
+    function reorderColumns(tableId, draggedColumnId, targetColumnId) {
+      const table = state.tables.find(t => t.id === tableId);
+
+      const draggedIndex = table.columns.findIndex(c => c.id === draggedColumnId);
+      const targetIndex = table.columns.findIndex(c => c.id === targetColumnId);
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const [draggedColumn] = table.columns.splice(draggedIndex, 1);
+
+        // ドラッグ元が左側の場合、削除後のインデックスは1つ減る
+        const newTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+        table.columns.splice(newTargetIndex, 0, draggedColumn);
+      }
     }
 
     // 主キーをトグル
