@@ -7,7 +7,7 @@ import Layout from '../layouts/Layout.astro';
     <header class="page-header">
       <h1>🗄️ データベース正規化を体験しよう</h1>
       <p class="header-description">
-        マウスやタッチで列をドラッグ&ドロップして、実際に手を動かして正規化を学びましょう
+        マウスで列をドラッグ&ドロップして、実際に手を動かして正規化を学びましょう
       </p>
     </header>
 
@@ -42,21 +42,21 @@ import Layout from '../layouts/Layout.astro';
         <div class="usage-item">
           <span class="usage-icon">👆</span>
           <div>
-            <p class="usage-title">列をクリック</p>
-            <p class="usage-desc">列を選択（複数選択可能）</p>
+            <p class="usage-title">列ヘッダーをクリック</p>
+            <p class="usage-desc">列を選択（Ctrl/Cmdで複数選択）</p>
           </div>
         </div>
         <div class="usage-item">
           <span class="usage-icon">✊</span>
           <div>
-            <p class="usage-title">列をドラッグ</p>
+            <p class="usage-title">列ヘッダーをドラッグ</p>
             <p class="usage-desc">別のテーブルに移動</p>
           </div>
         </div>
         <div class="usage-item">
           <span class="usage-icon">🔑</span>
           <div>
-            <p class="usage-title">右クリック</p>
+            <p class="usage-title">列ヘッダーを右クリック</p>
             <p class="usage-desc">主キーに設定</p>
           </div>
         </div>
@@ -71,7 +71,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
 
     <!-- テーブルコンテナ -->
-    <div id="tables-container" class="tables-grid">
+    <div id="tables-container" class="tables-container">
       <!-- JavaScriptで動的に生成 -->
     </div>
 
@@ -95,7 +95,7 @@ import Layout from '../layouts/Layout.astro';
             <h3>👤 ステップ2: 会員情報を分離</h3>
             <ul>
               <li>「会員番号」「会員氏名」「電話番号」「登録日」を新しいテーブルに移動</li>
-              <li>会員番号を主キーに設定</li>
+              <li>会員番号を主キーに設定（右クリック）</li>
               <li>テーブル名を「会員テーブル」に変更</li>
             </ul>
           </div>
@@ -103,7 +103,7 @@ import Layout from '../layouts/Layout.astro';
             <h3>📚 ステップ3: 書籍情報を分離</h3>
             <ul>
               <li>「ISBN」「書籍名」「著者」「出版社」「出版年」を新しいテーブルに移動</li>
-              <li>ISBNを主キーに設定</li>
+              <li>ISBNを主キーに設定（右クリック）</li>
               <li>テーブル名を「書籍テーブル」に変更</li>
             </ul>
           </div>
@@ -111,7 +111,7 @@ import Layout from '../layouts/Layout.astro';
             <h3>🏢 ステップ4: 出版社情報を分離（第3正規形）</h3>
             <ul>
               <li>「出版社」を新しいテーブルに移動</li>
-              <li>出版社名を主キーに設定</li>
+              <li>出版社名を主キーに設定（右クリック）</li>
               <li>テーブル名を「出版社テーブル」に変更</li>
             </ul>
           </div>
@@ -134,7 +134,7 @@ import Layout from '../layouts/Layout.astro';
 
   <style>
     .container {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 2rem;
     }
@@ -240,7 +240,7 @@ import Layout from '../layouts/Layout.astro';
 
     .usage-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1rem;
     }
 
@@ -266,11 +266,11 @@ import Layout from '../layouts/Layout.astro';
       color: #64748b;
     }
 
-    /* テーブルグリッド */
-    .tables-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.5rem;
+    /* テーブルコンテナ */
+    .tables-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
       margin-bottom: 2rem;
     }
 
@@ -295,11 +295,14 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .table-name {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: bold;
       color: #1e293b;
       cursor: pointer;
       transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .table-name:hover {
@@ -307,66 +310,105 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .delete-btn {
-      background: none;
+      background: #ef4444;
+      color: white;
       border: none;
-      font-size: 1.25rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
       cursor: pointer;
-      transition: transform 0.2s;
-    }
-
-    .delete-btn:hover {
-      transform: scale(1.2);
-    }
-
-    /* 列アイテム */
-    .table-drop-zone {
-      min-height: 150px;
       transition: all 0.2s;
     }
 
-    .table-drop-zone.drag-over {
-      background: #e0e7ff;
-      border: 2px dashed #4f46e5;
-      border-radius: 0.5rem;
+    .delete-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
     }
 
-    .column-item {
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.5rem;
-      border: 2px solid #e2e8f0;
+    /* Excelライクなテーブル */
+    .excel-table-wrapper {
+      overflow-x: auto;
+      border: 2px solid #cbd5e1;
       border-radius: 0.5rem;
-      background: #f8fafc;
+      background: white;
+    }
+
+    .excel-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .excel-table th,
+    .excel-table td {
+      border: 1px solid #cbd5e1;
+      padding: 0.75rem;
+      text-align: left;
+      min-width: 100px;
+    }
+
+    .excel-table thead th {
+      background: #f1f5f9;
+      font-weight: bold;
+      color: #1e293b;
+      position: relative;
       cursor: move;
       user-select: none;
       transition: all 0.2s;
     }
 
-    .column-item:hover {
-      border-color: #4f46e5;
-      background: #f0f4ff;
+    .excel-table thead th:hover {
+      background: #e2e8f0;
     }
 
-    .column-item.selected {
-      border-color: #4f46e5;
-      background: #e0e7ff;
+    .excel-table thead th.selected {
+      background: #dbeafe;
+      border: 2px solid #3b82f6;
     }
 
-    .column-item.primary-key {
-      border-color: #f59e0b;
+    .excel-table thead th.primary-key {
       background: #fef3c7;
+      border: 2px solid #f59e0b;
+      font-weight: bold;
     }
 
-    .column-item.dragging {
+    .excel-table thead th.primary-key::before {
+      content: '🔑 ';
+      font-size: 1rem;
+    }
+
+    .excel-table thead th.dragging {
       opacity: 0.5;
+      cursor: grabbing;
     }
 
-    .column-name {
-      font-weight: 600;
-      color: #1e293b;
+    .excel-table tbody td {
+      background: white;
+      color: #64748b;
     }
 
-    .column-item.primary-key .column-name {
-      color: #92400e;
+    .excel-table tbody tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .drop-zone {
+      min-height: 100px;
+      padding: 1rem;
+      border: 2px dashed transparent;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .drop-zone.drag-over {
+      background: #f0f9ff;
+      border-color: #3b82f6;
+    }
+
+    .empty-table-message {
+      text-align: center;
+      padding: 2rem;
+      color: #94a3b8;
+      font-style: italic;
     }
 
     /* モーダル */
@@ -541,17 +583,55 @@ import Layout from '../layouts/Layout.astro';
         justify-content: center;
       }
 
-      .tables-grid {
+      .usage-grid {
         grid-template-columns: 1fr;
       }
 
-      .usage-grid {
-        grid-template-columns: 1fr;
+      .excel-table {
+        font-size: 0.75rem;
+      }
+
+      .excel-table th,
+      .excel-table td {
+        padding: 0.5rem;
+        min-width: 80px;
       }
     }
   </style>
 
   <script>
+    // サンプルデータ
+    const sampleData = [
+      {
+        '貸出ID': 'L001',
+        '会員番号': 'M001',
+        '会員氏名': '田中太郎',
+        '電話番号': '090-1111-2222',
+        '登録日': '2023-04-01',
+        'ISBN': '978-1111',
+        '書籍名': 'データベース入門',
+        '著者': '山田一郎',
+        '出版社': 'A出版',
+        '出版年': '2023',
+        '貸出日': '2024-01-10',
+        '返却予定日': '2024-01-24'
+      },
+      {
+        '貸出ID': 'L002',
+        '会員番号': 'M002',
+        '会員氏名': '鈴木花子',
+        '電話番号': '090-3333-4444',
+        '登録日': '2023-05-15',
+        'ISBN': '978-3333',
+        '書籍名': 'Python入門',
+        '著者': '高橋三郎',
+        '出版社': 'C出版',
+        '出版年': '2023',
+        '貸出日': '2024-01-11',
+        '返却予定日': '2024-01-25'
+      }
+    ];
+
     // テーブルの初期データ
     const initialData = {
       tables: [
@@ -604,64 +684,16 @@ import Layout from '../layouts/Layout.astro';
     function createTableCard(table) {
       const card = document.createElement('div');
       card.className = 'table-card';
-      card.dataset.tableId = table.id;
 
+      // ヘッダー
       const header = document.createElement('div');
       header.className = 'table-header';
 
       const tableName = document.createElement('div');
       tableName.className = 'table-name';
-      tableName.textContent = table.name;
-      tableName.dataset.tableId = table.id;
+      tableName.innerHTML = `<span style="font-size: 1.5rem;">📋</span> ${table.name}`;
       header.appendChild(tableName);
 
-      if (state.tables.length > 1) {
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = '🗑️';
-        deleteBtn.dataset.tableId = table.id;
-        header.appendChild(deleteBtn);
-      }
-
-      card.appendChild(header);
-
-      const dropZone = document.createElement('div');
-      dropZone.className = 'table-drop-zone';
-      dropZone.dataset.tableId = table.id;
-
-      table.columns.forEach(column => {
-        const columnEl = document.createElement('div');
-        columnEl.className = 'column-item';
-        if (selectedColumns.has(column.id)) {
-          columnEl.classList.add('selected');
-        }
-        if (column.isPrimaryKey) {
-          columnEl.classList.add('primary-key');
-        }
-        columnEl.dataset.columnId = column.id;
-        columnEl.dataset.tableId = table.id;
-        columnEl.draggable = true;
-
-        const columnName = document.createElement('span');
-        columnName.className = 'column-name';
-        columnName.textContent = (column.isPrimaryKey ? '🔑 ' : '') + column.name;
-
-        columnEl.appendChild(columnName);
-        dropZone.appendChild(columnEl);
-      });
-
-      card.appendChild(dropZone);
-
-      // イベントリスナーを追加
-      addTableEventListeners(card, table);
-
-      return card;
-    }
-
-    // テーブルのイベントリスナーを追加
-    function addTableEventListeners(card, table) {
-      // テーブル名の編集
-      const tableName = card.querySelector('.table-name');
       tableName.addEventListener('click', () => {
         const newName = prompt('テーブル名を入力してください:', table.name);
         if (newName && newName.trim()) {
@@ -671,85 +703,141 @@ import Layout from '../layouts/Layout.astro';
         }
       });
 
-      // テーブル削除
-      const deleteBtn = card.querySelector('.delete-btn');
-      if (deleteBtn) {
+      if (state.tables.length > 1) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '🗑️ 削除';
         deleteBtn.addEventListener('click', () => {
           if (confirm(`「${table.name}」を削除しますか？\n（列は最初のテーブルに戻ります）`)) {
             deleteTable(table.id);
           }
         });
+        header.appendChild(deleteBtn);
       }
 
-      // 列のイベント
-      const columns = card.querySelectorAll('.column-item');
-      columns.forEach(columnEl => {
-        const columnId = parseInt(columnEl.dataset.columnId);
+      card.appendChild(header);
 
-        // クリックで選択
-        columnEl.addEventListener('click', (e) => {
-          if (e.ctrlKey || e.metaKey) {
-            if (selectedColumns.has(columnId)) {
-              selectedColumns.delete(columnId);
+      // テーブル本体
+      if (table.columns.length === 0) {
+        const dropZone = document.createElement('div');
+        dropZone.className = 'drop-zone';
+        dropZone.dataset.tableId = table.id;
+        dropZone.innerHTML = '<div class="empty-table-message">列をここにドラッグしてください</div>';
+        setupDropZone(dropZone, table.id);
+        card.appendChild(dropZone);
+      } else {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'excel-table-wrapper drop-zone';
+        wrapper.dataset.tableId = table.id;
+
+        const excelTable = document.createElement('table');
+        excelTable.className = 'excel-table';
+
+        // ヘッダー行
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+
+        table.columns.forEach(column => {
+          const th = document.createElement('th');
+          th.textContent = column.name;
+          th.dataset.columnId = column.id;
+          th.dataset.tableId = table.id;
+          th.draggable = true;
+
+          if (selectedColumns.has(column.id)) {
+            th.classList.add('selected');
+          }
+          if (column.isPrimaryKey) {
+            th.classList.add('primary-key');
+          }
+
+          // クリックで選択
+          th.addEventListener('click', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+              if (selectedColumns.has(column.id)) {
+                selectedColumns.delete(column.id);
+              } else {
+                selectedColumns.add(column.id);
+              }
             } else {
-              selectedColumns.add(columnId);
+              selectedColumns.clear();
+              selectedColumns.add(column.id);
             }
-          } else {
-            selectedColumns.clear();
-            selectedColumns.add(columnId);
-          }
-          renderTables();
+            renderTables();
+          });
+
+          // 右クリックで主キー設定
+          th.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            togglePrimaryKey(table.id, column.id);
+          });
+
+          // ドラッグイベント
+          th.addEventListener('dragstart', (e) => {
+            draggedColumn = column.id;
+            draggedFromTable = table.id;
+            th.classList.add('dragging');
+
+            if (!selectedColumns.has(column.id)) {
+              selectedColumns.clear();
+              selectedColumns.add(column.id);
+            }
+          });
+
+          th.addEventListener('dragend', (e) => {
+            th.classList.remove('dragging');
+            draggedColumn = null;
+            draggedFromTable = null;
+          });
+
+          headerRow.appendChild(th);
         });
 
-        // 右クリックで主キー設定
-        columnEl.addEventListener('contextmenu', (e) => {
-          e.preventDefault();
-          togglePrimaryKey(table.id, columnId);
-        });
+        thead.appendChild(headerRow);
+        excelTable.appendChild(thead);
 
-        // ドラッグ開始
-        columnEl.addEventListener('dragstart', (e) => {
-          draggedColumn = columnId;
-          draggedFromTable = table.id;
-          columnEl.classList.add('dragging');
+        // データ行（サンプル）
+        const tbody = document.createElement('tbody');
+        for (let i = 0; i < 2; i++) {
+          const row = document.createElement('tr');
+          table.columns.forEach(column => {
+            const td = document.createElement('td');
+            td.textContent = sampleData[i] ? (sampleData[i][column.name] || '---') : '---';
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+        }
 
-          if (!selectedColumns.has(columnId)) {
-            selectedColumns.clear();
-            selectedColumns.add(columnId);
-          }
-        });
+        excelTable.appendChild(tbody);
+        wrapper.appendChild(excelTable);
+        setupDropZone(wrapper, table.id);
+        card.appendChild(wrapper);
+      }
 
-        // ドラッグ終了
-        columnEl.addEventListener('dragend', (e) => {
-          columnEl.classList.remove('dragging');
-          draggedColumn = null;
-          draggedFromTable = null;
-        });
-      });
+      return card;
+    }
 
-      // ドロップゾーン
-      const dropZone = card.querySelector('.table-drop-zone');
-
-      dropZone.addEventListener('dragover', (e) => {
+    // ドロップゾーンのセットアップ
+    function setupDropZone(element, tableId) {
+      element.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropZone.classList.add('drag-over');
+        element.classList.add('drag-over');
       });
 
-      dropZone.addEventListener('dragleave', (e) => {
-        if (e.target === dropZone) {
-          dropZone.classList.remove('drag-over');
+      element.addEventListener('dragleave', (e) => {
+        if (e.target === element || !element.contains(e.relatedTarget)) {
+          element.classList.remove('drag-over');
         }
       });
 
-      dropZone.addEventListener('drop', (e) => {
+      element.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('drag-over');
+        element.classList.remove('drag-over');
 
-        const targetTableId = parseInt(dropZone.dataset.tableId);
-
-        if (draggedFromTable !== targetTableId) {
-          moveColumns(Array.from(selectedColumns), draggedFromTable, targetTableId);
+        if (draggedFromTable !== tableId) {
+          moveColumns(Array.from(selectedColumns), draggedFromTable, tableId);
           selectedColumns.clear();
+          renderTables();
         }
       });
     }
@@ -762,8 +850,6 @@ import Layout from '../layouts/Layout.astro';
       const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
       fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
       toTable.columns = toTable.columns.concat(columnsToMove);
-
-      renderTables();
     }
 
     // 主キーをトグル
@@ -845,7 +931,6 @@ import Layout from '../layouts/Layout.astro';
         feedback: []
       };
 
-      // テーブルが4つあるか
       if (state.tables.length === 4) {
         result.score++;
         result.feedback.push('✅ テーブル数が正しい（4つ）');
@@ -853,7 +938,6 @@ import Layout from '../layouts/Layout.astro';
         result.feedback.push(`❌ テーブル数が ${state.tables.length} つです。4つのテーブルが必要です`);
       }
 
-      // 会員テーブルのチェック
       const memberTable = state.tables.find(t =>
         t.name.includes('会員') &&
         t.columns.some(c => c.name === '会員番号' && c.isPrimaryKey)
@@ -865,7 +949,6 @@ import Layout from '../layouts/Layout.astro';
         result.feedback.push('❌ 会員テーブルを作成し、会員番号、会員氏名、電話番号、登録日を含めてください');
       }
 
-      // 書籍テーブルのチェック
       const bookTable = state.tables.find(t =>
         t.name.includes('書籍') &&
         t.columns.some(c => c.name === 'ISBN' && c.isPrimaryKey)
@@ -877,7 +960,6 @@ import Layout from '../layouts/Layout.astro';
         result.feedback.push('❌ 書籍テーブルを作成し、ISBN、書籍名、著者、出版社、出版年を含めてください');
       }
 
-      // 出版社テーブルのチェック（第3正規形）
       const publisherTable = state.tables.find(t =>
         t.name.includes('出版社')
       );
@@ -888,7 +970,6 @@ import Layout from '../layouts/Layout.astro';
         result.feedback.push('❌ 出版社情報を別テーブルに分離すると第3正規形になります');
       }
 
-      // 結果を表示
       showResult(result);
     }
 
