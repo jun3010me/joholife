@@ -328,7 +328,7 @@ import Layout from '../layouts/Layout.astro';
     /* Excelライクなテーブル */
     .excel-table-wrapper {
       overflow-x: auto;
-      border: 3px solid #94a3b8;
+      border: 3px solid #94a3b8 !important;
       border-radius: 0.5rem;
       background: white;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -336,13 +336,13 @@ import Layout from '../layouts/Layout.astro';
 
     .excel-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: collapse !important;
       font-size: 0.875rem;
     }
 
     .excel-table th,
     .excel-table td {
-      border: 2px solid #94a3b8;
+      border: 2px solid #94a3b8 !important;
       padding: 0.75rem;
       text-align: left;
       min-width: 100px;
@@ -356,7 +356,7 @@ import Layout from '../layouts/Layout.astro';
       cursor: move;
       user-select: none;
       transition: all 0.2s;
-      border-bottom: 3px solid #64748b;
+      border-bottom: 3px solid #64748b !important;
     }
 
     .excel-table thead th:hover {
@@ -397,7 +397,7 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .excel-table tbody tr {
-      border-bottom: 2px solid #cbd5e1;
+      border-bottom: 2px solid #cbd5e1 !important;
     }
 
     .drop-zone {
