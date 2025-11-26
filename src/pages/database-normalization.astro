@@ -744,6 +744,7 @@ import Layout from '../layouts/Layout.astro';
 
         const excelTable = document.createElement('table');
         excelTable.className = 'excel-table';
+        excelTable.style.cssText = 'width: 100%; border-collapse: collapse; font-size: 0.875rem; border: 3px solid #94a3b8;';
 
         // ヘッダー行
         const thead = document.createElement('thead');
@@ -755,6 +756,7 @@ import Layout from '../layouts/Layout.astro';
           th.dataset.columnId = column.id;
           th.dataset.tableId = table.id;
           th.draggable = true;
+          th.style.cssText = 'border: 2px solid #94a3b8; padding: 0.75rem; text-align: left; min-width: 100px; background: #e2e8f0; font-weight: bold; color: #1e293b; cursor: move; user-select: none;';
 
           if (selectedColumns.has(column.id)) {
             th.classList.add('selected');
@@ -815,6 +817,7 @@ import Layout from '../layouts/Layout.astro';
           table.columns.forEach(column => {
             const td = document.createElement('td');
             td.textContent = sampleData[i] ? (sampleData[i][column.name] || '---') : '---';
+            td.style.cssText = 'border: 2px solid #94a3b8; padding: 0.75rem; text-align: left; background: white; color: #475569; font-size: 0.875rem;';
             row.appendChild(td);
           });
           tbody.appendChild(row);
