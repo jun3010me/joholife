@@ -903,26 +903,54 @@ import Layout from '../layouts/Layout.astro';
       });
     }
 
-    // 列を移動
+    // 列を移動（主キーはコピー）
     function moveColumns(columnIds, fromTableId, toTableId) {
       const fromTable = state.tables.find(t => t.id === fromTableId);
       const toTable = state.tables.find(t => t.id === toTableId);
 
       const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
-      fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
-      toTable.columns = toTable.columns.concat(columnsToMove);
+
+      // 主キーと非主キーを分離
+      const primaryKeyColumns = columnsToMove.filter(c => c.isPrimaryKey);
+      const nonPrimaryKeyColumns = columnsToMove.filter(c => !c.isPrimaryKey);
+
+      // 主キー列はコピー（元のテーブルに残す、移動先では非主キーとして追加）
+      const copiedPrimaryKeys = primaryKeyColumns.map(c => ({
+        ...c,
+        id: state.nextColumnId++,
+        isPrimaryKey: false  // 移動先では外部キー扱い
+      }));
+
+      // 非主キー列は通常通り移動（元のテーブルから削除）
+      fromTable.columns = fromTable.columns.filter(c => !nonPrimaryKeyColumns.some(nc => nc.id === c.id));
+
+      // 移動先テーブルに追加
+      toTable.columns = toTable.columns.concat(copiedPrimaryKeys, nonPrimaryKeyColumns);
     }
 
-    // 列を指定位置に移動
+    // 列を指定位置に移動（主キーはコピー）
     function moveColumnsToPosition(columnIds, fromTableId, toTableId, targetColumnId) {
       const fromTable = state.tables.find(t => t.id === fromTableId);
       const toTable = state.tables.find(t => t.id === toTableId);
 
       const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
-      fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
+
+      // 主キーと非主キーを分離
+      const primaryKeyColumns = columnsToMove.filter(c => c.isPrimaryKey);
+      const nonPrimaryKeyColumns = columnsToMove.filter(c => !c.isPrimaryKey);
+
+      // 主キー列はコピー（元のテーブルに残す、移動先では非主キーとして追加）
+      const copiedPrimaryKeys = primaryKeyColumns.map(c => ({
+        ...c,
+        id: state.nextColumnId++,
+        isPrimaryKey: false  // 移動先では外部キー扱い
+      }));
+
+      // 非主キー列は通常通り移動（元のテーブルから削除）
+      fromTable.columns = fromTable.columns.filter(c => !nonPrimaryKeyColumns.some(nc => nc.id === c.id));
 
       const targetIndex = toTable.columns.findIndex(c => c.id === targetColumnId);
-      toTable.columns.splice(targetIndex, 0, ...columnsToMove);
+      toTable.columns.splice(targetIndex, 0, ...copiedPrimaryKeys, ...nonPrimaryKeyColumns);
     }
 
     // 同じテーブル内で列を並び替え
