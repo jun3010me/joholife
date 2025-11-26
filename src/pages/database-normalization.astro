@@ -334,24 +334,24 @@ import Layout from '../layouts/Layout.astro';
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    #db-normalization-page .excel-table {
-      width: 100%;
+    #db-normalization-page table.excel-table {
+      width: 100% !important;
       border-collapse: collapse !important;
-      font-size: 0.875rem;
+      font-size: 0.875rem !important;
       border: 3px solid #94a3b8 !important;
     }
 
-    #db-normalization-page .excel-table th,
-    #db-normalization-page .excel-table td {
+    #db-normalization-page table.excel-table th,
+    #db-normalization-page table.excel-table td {
       border: 2px solid #94a3b8 !important;
       padding: 0.75rem !important;
-      text-align: left;
-      min-width: 100px;
+      text-align: left !important;
+      min-width: 100px !important;
     }
 
-    #db-normalization-page .excel-table thead th {
+    #db-normalization-page table.excel-table thead th {
       background: #e2e8f0 !important;
-      font-weight: bold;
+      font-weight: bold !important;
       color: #1e293b !important;
       position: relative;
       cursor: move;
@@ -361,45 +361,45 @@ import Layout from '../layouts/Layout.astro';
       border: 2px solid #94a3b8 !important;
     }
 
-    #db-normalization-page .excel-table thead th:hover {
+    #db-normalization-page table.excel-table thead th:hover {
       background: #cbd5e1 !important;
     }
 
-    #db-normalization-page .excel-table thead th.selected {
+    #db-normalization-page table.excel-table thead th.selected {
       background: #bfdbfe !important;
       border: 3px solid #3b82f6 !important;
       box-shadow: inset 0 0 0 2px #93c5fd !important;
     }
 
-    #db-normalization-page .excel-table thead th.primary-key {
+    #db-normalization-page table.excel-table thead th.primary-key {
       background: #fde68a !important;
       border: 3px solid #f59e0b !important;
-      font-weight: bold;
+      font-weight: bold !important;
       box-shadow: inset 0 0 0 2px #fbbf24 !important;
     }
 
-    #db-normalization-page .excel-table thead th.primary-key::before {
+    #db-normalization-page table.excel-table thead th.primary-key::before {
       content: '🔑 ';
       font-size: 1rem;
     }
 
-    #db-normalization-page .excel-table thead th.dragging {
+    #db-normalization-page table.excel-table thead th.dragging {
       opacity: 0.5;
       cursor: grabbing;
     }
 
-    #db-normalization-page .excel-table tbody td {
+    #db-normalization-page table.excel-table tbody td {
       background: white !important;
       color: #475569 !important;
-      font-size: 0.875rem;
+      font-size: 0.875rem !important;
       border: 2px solid #94a3b8 !important;
     }
 
-    #db-normalization-page .excel-table tbody tr:nth-child(even) td {
+    #db-normalization-page table.excel-table tbody tr:nth-child(even) td {
       background: #f8fafc !important;
     }
 
-    #db-normalization-page .excel-table tbody tr {
+    #db-normalization-page table.excel-table tbody tr {
       border-bottom: 2px solid #cbd5e1 !important;
     }
 
