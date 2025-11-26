@@ -357,8 +357,10 @@ import Layout from '../layouts/Layout.astro';
       cursor: move;
       user-select: none;
       transition: all 0.2s;
-      border-bottom: 3px solid #64748b !important;
       border: 2px solid #94a3b8 !important;
+      text-align: left !important;
+      min-width: 100px !important;
+      padding: 0.75rem !important;
     }
 
     #db-normalization-page table.excel-table thead th:hover {
@@ -761,13 +763,22 @@ import Layout from '../layouts/Layout.astro';
           th.dataset.columnId = column.id;
           th.dataset.tableId = table.id;
           th.draggable = true;
-          th.style.cssText = 'border: 2px solid #94a3b8; padding: 0.75rem; text-align: left; min-width: 100px; background: #e2e8f0; font-weight: bold; color: #1e293b; cursor: move; user-select: none;';
 
-          if (selectedColumns.has(column.id)) {
-            th.classList.add('selected');
-          }
-          if (column.isPrimaryKey) {
+          // 状態に応じたスタイルを動的に適用（主キーを優先）
+          const isSelected = selectedColumns.has(column.id);
+          const isPrimaryKey = column.isPrimaryKey;
+
+          if (isPrimaryKey) {
             th.classList.add('primary-key');
+            // 主キー時のインラインスタイル（🔑アイコンはCSS ::beforeで表示）
+            th.style.cssText = 'background: #fde68a !important; border: 3px solid #f59e0b !important; box-shadow: inset 0 0 0 2px #fbbf24 !important; padding: 0.75rem !important; text-align: left !important; min-width: 100px !important; color: #1e293b !important; font-weight: bold !important; cursor: move !important; user-select: none !important; padding-left: 0.75rem !important;';
+          } else if (isSelected) {
+            th.classList.add('selected');
+            // 選択時のインラインスタイル
+            th.style.cssText = 'background: #bfdbfe !important; border: 3px solid #3b82f6 !important; box-shadow: inset 0 0 0 2px #93c5fd !important; padding: 0.75rem !important; text-align: left !important; min-width: 100px !important; color: #1e293b !important; font-weight: bold !important; cursor: move !important; user-select: none !important;';
+          } else {
+            // デフォルトのインラインスタイル
+            th.style.cssText = 'border: 2px solid #94a3b8 !important; padding: 0.75rem !important; background: #e2e8f0 !important; color: #1e293b !important; font-weight: bold !important; text-align: left !important; min-width: 100px !important; cursor: move !important; user-select: none !important;';
           }
 
           // クリックで選択
