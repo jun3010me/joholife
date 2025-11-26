@@ -3,519 +3,921 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="データベース正規化 - じょうほうらいふ">
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4">
-    <div class="max-w-7xl mx-auto">
-      <!-- ヘッダー -->
-      <div class="text-center mb-8">
-        <h1 class="text-5xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-          <span class="text-6xl">🗄️</span>
-          データベース正規化を体験しよう
-        </h1>
-        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-          マウスやタッチで列をドラッグ&ドロップして、実際に手を動かして正規化を学びましょう
-        </p>
-      </div>
+  <div class="container">
+    <header class="page-header">
+      <h1>🗄️ データベース正規化を体験しよう</h1>
+      <p class="header-description">
+        マウスやタッチで列をドラッグ&ドロップして、実際に手を動かして正規化を学びましょう
+      </p>
+    </header>
 
-      <!-- ツールバー -->
-      <div class="bg-white rounded-xl shadow-lg p-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
-        <div class="flex gap-3">
-          <button id="new-table-btn" class="px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all shadow-md flex items-center gap-2">
-            <span class="text-xl">➕</span>
-            新しいテーブルを作成
-          </button>
-          <button id="reset-btn" class="px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-all shadow-md flex items-center gap-2">
-            <span class="text-xl">🔄</span>
-            最初に戻る
-          </button>
-        </div>
-        <div class="flex gap-3">
-          <button id="hint-btn" class="px-6 py-3 bg-yellow-500 text-white rounded-lg font-bold hover:bg-yellow-600 transition-all shadow-md flex items-center gap-2">
-            <span class="text-xl">💡</span>
-            ヒントを見る
-          </button>
-          <button id="check-btn" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-md flex items-center gap-2">
-            <span class="text-xl">✓</span>
-            判定する
-          </button>
-        </div>
+    <!-- ツールバー -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button id="new-table-btn" class="btn btn-green">
+          <span class="btn-icon">➕</span>
+          新しいテーブルを作成
+        </button>
+        <button id="reset-btn" class="btn btn-purple">
+          <span class="btn-icon">🔄</span>
+          最初に戻る
+        </button>
       </div>
+      <div class="toolbar-right">
+        <button id="hint-btn" class="btn btn-yellow">
+          <span class="btn-icon">💡</span>
+          ヒントを見る
+        </button>
+        <button id="check-btn" class="btn btn-blue">
+          <span class="btn-icon">✓</span>
+          判定する
+        </button>
+      </div>
+    </div>
 
-      <!-- 説明カード -->
-      <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <h2 class="text-2xl font-bold text-indigo-600 mb-3">📝 使い方</h2>
-        <div class="grid md:grid-cols-2 gap-4 text-gray-700">
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">👆</span>
-            <div>
-              <p class="font-bold">列をクリック</p>
-              <p class="text-sm">列を選択（複数選択可能）</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">✊</span>
-            <div>
-              <p class="font-bold">列をドラッグ</p>
-              <p class="text-sm">別のテーブルに移動</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">🔑</span>
-            <div>
-              <p class="font-bold">右クリック</p>
-              <p class="text-sm">主キーに設定</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3">
-            <span class="text-2xl">✏️</span>
-            <div>
-              <p class="font-bold">テーブル名をクリック</p>
-              <p class="text-sm">テーブル名を編集</p>
-            </div>
+    <!-- 説明カード -->
+    <div class="usage-card">
+      <h2>📝 使い方</h2>
+      <div class="usage-grid">
+        <div class="usage-item">
+          <span class="usage-icon">👆</span>
+          <div>
+            <p class="usage-title">列をクリック</p>
+            <p class="usage-desc">列を選択（複数選択可能）</p>
           </div>
         </div>
-      </div>
-
-      <!-- テーブルコンテナ -->
-      <div id="tables-container" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        <!-- テーブルカードはJavaScriptで動的に生成 -->
-      </div>
-
-      <!-- ヒントモーダル -->
-      <div id="hint-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-bold text-yellow-600 flex items-center gap-2">
-              <span class="text-4xl">💡</span>
-              正規化のヒント
-            </h2>
-            <button id="close-hint-btn" class="text-gray-500 hover:text-gray-700 text-3xl font-bold">×</button>
-          </div>
-          <div class="space-y-6">
-            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-              <h3 class="font-bold text-yellow-800 mb-2">🎯 目標</h3>
-              <p class="text-yellow-700">図書館の貸し出し管理システムを第3正規形まで正規化しましょう</p>
-            </div>
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <h3 class="font-bold text-blue-800 mb-2">📋 ステップ1: 第1正規形</h3>
-              <p class="text-blue-700 mb-2">繰り返し項目を排除します。現在のテーブルではすでに第1正規形になっています。</p>
-            </div>
-            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-              <h3 class="font-bold text-green-800 mb-2">👤 ステップ2: 会員情報を分離</h3>
-              <ul class="text-green-700 list-disc list-inside space-y-1">
-                <li>「会員番号」「会員氏名」「電話番号」「登録日」を新しいテーブルに移動</li>
-                <li>会員番号を主キーに設定</li>
-                <li>テーブル名を「会員テーブル」に変更</li>
-              </ul>
-            </div>
-            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
-              <h3 class="font-bold text-purple-800 mb-2">📚 ステップ3: 書籍情報を分離</h3>
-              <ul class="text-purple-700 list-disc list-inside space-y-1">
-                <li>「ISBN」「書籍名」「著者」「出版社」「出版年」を新しいテーブルに移動</li>
-                <li>ISBNを主キーに設定</li>
-                <li>テーブル名を「書籍テーブル」に変更</li>
-              </ul>
-            </div>
-            <div class="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
-              <h3 class="font-bold text-orange-800 mb-2">🏢 ステップ4: 出版社情報を分離（第3正規形）</h3>
-              <ul class="text-orange-700 list-disc list-inside space-y-1">
-                <li>「出版社」を新しいテーブルに移動</li>
-                <li>出版社名を主キーに設定</li>
-                <li>テーブル名を「出版社テーブル」に変更</li>
-              </ul>
-            </div>
+        <div class="usage-item">
+          <span class="usage-icon">✊</span>
+          <div>
+            <p class="usage-title">列をドラッグ</p>
+            <p class="usage-desc">別のテーブルに移動</p>
           </div>
         </div>
-      </div>
-
-      <!-- 結果モーダル -->
-      <div id="result-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
-          <div class="text-center">
-            <div id="result-icon" class="text-8xl mb-4"></div>
-            <h2 id="result-title" class="text-4xl font-bold mb-4"></h2>
-            <div id="result-message" class="text-lg text-gray-700 mb-6"></div>
-            <button id="close-result-btn" class="px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all">
-              閉じる
-            </button>
+        <div class="usage-item">
+          <span class="usage-icon">🔑</span>
+          <div>
+            <p class="usage-title">右クリック</p>
+            <p class="usage-desc">主キーに設定</p>
+          </div>
+        </div>
+        <div class="usage-item">
+          <span class="usage-icon">✏️</span>
+          <div>
+            <p class="usage-title">テーブル名をクリック</p>
+            <p class="usage-desc">テーブル名を編集</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</Layout>
 
-<script>
-  // テーブルの初期データ
-  const initialData = {
-    tables: [
-      {
-        id: 1,
-        name: '貸出管理テーブル',
-        columns: [
-          { id: 1, name: '貸出ID', isPrimaryKey: true },
-          { id: 2, name: '会員番号', isPrimaryKey: false },
-          { id: 3, name: '会員氏名', isPrimaryKey: false },
-          { id: 4, name: '電話番号', isPrimaryKey: false },
-          { id: 5, name: '登録日', isPrimaryKey: false },
-          { id: 6, name: 'ISBN', isPrimaryKey: false },
-          { id: 7, name: '書籍名', isPrimaryKey: false },
-          { id: 8, name: '著者', isPrimaryKey: false },
-          { id: 9, name: '出版社', isPrimaryKey: false },
-          { id: 10, name: '出版年', isPrimaryKey: false },
-          { id: 11, name: '貸出日', isPrimaryKey: false },
-          { id: 12, name: '返却予定日', isPrimaryKey: false }
-        ]
-      }
-    ],
-    nextTableId: 2,
-    nextColumnId: 13
-  };
+    <!-- テーブルコンテナ -->
+    <div id="tables-container" class="tables-grid">
+      <!-- JavaScriptで動的に生成 -->
+    </div>
 
-  let state = JSON.parse(JSON.stringify(initialData));
-  let selectedColumns = new Set();
-  let draggedColumn = null;
-  let draggedFromTable = null;
-
-  // 初期化
-  document.addEventListener('DOMContentLoaded', () => {
-    renderTables();
-    setupEventListeners();
-  });
-
-  // テーブルを描画
-  function renderTables() {
-    const container = document.getElementById('tables-container');
-    container.innerHTML = '';
-
-    state.tables.forEach(table => {
-      const tableCard = createTableCard(table);
-      container.appendChild(tableCard);
-    });
-  }
-
-  // テーブルカードを作成
-  function createTableCard(table) {
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow';
-    card.dataset.tableId = table.id;
-
-    const headerHtml = `
-      <div class="mb-4 flex justify-between items-center">
-        <h3 class="text-xl font-bold text-gray-800 cursor-pointer hover:text-indigo-600 transition-colors table-name" data-table-id="${table.id}">
-          ${table.name}
-        </h3>
-        ${state.tables.length > 1 ? `
-          <button class="text-red-500 hover:text-red-700 font-bold delete-table-btn" data-table-id="${table.id}">
-            🗑️
-          </button>
-        ` : ''}
-      </div>
-    `;
-
-    const columnsHtml = `
-      <div class="space-y-2 min-h-[100px] table-drop-zone" data-table-id="${table.id}">
-        ${table.columns.map(column => `
-          <div class="column-item px-4 py-3 rounded-lg border-2 border-gray-200 cursor-move hover:border-indigo-400 transition-all ${selectedColumns.has(column.id) ? 'border-indigo-600 bg-indigo-50' : 'bg-gray-50'} ${column.isPrimaryKey ? 'border-yellow-500 bg-yellow-50' : ''}"
-               data-column-id="${column.id}"
-               data-table-id="${table.id}"
-               draggable="true">
-            <div class="flex items-center justify-between">
-              <span class="font-semibold ${column.isPrimaryKey ? 'text-yellow-700' : 'text-gray-700'}">
-                ${column.isPrimaryKey ? '🔑 ' : ''}${column.name}
-              </span>
-            </div>
+    <!-- ヒントモーダル -->
+    <div id="hint-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><span class="modal-icon">💡</span>正規化のヒント</h2>
+          <button id="close-hint-btn" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="hint-card hint-yellow">
+            <h3>🎯 目標</h3>
+            <p>図書館の貸し出し管理システムを第3正規形まで正規化しましょう</p>
           </div>
-        `).join('')}
+          <div class="hint-card hint-blue">
+            <h3>📋 ステップ1: 第1正規形</h3>
+            <p>繰り返し項目を排除します。現在のテーブルではすでに第1正規形になっています。</p>
+          </div>
+          <div class="hint-card hint-green">
+            <h3>👤 ステップ2: 会員情報を分離</h3>
+            <ul>
+              <li>「会員番号」「会員氏名」「電話番号」「登録日」を新しいテーブルに移動</li>
+              <li>会員番号を主キーに設定</li>
+              <li>テーブル名を「会員テーブル」に変更</li>
+            </ul>
+          </div>
+          <div class="hint-card hint-purple">
+            <h3>📚 ステップ3: 書籍情報を分離</h3>
+            <ul>
+              <li>「ISBN」「書籍名」「著者」「出版社」「出版年」を新しいテーブルに移動</li>
+              <li>ISBNを主キーに設定</li>
+              <li>テーブル名を「書籍テーブル」に変更</li>
+            </ul>
+          </div>
+          <div class="hint-card hint-orange">
+            <h3>🏢 ステップ4: 出版社情報を分離（第3正規形）</h3>
+            <ul>
+              <li>「出版社」を新しいテーブルに移動</li>
+              <li>出版社名を主キーに設定</li>
+              <li>テーブル名を「出版社テーブル」に変更</li>
+            </ul>
+          </div>
+        </div>
       </div>
-    `;
+    </div>
 
-    card.innerHTML = headerHtml + columnsHtml;
+    <!-- 結果モーダル -->
+    <div id="result-modal" class="modal">
+      <div class="modal-content modal-result">
+        <div class="result-body">
+          <div id="result-icon" class="result-icon"></div>
+          <h2 id="result-title" class="result-title"></h2>
+          <div id="result-message" class="result-message"></div>
+          <button id="close-result-btn" class="btn btn-blue btn-large">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // イベントリスナーを追加
-    addTableEventListeners(card, table);
+  <style>
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
 
-    return card;
-  }
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
 
-  // テーブルのイベントリスナーを追加
-  function addTableEventListeners(card, table) {
-    // テーブル名の編集
-    const tableName = card.querySelector('.table-name');
-    tableName.addEventListener('click', () => {
-      const newName = prompt('テーブル名を入力してください:', table.name);
-      if (newName && newName.trim()) {
-        const tableObj = state.tables.find(t => t.id === table.id);
-        tableObj.name = newName.trim();
-        renderTables();
+    .page-header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #1e293b;
+      margin-bottom: 1rem;
+    }
+
+    .header-description {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: #64748b;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ツールバー */
+    .toolbar {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* ボタン */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-icon {
+      font-size: 1.25rem;
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+    }
+
+    .btn-yellow {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .btn-blue {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .btn-large {
+      padding: 1rem 2rem;
+      font-size: 1.125rem;
+    }
+
+    /* 使い方カード */
+    .usage-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .usage-card h2 {
+      font-size: 1.5rem;
+      color: #4f46e5;
+      margin-bottom: 1rem;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .usage-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .usage-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .usage-title {
+      font-weight: bold;
+      color: #1e293b;
+      margin-bottom: 0.25rem;
+    }
+
+    .usage-desc {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    /* テーブルグリッド */
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* テーブルカード */
+    .table-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      transition: box-shadow 0.3s;
+    }
+
+    .table-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .table-name {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #1e293b;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .table-name:hover {
+      color: #4f46e5;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .delete-btn:hover {
+      transform: scale(1.2);
+    }
+
+    /* 列アイテム */
+    .table-drop-zone {
+      min-height: 150px;
+      transition: all 0.2s;
+    }
+
+    .table-drop-zone.drag-over {
+      background: #e0e7ff;
+      border: 2px dashed #4f46e5;
+      border-radius: 0.5rem;
+    }
+
+    .column-item {
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.5rem;
+      background: #f8fafc;
+      cursor: move;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .column-item:hover {
+      border-color: #4f46e5;
+      background: #f0f4ff;
+    }
+
+    .column-item.selected {
+      border-color: #4f46e5;
+      background: #e0e7ff;
+    }
+
+    .column-item.primary-key {
+      border-color: #f59e0b;
+      background: #fef3c7;
+    }
+
+    .column-item.dragging {
+      opacity: 0.5;
+    }
+
+    .column-name {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .column-item.primary-key .column-name {
+      color: #92400e;
+    }
+
+    /* モーダル */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h2 {
+      font-size: 1.5rem;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .modal-icon {
+      font-size: 2rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: #64748b;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      width: 2rem;
+      height: 2rem;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #1e293b;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .hint-card {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid;
+    }
+
+    .hint-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .hint-card h3 {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .hint-card ul {
+      margin-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .hint-card li {
+      margin-bottom: 0.25rem;
+    }
+
+    .hint-yellow {
+      background: #fef3c7;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .hint-blue {
+      background: #dbeafe;
+      border-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .hint-green {
+      background: #d1fae5;
+      border-color: #10b981;
+      color: #065f46;
+    }
+
+    .hint-purple {
+      background: #ede9fe;
+      border-color: #a855f7;
+      color: #6b21a8;
+    }
+
+    .hint-orange {
+      background: #fed7aa;
+      border-color: #f97316;
+      color: #9a3412;
+    }
+
+    /* 結果モーダル */
+    .modal-result {
+      max-width: 500px;
+    }
+
+    .result-body {
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .result-icon {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-title {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .result-message {
+      font-size: 1rem;
+      color: #64748b;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .result-message p {
+      margin-bottom: 0.5rem;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
       }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .toolbar-left, .toolbar-right {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .tables-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .usage-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <script>
+    // テーブルの初期データ
+    const initialData = {
+      tables: [
+        {
+          id: 1,
+          name: '貸出管理テーブル',
+          columns: [
+            { id: 1, name: '貸出ID', isPrimaryKey: true },
+            { id: 2, name: '会員番号', isPrimaryKey: false },
+            { id: 3, name: '会員氏名', isPrimaryKey: false },
+            { id: 4, name: '電話番号', isPrimaryKey: false },
+            { id: 5, name: '登録日', isPrimaryKey: false },
+            { id: 6, name: 'ISBN', isPrimaryKey: false },
+            { id: 7, name: '書籍名', isPrimaryKey: false },
+            { id: 8, name: '著者', isPrimaryKey: false },
+            { id: 9, name: '出版社', isPrimaryKey: false },
+            { id: 10, name: '出版年', isPrimaryKey: false },
+            { id: 11, name: '貸出日', isPrimaryKey: false },
+            { id: 12, name: '返却予定日', isPrimaryKey: false }
+          ]
+        }
+      ],
+      nextTableId: 2,
+      nextColumnId: 13
+    };
+
+    let state = JSON.parse(JSON.stringify(initialData));
+    let selectedColumns = new Set();
+    let draggedColumn = null;
+    let draggedFromTable = null;
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTables();
+      setupEventListeners();
     });
 
-    // テーブル削除
-    const deleteBtn = card.querySelector('.delete-table-btn');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
-        if (confirm(`「${table.name}」を削除しますか？\n（列は最初のテーブルに戻ります）`)) {
-          deleteTable(table.id);
-        }
+    // テーブルを描画
+    function renderTables() {
+      const container = document.getElementById('tables-container');
+      container.innerHTML = '';
+
+      state.tables.forEach(table => {
+        const tableCard = createTableCard(table);
+        container.appendChild(tableCard);
       });
     }
 
-    // 列のイベント
-    const columns = card.querySelectorAll('.column-item');
-    columns.forEach(columnEl => {
-      const columnId = parseInt(columnEl.dataset.columnId);
+    // テーブルカードを作成
+    function createTableCard(table) {
+      const card = document.createElement('div');
+      card.className = 'table-card';
+      card.dataset.tableId = table.id;
 
-      // クリックで選択
-      columnEl.addEventListener('click', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-          // Ctrl/Cmdキーで複数選択
-          if (selectedColumns.has(columnId)) {
-            selectedColumns.delete(columnId);
+      const header = document.createElement('div');
+      header.className = 'table-header';
+
+      const tableName = document.createElement('div');
+      tableName.className = 'table-name';
+      tableName.textContent = table.name;
+      tableName.dataset.tableId = table.id;
+      header.appendChild(tableName);
+
+      if (state.tables.length > 1) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = '🗑️';
+        deleteBtn.dataset.tableId = table.id;
+        header.appendChild(deleteBtn);
+      }
+
+      card.appendChild(header);
+
+      const dropZone = document.createElement('div');
+      dropZone.className = 'table-drop-zone';
+      dropZone.dataset.tableId = table.id;
+
+      table.columns.forEach(column => {
+        const columnEl = document.createElement('div');
+        columnEl.className = 'column-item';
+        if (selectedColumns.has(column.id)) {
+          columnEl.classList.add('selected');
+        }
+        if (column.isPrimaryKey) {
+          columnEl.classList.add('primary-key');
+        }
+        columnEl.dataset.columnId = column.id;
+        columnEl.dataset.tableId = table.id;
+        columnEl.draggable = true;
+
+        const columnName = document.createElement('span');
+        columnName.className = 'column-name';
+        columnName.textContent = (column.isPrimaryKey ? '🔑 ' : '') + column.name;
+
+        columnEl.appendChild(columnName);
+        dropZone.appendChild(columnEl);
+      });
+
+      card.appendChild(dropZone);
+
+      // イベントリスナーを追加
+      addTableEventListeners(card, table);
+
+      return card;
+    }
+
+    // テーブルのイベントリスナーを追加
+    function addTableEventListeners(card, table) {
+      // テーブル名の編集
+      const tableName = card.querySelector('.table-name');
+      tableName.addEventListener('click', () => {
+        const newName = prompt('テーブル名を入力してください:', table.name);
+        if (newName && newName.trim()) {
+          const tableObj = state.tables.find(t => t.id === table.id);
+          tableObj.name = newName.trim();
+          renderTables();
+        }
+      });
+
+      // テーブル削除
+      const deleteBtn = card.querySelector('.delete-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', () => {
+          if (confirm(`「${table.name}」を削除しますか？\n（列は最初のテーブルに戻ります）`)) {
+            deleteTable(table.id);
+          }
+        });
+      }
+
+      // 列のイベント
+      const columns = card.querySelectorAll('.column-item');
+      columns.forEach(columnEl => {
+        const columnId = parseInt(columnEl.dataset.columnId);
+
+        // クリックで選択
+        columnEl.addEventListener('click', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            if (selectedColumns.has(columnId)) {
+              selectedColumns.delete(columnId);
+            } else {
+              selectedColumns.add(columnId);
+            }
           } else {
+            selectedColumns.clear();
             selectedColumns.add(columnId);
           }
-        } else {
-          // 単一選択
-          selectedColumns.clear();
-          selectedColumns.add(columnId);
-        }
-        renderTables();
+          renderTables();
+        });
+
+        // 右クリックで主キー設定
+        columnEl.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          togglePrimaryKey(table.id, columnId);
+        });
+
+        // ドラッグ開始
+        columnEl.addEventListener('dragstart', (e) => {
+          draggedColumn = columnId;
+          draggedFromTable = table.id;
+          columnEl.classList.add('dragging');
+
+          if (!selectedColumns.has(columnId)) {
+            selectedColumns.clear();
+            selectedColumns.add(columnId);
+          }
+        });
+
+        // ドラッグ終了
+        columnEl.addEventListener('dragend', (e) => {
+          columnEl.classList.remove('dragging');
+          draggedColumn = null;
+          draggedFromTable = null;
+        });
       });
 
-      // 右クリックで主キー設定
-      columnEl.addEventListener('contextmenu', (e) => {
+      // ドロップゾーン
+      const dropZone = card.querySelector('.table-drop-zone');
+
+      dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        togglePrimaryKey(table.id, columnId);
+        dropZone.classList.add('drag-over');
       });
 
-      // ドラッグ開始
-      columnEl.addEventListener('dragstart', (e) => {
-        draggedColumn = columnId;
-        draggedFromTable = table.id;
-        columnEl.classList.add('opacity-50');
-
-        // 選択されていない場合は選択
-        if (!selectedColumns.has(columnId)) {
-          selectedColumns.clear();
-          selectedColumns.add(columnId);
+      dropZone.addEventListener('dragleave', (e) => {
+        if (e.target === dropZone) {
+          dropZone.classList.remove('drag-over');
         }
       });
 
-      // ドラッグ終了
-      columnEl.addEventListener('dragend', (e) => {
-        columnEl.classList.remove('opacity-50');
-        draggedColumn = null;
-        draggedFromTable = null;
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+
+        const targetTableId = parseInt(dropZone.dataset.tableId);
+
+        if (draggedFromTable !== targetTableId) {
+          moveColumns(Array.from(selectedColumns), draggedFromTable, targetTableId);
+          selectedColumns.clear();
+        }
       });
-    });
+    }
 
-    // ドロップゾーン
-    const dropZone = card.querySelector('.table-drop-zone');
+    // 列を移動
+    function moveColumns(columnIds, fromTableId, toTableId) {
+      const fromTable = state.tables.find(t => t.id === fromTableId);
+      const toTable = state.tables.find(t => t.id === toTableId);
 
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('bg-indigo-100', 'border-2', 'border-dashed', 'border-indigo-400');
-    });
+      const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
+      fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
+      toTable.columns = toTable.columns.concat(columnsToMove);
 
-    dropZone.addEventListener('dragleave', (e) => {
-      dropZone.classList.remove('bg-indigo-100', 'border-2', 'border-dashed', 'border-indigo-400');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('bg-indigo-100', 'border-2', 'border-dashed', 'border-indigo-400');
-
-      const targetTableId = parseInt(dropZone.dataset.tableId);
-
-      if (draggedFromTable !== targetTableId) {
-        moveColumns(Array.from(selectedColumns), draggedFromTable, targetTableId);
-        selectedColumns.clear();
-      }
-    });
-  }
-
-  // 列を移動
-  function moveColumns(columnIds, fromTableId, toTableId) {
-    const fromTable = state.tables.find(t => t.id === fromTableId);
-    const toTable = state.tables.find(t => t.id === toTableId);
-
-    const columnsToMove = fromTable.columns.filter(c => columnIds.includes(c.id));
-    fromTable.columns = fromTable.columns.filter(c => !columnIds.includes(c.id));
-    toTable.columns = toTable.columns.concat(columnsToMove);
-
-    renderTables();
-  }
-
-  // 主キーをトグル
-  function togglePrimaryKey(tableId, columnId) {
-    const table = state.tables.find(t => t.id === tableId);
-    const column = table.columns.find(c => c.id === columnId);
-    column.isPrimaryKey = !column.isPrimaryKey;
-    renderTables();
-  }
-
-  // テーブルを削除
-  function deleteTable(tableId) {
-    const tableToDelete = state.tables.find(t => t.id === tableId);
-    const firstTable = state.tables[0];
-
-    if (tableToDelete.id !== firstTable.id) {
-      firstTable.columns = firstTable.columns.concat(tableToDelete.columns);
-      state.tables = state.tables.filter(t => t.id !== tableId);
       renderTables();
     }
-  }
 
-  // イベントリスナーのセットアップ
-  function setupEventListeners() {
-    // 新しいテーブル作成
-    document.getElementById('new-table-btn').addEventListener('click', () => {
-      const name = prompt('テーブル名を入力してください:', `新しいテーブル${state.nextTableId}`);
-      if (name && name.trim()) {
-        state.tables.push({
-          id: state.nextTableId++,
-          name: name.trim(),
-          columns: []
+    // 主キーをトグル
+    function togglePrimaryKey(tableId, columnId) {
+      const table = state.tables.find(t => t.id === tableId);
+      const column = table.columns.find(c => c.id === columnId);
+      column.isPrimaryKey = !column.isPrimaryKey;
+      renderTables();
+    }
+
+    // テーブルを削除
+    function deleteTable(tableId) {
+      const tableToDelete = state.tables.find(t => t.id === tableId);
+      const firstTable = state.tables[0];
+
+      if (tableToDelete.id !== firstTable.id) {
+        firstTable.columns = firstTable.columns.concat(tableToDelete.columns);
+        state.tables = state.tables.filter(t => t.id !== tableId);
+        renderTables();
+      }
+    }
+
+    // イベントリスナーのセットアップ
+    function setupEventListeners() {
+      // 新しいテーブル作成
+      document.getElementById('new-table-btn').addEventListener('click', () => {
+        const name = prompt('テーブル名を入力してください:', `新しいテーブル${state.nextTableId}`);
+        if (name && name.trim()) {
+          state.tables.push({
+            id: state.nextTableId++,
+            name: name.trim(),
+            columns: []
+          });
+          renderTables();
+        }
+      });
+
+      // リセット
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        if (confirm('最初の状態に戻しますか？')) {
+          state = JSON.parse(JSON.stringify(initialData));
+          selectedColumns.clear();
+          renderTables();
+        }
+      });
+
+      // ヒント
+      document.getElementById('hint-btn').addEventListener('click', () => {
+        document.getElementById('hint-modal').classList.add('show');
+      });
+
+      document.getElementById('close-hint-btn').addEventListener('click', () => {
+        document.getElementById('hint-modal').classList.remove('show');
+      });
+
+      // 判定
+      document.getElementById('check-btn').addEventListener('click', checkNormalization);
+
+      // 結果モーダル
+      document.getElementById('close-result-btn').addEventListener('click', () => {
+        document.getElementById('result-modal').classList.remove('show');
+      });
+
+      // モーダルの背景クリックで閉じる
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.classList.remove('show');
+          }
         });
-        renderTables();
+      });
+    }
+
+    // 正規化を判定
+    function checkNormalization() {
+      const result = {
+        score: 0,
+        maxScore: 4,
+        feedback: []
+      };
+
+      // テーブルが4つあるか
+      if (state.tables.length === 4) {
+        result.score++;
+        result.feedback.push('✅ テーブル数が正しい（4つ）');
+      } else {
+        result.feedback.push(`❌ テーブル数が ${state.tables.length} つです。4つのテーブルが必要です`);
       }
-    });
 
-    // リセット
-    document.getElementById('reset-btn').addEventListener('click', () => {
-      if (confirm('最初の状態に戻しますか？')) {
-        state = JSON.parse(JSON.stringify(initialData));
-        selectedColumns.clear();
-        renderTables();
+      // 会員テーブルのチェック
+      const memberTable = state.tables.find(t =>
+        t.name.includes('会員') &&
+        t.columns.some(c => c.name === '会員番号' && c.isPrimaryKey)
+      );
+      if (memberTable && memberTable.columns.length === 4) {
+        result.score++;
+        result.feedback.push('✅ 会員テーブルが正しく分離されています');
+      } else {
+        result.feedback.push('❌ 会員テーブルを作成し、会員番号、会員氏名、電話番号、登録日を含めてください');
       }
-    });
 
-    // ヒント
-    document.getElementById('hint-btn').addEventListener('click', () => {
-      document.getElementById('hint-modal').classList.remove('hidden');
-    });
+      // 書籍テーブルのチェック
+      const bookTable = state.tables.find(t =>
+        t.name.includes('書籍') &&
+        t.columns.some(c => c.name === 'ISBN' && c.isPrimaryKey)
+      );
+      if (bookTable && bookTable.columns.length >= 4) {
+        result.score++;
+        result.feedback.push('✅ 書籍テーブルが正しく分離されています');
+      } else {
+        result.feedback.push('❌ 書籍テーブルを作成し、ISBN、書籍名、著者、出版社、出版年を含めてください');
+      }
 
-    document.getElementById('close-hint-btn').addEventListener('click', () => {
-      document.getElementById('hint-modal').classList.add('hidden');
-    });
+      // 出版社テーブルのチェック（第3正規形）
+      const publisherTable = state.tables.find(t =>
+        t.name.includes('出版社')
+      );
+      if (publisherTable && publisherTable.columns.length >= 1) {
+        result.score++;
+        result.feedback.push('✅ 出版社テーブルが分離され、第3正規形になっています！');
+      } else {
+        result.feedback.push('❌ 出版社情報を別テーブルに分離すると第3正規形になります');
+      }
 
-    // 判定
-    document.getElementById('check-btn').addEventListener('click', checkNormalization);
-
-    // 結果モーダル
-    document.getElementById('close-result-btn').addEventListener('click', () => {
-      document.getElementById('result-modal').classList.add('hidden');
-    });
-  }
-
-  // 正規化を判定
-  function checkNormalization() {
-    const result = {
-      score: 0,
-      maxScore: 4,
-      feedback: []
-    };
-
-    // テーブルが4つあるか
-    if (state.tables.length === 4) {
-      result.score++;
-      result.feedback.push('✅ テーブル数が正しい（4つ）');
-    } else {
-      result.feedback.push(`❌ テーブル数が ${state.tables.length} つです。4つのテーブルが必要です`);
-    }
-
-    // 各テーブルの列数をチェック
-    const expectedColumns = {
-      '貸出': ['貸出ID', '会員番号', 'ISBN', '貸出日', '返却予定日'],
-      '会員': ['会員番号', '会員氏名', '電話番号', '登録日'],
-      '書籍': ['ISBN', '書籍名', '著者', '出版社', '出版年'],
-      '出版社': ['出版社']
-    };
-
-    // 会員テーブルのチェック
-    const memberTable = state.tables.find(t =>
-      t.name.includes('会員') &&
-      t.columns.some(c => c.name === '会員番号' && c.isPrimaryKey)
-    );
-    if (memberTable && memberTable.columns.length === 4) {
-      result.score++;
-      result.feedback.push('✅ 会員テーブルが正しく分離されています');
-    } else {
-      result.feedback.push('❌ 会員テーブルを作成し、会員番号、会員氏名、電話番号、登録日を含めてください');
-    }
-
-    // 書籍テーブルのチェック
-    const bookTable = state.tables.find(t =>
-      t.name.includes('書籍') &&
-      t.columns.some(c => c.name === 'ISBN' && c.isPrimaryKey)
-    );
-    if (bookTable && bookTable.columns.length >= 4) {
-      result.score++;
-      result.feedback.push('✅ 書籍テーブルが正しく分離されています');
-    } else {
-      result.feedback.push('❌ 書籍テーブルを作成し、ISBN、書籍名、著者、出版社、出版年を含めてください');
-    }
-
-    // 出版社テーブルのチェック（第3正規形）
-    const publisherTable = state.tables.find(t =>
-      t.name.includes('出版社')
-    );
-    if (publisherTable && publisherTable.columns.length >= 1) {
-      result.score++;
-      result.feedback.push('✅ 出版社テーブルが分離され、第3正規形になっています！');
-    } else {
-      result.feedback.push('❌ 出版社情報を別テーブルに分離すると第3正規形になります');
+      // 結果を表示
+      showResult(result);
     }
 
     // 結果を表示
-    showResult(result);
-  }
+    function showResult(result) {
+      const modal = document.getElementById('result-modal');
+      const icon = document.getElementById('result-icon');
+      const title = document.getElementById('result-title');
+      const message = document.getElementById('result-message');
 
-  // 結果を表示
-  function showResult(result) {
-    const modal = document.getElementById('result-modal');
-    const icon = document.getElementById('result-icon');
-    const title = document.getElementById('result-title');
-    const message = document.getElementById('result-message');
+      if (result.score === result.maxScore) {
+        icon.textContent = '🎉';
+        title.textContent = '完璧です！';
+        title.style.color = '#10b981';
+        message.innerHTML = `
+          <p style="font-weight: bold; color: #10b981; margin-bottom: 1rem;">第3正規形の正規化が完了しました！</p>
+          ${result.feedback.map(f => `<p>${f}</p>`).join('')}
+        `;
+      } else {
+        icon.textContent = '📝';
+        title.textContent = `スコア: ${result.score} / ${result.maxScore}`;
+        title.style.color = '#4f46e5';
+        message.innerHTML = `
+          <p style="margin-bottom: 1rem;">もう少しです！以下を確認してください：</p>
+          ${result.feedback.map(f => `<p>${f}</p>`).join('')}
+        `;
+      }
 
-    if (result.score === result.maxScore) {
-      icon.textContent = '🎉';
-      title.textContent = '完璧です！';
-      title.className = 'text-4xl font-bold mb-4 text-green-600';
-      message.innerHTML = `
-        <p class="text-xl font-bold text-green-600 mb-4">第3正規形の正規化が完了しました！</p>
-        <div class="text-left space-y-2">
-          ${result.feedback.map(f => `<p>${f}</p>`).join('')}
-        </div>
-      `;
-    } else {
-      icon.textContent = '📝';
-      title.textContent = `スコア: ${result.score} / ${result.maxScore}`;
-      title.className = 'text-4xl font-bold mb-4 text-indigo-600';
-      message.innerHTML = `
-        <p class="mb-4">もう少しです！以下を確認してください：</p>
-        <div class="text-left space-y-2">
-          ${result.feedback.map(f => `<p>${f}</p>`).join('')}
-        </div>
-      `;
+      modal.classList.add('show');
     }
-
-    modal.classList.remove('hidden');
-  }
-</script>
-
-<style>
-  .table-drop-zone {
-    min-height: 150px;
-    transition: all 0.2s;
-  }
-
-  .column-item {
-    user-select: none;
-  }
-
-  .column-item:active {
-    cursor: grabbing;
-  }
-</style>
+  </script>
 </Layout>
