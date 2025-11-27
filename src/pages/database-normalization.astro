@@ -682,6 +682,35 @@ import Layout from '../layouts/Layout.astro';
     let draggedColumn = null;
     let draggedFromTable = null;
 
+    // 列の状態に応じたインラインスタイルを生成
+    function getColumnStyle(isPrimaryKey, isSelected, isDragging, isDropTarget) {
+      let baseStyle = '';
+
+      if (isDropTarget) {
+        // ドロップターゲット時（緑のハイライト）
+        baseStyle = 'background: #d1fae5 !important; border-left: 4px solid #10b981 !important; border-right: 2px solid #94a3b8 !important; border-top: 2px solid #94a3b8 !important; border-bottom: 2px solid #94a3b8 !important;';
+      } else if (isPrimaryKey) {
+        // 主キー（黄色）
+        baseStyle = 'background: #fde68a !important; border: 3px solid #f59e0b !important; box-shadow: inset 0 0 0 2px #fbbf24 !important;';
+      } else if (isSelected) {
+        // 選択中（青）
+        baseStyle = 'background: #bfdbfe !important; border: 3px solid #3b82f6 !important; box-shadow: inset 0 0 0 2px #93c5fd !important;';
+      } else {
+        // デフォルト（グレー）
+        baseStyle = 'border: 2px solid #94a3b8 !important; background: #e2e8f0 !important;';
+      }
+
+      // 共通スタイル
+      baseStyle += ' padding: 0.75rem !important; text-align: left !important; min-width: 100px !important; color: #1e293b !important; font-weight: bold !important; cursor: move !important; user-select: none !important;';
+
+      // ドラッグ中は半透明に
+      if (isDragging) {
+        baseStyle += ' opacity: 0.5 !important; cursor: grabbing !important;';
+      }
+
+      return baseStyle;
+    }
+
     // 初期化
     document.addEventListener('DOMContentLoaded', () => {
       renderTables();
@@ -770,16 +799,13 @@ import Layout from '../layouts/Layout.astro';
 
           if (isPrimaryKey) {
             th.classList.add('primary-key');
-            // 主キー時のインラインスタイル（🔑アイコンはCSS ::beforeで表示）
-            th.style.cssText = 'background: #fde68a !important; border: 3px solid #f59e0b !important; box-shadow: inset 0 0 0 2px #fbbf24 !important; padding: 0.75rem !important; text-align: left !important; min-width: 100px !important; color: #1e293b !important; font-weight: bold !important; cursor: move !important; user-select: none !important; padding-left: 0.75rem !important;';
-          } else if (isSelected) {
-            th.classList.add('selected');
-            // 選択時のインラインスタイル
-            th.style.cssText = 'background: #bfdbfe !important; border: 3px solid #3b82f6 !important; box-shadow: inset 0 0 0 2px #93c5fd !important; padding: 0.75rem !important; text-align: left !important; min-width: 100px !important; color: #1e293b !important; font-weight: bold !important; cursor: move !important; user-select: none !important;';
-          } else {
-            // デフォルトのインラインスタイル
-            th.style.cssText = 'border: 2px solid #94a3b8 !important; padding: 0.75rem !important; background: #e2e8f0 !important; color: #1e293b !important; font-weight: bold !important; text-align: left !important; min-width: 100px !important; cursor: move !important; user-select: none !important;';
           }
+          if (isSelected) {
+            th.classList.add('selected');
+          }
+
+          // インラインスタイルを適用
+          th.style.cssText = getColumnStyle(isPrimaryKey, isSelected, false, false);
 
           // クリックで選択
           th.addEventListener('click', (e) => {
@@ -812,12 +838,18 @@ import Layout from '../layouts/Layout.astro';
               selectedColumns.clear();
               selectedColumns.add(column.id);
             }
+
+            // ドラッグ中のスタイルを適用
+            th.style.cssText = getColumnStyle(column.isPrimaryKey, selectedColumns.has(column.id), true, false);
           });
 
           th.addEventListener('dragend', (e) => {
             th.classList.remove('dragging');
             draggedColumn = null;
             draggedFromTable = null;
+
+            // 元のスタイルに戻す
+            th.style.cssText = getColumnStyle(column.isPrimaryKey, selectedColumns.has(column.id), false, false);
           });
 
           // ドロップイベント（列の並び替え用）
@@ -825,17 +857,24 @@ import Layout from '../layouts/Layout.astro';
             e.preventDefault();
             if (draggedFromTable === table.id && draggedColumn !== column.id) {
               th.classList.add('drop-target');
+              // ドロップターゲットのスタイルを適用
+              th.style.cssText = getColumnStyle(column.isPrimaryKey, selectedColumns.has(column.id), false, true);
             }
           });
 
           th.addEventListener('dragleave', (e) => {
             th.classList.remove('drop-target');
+            // 元のスタイルに戻す
+            th.style.cssText = getColumnStyle(column.isPrimaryKey, selectedColumns.has(column.id), false, false);
           });
 
           th.addEventListener('drop', (e) => {
             e.preventDefault();
             e.stopPropagation();
             th.classList.remove('drop-target');
+
+            // 元のスタイルに戻す
+            th.style.cssText = getColumnStyle(column.isPrimaryKey, selectedColumns.has(column.id), false, false);
 
             if (draggedFromTable === table.id && draggedColumn !== column.id) {
               // 同じテーブル内での並び替え
