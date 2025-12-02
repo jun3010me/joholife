@@ -437,11 +437,79 @@ class DatabaseSimulator {
             // リレーションを描画
             this.drawRelations();
 
+            // ドロップ先のハイライトを描画（列ドラッグ中の場合）
+            if (this.isDraggingColumn) {
+                const targetTable = this.getTableAt(this.currentMousePos.x, this.currentMousePos.y);
+                if (targetTable && targetTable.id !== this.draggedFromTable) {
+                    this.drawTableHighlight(targetTable);
+                }
+            }
+
             // テーブルをzIndex順にソートして描画（小さい順 = 後ろから描画）
             const sortedTables = Array.from(this.tables.values()).sort((a, b) => a.zIndex - b.zIndex);
             sortedTables.forEach(table => {
                 this.drawTable(table);
             });
+
+            // ドラッグ中の列を描画
+            if (this.isDraggingColumn) {
+                this.drawDraggingColumn();
+            }
+        });
+    }
+
+    // ドロップ先のテーブルをハイライト表示
+    drawTableHighlight(table) {
+        const pos = this.worldToCanvas(table.x, table.y);
+        const scaledWidth = table.width * this.scale;
+        const scaledHeight = table.height * this.scale;
+
+        // ハイライトの枠線
+        this.ctx.strokeStyle = '#10b981';
+        this.ctx.lineWidth = 4;
+        this.ctx.setLineDash([8, 4]);
+        this.ctx.strokeRect(pos.x - 4, pos.y - 4, scaledWidth + 8, scaledHeight + 8);
+        this.ctx.setLineDash([]);
+    }
+
+    // ドラッグ中の列を描画
+    drawDraggingColumn() {
+        if (!this.draggedFromTable || this.selectedColumns.size === 0) return;
+
+        const sourceTable = this.tables.get(this.draggedFromTable);
+        if (!sourceTable) return;
+
+        const columns = sourceTable.columns.filter(c => this.selectedColumns.has(c.id));
+        if (columns.length === 0) return;
+
+        const boxWidth = 150;
+        const boxHeight = 30 + (columns.length * 25);
+        const x = this.currentMousePos.x - boxWidth / 2;
+        const y = this.currentMousePos.y - 15;
+
+        // 半透明の背景
+        this.ctx.fillStyle = 'rgba(99, 102, 241, 0.9)';
+        this.ctx.fillRect(x, y, boxWidth, boxHeight);
+
+        // 枠線
+        this.ctx.strokeStyle = '#4f46e5';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x, y, boxWidth, boxHeight);
+
+        // タイトル
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = 'bold 14px sans-serif';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+        this.ctx.fillText('移動中...', x + 10, y + 8);
+
+        // 列の情報を表示
+        columns.forEach((column, index) => {
+            const colY = y + 30 + (index * 25);
+            const isPK = column.isPrimaryKey ? '🔑' : '  ';
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = '12px sans-serif';
+            this.ctx.fillText(`${isPK} ${column.name} (${column.dataType})`, x + 10, colY);
         });
     }
 
@@ -560,6 +628,9 @@ class DatabaseSimulator {
             this.draggedTable.x = worldPos.x - this.dragOffset.x;
             this.draggedTable.y = worldPos.y - this.dragOffset.y;
             this.render();
+        } else if (this.isDraggingColumn) {
+            // 列のドラッグ中は再描画してアニメーションを表示
+            this.render();
         } else if (this.isPanning && this.lastPanPoint) {
             const dx = x - this.lastPanPoint.x;
             const dy = y - this.lastPanPoint.y;
@@ -571,7 +642,11 @@ class DatabaseSimulator {
 
         // カーソルの変更
         const table = this.getTableAt(x, y);
-        this.canvas.style.cursor = table ? 'move' : 'default';
+        if (this.isDraggingColumn) {
+            this.canvas.style.cursor = 'grabbing';
+        } else {
+            this.canvas.style.cursor = table ? 'move' : 'default';
+        }
     }
 
     // マウスアップ
@@ -854,6 +929,48 @@ class DatabaseSimulator {
             id: this.nextColumnId++,
             isPrimaryKey: false
         }));
+
+        // 移動する列の名前を取得
+        const columnsToMoveNames = columnsToMove.map(c => c.name);
+
+        // データの移動処理
+        if (fromTable.sampleData && fromTable.sampleData.length > 0) {
+            // 移動先テーブルのデータを初期化（空の場合）
+            if (!toTable.sampleData || toTable.sampleData.length === 0) {
+                toTable.sampleData = fromTable.sampleData.map(record => {
+                    const newRecord = {};
+                    columnsToMoveNames.forEach(colName => {
+                        if (record[colName] !== undefined) {
+                            newRecord[colName] = record[colName];
+                        }
+                    });
+                    return newRecord;
+                });
+            } else {
+                // 既存のレコードがある場合は統合
+                toTable.sampleData = toTable.sampleData.map((record, index) => {
+                    const sourceRecord = fromTable.sampleData[index];
+                    if (sourceRecord) {
+                        columnsToMoveNames.forEach(colName => {
+                            if (sourceRecord[colName] !== undefined) {
+                                record[colName] = sourceRecord[colName];
+                            }
+                        });
+                    }
+                    return record;
+                });
+            }
+
+            // 非主キー列のデータは元のテーブルから削除
+            const nonPrimaryKeyNames = nonPrimaryKeyColumns.map(c => c.name);
+            fromTable.sampleData = fromTable.sampleData.map(record => {
+                const newRecord = { ...record };
+                nonPrimaryKeyNames.forEach(colName => {
+                    delete newRecord[colName];
+                });
+                return newRecord;
+            });
+        }
 
         // 非主キー列は移動
         fromTable.columns = fromTable.columns.filter(c => !nonPrimaryKeyColumns.some(nc => nc.id === c.id));
