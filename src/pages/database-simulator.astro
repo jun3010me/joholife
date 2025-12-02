@@ -1,0 +1,86 @@
+---
+// database-simulator.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="データベース正規化シミュレータ - じょうほうらいふ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="/database-simulator/styles/main.css">
+    <link rel="stylesheet" href="/database-simulator/styles/mobile.css">
+
+    <div class="app-container">
+        <!-- ツールバー -->
+        <div class="toolbar">
+            <div class="toolbar-title">
+                <span>🗄️</span>
+                データベース正規化シミュレータ
+            </div>
+            <div class="toolbar-buttons">
+                <button id="add-table-btn" class="toolbar-btn">
+                    <span>➕</span>
+                    新しいテーブル
+                </button>
+                <button id="reset-btn" class="toolbar-btn">
+                    <span>🔄</span>
+                    リセット
+                </button>
+                <button id="save-db-btn" class="toolbar-btn">
+                    <span>💾</span>
+                    保存
+                </button>
+                <button id="load-db-btn" class="toolbar-btn">
+                    <span>📁</span>
+                    読込
+                </button>
+            </div>
+        </div>
+
+        <!-- メインキャンバス -->
+        <div class="main-canvas">
+            <div class="canvas-container">
+                <canvas id="database-canvas"></canvas>
+
+                <!-- ヘルプパネル -->
+                <div class="help-panel">
+                    <h3>📖 使い方</h3>
+
+                    <div class="help-item">
+                        <span class="help-icon">👆</span>
+                        <span class="help-text">テーブルをドラッグして移動</span>
+                    </div>
+
+                    <div class="help-item">
+                        <span class="help-icon">✊</span>
+                        <span class="help-text">列をクリックして選択<br>別のテーブルにドラッグで移動</span>
+                    </div>
+
+                    <div class="help-item">
+                        <span class="help-icon">🔑</span>
+                        <span class="help-text">列を右クリック（長押し）で主キー設定</span>
+                    </div>
+
+                    <div class="help-item">
+                        <span class="help-icon">🔍</span>
+                        <span class="help-text">ホイール（ピンチ）でズーム</span>
+                    </div>
+
+                    <div class="help-item">
+                        <span class="help-icon">🖐️</span>
+                        <span class="help-text">空白をドラッグ（2本指）でパン</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スクリプト -->
+    <script src="/database-simulator/scripts/core/database-simulator.js" is:inline></script>
+
+    <style>
+        /* ページ固有のスタイル */
+        :global(body) {
+            overflow: hidden;
+        }
+    </style>
+</Layout>
