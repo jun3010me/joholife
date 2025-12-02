@@ -46,6 +46,9 @@ class DatabaseSimulator {
         // z-index管理（描画順序とクリック優先順位）
         this.nextZIndex = 1;
 
+        // 表示設定
+        this.showAllRecords = false;
+
         // レンダリング最適化
         this.renderScheduled = false;
 
@@ -114,6 +117,7 @@ class DatabaseSimulator {
         const loadBtn = document.getElementById('load-db-btn');
         const helpToggleBtn = document.getElementById('help-toggle-btn');
         const helpCloseBtn = document.getElementById('help-close-btn');
+        const showAllRecordsCheckbox = document.getElementById('show-all-records-checkbox');
 
         if (addTableBtn) addTableBtn.addEventListener('click', () => this.addNewTable());
         if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
@@ -121,6 +125,12 @@ class DatabaseSimulator {
         if (loadBtn) loadBtn.addEventListener('click', () => this.loadDatabase());
         if (helpToggleBtn) helpToggleBtn.addEventListener('click', () => this.toggleHelp());
         if (helpCloseBtn) helpCloseBtn.addEventListener('click', () => this.toggleHelp());
+        if (showAllRecordsCheckbox) {
+            showAllRecordsCheckbox.addEventListener('change', (e) => {
+                this.showAllRecords = e.target.checked;
+                this.render();
+            });
+        }
     }
 
     // ヘルプパネルの表示/非表示を切り替え
@@ -139,8 +149,8 @@ class DatabaseSimulator {
             name: '貸出管理テーブル',
             x: 100,
             y: 100,
-            width: 600,
-            height: 300,
+            width: 1440,  // 12列 * 120px
+            height: 131,  // タイトル(40) + ヘッダー(35) + データ2行(28*2)
             zIndex: this.nextZIndex++,
             columns: [
                 { id: this.nextColumnId++, name: '貸出ID', isPrimaryKey: true, dataType: 'INT' },
@@ -175,8 +185,8 @@ class DatabaseSimulator {
             name: name.trim(),
             x: 150 + (this.tables.size * 50),
             y: 150 + (this.tables.size * 50),
-            width: 300,
-            height: 150,
+            width: 120,  // 最小幅（1列分）
+            height: 75,  // タイトル + ヘッダー
             zIndex: this.nextZIndex++,
             columns: [],
             sampleData: []
@@ -222,13 +232,30 @@ class DatabaseSimulator {
         };
     }
 
-    // テーブルを描画
+    // テーブルを描画（横方向のデータシートビュー）
     drawTable(table) {
+        if (table.columns.length === 0) return;
+
+        const titleHeight = 40;
+        const headerHeight = 35;
+        const rowHeight = 28;
+        const columnWidth = 120;
+        const padding = 8;
+
+        // 表示するレコード数を決定
+        const maxRecords = this.showAllRecords ? (table.sampleData?.length || 0) : Math.min(10, table.sampleData?.length || 0);
+
+        // テーブルのサイズを計算
+        const tableWidth = table.columns.length * columnWidth;
+        const tableHeight = titleHeight + headerHeight + (maxRecords * rowHeight);
+
+        // テーブルのサイズを更新
+        table.width = tableWidth;
+        table.height = tableHeight;
+
         const pos = this.worldToCanvas(table.x, table.y);
-        const width = table.width * this.scale;
-        const height = table.height * this.scale;
-        const headerHeight = 40 * this.scale;
-        const rowHeight = 30 * this.scale;
+        const scaledWidth = tableWidth * this.scale;
+        const scaledHeight = tableHeight * this.scale;
 
         // テーブルの影
         this.ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
@@ -238,7 +265,7 @@ class DatabaseSimulator {
 
         // テーブルの背景
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillRect(pos.x, pos.y, width, height);
+        this.ctx.fillRect(pos.x, pos.y, scaledWidth, scaledHeight);
 
         // 影をリセット
         this.ctx.shadowColor = 'transparent';
@@ -249,49 +276,103 @@ class DatabaseSimulator {
         // テーブルのボーダー
         this.ctx.strokeStyle = this.selectedTable === table.id ? '#3b82f6' : '#cbd5e1';
         this.ctx.lineWidth = this.selectedTable === table.id ? 3 : 2;
-        this.ctx.strokeRect(pos.x, pos.y, width, height);
+        this.ctx.strokeRect(pos.x, pos.y, scaledWidth, scaledHeight);
 
-        // ヘッダー
+        // タイトル行
         this.ctx.fillStyle = '#4f46e5';
-        this.ctx.fillRect(pos.x, pos.y, width, headerHeight);
+        this.ctx.fillRect(pos.x, pos.y, scaledWidth, titleHeight * this.scale);
 
         // テーブル名
         this.ctx.fillStyle = '#ffffff';
         this.ctx.font = `bold ${16 * this.scale}px sans-serif`;
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('📋 ' + table.name, pos.x + 10 * this.scale, pos.y + headerHeight / 2);
+        this.ctx.fillText('📋 ' + table.name, pos.x + padding * this.scale, pos.y + (titleHeight / 2) * this.scale);
 
-        // 列を描画
-        let currentY = pos.y + headerHeight;
-        table.columns.forEach((column, index) => {
-            // 列の背景
-            if (this.selectedColumns.has(column.id)) {
-                this.ctx.fillStyle = '#bfdbfe';
-            } else if (column.isPrimaryKey) {
+        // 列ヘッダー行
+        let currentX = pos.x;
+        const headerY = pos.y + (titleHeight * this.scale);
+
+        table.columns.forEach((column, colIndex) => {
+            const colWidth = columnWidth * this.scale;
+
+            // ヘッダーの背景
+            if (column.isPrimaryKey) {
                 this.ctx.fillStyle = '#fde68a';
             } else {
-                this.ctx.fillStyle = index % 2 === 0 ? '#f8fafc' : '#ffffff';
+                this.ctx.fillStyle = '#e2e8f0';
             }
-            this.ctx.fillRect(pos.x, currentY, width, rowHeight);
+            this.ctx.fillRect(currentX, headerY, colWidth, headerHeight * this.scale);
 
-            // 列のボーダー
-            this.ctx.strokeStyle = '#e2e8f0';
+            // ヘッダーのボーダー
+            this.ctx.strokeStyle = '#94a3b8';
             this.ctx.lineWidth = 1;
-            this.ctx.strokeRect(pos.x, currentY, width, rowHeight);
+            this.ctx.strokeRect(currentX, headerY, colWidth, headerHeight * this.scale);
 
-            // 主キーアイコン
+            // 列名
             this.ctx.fillStyle = '#1e293b';
-            this.ctx.font = `${14 * this.scale}px sans-serif`;
+            this.ctx.font = `bold ${12 * this.scale}px sans-serif`;
             this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'middle';
             const icon = column.isPrimaryKey ? '🔑 ' : '';
-            this.ctx.fillText(icon + column.name + ' (' + column.dataType + ')', pos.x + 10 * this.scale, currentY + rowHeight / 2);
+            const text = icon + column.name;
 
-            currentY += rowHeight;
+            // テキストを切り詰め
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.rect(currentX, headerY, colWidth, headerHeight * this.scale);
+            this.ctx.clip();
+            this.ctx.fillText(text, currentX + padding * this.scale, headerY + (headerHeight / 2) * this.scale);
+            this.ctx.restore();
+
+            currentX += colWidth;
         });
 
-        // テーブルの高さを動的に調整
-        table.height = headerHeight / this.scale + (table.columns.length * rowHeight / this.scale) + 10;
+        // データ行
+        if (table.sampleData && table.sampleData.length > 0) {
+            let currentY = headerY + (headerHeight * this.scale);
+
+            for (let rowIndex = 0; rowIndex < maxRecords; rowIndex++) {
+                const rowData = table.sampleData[rowIndex];
+                if (!rowData) break;
+
+                let currentX = pos.x;
+
+                table.columns.forEach((column, colIndex) => {
+                    const colWidth = columnWidth * this.scale;
+
+                    // セルの背景
+                    this.ctx.fillStyle = rowIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
+                    this.ctx.fillRect(currentX, currentY, colWidth, rowHeight * this.scale);
+
+                    // セルのボーダー
+                    this.ctx.strokeStyle = '#e2e8f0';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(currentX, currentY, colWidth, rowHeight * this.scale);
+
+                    // セルの値
+                    const value = Array.isArray(rowData) ? rowData[colIndex] : rowData[column.name];
+                    this.ctx.fillStyle = '#475569';
+                    this.ctx.font = `${11 * this.scale}px sans-serif`;
+                    this.ctx.textAlign = 'left';
+                    this.ctx.textBaseline = 'middle';
+
+                    if (value !== undefined && value !== null) {
+                        // テキストを切り詰め
+                        this.ctx.save();
+                        this.ctx.beginPath();
+                        this.ctx.rect(currentX, currentY, colWidth, rowHeight * this.scale);
+                        this.ctx.clip();
+                        this.ctx.fillText(String(value), currentX + padding * this.scale, currentY + (rowHeight / 2) * this.scale);
+                        this.ctx.restore();
+                    }
+
+                    currentX += colWidth;
+                });
+
+                currentY += rowHeight * this.scale;
+            }
+        }
     }
 
     // リレーションを描画
@@ -379,18 +460,27 @@ class DatabaseSimulator {
         return foundTables.reduce((max, table) => table.zIndex > max.zIndex ? table : max);
     }
 
-    // 指定座標の列を取得
+    // 指定座標の列を取得（横方向レイアウト対応）
     getColumnAt(table, x, y) {
         if (!table) return null;
 
         const worldPos = this.canvasToWorld(x, y);
-        const headerHeight = 40;
-        const rowHeight = 30;
-        const relativeY = worldPos.y - table.y - headerHeight;
+        const titleHeight = 40;
+        const headerHeight = 35;
+        const columnWidth = 120;
 
-        if (relativeY < 0) return null;
+        // タイトル行をクリックした場合はテーブル全体の移動
+        const relativeY = worldPos.y - table.y;
+        if (relativeY < titleHeight) return null;
 
-        const columnIndex = Math.floor(relativeY / rowHeight);
+        // 列ヘッダー行の範囲内かチェック
+        if (relativeY < titleHeight || relativeY > titleHeight + headerHeight) return null;
+
+        // X座標から列を特定
+        const relativeX = worldPos.x - table.x;
+        if (relativeX < 0 || relativeX > table.width) return null;
+
+        const columnIndex = Math.floor(relativeX / columnWidth);
         if (columnIndex >= 0 && columnIndex < table.columns.length) {
             return { column: table.columns[columnIndex], index: columnIndex };
         }
