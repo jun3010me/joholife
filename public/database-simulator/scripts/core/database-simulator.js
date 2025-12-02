@@ -937,28 +937,47 @@ class DatabaseSimulator {
         if (fromTable.sampleData && fromTable.sampleData.length > 0) {
             // 移動先テーブルのデータを初期化（空の場合）
             if (!toTable.sampleData || toTable.sampleData.length === 0) {
+                // 移動元のsampleDataをベースに、移動先の既存列と移動する列のデータを含むレコードを作成
                 toTable.sampleData = fromTable.sampleData.map(record => {
                     const newRecord = {};
+
+                    // 移動先テーブルの既存の列のデータを初期化（空値）
+                    toTable.columns.forEach(col => {
+                        newRecord[col.name] = '';
+                    });
+
+                    // 移動する列のデータを追加
                     columnsToMoveNames.forEach(colName => {
                         if (record[colName] !== undefined) {
                             newRecord[colName] = record[colName];
                         }
                     });
+
                     return newRecord;
                 });
             } else {
                 // 既存のレコードがある場合は統合
-                toTable.sampleData = toTable.sampleData.map((record, index) => {
-                    const sourceRecord = fromTable.sampleData[index];
-                    if (sourceRecord) {
-                        columnsToMoveNames.forEach(colName => {
-                            if (sourceRecord[colName] !== undefined) {
-                                record[colName] = sourceRecord[colName];
-                            }
-                        });
-                    }
-                    return record;
-                });
+                // レコード数を合わせる（少ない方に合わせる）
+                const recordCount = Math.max(toTable.sampleData.length, fromTable.sampleData.length);
+                const newSampleData = [];
+
+                for (let i = 0; i < recordCount; i++) {
+                    const targetRecord = toTable.sampleData[i] || {};
+                    const sourceRecord = fromTable.sampleData[i] || {};
+
+                    const newRecord = { ...targetRecord };
+
+                    // 移動する列のデータを追加
+                    columnsToMoveNames.forEach(colName => {
+                        if (sourceRecord[colName] !== undefined) {
+                            newRecord[colName] = sourceRecord[colName];
+                        }
+                    });
+
+                    newSampleData.push(newRecord);
+                }
+
+                toTable.sampleData = newSampleData;
             }
 
             // 非主キー列のデータは元のテーブルから削除
