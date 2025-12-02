@@ -109,11 +109,23 @@ class DatabaseSimulator {
         const resetBtn = document.getElementById('reset-btn');
         const saveBtn = document.getElementById('save-db-btn');
         const loadBtn = document.getElementById('load-db-btn');
+        const helpToggleBtn = document.getElementById('help-toggle-btn');
+        const helpCloseBtn = document.getElementById('help-close-btn');
 
         if (addTableBtn) addTableBtn.addEventListener('click', () => this.addNewTable());
         if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveDatabase());
         if (loadBtn) loadBtn.addEventListener('click', () => this.loadDatabase());
+        if (helpToggleBtn) helpToggleBtn.addEventListener('click', () => this.toggleHelp());
+        if (helpCloseBtn) helpCloseBtn.addEventListener('click', () => this.toggleHelp());
+    }
+
+    // ヘルプパネルの表示/非表示を切り替え
+    toggleHelp() {
+        const helpPanel = document.getElementById('help-panel');
+        if (helpPanel) {
+            helpPanel.classList.toggle('show');
+        }
     }
 
     // サンプルデータを読み込み
