@@ -43,6 +43,9 @@ class DatabaseSimulator {
         this.nextTableId = 1;
         this.nextColumnId = 1;
 
+        // z-index管理（描画順序とクリック優先順位）
+        this.nextZIndex = 1;
+
         // レンダリング最適化
         this.renderScheduled = false;
 
@@ -138,6 +141,7 @@ class DatabaseSimulator {
             y: 100,
             width: 600,
             height: 300,
+            zIndex: this.nextZIndex++,
             columns: [
                 { id: this.nextColumnId++, name: '貸出ID', isPrimaryKey: true, dataType: 'INT' },
                 { id: this.nextColumnId++, name: '会員番号', isPrimaryKey: false, dataType: 'INT' },
@@ -173,6 +177,7 @@ class DatabaseSimulator {
             y: 150 + (this.tables.size * 50),
             width: 300,
             height: 150,
+            zIndex: this.nextZIndex++,
             columns: [],
             sampleData: []
         };
@@ -192,6 +197,7 @@ class DatabaseSimulator {
         this.selectedColumns.clear();
         this.nextTableId = 1;
         this.nextColumnId = 1;
+        this.nextZIndex = 1;
         this.scale = 1;
         this.panX = 0;
         this.panY = 0;
@@ -347,24 +353,30 @@ class DatabaseSimulator {
             // リレーションを描画
             this.drawRelations();
 
-            // テーブルを描画
-            this.tables.forEach(table => {
+            // テーブルをzIndex順にソートして描画（小さい順 = 後ろから描画）
+            const sortedTables = Array.from(this.tables.values()).sort((a, b) => a.zIndex - b.zIndex);
+            sortedTables.forEach(table => {
                 this.drawTable(table);
             });
         });
     }
 
-    // 指定座標のテーブルを取得
+    // 指定座標のテーブルを取得（複数ヒット時は最前面のものを返す）
     getTableAt(x, y) {
         const worldPos = this.canvasToWorld(x, y);
+        let foundTables = [];
 
+        // 座標が範囲内のテーブルを全て収集
         for (const [id, table] of this.tables) {
             if (worldPos.x >= table.x && worldPos.x <= table.x + table.width &&
                 worldPos.y >= table.y && worldPos.y <= table.y + table.height) {
-                return table;
+                foundTables.push(table);
             }
         }
-        return null;
+
+        // zIndexが最も大きい（最前面の）テーブルを返す
+        if (foundTables.length === 0) return null;
+        return foundTables.reduce((max, table) => table.zIndex > max.zIndex ? table : max);
     }
 
     // 指定座標の列を取得
@@ -397,6 +409,9 @@ class DatabaseSimulator {
         if (e.button === 2) return; // 右クリックはコンテキストメニュー
 
         if (table) {
+            // テーブルをクリックしたら最前面に移動
+            table.zIndex = this.nextZIndex++;
+
             const columnInfo = this.getColumnAt(table, x, y);
 
             if (columnInfo) {
@@ -608,6 +623,9 @@ class DatabaseSimulator {
                     if (!this.isDraggingTable) {
                         const table = this.getTableAt(this.touchStartPos.x, this.touchStartPos.y);
                         if (table) {
+                            // テーブルを最前面に移動
+                            table.zIndex = this.nextZIndex++;
+
                             this.isDraggingTable = true;
                             this.draggedTable = table;
                             const worldPos = this.canvasToWorld(this.touchStartPos.x, this.touchStartPos.y);
@@ -674,6 +692,9 @@ class DatabaseSimulator {
             if (timeDiff < 300 && distance < 10) {
                 const table = this.getTableAt(x, y);
                 if (table) {
+                    // テーブルを最前面に移動
+                    table.zIndex = this.nextZIndex++;
+
                     this.selectedTable = table.id;
                     const columnInfo = this.getColumnAt(table, x, y);
                     if (columnInfo) {
@@ -791,7 +812,8 @@ class DatabaseSimulator {
             tables: Array.from(this.tables.values()),
             relations: this.relations,
             nextTableId: this.nextTableId,
-            nextColumnId: this.nextColumnId
+            nextColumnId: this.nextColumnId,
+            nextZIndex: this.nextZIndex
         };
 
         const json = JSON.stringify(data, null, 2);
@@ -822,13 +844,18 @@ class DatabaseSimulator {
                     const data = JSON.parse(event.target.result);
 
                     this.tables.clear();
-                    data.tables.forEach(table => {
+                    data.tables.forEach((table, index) => {
+                        // 古いファイルでzIndexがない場合は自動設定
+                        if (table.zIndex === undefined) {
+                            table.zIndex = index + 1;
+                        }
                         this.tables.set(table.id, table);
                     });
 
                     this.relations = data.relations || [];
                     this.nextTableId = data.nextTableId || 1;
                     this.nextColumnId = data.nextColumnId || 1;
+                    this.nextZIndex = data.nextZIndex || this.tables.size + 1;
 
                     this.render();
                 } catch (error) {
