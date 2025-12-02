@@ -21,6 +21,10 @@ import Layout from '../layouts/Layout.astro';
                     <span>➕</span>
                     新しいテーブル
                 </button>
+                <button id="help-toggle-btn" class="toolbar-btn">
+                    <span>❓</span>
+                    使い方
+                </button>
                 <button id="reset-btn" class="toolbar-btn">
                     <span>🔄</span>
                     リセット
@@ -42,8 +46,11 @@ import Layout from '../layouts/Layout.astro';
                 <canvas id="database-canvas"></canvas>
 
                 <!-- ヘルプパネル -->
-                <div class="help-panel">
-                    <h3>📖 使い方</h3>
+                <div class="help-panel" id="help-panel">
+                    <div class="help-panel-header">
+                        <h3>📖 使い方</h3>
+                        <button class="help-close-btn" id="help-close-btn">×</button>
+                    </div>
 
                     <div class="help-item">
                         <span class="help-icon">👆</span>
