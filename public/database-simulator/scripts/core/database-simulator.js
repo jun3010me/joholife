@@ -188,7 +188,10 @@ class DatabaseSimulator {
             width: 120,  // 最小幅（1列分）
             height: 75,  // タイトル + ヘッダー
             zIndex: this.nextZIndex++,
-            columns: [],
+            columns: [
+                // デフォルトで1つの列を作成
+                { id: this.nextColumnId++, name: 'ID', isPrimaryKey: true, dataType: 'INT' }
+            ],
             sampleData: []
         };
 
