@@ -699,15 +699,14 @@ class DatabaseSimulator {
 
         const worldPos = this.canvasToWorld(x, y);
         const titleHeight = 40;
-        const headerHeight = 35;
         const columnWidth = 120;
 
         // タイトル行をクリックした場合はテーブル全体の移動
         const relativeY = worldPos.y - table.y;
         if (relativeY < titleHeight) return null;
 
-        // 列ヘッダー行の範囲内かチェック
-        if (relativeY < titleHeight || relativeY > titleHeight + headerHeight) return null;
+        // テーブルの範囲内かチェック（タイトル行以外の全領域）
+        if (relativeY > table.height) return null;
 
         // X座標から列を特定
         const relativeX = worldPos.x - table.x;
