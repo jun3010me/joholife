@@ -193,18 +193,20 @@ class DatabaseSimulator {
         const name = prompt('テーブル名を入力してください:', `新しいテーブル${this.nextTableId}`);
         if (!name || !name.trim()) return;
 
+        // テーブル名の幅を計算（1文字あたり約16px + パディング）
+        const nameWidth = (name.trim().length * 16) + 80; // 絵文字とパディング分を追加
+        const minWidth = 150; // 最小幅
+        const tableWidth = Math.max(minWidth, nameWidth);
+
         const newTable = {
             id: this.nextTableId++,
             name: name.trim(),
             x: 150 + (this.tables.size * 50),
             y: 150 + (this.tables.size * 50),
-            width: 120,  // 最小幅（1列分）
-            height: 75,  // タイトル + ヘッダー
+            width: tableWidth,
+            height: 40,  // タイトルのみの高さ
             zIndex: this.nextZIndex++,
-            columns: [
-                // デフォルトで1つの列を作成
-                { id: this.nextColumnId++, name: 'ID', isPrimaryKey: true, dataType: 'INT' }
-            ],
+            columns: [],  // 空の列配列
             sampleData: []
         };
 
@@ -250,13 +252,55 @@ class DatabaseSimulator {
 
     // テーブルを描画（横方向のデータシートビュー）
     drawTable(table) {
-        if (table.columns.length === 0) return;
-
         const titleHeight = 40;
         const headerHeight = 35;
         const rowHeight = 28;
         const columnWidth = 120;
         const padding = 8;
+
+        // 列が空の場合は、タイトルのみを描画
+        if (table.columns.length === 0) {
+            const pos = this.worldToCanvas(table.x, table.y);
+            const scaledWidth = table.width * this.scale;
+            const scaledHeight = titleHeight * this.scale;
+
+            // テーブルのサイズを更新
+            table.height = titleHeight;
+
+            // テーブルの影
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowOffsetX = 2;
+            this.ctx.shadowOffsetY = 2;
+
+            // テーブルの背景
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillRect(pos.x, pos.y, scaledWidth, scaledHeight);
+
+            // 影をリセット
+            this.ctx.shadowColor = 'transparent';
+            this.ctx.shadowBlur = 0;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+
+            // テーブルのボーダー
+            this.ctx.strokeStyle = this.selectedTable === table.id ? '#3b82f6' : '#cbd5e1';
+            this.ctx.lineWidth = this.selectedTable === table.id ? 3 : 2;
+            this.ctx.strokeRect(pos.x, pos.y, scaledWidth, scaledHeight);
+
+            // タイトル行
+            this.ctx.fillStyle = '#4f46e5';
+            this.ctx.fillRect(pos.x, pos.y, scaledWidth, scaledHeight);
+
+            // テーブル名
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = `bold ${16 * this.scale}px sans-serif`;
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText('📋 ' + table.name, pos.x + padding * this.scale, pos.y + (titleHeight / 2) * this.scale);
+
+            return;
+        }
 
         // 表示するレコード数を決定
         const maxRecords = this.showAllRecords ? (table.sampleData?.length || 0) : Math.min(10, table.sampleData?.length || 0);
