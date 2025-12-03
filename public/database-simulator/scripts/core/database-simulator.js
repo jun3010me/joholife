@@ -255,12 +255,42 @@ class DatabaseSimulator {
         };
     }
 
+    // 列の最適な幅を計算
+    calculateColumnWidth(table, columnIndex) {
+        const column = table.columns[columnIndex];
+        const padding = 20;
+        const minWidth = 80;
+        const maxWidth = 300;
+
+        // 列名の長さ
+        let maxLength = column.name.length;
+
+        // データの長さをチェック
+        if (table.sampleData && table.sampleData.length > 0) {
+            table.sampleData.forEach(row => {
+                const value = row[column.name];
+                if (value !== undefined && value !== null) {
+                    maxLength = Math.max(maxLength, String(value).length);
+                }
+            });
+        }
+
+        // 主キーマーク分の余裕を追加
+        if (column.isPrimaryKey) {
+            maxLength += 2;
+        }
+
+        // 1文字あたり8pxとして計算 + パディング
+        const calculatedWidth = maxLength * 8 + padding;
+
+        return Math.max(minWidth, Math.min(maxWidth, calculatedWidth));
+    }
+
     // テーブルを描画（横方向のデータシートビュー）
     drawTable(table) {
         const titleHeight = 40;
         const headerHeight = 35;
         const rowHeight = 28;
-        const columnWidth = 120;
         const padding = 8;
 
         // 列が空の場合は、タイトルのみを描画
@@ -310,8 +340,9 @@ class DatabaseSimulator {
         // 表示するレコード数を決定
         const maxRecords = this.showAllRecords ? (table.sampleData?.length || 0) : Math.min(10, table.sampleData?.length || 0);
 
-        // テーブルのサイズを計算
-        const tableWidth = table.columns.length * columnWidth;
+        // 各列の幅を計算
+        const columnWidths = table.columns.map((col, index) => this.calculateColumnWidth(table, index));
+        const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
         const tableHeight = titleHeight + headerHeight + (maxRecords * rowHeight);
 
         // テーブルのサイズを更新
@@ -359,7 +390,7 @@ class DatabaseSimulator {
         const headerY = pos.y + (titleHeight * this.scale);
 
         table.columns.forEach((column, colIndex) => {
-            const colWidth = columnWidth * this.scale;
+            const colWidth = columnWidths[colIndex] * this.scale;
 
             // ヘッダーの背景
             if (column.isPrimaryKey) {
@@ -404,7 +435,7 @@ class DatabaseSimulator {
                 let currentX = pos.x;
 
                 table.columns.forEach((column, colIndex) => {
-                    const colWidth = columnWidth * this.scale;
+                    const colWidth = columnWidths[colIndex] * this.scale;
 
                     // セルの背景
                     this.ctx.fillStyle = rowIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
@@ -703,7 +734,6 @@ class DatabaseSimulator {
 
         const worldPos = this.canvasToWorld(x, y);
         const titleHeight = 40;
-        const columnWidth = 120;
 
         // タイトル行をクリックした場合はテーブル全体の移動
         const relativeY = worldPos.y - table.y;
@@ -712,13 +742,18 @@ class DatabaseSimulator {
         // テーブルの範囲内かチェック（タイトル行以外の全領域）
         if (relativeY > table.height) return null;
 
-        // X座標から列を特定
+        // X座標から列を特定（動的な列幅に対応）
         const relativeX = worldPos.x - table.x;
         if (relativeX < 0 || relativeX > table.width) return null;
 
-        const columnIndex = Math.floor(relativeX / columnWidth);
-        if (columnIndex >= 0 && columnIndex < table.columns.length) {
-            return { column: table.columns[columnIndex], index: columnIndex };
+        // 各列の幅を計算して累積幅から列を特定
+        let cumulativeX = 0;
+        for (let i = 0; i < table.columns.length; i++) {
+            const colWidth = this.calculateColumnWidth(table, i);
+            if (relativeX >= cumulativeX && relativeX < cumulativeX + colWidth) {
+                return { column: table.columns[i], index: i };
+            }
+            cumulativeX += colWidth;
         }
 
         return null;
@@ -832,8 +867,13 @@ class DatabaseSimulator {
                         // ドロップ位置を計算（列の左半分か右半分か）
                         const worldPos = this.canvasToWorld(x, y);
                         const relativeX = worldPos.x - targetTable.x;
-                        const columnWidth = 120;
-                        const columnX = columnInfo.index * columnWidth;
+
+                        // ドロップ先の列の累積X位置を計算
+                        let columnX = 0;
+                        for (let i = 0; i < columnInfo.index; i++) {
+                            columnX += this.calculateColumnWidth(targetTable, i);
+                        }
+                        const columnWidth = this.calculateColumnWidth(targetTable, columnInfo.index);
                         const columnCenterX = columnX + columnWidth / 2;
 
                         // 列の右半分にドロップした場合は次の位置に挿入
@@ -853,6 +893,38 @@ class DatabaseSimulator {
             this.isDraggingColumn = false;
             this.draggedColumn = null;
             this.draggedFromTable = null;
+        }
+
+        // テーブルドラッグ終了時、キャンバス外にあれば削除
+        if (this.isDraggingTable && this.draggedTable) {
+            const table = this.draggedTable;
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const worldPos = this.canvasToWorld(canvasRect.width / 2, canvasRect.height / 2);
+
+            // キャンバスの表示範囲を計算
+            const viewportLeft = -this.panX / this.scale;
+            const viewportTop = -this.panY / this.scale;
+            const viewportRight = viewportLeft + (canvasRect.width / this.scale);
+            const viewportBottom = viewportTop + (canvasRect.height / this.scale);
+
+            // テーブルがキャンバス外にあるかチェック
+            const isOutside = (
+                table.x + table.width < viewportLeft ||
+                table.x > viewportRight ||
+                table.y + table.height < viewportTop ||
+                table.y > viewportBottom
+            );
+
+            if (isOutside) {
+                const confirmDelete = confirm(`テーブル「${table.name}」を削除しますか？`);
+                if (confirmDelete) {
+                    this.tables.delete(table.id);
+                    // このテーブルに関連するリレーションも削除
+                    this.relations = this.relations.filter(r =>
+                        r.fromTable !== table.id && r.toTable !== table.id
+                    );
+                }
+            }
         }
 
         this.isDraggingTable = false;
@@ -1127,8 +1199,13 @@ class DatabaseSimulator {
                         // ドロップ位置を計算（列の左半分か右半分か）
                         const worldPos = this.canvasToWorld(x, y);
                         const relativeX = worldPos.x - targetTable.x;
-                        const columnWidth = 120;
-                        const columnX = columnInfo.index * columnWidth;
+
+                        // ドロップ先の列の累積X位置を計算
+                        let columnX = 0;
+                        for (let i = 0; i < columnInfo.index; i++) {
+                            columnX += this.calculateColumnWidth(targetTable, i);
+                        }
+                        const columnWidth = this.calculateColumnWidth(targetTable, columnInfo.index);
                         const columnCenterX = columnX + columnWidth / 2;
 
                         // 列の右半分にドロップした場合は次の位置に挿入
@@ -1206,6 +1283,37 @@ class DatabaseSimulator {
                     this.lastTapPos = { x, y };
                 }
                 this.render();
+            }
+        }
+
+        // テーブルドラッグ終了時、キャンバス外にあれば削除
+        if (this.isDraggingTable && this.draggedTable) {
+            const table = this.draggedTable;
+            const canvasRect = this.canvas.getBoundingClientRect();
+
+            // キャンバスの表示範囲を計算
+            const viewportLeft = -this.panX / this.scale;
+            const viewportTop = -this.panY / this.scale;
+            const viewportRight = viewportLeft + (canvasRect.width / this.scale);
+            const viewportBottom = viewportTop + (canvasRect.height / this.scale);
+
+            // テーブルがキャンバス外にあるかチェック
+            const isOutside = (
+                table.x + table.width < viewportLeft ||
+                table.x > viewportRight ||
+                table.y + table.height < viewportTop ||
+                table.y > viewportBottom
+            );
+
+            if (isOutside) {
+                const confirmDelete = confirm(`テーブル「${table.name}」を削除しますか？`);
+                if (confirmDelete) {
+                    this.tables.delete(table.id);
+                    // このテーブルに関連するリレーションも削除
+                    this.relations = this.relations.filter(r =>
+                        r.fromTable !== table.id && r.toTable !== table.id
+                    );
+                }
             }
         }
 
