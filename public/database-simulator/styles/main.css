@@ -178,6 +178,52 @@
     line-height: 1.4;
 }
 
+/* 削除エリア */
+.delete-area {
+    display: none;
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    width: 200px;
+    height: 150px;
+    background: rgba(239, 68, 68, 0.9);
+    border: 3px dashed rgba(255, 255, 255, 0.8);
+    border-radius: 1rem;
+    z-index: 40;
+    pointer-events: none;
+    transition: all 0.2s;
+}
+
+.delete-area.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-area.hover {
+    background: rgba(220, 38, 38, 1);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5);
+}
+
+.delete-area-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: white;
+}
+
+.delete-icon {
+    font-size: 3rem;
+}
+
+.delete-text {
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
     .toolbar {

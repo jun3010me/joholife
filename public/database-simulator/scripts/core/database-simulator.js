@@ -58,6 +58,9 @@ class DatabaseSimulator {
         this.contextMenuVisible = false;
         this.contextMenuPos = { x: 0, y: 0 };
 
+        // 削除エリア
+        this.deleteArea = null;
+
         this.init();
     }
 
@@ -136,6 +139,9 @@ class DatabaseSimulator {
                 this.render();
             });
         }
+
+        // 削除エリアの初期化
+        this.deleteArea = document.getElementById('delete-area');
     }
 
     // ヘルプパネルの表示/非表示を切り替え
@@ -144,6 +150,33 @@ class DatabaseSimulator {
         if (helpPanel) {
             helpPanel.classList.toggle('show');
         }
+    }
+
+    // 削除エリアの表示
+    showDeleteArea() {
+        if (this.deleteArea) {
+            this.deleteArea.classList.add('show');
+        }
+    }
+
+    // 削除エリアの非表示
+    hideDeleteArea() {
+        if (this.deleteArea) {
+            this.deleteArea.classList.remove('show', 'hover');
+        }
+    }
+
+    // マウス/タッチ位置が削除エリア上にあるかチェック
+    isOverDeleteArea(clientX, clientY) {
+        if (!this.deleteArea) return false;
+
+        const rect = this.deleteArea.getBoundingClientRect();
+        return (
+            clientX >= rect.left &&
+            clientX <= rect.right &&
+            clientY >= rect.top &&
+            clientY <= rect.bottom
+        );
     }
 
     // サンプルデータを読み込み
@@ -803,6 +836,9 @@ class DatabaseSimulator {
                     x: worldPos.x - table.x,
                     y: worldPos.y - table.y
                 };
+
+                // 削除エリアを表示
+                this.showDeleteArea();
             }
         } else {
             // 空白をクリック（パン開始）
@@ -827,6 +863,14 @@ class DatabaseSimulator {
             const worldPos = this.canvasToWorld(x, y);
             this.draggedTable.x = worldPos.x - this.dragOffset.x;
             this.draggedTable.y = worldPos.y - this.dragOffset.y;
+
+            // 削除エリアの上にあるかチェック
+            if (this.isOverDeleteArea(e.clientX, e.clientY)) {
+                this.deleteArea.classList.add('hover');
+            } else {
+                this.deleteArea.classList.remove('hover');
+            }
+
             this.render();
         } else if (this.isDraggingColumn) {
             // 列のドラッグ中は再描画してアニメーションを表示
@@ -895,27 +939,12 @@ class DatabaseSimulator {
             this.draggedFromTable = null;
         }
 
-        // テーブルドラッグ終了時、キャンバス外にあれば削除
+        // テーブルドラッグ終了時、削除エリアにドロップしたか確認
         if (this.isDraggingTable && this.draggedTable) {
             const table = this.draggedTable;
-            const canvasRect = this.canvas.getBoundingClientRect();
-            const worldPos = this.canvasToWorld(canvasRect.width / 2, canvasRect.height / 2);
 
-            // キャンバスの表示範囲を計算
-            const viewportLeft = -this.panX / this.scale;
-            const viewportTop = -this.panY / this.scale;
-            const viewportRight = viewportLeft + (canvasRect.width / this.scale);
-            const viewportBottom = viewportTop + (canvasRect.height / this.scale);
-
-            // テーブルがキャンバス外にあるかチェック
-            const isOutside = (
-                table.x + table.width < viewportLeft ||
-                table.x > viewportRight ||
-                table.y + table.height < viewportTop ||
-                table.y > viewportBottom
-            );
-
-            if (isOutside) {
+            // 削除エリアにドロップしたかチェック
+            if (this.isOverDeleteArea(e.clientX, e.clientY)) {
                 const confirmDelete = confirm(`テーブル「${table.name}」を削除しますか？`);
                 if (confirmDelete) {
                     this.tables.delete(table.id);
@@ -926,6 +955,9 @@ class DatabaseSimulator {
                 }
             }
         }
+
+        // 削除エリアを非表示
+        this.hideDeleteArea();
 
         this.isDraggingTable = false;
         this.draggedTable = null;
@@ -1102,6 +1134,14 @@ class DatabaseSimulator {
                 const worldPos = this.canvasToWorld(x, y);
                 this.draggedTable.x = worldPos.x - this.dragOffset.x;
                 this.draggedTable.y = worldPos.y - this.dragOffset.y;
+
+                // 削除エリアの上にあるかチェック
+                if (this.isOverDeleteArea(touch.clientX, touch.clientY)) {
+                    this.deleteArea.classList.add('hover');
+                } else {
+                    this.deleteArea.classList.remove('hover');
+                }
+
                 this.render();
             } else if (this.touchStartPos) {
                 const dx = x - this.touchStartPos.x;
@@ -1138,6 +1178,9 @@ class DatabaseSimulator {
                                 x: worldPos.x - table.x,
                                 y: worldPos.y - table.y
                             };
+
+                            // 削除エリアを表示
+                            this.showDeleteArea();
                         } else {
                             // パン
                             this.panX += dx;
@@ -1286,26 +1329,13 @@ class DatabaseSimulator {
             }
         }
 
-        // テーブルドラッグ終了時、キャンバス外にあれば削除
-        if (this.isDraggingTable && this.draggedTable) {
+        // テーブルドラッグ終了時、削除エリアにドロップしたか確認
+        if (this.isDraggingTable && this.draggedTable && this.touches.length === 1) {
             const table = this.draggedTable;
-            const canvasRect = this.canvas.getBoundingClientRect();
+            const touch = this.touches[0];
 
-            // キャンバスの表示範囲を計算
-            const viewportLeft = -this.panX / this.scale;
-            const viewportTop = -this.panY / this.scale;
-            const viewportRight = viewportLeft + (canvasRect.width / this.scale);
-            const viewportBottom = viewportTop + (canvasRect.height / this.scale);
-
-            // テーブルがキャンバス外にあるかチェック
-            const isOutside = (
-                table.x + table.width < viewportLeft ||
-                table.x > viewportRight ||
-                table.y + table.height < viewportTop ||
-                table.y > viewportBottom
-            );
-
-            if (isOutside) {
+            // 削除エリアにドロップしたかチェック
+            if (this.isOverDeleteArea(touch.clientX, touch.clientY)) {
                 const confirmDelete = confirm(`テーブル「${table.name}」を削除しますか？`);
                 if (confirmDelete) {
                     this.tables.delete(table.id);
@@ -1316,6 +1346,9 @@ class DatabaseSimulator {
                 }
             }
         }
+
+        // 削除エリアを非表示
+        this.hideDeleteArea();
 
         this.touches = Array.from(e.touches);
         this.isDraggingTable = false;
