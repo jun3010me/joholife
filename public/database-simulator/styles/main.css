@@ -182,7 +182,7 @@
 .delete-area {
     display: none;
     position: absolute;
-    bottom: 2rem;
+    bottom: 6rem;
     right: 2rem;
     width: 200px;
     height: 150px;
