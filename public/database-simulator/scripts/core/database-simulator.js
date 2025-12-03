@@ -443,8 +443,23 @@ class DatabaseSimulator {
 
             if (!fromTable || !toTable) return;
 
-            const fromPos = this.worldToCanvas(fromTable.x + fromTable.width, fromTable.y + fromTable.height / 2);
-            const toPos = this.worldToCanvas(toTable.x, toTable.y + toTable.height / 2);
+            // 2つのテーブルの中心座標を計算
+            const fromCenter = {
+                x: fromTable.x + fromTable.width / 2,
+                y: fromTable.y + fromTable.height / 2
+            };
+            const toCenter = {
+                x: toTable.x + toTable.width / 2,
+                y: toTable.y + toTable.height / 2
+            };
+
+            // 各テーブルの辺との交点を計算
+            const fromPoint = this.getRectangleEdgePoint(fromTable, toCenter);
+            const toPoint = this.getRectangleEdgePoint(toTable, fromCenter);
+
+            // Canvas座標に変換
+            const fromPos = this.worldToCanvas(fromPoint.x, fromPoint.y);
+            const toPos = this.worldToCanvas(toPoint.x, toPoint.y);
 
             // 矢印を描画
             this.ctx.strokeStyle = '#10b981';
@@ -473,6 +488,95 @@ class DatabaseSimulator {
             this.ctx.closePath();
             this.ctx.fill();
         });
+    }
+
+    // 矩形の中心から指定点への直線と、矩形の辺との交点を計算
+    getRectangleEdgePoint(rect, targetPoint) {
+        const centerX = rect.x + rect.width / 2;
+        const centerY = rect.y + rect.height / 2;
+
+        // 中心から目標点への方向ベクトル
+        const dx = targetPoint.x - centerX;
+        const dy = targetPoint.y - centerY;
+
+        // 矩形の半分のサイズ
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
+
+        // 交点を計算（矩形の4辺との交点を調べる）
+        let intersectX, intersectY;
+
+        if (Math.abs(dx) < 0.001) {
+            // 垂直線の場合
+            intersectX = centerX;
+            intersectY = dy > 0 ? rect.y + rect.height : rect.y;
+        } else if (Math.abs(dy) < 0.001) {
+            // 水平線の場合
+            intersectX = dx > 0 ? rect.x + rect.width : rect.x;
+            intersectY = centerY;
+        } else {
+            // 傾きを計算
+            const slope = dy / dx;
+
+            // 4辺との交点候補を計算
+            const candidates = [];
+
+            // 右辺との交点
+            if (dx > 0) {
+                const x = centerX + halfWidth;
+                const y = centerY + slope * halfWidth;
+                if (y >= rect.y && y <= rect.y + rect.height) {
+                    candidates.push({ x, y });
+                }
+            }
+
+            // 左辺との交点
+            if (dx < 0) {
+                const x = centerX - halfWidth;
+                const y = centerY - slope * halfWidth;
+                if (y >= rect.y && y <= rect.y + rect.height) {
+                    candidates.push({ x, y });
+                }
+            }
+
+            // 下辺との交点
+            if (dy > 0) {
+                const y = centerY + halfHeight;
+                const x = centerX + halfHeight / slope;
+                if (x >= rect.x && x <= rect.x + rect.width) {
+                    candidates.push({ x, y });
+                }
+            }
+
+            // 上辺との交点
+            if (dy < 0) {
+                const y = centerY - halfHeight;
+                const x = centerX - halfHeight / slope;
+                if (x >= rect.x && x <= rect.x + rect.width) {
+                    candidates.push({ x, y });
+                }
+            }
+
+            // 最も近い交点を選択
+            if (candidates.length > 0) {
+                const closest = candidates.reduce((min, point) => {
+                    const dist = Math.sqrt(
+                        Math.pow(point.x - targetPoint.x, 2) +
+                        Math.pow(point.y - targetPoint.y, 2)
+                    );
+                    return dist < min.dist ? { point, dist } : min;
+                }, { point: candidates[0], dist: Infinity });
+
+                intersectX = closest.point.x;
+                intersectY = closest.point.y;
+            } else {
+                // フォールバック：中心を返す
+                intersectX = centerX;
+                intersectY = centerY;
+            }
+        }
+
+        return { x: intersectX, y: intersectY };
     }
 
     // レンダリング
