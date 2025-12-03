@@ -959,21 +959,37 @@ class DatabaseSimulator {
             this.touchStartTime = Date.now();
             this.touchStartPos = { x, y };
 
-            // ロングプレス検出
+            // タッチ開始位置がテーブルの列かどうかをチェック
+            const table = this.getTableAt(x, y);
+            if (table) {
+                const columnInfo = this.getColumnAt(table, x, y);
+                if (columnInfo) {
+                    // 列をタッチした場合、列情報を保存
+                    this.touchStartColumn = columnInfo.column;
+                    this.touchStartTable = table;
+                    this.touchStartColumnInfo = columnInfo;
+                } else {
+                    this.touchStartColumn = null;
+                    this.touchStartTable = null;
+                    this.touchStartColumnInfo = null;
+                }
+            } else {
+                this.touchStartColumn = null;
+                this.touchStartTable = null;
+                this.touchStartColumnInfo = null;
+            }
+
+            // ロングプレス検出（主キー切り替え用）
             this.longPressTimer = setTimeout(() => {
                 this.isLongPress = true;
-                const table = this.getTableAt(x, y);
-                if (table) {
-                    const columnInfo = this.getColumnAt(table, x, y);
-                    if (columnInfo) {
-                        columnInfo.column.isPrimaryKey = !columnInfo.column.isPrimaryKey;
-                        this.detectRelations();
-                        this.render();
+                if (this.touchStartColumn && this.touchStartColumnInfo) {
+                    this.touchStartColumnInfo.column.isPrimaryKey = !this.touchStartColumnInfo.column.isPrimaryKey;
+                    this.detectRelations();
+                    this.render();
 
-                        // 触覚フィードバック
-                        if (navigator.vibrate) {
-                            navigator.vibrate(50);
-                        }
+                    // 触覚フィードバック
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
                     }
                 }
             }, 500);
@@ -1000,8 +1016,14 @@ class DatabaseSimulator {
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
 
-            // パンまたはテーブルドラッグ
-            if (this.isDraggingTable && this.draggedTable) {
+            this.currentMousePos = { x, y };
+
+            // 列のドラッグ中
+            if (this.isDraggingColumn) {
+                this.render();
+            }
+            // テーブルのドラッグ中
+            else if (this.isDraggingTable && this.draggedTable) {
                 const worldPos = this.canvasToWorld(x, y);
                 this.draggedTable.x = worldPos.x - this.dragOffset.x;
                 this.draggedTable.y = worldPos.y - this.dragOffset.y;
@@ -1011,8 +1033,24 @@ class DatabaseSimulator {
                 const dy = y - this.touchStartPos.y;
 
                 if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                    // 列をタッチしていた場合は列のドラッグを開始
+                    if (this.touchStartColumn && this.touchStartTable) {
+                        // テーブルを最前面に移動
+                        this.touchStartTable.zIndex = this.nextZIndex++;
+
+                        // 列を選択
+                        this.selectedColumns.clear();
+                        this.selectedColumns.add(this.touchStartColumn.id);
+
+                        // 列ドラッグ開始
+                        this.isDraggingColumn = true;
+                        this.draggedColumn = this.touchStartColumn.id;
+                        this.draggedFromTable = this.touchStartTable.id;
+
+                        this.render();
+                    }
                     // テーブルドラッグを開始
-                    if (!this.isDraggingTable) {
+                    else if (!this.isDraggingTable) {
                         const table = this.getTableAt(this.touchStartPos.x, this.touchStartPos.y);
                         if (table) {
                             // テーブルを最前面に移動
@@ -1068,7 +1106,48 @@ class DatabaseSimulator {
             this.longPressTimer = null;
         }
 
-        if (this.touches.length === 1 && !this.isLongPress && this.touchStartPos) {
+        // 列のドラッグ終了処理
+        if (this.isDraggingColumn && this.touches.length === 1) {
+            const touch = this.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            // 列のドロップ先を確認
+            const targetTable = this.getTableAt(x, y);
+
+            if (targetTable) {
+                if (targetTable.id === this.draggedFromTable) {
+                    // 同じテーブル内で列を並び替え
+                    const columnInfo = this.getColumnAt(targetTable, x, y);
+                    if (columnInfo) {
+                        // ドロップ位置を計算（列の左半分か右半分か）
+                        const worldPos = this.canvasToWorld(x, y);
+                        const relativeX = worldPos.x - targetTable.x;
+                        const columnWidth = 120;
+                        const columnX = columnInfo.index * columnWidth;
+                        const columnCenterX = columnX + columnWidth / 2;
+
+                        // 列の右半分にドロップした場合は次の位置に挿入
+                        let targetIndex = columnInfo.index;
+                        if (relativeX > columnCenterX) {
+                            targetIndex++;
+                        }
+
+                        this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), targetIndex);
+                    }
+                } else {
+                    // 別のテーブルに列を移動
+                    this.moveColumns(Array.from(this.selectedColumns), this.draggedFromTable, targetTable.id);
+                }
+            }
+
+            this.isDraggingColumn = false;
+            this.draggedColumn = null;
+            this.draggedFromTable = null;
+        }
+        // タップ判定（列ドラッグでない場合）
+        else if (this.touches.length === 1 && !this.isLongPress && this.touchStartPos && !this.isDraggingColumn) {
             const touch = this.touches[0];
             const rect = this.canvas.getBoundingClientRect();
             const x = touch.clientX - rect.left;
@@ -1107,8 +1186,14 @@ class DatabaseSimulator {
         this.touches = Array.from(e.touches);
         this.isDraggingTable = false;
         this.draggedTable = null;
+        this.isDraggingColumn = false;
+        this.draggedColumn = null;
+        this.draggedFromTable = null;
         this.isLongPress = false;
         this.touchStartPos = null;
+        this.touchStartColumn = null;
+        this.touchStartTable = null;
+        this.touchStartColumnInfo = null;
 
         if (this.touches.length === 0) {
             this.lastPinchDistance = null;
