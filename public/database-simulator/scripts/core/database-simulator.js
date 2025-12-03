@@ -1386,6 +1386,41 @@ class DatabaseSimulator {
         };
     }
 
+    // テーブルの重複レコードを削除（主キーでユニーク化）
+    removeDuplicateRecords(table) {
+        if (!table.sampleData || table.sampleData.length === 0) {
+            return table.sampleData;
+        }
+
+        // 主キー列を取得
+        const primaryKeyColumns = table.columns.filter(c => c.isPrimaryKey);
+
+        // 主キーがない場合は重複削除しない
+        if (primaryKeyColumns.length === 0) {
+            return table.sampleData;
+        }
+
+        // 主キー列の名前を取得
+        const primaryKeyNames = primaryKeyColumns.map(c => c.name);
+
+        // 主キーの値を連結してユニークキーを作成
+        const seen = new Map();
+        const uniqueRecords = [];
+
+        table.sampleData.forEach(record => {
+            // 主キー列の値を連結してキーを作成
+            const key = primaryKeyNames.map(name => String(record[name] || '')).join('|');
+
+            // まだ見ていないキーの場合のみ追加
+            if (!seen.has(key)) {
+                seen.set(key, true);
+                uniqueRecords.push(record);
+            }
+        });
+
+        return uniqueRecords;
+    }
+
     // 列を移動
     moveColumns(columnIds, fromTableId, toTableId) {
         const fromTable = this.tables.get(fromTableId);
@@ -1455,6 +1490,9 @@ class DatabaseSimulator {
 
                 toTable.sampleData = newSampleData;
             }
+
+            // 移動先テーブルの重複レコードを削除（主キーでユニーク化）
+            toTable.sampleData = this.removeDuplicateRecords(toTable);
 
             // 非主キー列のデータは元のテーブルから削除
             const nonPrimaryKeyNames = nonPrimaryKeyColumns.map(c => c.name);
