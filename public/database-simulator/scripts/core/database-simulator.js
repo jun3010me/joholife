@@ -1686,7 +1686,8 @@ class DatabaseSimulator {
             }
 
             // 移動先テーブルの重複レコードを削除（主キーでユニーク化）
-            toTable.sampleData = this.removeDuplicateRecords(toTable);
+            // ※ 自動削除は無効化（手動ボタンで削除するため）
+            // toTable.sampleData = this.removeDuplicateRecords(toTable);
 
             // 非主キー列のデータは元のテーブルから削除
             const nonPrimaryKeyNames = nonPrimaryKeyColumns.map(c => c.name);
