@@ -122,6 +122,7 @@ class DatabaseSimulator {
         const saveBtn = document.getElementById('save-db-btn');
         const loadBtn = document.getElementById('load-db-btn');
         const importCsvBtn = document.getElementById('import-csv-btn');
+        const removeDuplicatesBtn = document.getElementById('remove-duplicates-btn');
         const helpToggleBtn = document.getElementById('help-toggle-btn');
         const helpCloseBtn = document.getElementById('help-close-btn');
         const showAllRecordsCheckbox = document.getElementById('show-all-records-checkbox');
@@ -131,6 +132,7 @@ class DatabaseSimulator {
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveDatabase());
         if (loadBtn) loadBtn.addEventListener('click', () => this.loadDatabase());
         if (importCsvBtn) importCsvBtn.addEventListener('click', () => this.importCSV());
+        if (removeDuplicatesBtn) removeDuplicatesBtn.addEventListener('click', () => this.removeAllDuplicates());
         if (helpToggleBtn) helpToggleBtn.addEventListener('click', () => this.toggleHelp());
         if (helpCloseBtn) helpCloseBtn.addEventListener('click', () => this.toggleHelp());
         if (showAllRecordsCheckbox) {
@@ -1419,6 +1421,37 @@ class DatabaseSimulator {
         });
 
         return uniqueRecords;
+    }
+
+    // 全テーブルの重複レコードを削除
+    removeAllDuplicates() {
+        let totalRemoved = 0;
+        let tablesProcessed = 0;
+
+        this.tables.forEach(table => {
+            // 主キーがあるテーブルのみ処理
+            const primaryKeyColumns = table.columns.filter(c => c.isPrimaryKey);
+            if (primaryKeyColumns.length > 0 && table.sampleData && table.sampleData.length > 0) {
+                const originalCount = table.sampleData.length;
+                table.sampleData = this.removeDuplicateRecords(table);
+                const newCount = table.sampleData.length;
+                const removed = originalCount - newCount;
+
+                if (removed > 0) {
+                    totalRemoved += removed;
+                    tablesProcessed++;
+                }
+            }
+        });
+
+        this.render();
+
+        // 結果を表示
+        if (totalRemoved > 0) {
+            alert(`${tablesProcessed}個のテーブルから合計${totalRemoved}件の重複レコードを削除しました。`);
+        } else {
+            alert('重複レコードは見つかりませんでした。');
+        }
     }
 
     // 列を移動
