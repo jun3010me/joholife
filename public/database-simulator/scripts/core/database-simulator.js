@@ -1510,6 +1510,9 @@ class DatabaseSimulator {
             }
         });
 
+        // リレーションを再検出（テーブルサイズ変更後）
+        this.detectRelations();
+
         this.render();
 
         // 結果を表示
