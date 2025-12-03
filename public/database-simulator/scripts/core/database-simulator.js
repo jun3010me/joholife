@@ -102,6 +102,7 @@ class DatabaseSimulator {
         this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
         this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
         this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.canvas.addEventListener('dblclick', this.handleDoubleClick.bind(this));
         this.canvas.addEventListener('wheel', this.handleWheel.bind(this));
         this.canvas.addEventListener('contextmenu', this.handleContextMenu.bind(this));
 
@@ -901,6 +902,47 @@ class DatabaseSimulator {
         this.detectRelations();
 
         this.render();
+    }
+
+    // ダブルクリック
+    handleDoubleClick(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const table = this.getTableAt(x, y);
+        if (!table) return;
+
+        // タイトル部分をダブルクリックしたかチェック
+        if (this.isTableTitleClick(table, x, y)) {
+            this.renameTable(table);
+        }
+    }
+
+    // テーブルのタイトル部分をクリックしたか判定
+    isTableTitleClick(table, x, y) {
+        const worldPos = this.canvasToWorld(x, y);
+        const titleHeight = 40;
+
+        const relativeY = worldPos.y - table.y;
+        return relativeY >= 0 && relativeY <= titleHeight;
+    }
+
+    // テーブル名を変更
+    renameTable(table) {
+        const newName = prompt('新しいテーブル名を入力してください:', table.name);
+        if (newName && newName.trim() && newName.trim() !== table.name) {
+            table.name = newName.trim();
+
+            // テーブル名の長さに応じて幅を再計算（列がない場合のみ）
+            if (table.columns.length === 0) {
+                const nameWidth = (table.name.length * 16) + 80;
+                const minWidth = 150;
+                table.width = Math.max(minWidth, nameWidth);
+            }
+
+            this.render();
+        }
     }
 
     // タッチスタート
