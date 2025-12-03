@@ -677,7 +677,20 @@ class DatabaseSimulator {
                     // 同じテーブル内で列を並び替え
                     const columnInfo = this.getColumnAt(targetTable, x, y);
                     if (columnInfo) {
-                        this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), columnInfo.index);
+                        // ドロップ位置を計算（列の左半分か右半分か）
+                        const worldPos = this.canvasToWorld(x, y);
+                        const relativeX = worldPos.x - targetTable.x;
+                        const columnWidth = 120;
+                        const columnX = columnInfo.index * columnWidth;
+                        const columnCenterX = columnX + columnWidth / 2;
+
+                        // 列の右半分にドロップした場合は次の位置に挿入
+                        let targetIndex = columnInfo.index;
+                        if (relativeX > columnCenterX) {
+                            targetIndex++;
+                        }
+
+                        this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), targetIndex);
                     }
                 } else {
                     // 別のテーブルに列を移動
