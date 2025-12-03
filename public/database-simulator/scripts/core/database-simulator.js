@@ -118,6 +118,7 @@ class DatabaseSimulator {
         const resetBtn = document.getElementById('reset-btn');
         const saveBtn = document.getElementById('save-db-btn');
         const loadBtn = document.getElementById('load-db-btn');
+        const importCsvBtn = document.getElementById('import-csv-btn');
         const helpToggleBtn = document.getElementById('help-toggle-btn');
         const helpCloseBtn = document.getElementById('help-close-btn');
         const showAllRecordsCheckbox = document.getElementById('show-all-records-checkbox');
@@ -126,6 +127,7 @@ class DatabaseSimulator {
         if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveDatabase());
         if (loadBtn) loadBtn.addEventListener('click', () => this.loadDatabase());
+        if (importCsvBtn) importCsvBtn.addEventListener('click', () => this.importCSV());
         if (helpToggleBtn) helpToggleBtn.addEventListener('click', () => this.toggleHelp());
         if (helpCloseBtn) helpCloseBtn.addEventListener('click', () => this.toggleHelp());
         if (showAllRecordsCheckbox) {
@@ -1468,6 +1470,145 @@ class DatabaseSimulator {
         };
 
         input.click();
+    }
+
+    // CSVファイルを読み込んでテーブルとして追加
+    importCSV() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const csvText = event.target.result;
+                    const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+
+                    if (lines.length < 2) {
+                        alert('CSVファイルにデータが含まれていません');
+                        return;
+                    }
+
+                    // 1行目をヘッダー（列名）として取得
+                    const headers = this.parseCSVLine(lines[0]);
+
+                    // 2行目以降をデータとして取得
+                    const rows = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const values = this.parseCSVLine(lines[i]);
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = values[index];
+                            });
+                            rows.push(row);
+                        }
+                    }
+
+                    if (rows.length === 0) {
+                        alert('CSVファイルにデータが含まれていません');
+                        return;
+                    }
+
+                    // テーブル名を入力
+                    const fileName = file.name.replace(/\.csv$/i, '');
+                    const tableName = prompt('テーブル名を入力してください:', fileName);
+                    if (!tableName || !tableName.trim()) return;
+
+                    // データ型を推測して列を作成
+                    const columns = headers.map(header => ({
+                        id: this.nextColumnId++,
+                        name: header,
+                        isPrimaryKey: false,
+                        dataType: this.inferDataType(rows, header)
+                    }));
+
+                    // 新しいテーブルを作成
+                    const tableId = this.nextTableId++;
+                    const table = {
+                        id: tableId,
+                        name: tableName.trim(),
+                        x: 50 + (this.tables.size * 50) % 400,
+                        y: 50 + (this.tables.size * 50) % 300,
+                        width: Math.max(300, columns.length * 120),
+                        height: 200,
+                        zIndex: this.nextZIndex++,
+                        columns: columns,
+                        sampleData: rows
+                    };
+
+                    this.tables.set(tableId, table);
+                    this.render();
+
+                    alert(`テーブル「${tableName}」を追加しました\n列数: ${columns.length}\nレコード数: ${rows.length}`);
+                } catch (error) {
+                    alert('CSVファイルの読み込みに失敗しました: ' + error.message);
+                }
+            };
+
+            reader.readAsText(file);
+        };
+
+        input.click();
+    }
+
+    // CSV行をパース（カンマ区切り、ダブルクォート対応）
+    parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    // エスケープされたダブルクォート
+                    current += '"';
+                    i++;
+                } else {
+                    // クォートの開始/終了
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                // フィールドの区切り
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+
+        // 最後のフィールドを追加
+        result.push(current.trim());
+
+        return result;
+    }
+
+    // データ型を推測
+    inferDataType(rows, columnName) {
+        if (rows.length === 0) return 'VARCHAR';
+
+        // 最初の5行をサンプルとして調べる
+        const samples = rows.slice(0, 5).map(row => row[columnName]);
+
+        // すべて数値ならINT
+        const allNumbers = samples.every(val => /^\d+$/.test(val));
+        if (allNumbers) return 'INT';
+
+        // 日付形式ならDATE
+        const allDates = samples.every(val =>
+            /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(val)
+        );
+        if (allDates) return 'DATE';
+
+        // それ以外はVARCHAR
+        return 'VARCHAR';
     }
 }
 
