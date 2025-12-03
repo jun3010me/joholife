@@ -144,6 +144,35 @@ class DatabaseSimulator {
     // サンプルデータを読み込み
     loadSampleData() {
         // 図書館貸出管理の非正規化テーブル
+        const columns = [
+            { id: this.nextColumnId++, name: '貸出ID', isPrimaryKey: true, dataType: 'INT' },
+            { id: this.nextColumnId++, name: '会員番号', isPrimaryKey: false, dataType: 'INT' },
+            { id: this.nextColumnId++, name: '会員氏名', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '電話番号', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '登録日', isPrimaryKey: false, dataType: 'DATE' },
+            { id: this.nextColumnId++, name: 'ISBN', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '書籍名', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '著者', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '出版社', isPrimaryKey: false, dataType: 'VARCHAR' },
+            { id: this.nextColumnId++, name: '出版年', isPrimaryKey: false, dataType: 'INT' },
+            { id: this.nextColumnId++, name: '貸出日', isPrimaryKey: false, dataType: 'DATE' },
+            { id: this.nextColumnId++, name: '返却予定日', isPrimaryKey: false, dataType: 'DATE' }
+        ];
+
+        // 配列データを列名をキーとするオブジェクトに変換
+        const rawData = [
+            ['L001', 'M001', '田中太郎', '090-1111-2222', '2023-04-01', '978-1111', 'データベース入門', '山田一郎', 'A出版', '2023', '2024-01-10', '2024-01-24'],
+            ['L002', 'M002', '鈴木花子', '090-3333-4444', '2023-05-15', '978-3333', 'Python入門', '高橋三郎', 'C出版', '2023', '2024-01-11', '2024-01-25']
+        ];
+
+        const sampleData = rawData.map(row => {
+            const record = {};
+            columns.forEach((col, index) => {
+                record[col.name] = row[index];
+            });
+            return record;
+        });
+
         const table1 = {
             id: this.nextTableId++,
             name: '貸出管理テーブル',
@@ -152,24 +181,8 @@ class DatabaseSimulator {
             width: 1440,  // 12列 * 120px
             height: 131,  // タイトル(40) + ヘッダー(35) + データ2行(28*2)
             zIndex: this.nextZIndex++,
-            columns: [
-                { id: this.nextColumnId++, name: '貸出ID', isPrimaryKey: true, dataType: 'INT' },
-                { id: this.nextColumnId++, name: '会員番号', isPrimaryKey: false, dataType: 'INT' },
-                { id: this.nextColumnId++, name: '会員氏名', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '電話番号', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '登録日', isPrimaryKey: false, dataType: 'DATE' },
-                { id: this.nextColumnId++, name: 'ISBN', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '書籍名', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '著者', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '出版社', isPrimaryKey: false, dataType: 'VARCHAR' },
-                { id: this.nextColumnId++, name: '出版年', isPrimaryKey: false, dataType: 'INT' },
-                { id: this.nextColumnId++, name: '貸出日', isPrimaryKey: false, dataType: 'DATE' },
-                { id: this.nextColumnId++, name: '返却予定日', isPrimaryKey: false, dataType: 'DATE' }
-            ],
-            sampleData: [
-                ['L001', 'M001', '田中太郎', '090-1111-2222', '2023-04-01', '978-1111', 'データベース入門', '山田一郎', 'A出版', '2023', '2024-01-10', '2024-01-24'],
-                ['L002', 'M002', '鈴木花子', '090-3333-4444', '2023-05-15', '978-3333', 'Python入門', '高橋三郎', 'C出版', '2023', '2024-01-11', '2024-01-25']
-            ]
+            columns: columns,
+            sampleData: sampleData
         };
 
         this.tables.set(table1.id, table1);
