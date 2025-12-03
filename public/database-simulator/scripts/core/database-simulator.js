@@ -459,11 +459,16 @@ class DatabaseSimulator {
         table.columns.forEach((column, colIndex) => {
             const colWidth = columnWidths[colIndex] * this.scale;
 
+            // 外部キーかどうかを判定
+            const isForeignKey = this.isForeignKey(table, column);
+
             // ヘッダーの背景
             if (column.isPrimaryKey) {
-                this.ctx.fillStyle = '#fde68a';
+                this.ctx.fillStyle = '#fde68a';  // 主キー: 黄色
+            } else if (isForeignKey) {
+                this.ctx.fillStyle = '#dbeafe';  // 外部キー: 青色
             } else {
-                this.ctx.fillStyle = '#e2e8f0';
+                this.ctx.fillStyle = '#e2e8f0';  // 通常の列: 灰色
             }
             this.ctx.fillRect(currentX, headerY, colWidth, headerHeight * this.scale);
 
@@ -477,7 +482,7 @@ class DatabaseSimulator {
             this.ctx.font = `bold ${12 * this.scale}px sans-serif`;
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'middle';
-            const icon = column.isPrimaryKey ? '🔑 ' : '';
+            const icon = column.isPrimaryKey ? '🔑 ' : (isForeignKey ? '🔗 ' : '');
             const text = icon + column.name;
 
             // テキストを切り詰め
@@ -1618,12 +1623,17 @@ class DatabaseSimulator {
         const primaryKeyColumns = columnsToMove.filter(c => c.isPrimaryKey);
         const nonPrimaryKeyColumns = columnsToMove.filter(c => !c.isPrimaryKey);
 
-        // 主キー列はコピー（外部キーとして扱う）
+        // 主キー列はコピーして移動先で主キーとして設定
         const copiedPrimaryKeys = primaryKeyColumns.map(c => ({
             ...c,
             id: this.nextColumnId++,
-            isPrimaryKey: false
+            isPrimaryKey: true  // 移動先で主キーとして設定
         }));
+
+        // 移動元の主キー列を外部キーに変更（isPrimaryKeyをfalseに）
+        primaryKeyColumns.forEach(pkCol => {
+            pkCol.isPrimaryKey = false;
+        });
 
         // 移動する列の名前を取得
         const columnsToMoveNames = columnsToMove.map(c => c.name);
@@ -1689,7 +1699,7 @@ class DatabaseSimulator {
             });
         }
 
-        // 非主キー列は移動
+        // 非主キー列は移動（元のテーブルから削除）
         fromTable.columns = fromTable.columns.filter(c => !nonPrimaryKeyColumns.some(nc => nc.id === c.id));
 
         // 移動先に追加
@@ -1772,6 +1782,23 @@ class DatabaseSimulator {
                 }
             });
         });
+    }
+
+    // 列が外部キーかどうかを判定
+    isForeignKey(table, column) {
+        if (column.isPrimaryKey) return false;
+
+        // 全テーブルの主キーを収集
+        for (const [tableId, t] of this.tables) {
+            if (tableId === table.id) continue;
+
+            for (const col of t.columns) {
+                if (col.isPrimaryKey && col.name === column.name) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // データベースを保存
