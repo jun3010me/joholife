@@ -35,6 +35,8 @@ class DatabaseSimulator {
         this.touchStartTime = 0;
         this.touchStartPos = null;
         this.isLongPress = false;
+        this.lastTapTime = 0;
+        this.lastTapPos = null;
 
         // マウス位置
         this.currentMousePos = { x: 0, y: 0 };
@@ -1160,23 +1162,46 @@ class DatabaseSimulator {
 
             // タップ判定
             if (timeDiff < 300 && distance < 10) {
+                const currentTime = Date.now();
                 const table = this.getTableAt(x, y);
-                if (table) {
-                    // テーブルを最前面に移動
-                    table.zIndex = this.nextZIndex++;
 
-                    this.selectedTable = table.id;
-                    const columnInfo = this.getColumnAt(table, x, y);
-                    if (columnInfo) {
-                        if (this.selectedColumns.has(columnInfo.column.id)) {
-                            this.selectedColumns.delete(columnInfo.column.id);
-                        } else {
-                            this.selectedColumns.add(columnInfo.column.id);
-                        }
-                    }
+                // ダブルタップ判定
+                const isDoubleTap = this.lastTapTime > 0 &&
+                                   (currentTime - this.lastTapTime) < 300 &&
+                                   this.lastTapPos &&
+                                   Math.sqrt(
+                                       Math.pow(x - this.lastTapPos.x, 2) +
+                                       Math.pow(y - this.lastTapPos.y, 2)
+                                   ) < 30;
+
+                if (isDoubleTap && table && this.isTableTitleClick(table, x, y)) {
+                    // ダブルタップでテーブル名を編集
+                    this.renameTable(table);
+                    this.lastTapTime = 0;
+                    this.lastTapPos = null;
                 } else {
-                    this.selectedTable = null;
-                    this.selectedColumns.clear();
+                    // シングルタップの処理
+                    if (table) {
+                        // テーブルを最前面に移動
+                        table.zIndex = this.nextZIndex++;
+
+                        this.selectedTable = table.id;
+                        const columnInfo = this.getColumnAt(table, x, y);
+                        if (columnInfo) {
+                            if (this.selectedColumns.has(columnInfo.column.id)) {
+                                this.selectedColumns.delete(columnInfo.column.id);
+                            } else {
+                                this.selectedColumns.add(columnInfo.column.id);
+                            }
+                        }
+                    } else {
+                        this.selectedTable = null;
+                        this.selectedColumns.clear();
+                    }
+
+                    // 次のダブルタップ判定のために記録
+                    this.lastTapTime = currentTime;
+                    this.lastTapPos = { x, y };
                 }
                 this.render();
             }
