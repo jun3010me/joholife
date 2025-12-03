@@ -61,6 +61,11 @@ class DatabaseSimulator {
         // 削除エリア
         this.deleteArea = null;
 
+        // 履歴管理（Undo/Redo）
+        this.history = [];
+        this.historyIndex = -1;
+        this.maxHistorySize = 50;
+
         this.init();
     }
 
@@ -76,6 +81,8 @@ class DatabaseSimulator {
         this.setupEventListeners();
         this.loadSampleData();
         this.render();
+        // 初期状態を履歴に保存
+        this.saveState();
     }
 
     setupCanvas() {
@@ -118,6 +125,8 @@ class DatabaseSimulator {
 
         // ボタンイベント
         const addTableBtn = document.getElementById('add-table-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
         const resetBtn = document.getElementById('reset-btn');
         const saveBtn = document.getElementById('save-db-btn');
         const loadBtn = document.getElementById('load-db-btn');
@@ -128,6 +137,8 @@ class DatabaseSimulator {
         const showAllRecordsCheckbox = document.getElementById('show-all-records-checkbox');
 
         if (addTableBtn) addTableBtn.addEventListener('click', () => this.addNewTable());
+        if (undoBtn) undoBtn.addEventListener('click', () => this.undo());
+        if (redoBtn) redoBtn.addEventListener('click', () => this.redo());
         if (resetBtn) resetBtn.addEventListener('click', () => this.reset());
         if (saveBtn) saveBtn.addEventListener('click', () => this.saveDatabase());
         if (loadBtn) loadBtn.addEventListener('click', () => this.loadDatabase());
@@ -141,6 +152,21 @@ class DatabaseSimulator {
                 this.render();
             });
         }
+
+        // キーボードショートカット（Undo/Redo）
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Z または Cmd+Z（Mac）で Undo
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                this.undo();
+            }
+            // Ctrl+Y または Cmd+Y（Mac）で Redo
+            // Ctrl+Shift+Z または Cmd+Shift+Z（Mac）でも Redo
+            else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                this.redo();
+            }
+        });
 
         // 削除エリアの初期化
         this.deleteArea = document.getElementById('delete-area');
@@ -252,6 +278,7 @@ class DatabaseSimulator {
 
         this.tables.set(newTable.id, newTable);
         this.render();
+        this.saveState();
     }
 
     // リセット
@@ -270,8 +297,13 @@ class DatabaseSimulator {
         this.panX = 0;
         this.panY = 0;
 
+        // 履歴をクリア
+        this.history = [];
+        this.historyIndex = -1;
+
         this.loadSampleData();
         this.render();
+        this.saveState();
     }
 
     // Canvas座標をワールド座標に変換
@@ -901,6 +933,8 @@ class DatabaseSimulator {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
+        let needsSave = false;
+
         if (this.isDraggingColumn) {
             // 列のドロップ先を確認
             const targetTable = this.getTableAt(x, y);
@@ -929,10 +963,12 @@ class DatabaseSimulator {
                         }
 
                         this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), targetIndex);
+                        // reorderColumns内でsaveState()が呼ばれるので、ここでは不要
                     }
                 } else {
                     // 別のテーブルに列を移動
                     this.moveColumns(Array.from(this.selectedColumns), this.draggedFromTable, targetTable.id);
+                    // moveColumns内でsaveState()が呼ばれるので、ここでは不要
                 }
             }
 
@@ -954,7 +990,11 @@ class DatabaseSimulator {
                     this.relations = this.relations.filter(r =>
                         r.fromTable !== table.id && r.toTable !== table.id
                     );
+                    needsSave = true;
                 }
+            } else {
+                // テーブルが移動した（削除されなかった）
+                needsSave = true;
             }
         }
 
@@ -967,6 +1007,11 @@ class DatabaseSimulator {
         this.lastPanPoint = null;
 
         this.render();
+
+        // テーブルが移動または削除された場合は履歴に保存
+        if (needsSave) {
+            this.saveState();
+        }
     }
 
     // ホイールズーム
@@ -1011,6 +1056,7 @@ class DatabaseSimulator {
         this.detectRelations();
 
         this.render();
+        this.saveState();
     }
 
     // ダブルクリック
@@ -1051,6 +1097,7 @@ class DatabaseSimulator {
             }
 
             this.render();
+            this.saveState();
         }
     }
 
@@ -1095,6 +1142,7 @@ class DatabaseSimulator {
                     this.touchStartColumnInfo.column.isPrimaryKey = !this.touchStartColumnInfo.column.isPrimaryKey;
                     this.detectRelations();
                     this.render();
+                    this.saveState();
 
                     // 触覚フィードバック
                     if (navigator.vibrate) {
@@ -1226,6 +1274,8 @@ class DatabaseSimulator {
             this.longPressTimer = null;
         }
 
+        let needsSave = false;
+
         // 列のドラッグ終了処理
         if (this.isDraggingColumn && this.touches.length === 1) {
             const touch = this.touches[0];
@@ -1260,10 +1310,12 @@ class DatabaseSimulator {
                         }
 
                         this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), targetIndex);
+                        // reorderColumns内でsaveState()が呼ばれるので、ここでは不要
                     }
                 } else {
                     // 別のテーブルに列を移動
                     this.moveColumns(Array.from(this.selectedColumns), this.draggedFromTable, targetTable.id);
+                    // moveColumns内でsaveState()が呼ばれるので、ここでは不要
                 }
             }
 
@@ -1345,7 +1397,11 @@ class DatabaseSimulator {
                     this.relations = this.relations.filter(r =>
                         r.fromTable !== table.id && r.toTable !== table.id
                     );
+                    needsSave = true;
                 }
+            } else {
+                // テーブルが移動した（削除されなかった）
+                needsSave = true;
             }
         }
 
@@ -1367,6 +1423,11 @@ class DatabaseSimulator {
         if (this.touches.length === 0) {
             this.lastPinchDistance = null;
             this.lastPinchCenter = null;
+        }
+
+        // テーブルが移動または削除された場合は履歴に保存
+        if (needsSave) {
+            this.saveState();
         }
     }
 
@@ -1451,6 +1512,96 @@ class DatabaseSimulator {
             alert(`${tablesProcessed}個のテーブルから合計${totalRemoved}件の重複レコードを削除しました。`);
         } else {
             alert('重複レコードは見つかりませんでした。');
+        }
+
+        // 履歴に保存
+        this.saveState();
+    }
+
+    // === 履歴管理（Undo/Redo） ===
+
+    // 現在の状態を履歴に保存
+    saveState() {
+        // 現在の状態をJSON化して保存
+        const state = JSON.stringify({
+            tables: Array.from(this.tables.values()),
+            relations: this.relations,
+            nextTableId: this.nextTableId,
+            nextColumnId: this.nextColumnId,
+            nextZIndex: this.nextZIndex
+        });
+
+        // historyIndexより後ろの履歴を削除（新しい操作を行った場合）
+        this.history = this.history.slice(0, this.historyIndex + 1);
+
+        // 新しい状態を追加
+        this.history.push(state);
+
+        // 履歴の最大数を制限
+        if (this.history.length > this.maxHistorySize) {
+            this.history.shift();
+        } else {
+            this.historyIndex++;
+        }
+
+        // ボタンの状態を更新
+        this.updateUndoRedoButtons();
+    }
+
+    // 1つ前の状態に戻す
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.restoreState(this.history[this.historyIndex]);
+        }
+    }
+
+    // 1つ後の状態に進む
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.restoreState(this.history[this.historyIndex]);
+        }
+    }
+
+    // 状態を復元
+    restoreState(stateJson) {
+        const state = JSON.parse(stateJson);
+
+        // tablesをMapに変換
+        this.tables = new Map();
+        state.tables.forEach(table => {
+            this.tables.set(table.id, table);
+        });
+
+        this.relations = state.relations;
+        this.nextTableId = state.nextTableId;
+        this.nextColumnId = state.nextColumnId;
+        this.nextZIndex = state.nextZIndex;
+
+        // 選択状態をクリア
+        this.selectedTable = null;
+        this.selectedColumn = null;
+        this.selectedColumns.clear();
+
+        // 再描画
+        this.render();
+
+        // ボタンの状態を更新
+        this.updateUndoRedoButtons();
+    }
+
+    // Undo/Redoボタンの有効/無効を更新
+    updateUndoRedoButtons() {
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+
+        if (undoBtn) {
+            undoBtn.disabled = this.historyIndex <= 0;
+        }
+
+        if (redoBtn) {
+            redoBtn.disabled = this.historyIndex >= this.history.length - 1;
         }
     }
 
@@ -1549,6 +1700,7 @@ class DatabaseSimulator {
 
         this.selectedColumns.clear();
         this.render();
+        this.saveState();
     }
 
     // 同じテーブル内で列を並び替え
@@ -1588,6 +1740,7 @@ class DatabaseSimulator {
 
         this.selectedColumns.clear();
         this.render();
+        this.saveState();
     }
 
     // リレーションを自動検出
@@ -1672,7 +1825,12 @@ class DatabaseSimulator {
                     this.nextColumnId = data.nextColumnId || 1;
                     this.nextZIndex = data.nextZIndex || this.tables.size + 1;
 
+                    // 履歴をクリア
+                    this.history = [];
+                    this.historyIndex = -1;
+
                     this.render();
+                    this.saveState();
                 } catch (error) {
                     alert('ファイルの読み込みに失敗しました: ' + error.message);
                 }
@@ -1755,6 +1913,7 @@ class DatabaseSimulator {
 
                     this.tables.set(tableId, table);
                     this.render();
+                    this.saveState();
 
                     alert(`テーブル「${tableName}」を追加しました\n列数: ${columns.length}\nレコード数: ${rows.length}`);
                 } catch (error) {
