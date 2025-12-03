@@ -672,9 +672,17 @@ class DatabaseSimulator {
             // 列のドロップ先を確認
             const targetTable = this.getTableAt(x, y);
 
-            if (targetTable && targetTable.id !== this.draggedFromTable) {
-                // 別のテーブルに列を移動
-                this.moveColumns(Array.from(this.selectedColumns), this.draggedFromTable, targetTable.id);
+            if (targetTable) {
+                if (targetTable.id === this.draggedFromTable) {
+                    // 同じテーブル内で列を並び替え
+                    const columnInfo = this.getColumnAt(targetTable, x, y);
+                    if (columnInfo) {
+                        this.reorderColumns(targetTable.id, Array.from(this.selectedColumns), columnInfo.index);
+                    }
+                } else {
+                    // 別のテーブルに列を移動
+                    this.moveColumns(Array.from(this.selectedColumns), this.draggedFromTable, targetTable.id);
+                }
             }
 
             this.isDraggingColumn = false;
@@ -1012,6 +1020,45 @@ class DatabaseSimulator {
 
         // リレーションを検出
         this.detectRelations();
+
+        this.selectedColumns.clear();
+        this.render();
+    }
+
+    // 同じテーブル内で列を並び替え
+    reorderColumns(tableId, columnIds, targetIndex) {
+        const table = this.tables.get(tableId);
+        if (!table) return;
+
+        // 移動する列を取得
+        const columnsToMove = table.columns.filter(c => columnIds.includes(c.id));
+        if (columnsToMove.length === 0) return;
+
+        // 移動する列のインデックスを取得
+        const sourceIndices = columnsToMove.map(col =>
+            table.columns.findIndex(c => c.id === col.id)
+        );
+
+        // 最初の列のインデックスが目標インデックスと同じなら何もしない
+        if (sourceIndices.includes(targetIndex)) {
+            this.selectedColumns.clear();
+            this.render();
+            return;
+        }
+
+        // 移動する列を配列から削除
+        table.columns = table.columns.filter(c => !columnIds.includes(c.id));
+
+        // 目標インデックスを調整（削除した列の影響を考慮）
+        let adjustedTargetIndex = targetIndex;
+        for (const sourceIndex of sourceIndices) {
+            if (sourceIndex < targetIndex) {
+                adjustedTargetIndex--;
+            }
+        }
+
+        // 目標インデックスに挿入
+        table.columns.splice(adjustedTargetIndex, 0, ...columnsToMove);
 
         this.selectedColumns.clear();
         this.render();
