@@ -29,14 +29,76 @@
 }
 
 @media (max-width: 640px) {
-    .toolbar-buttons {
+    .toolbar {
         flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .toolbar-title {
+        font-size: 0.9rem;
+        width: 100%;
+        text-align: center;
+    }
+
+    .toolbar-title span {
+        font-size: 1.2rem;
+    }
+
+    .toolbar-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.25rem;
         width: 100%;
     }
 
     .toolbar-btn {
-        width: 100%;
+        flex-direction: column;
         justify-content: center;
+        align-items: center;
+        padding: 0.4rem 0.2rem;
+        font-size: 0.65rem;
+        min-height: auto;
+        gap: 0.1rem;
+        white-space: nowrap;
+    }
+
+    .toolbar-btn span {
+        font-size: 1rem;
+    }
+
+    .toolbar-checkbox {
+        flex-direction: column;
+        padding: 0.4rem 0.2rem;
+        font-size: 0.65rem;
+        gap: 0.1rem;
+    }
+
+    .toolbar-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+
+    .toolbar-checkbox span {
+        text-align: center;
+        line-height: 1.1;
+    }
+
+    /* 削除エリアの位置調整 */
+    .delete-area {
+        bottom: 2rem;
+        right: 1rem;
+        width: 140px;
+        height: 100px;
+        font-size: 0.8rem;
+    }
+
+    .delete-icon {
+        font-size: 2rem;
+    }
+
+    .delete-text {
+        font-size: 0.75rem;
     }
 }
 
