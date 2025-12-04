@@ -153,3 +153,10 @@ questionSets:
   difficulty: medium
   estimatedTime: 30
   category: データベース
+- id: database-normalization-2
+  title: データベース正規化課題②
+  description: 病院予約システムのデータを正規化し、完成したJSONファイルをアップロードして、正規化が正しく行われているかを判定します
+  icon: 🗄️
+  difficulty: hard
+  estimatedTime: 40
+  category: データベース
