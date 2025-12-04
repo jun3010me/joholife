@@ -146,3 +146,10 @@ questionSets:
   difficulty: hard
   estimatedTime: 40
   category: ネットワーク構築
+- id: database-normalization
+  title: データベース正規化課題①
+  description: データベース正規化シミュレータでCSVを正規化し、完成したJSONファイルをアップロードして、正規化が正しく行われているかを判定します
+  icon: 🗄️
+  difficulty: medium
+  estimatedTime: 30
+  category: データベース
