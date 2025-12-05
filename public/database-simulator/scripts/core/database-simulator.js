@@ -2031,5 +2031,5 @@ class DatabaseSimulator {
 
 // ページ読み込み後に初期化
 document.addEventListener('DOMContentLoaded', () => {
-    window.dbSimulator = new DatabaseSimulator();
+    window.simulator = new DatabaseSimulator();
 });
