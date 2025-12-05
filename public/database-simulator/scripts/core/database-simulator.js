@@ -153,6 +153,21 @@ class DatabaseSimulator {
             });
         }
 
+        // SQLターミナルボタン
+        const sqlTerminalBtn = document.getElementById('sql-terminal-btn');
+        if (sqlTerminalBtn) {
+            sqlTerminalBtn.addEventListener('click', () => {
+                if (window.sqlTerminal) {
+                    window.sqlTerminal.open();
+                }
+            });
+        }
+
+        // SQLターミナルの初期化
+        if (window.sqlTerminal) {
+            window.sqlTerminal.init();
+        }
+
         // キーボードショートカット（Undo/Redo）
         document.addEventListener('keydown', (e) => {
             // Ctrl+Z または Cmd+Z（Mac）で Undo

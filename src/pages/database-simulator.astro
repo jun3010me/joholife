@@ -8,6 +8,7 @@ import Layout from '../layouts/Layout.astro';
 
     <link rel="stylesheet" href="/database-simulator/styles/main.css">
     <link rel="stylesheet" href="/database-simulator/styles/mobile.css">
+    <link rel="stylesheet" href="/database-simulator/styles/terminal.css">
 
     <div class="app-container">
         <!-- ツールバー -->
@@ -57,6 +58,10 @@ import Layout from '../layouts/Layout.astro';
                     <span>📊</span>
                     CSV読込
                 </button>
+                <button id="sql-terminal-btn" class="toolbar-btn">
+                    <span>💻</span>
+                    SQLコマンド
+                </button>
             </div>
         </div>
 
@@ -105,11 +110,35 @@ import Layout from '../layouts/Layout.astro';
                         <span class="help-text">空白をドラッグ（2本指）でパン</span>
                     </div>
                 </div>
+
+                <!-- SQLターミナル -->
+                <div class="sql-terminal-modal" id="sql-terminal-modal">
+                    <div class="sql-terminal-container">
+                        <div class="sql-terminal-header">
+                            <h3>💻 SQLターミナル</h3>
+                            <button class="sql-terminal-close-btn" id="sql-terminal-close-btn">×</button>
+                        </div>
+                        <div class="sql-terminal-output" id="sql-terminal-output">
+                            <div class="terminal-welcome">
+                                データベース正規化シミュレータ SQLターミナル v1.0
+                                <br>使用可能なコマンド: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, DROP TABLE, SHOW TABLES, DESC
+                                <br>例: SELECT * FROM テーブル名;
+                                <br>
+                            </div>
+                        </div>
+                        <div class="sql-terminal-input-area">
+                            <span class="sql-terminal-prompt">SQL&gt;</span>
+                            <input type="text" class="sql-terminal-input" id="sql-terminal-input" placeholder="SQLコマンドを入力してください..." autocomplete="off">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- スクリプト -->
+    <script src="/database-simulator/scripts/core/sql-engine.js" is:inline></script>
+    <script src="/database-simulator/scripts/core/sql-terminal.js" is:inline></script>
     <script src="/database-simulator/scripts/core/database-simulator.js" is:inline></script>
 
     <style>
