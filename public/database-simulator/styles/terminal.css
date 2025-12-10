@@ -128,7 +128,7 @@
 
 .sql-terminal-input-area {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     padding: 15px 20px;
     background: #0a0a0a;
     border-top: 1px solid #00ff00;
@@ -153,6 +153,11 @@
     padding: 10px 15px;
     outline: none;
     border-radius: 4px;
+    resize: none;
+    min-height: 40px;
+    max-height: 200px;
+    line-height: 1.5;
+    overflow-y: auto;
 }
 
 .sql-terminal-input::placeholder {
@@ -179,6 +184,24 @@
 }
 
 .sql-terminal-output::-webkit-scrollbar-thumb:hover {
+    background: #00cc00;
+}
+
+/* textarea用のスクロールバー */
+.sql-terminal-input::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sql-terminal-input::-webkit-scrollbar-track {
+    background: #000000;
+}
+
+.sql-terminal-input::-webkit-scrollbar-thumb {
+    background: #00ff00;
+    border-radius: 4px;
+}
+
+.sql-terminal-input::-webkit-scrollbar-thumb:hover {
     background: #00cc00;
 }
 
