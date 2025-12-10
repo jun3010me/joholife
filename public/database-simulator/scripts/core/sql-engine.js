@@ -204,7 +204,8 @@ class SQLEngine {
     // SELECT文の実行
     executeSelect(sql) {
         // JOINを含むかチェック（複数JOIN対応）
-        if (sql.toUpperCase().includes(' JOIN ')) {
+        // 単語境界を使用して、前後がスペースでも改行でもマッチするようにする
+        if (/\bJOIN\b/i.test(sql)) {
             return this.executeSelectWithMultiJoin(sql);
         }
 
