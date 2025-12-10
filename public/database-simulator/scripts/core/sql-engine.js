@@ -410,6 +410,29 @@ class SQLEngine {
             resultRows = this.filterRows(resultRows, whereClause);
         }
 
+        // GROUP BY句の抽出
+        const groupByMatch = sql.match(/GROUP\s+BY\s+(.+?)(?:\s+(?:ORDER|HAVING|$))/i);
+        const hasGroupBy = !!groupByMatch;
+        let groupByColumns = [];
+
+        if (hasGroupBy) {
+            groupByColumns = groupByMatch[1].split(',').map(col => col.trim());
+        }
+
+        // ORDER BY句の抽出
+        const orderByMatch = sql.match(/ORDER\s+BY\s+(.+?)$/i);
+        let orderByColumn = null;
+        let orderByDirection = 'ASC';
+
+        if (orderByMatch) {
+            const orderByClause = orderByMatch[1].trim();
+            const orderParts = orderByClause.split(/\s+/);
+            orderByColumn = this.removeQuotes(orderParts[0]);
+            if (orderParts[1] && orderParts[1].toUpperCase() === 'DESC') {
+                orderByDirection = 'DESC';
+            }
+        }
+
         // 列の選択
         let columns;
         let finalRows;
@@ -427,8 +450,114 @@ class SQLEngine {
 
             columns = columnMapping.map(c => c.display);
             finalRows = resultRows.map(row => columnMapping.map(c => row[c.key] || ''));
+        } else if (hasGroupBy) {
+            // GROUP BYがある場合の処理
+            const selectedCols = columnsStr.split(',').map(col => col.trim());
+            columns = [];
+            const groupByCols = [];
+            const aggregateFuncs = [];
+
+            // SELECT句を解析（通常の列と集計関数を分離）
+            for (const colExpr of selectedCols) {
+                const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                let expr, displayName;
+
+                if (asMatch) {
+                    expr = asMatch[1].trim();
+                    displayName = this.removeQuotes(asMatch[2].trim());
+                } else {
+                    expr = colExpr;
+                    displayName = colExpr;
+                }
+
+                // COUNT(*)を検出
+                if (/COUNT\s*\(\s*\*\s*\)/i.test(expr)) {
+                    columns.push(displayName);
+                    aggregateFuncs.push({ type: 'count', displayName: displayName });
+                } else {
+                    // 通常の列
+                    if (expr.includes('.')) {
+                        const parts = expr.split('.');
+                        const prefix = parts[0];
+                        const colName = this.removeQuotes(parts[1]);
+                        const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                        const fullColName = `${actualTableName}.${colName}`;
+
+                        columns.push(displayName);
+                        groupByCols.push({ displayName: displayName, key: fullColName });
+                    } else {
+                        const cleanColName = this.removeQuotes(expr);
+                        const keys = allTables.map(t => `${t.name}.${cleanColName}`);
+
+                        columns.push(displayName);
+                        groupByCols.push({ displayName: displayName, keys: keys });
+                    }
+                }
+            }
+
+            // GROUP BY列を解決
+            const resolvedGroupByKeys = [];
+            for (const groupByCol of groupByColumns) {
+                if (groupByCol.includes('.')) {
+                    const parts = groupByCol.split('.');
+                    const prefix = parts[0];
+                    const colName = this.removeQuotes(parts[1]);
+                    const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                    resolvedGroupByKeys.push(`${actualTableName}.${colName}`);
+                } else {
+                    const cleanColName = this.removeQuotes(groupByCol);
+                    // 最初に見つかった列を使用
+                    for (const t of allTables) {
+                        const key = `${t.name}.${cleanColName}`;
+                        if (resultRows.length > 0 && resultRows[0].hasOwnProperty(key)) {
+                            resolvedGroupByKeys.push(key);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // グループ化処理
+            const groups = {};
+            for (const row of resultRows) {
+                // グループキーを生成
+                const groupKey = resolvedGroupByKeys.map(key => row[key] || '').join('||');
+
+                if (!groups[groupKey]) {
+                    groups[groupKey] = {
+                        rows: [],
+                        groupValues: resolvedGroupByKeys.map(key => row[key] || '')
+                    };
+                }
+                groups[groupKey].rows.push(row);
+            }
+
+            // 集計結果を構築
+            finalRows = [];
+            for (const groupKey in groups) {
+                const group = groups[groupKey];
+                const resultRow = [];
+
+                // 通常の列（GROUP BY列）の値を追加
+                for (const col of groupByCols) {
+                    if (col.key) {
+                        resultRow.push(group.rows[0][col.key] || '');
+                    } else if (col.keys) {
+                        resultRow.push(col.keys.map(k => group.rows[0][k]).find(v => v) || '');
+                    }
+                }
+
+                // 集計関数の結果を追加
+                for (const agg of aggregateFuncs) {
+                    if (agg.type === 'count') {
+                        resultRow.push(group.rows.length.toString());
+                    }
+                }
+
+                finalRows.push(resultRow);
+            }
         } else {
-            // 指定された列を選択
+            // GROUP BYがない場合の通常の処理
             const selectedCols = columnsStr.split(',').map(col => col.trim());
             columns = [];
             const columnResolvers = [];
@@ -486,6 +615,36 @@ class SQLEngine {
                     return '';
                 });
             });
+        }
+
+        // ORDER BY処理
+        if (orderByColumn) {
+            const orderByIndex = columns.findIndex(col => {
+                // 列名が完全一致するか、クォートを除去して一致するかチェック
+                return col === orderByColumn || this.removeQuotes(col) === orderByColumn;
+            });
+
+            if (orderByIndex !== -1) {
+                finalRows.sort((a, b) => {
+                    const aVal = a[orderByIndex];
+                    const bVal = b[orderByIndex];
+
+                    // 数値として解釈できる場合は数値比較
+                    const aNum = parseFloat(aVal);
+                    const bNum = parseFloat(bVal);
+
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return orderByDirection === 'DESC' ? bNum - aNum : aNum - bNum;
+                    }
+
+                    // 文字列比較
+                    if (orderByDirection === 'DESC') {
+                        return bVal.localeCompare(aVal);
+                    } else {
+                        return aVal.localeCompare(bVal);
+                    }
+                });
+            }
         }
 
         return {
