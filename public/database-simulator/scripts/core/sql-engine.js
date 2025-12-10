@@ -197,7 +197,14 @@ class SQLEngine {
 
     // SELECT文の実行
     executeSelect(sql) {
-        // SELECT columns FROM table [WHERE condition]
+        // JOINを含むかチェック
+        const joinMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+(\S+)\s+((?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN)\s+(\S+)\s+ON\s+(\S+)\s*=\s*(\S+)(?:\s+WHERE\s+(.+))?/i);
+
+        if (joinMatch) {
+            return this.executeSelectWithJoin(sql, joinMatch);
+        }
+
+        // 通常のSELECT文
         const match = sql.match(/SELECT\s+(.+?)\s+FROM\s+(\S+)(?:\s+WHERE\s+(.+))?/i);
 
         if (!match) {
@@ -248,6 +255,227 @@ class SQLEngine {
             },
             message: `${resultRows.length}件のレコードが見つかりました`
         };
+    }
+
+    // JOIN付きSELECT文の実行
+    executeSelectWithJoin(sql, joinMatch) {
+        const columnsStr = joinMatch[1].trim();
+        const table1Name = joinMatch[2].trim();
+        const joinType = joinMatch[3].trim().toUpperCase();
+        const table2Name = joinMatch[4].trim();
+        const joinCol1 = joinMatch[5].trim();
+        const joinCol2 = joinMatch[6].trim();
+        const whereClause = joinMatch[7] ? joinMatch[7].trim() : null;
+
+        // テーブルの存在確認
+        if (!this.tables[table1Name]) {
+            throw new Error(`テーブル '${table1Name}' が存在しません`);
+        }
+        if (!this.tables[table2Name]) {
+            throw new Error(`テーブル '${table2Name}' が存在しません`);
+        }
+
+        const table1 = this.tables[table1Name];
+        const table2 = this.tables[table2Name];
+
+        // 結合列名を解析（テーブル名.列名 の形式に対応）
+        const col1Parts = joinCol1.split('.');
+        const col1Name = col1Parts.length > 1 ? col1Parts[1] : col1Parts[0];
+
+        const col2Parts = joinCol2.split('.');
+        const col2Name = col2Parts.length > 1 ? col2Parts[1] : col2Parts[0];
+
+        // JOIN処理
+        let joinedRows = [];
+
+        if (joinType === 'JOIN' || joinType === 'INNER JOIN') {
+            // INNER JOIN
+            joinedRows = this.innerJoin(table1.rows, table2.rows, col1Name, col2Name, table1Name, table2Name);
+        } else if (joinType === 'LEFT JOIN') {
+            // LEFT JOIN
+            joinedRows = this.leftJoin(table1.rows, table2.rows, col1Name, col2Name, table1Name, table2Name);
+        } else if (joinType === 'RIGHT JOIN') {
+            // RIGHT JOIN
+            joinedRows = this.rightJoin(table1.rows, table2.rows, col1Name, col2Name, table1Name, table2Name);
+        }
+
+        // WHERE句の処理
+        if (whereClause) {
+            joinedRows = this.filterRows(joinedRows, whereClause);
+        }
+
+        // 列の選択
+        let columns;
+        let resultRows;
+
+        if (columnsStr === '*') {
+            // 全列を選択（重複する列名にはテーブル名を付与）
+            const allColumns = new Set();
+            const columnMapping = [];
+
+            for (const col of table1.columns) {
+                const colName = `${table1Name}.${col.name}`;
+                allColumns.add(colName);
+                columnMapping.push({ display: colName, key: `${table1Name}.${col.name}` });
+            }
+
+            for (const col of table2.columns) {
+                const colName = `${table2Name}.${col.name}`;
+                allColumns.add(colName);
+                columnMapping.push({ display: colName, key: `${table2Name}.${col.name}` });
+            }
+
+            columns = columnMapping.map(c => c.display);
+            resultRows = joinedRows.map(row => columnMapping.map(c => row[c.key] || ''));
+        } else {
+            // 指定された列を選択
+            columns = columnsStr.split(',').map(col => col.trim());
+            resultRows = joinedRows.map(row => {
+                return columns.map(col => {
+                    // テーブル名.列名 または 列名 の形式に対応
+                    if (col.includes('.')) {
+                        return row[col] || '';
+                    } else {
+                        // テーブル名なしの場合、両方のテーブルから検索
+                        return row[`${table1Name}.${col}`] || row[`${table2Name}.${col}`] || '';
+                    }
+                });
+            });
+        }
+
+        return {
+            success: true,
+            table: {
+                columns: columns,
+                rows: resultRows
+            },
+            message: `${resultRows.length}件のレコードが見つかりました`
+        };
+    }
+
+    // INNER JOIN
+    innerJoin(rows1, rows2, col1, col2, table1Name, table2Name) {
+        const result = [];
+
+        for (const row1 of rows1) {
+            for (const row2 of rows2) {
+                if (row1[col1] && row2[col2] && row1[col1] === row2[col2]) {
+                    const joinedRow = {};
+
+                    // table1の列を追加（テーブル名.列名の形式）
+                    for (const key in row1) {
+                        joinedRow[`${table1Name}.${key}`] = row1[key];
+                    }
+
+                    // table2の列を追加（テーブル名.列名の形式）
+                    for (const key in row2) {
+                        joinedRow[`${table2Name}.${key}`] = row2[key];
+                    }
+
+                    result.push(joinedRow);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // LEFT JOIN
+    leftJoin(rows1, rows2, col1, col2, table1Name, table2Name) {
+        const result = [];
+
+        for (const row1 of rows1) {
+            let matched = false;
+
+            for (const row2 of rows2) {
+                if (row1[col1] && row2[col2] && row1[col1] === row2[col2]) {
+                    const joinedRow = {};
+
+                    // table1の列を追加
+                    for (const key in row1) {
+                        joinedRow[`${table1Name}.${key}`] = row1[key];
+                    }
+
+                    // table2の列を追加
+                    for (const key in row2) {
+                        joinedRow[`${table2Name}.${key}`] = row2[key];
+                    }
+
+                    result.push(joinedRow);
+                    matched = true;
+                }
+            }
+
+            // マッチしなかった場合、table2の列はNULL（空文字列）
+            if (!matched) {
+                const joinedRow = {};
+
+                // table1の列を追加
+                for (const key in row1) {
+                    joinedRow[`${table1Name}.${key}`] = row1[key];
+                }
+
+                // table2の列は空
+                if (rows2.length > 0) {
+                    for (const key in rows2[0]) {
+                        joinedRow[`${table2Name}.${key}`] = '';
+                    }
+                }
+
+                result.push(joinedRow);
+            }
+        }
+
+        return result;
+    }
+
+    // RIGHT JOIN
+    rightJoin(rows1, rows2, col1, col2, table1Name, table2Name) {
+        const result = [];
+
+        for (const row2 of rows2) {
+            let matched = false;
+
+            for (const row1 of rows1) {
+                if (row1[col1] && row2[col2] && row1[col1] === row2[col2]) {
+                    const joinedRow = {};
+
+                    // table1の列を追加
+                    for (const key in row1) {
+                        joinedRow[`${table1Name}.${key}`] = row1[key];
+                    }
+
+                    // table2の列を追加
+                    for (const key in row2) {
+                        joinedRow[`${table2Name}.${key}`] = row2[key];
+                    }
+
+                    result.push(joinedRow);
+                    matched = true;
+                }
+            }
+
+            // マッチしなかった場合、table1の列はNULL（空文字列）
+            if (!matched) {
+                const joinedRow = {};
+
+                // table1の列は空
+                if (rows1.length > 0) {
+                    for (const key in rows1[0]) {
+                        joinedRow[`${table1Name}.${key}`] = '';
+                    }
+                }
+
+                // table2の列を追加
+                for (const key in row2) {
+                    joinedRow[`${table2Name}.${key}`] = row2[key];
+                }
+
+                result.push(joinedRow);
+            }
+        }
+
+        return result;
     }
 
     // WHERE句のフィルタリング
