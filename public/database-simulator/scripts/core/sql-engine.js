@@ -6,6 +6,12 @@ class SQLEngine {
         this.tables = {};
     }
 
+    // ダブルクォートやシングルクォートを除去
+    removeQuotes(str) {
+        if (!str) return str;
+        return str.replace(/^["']|["']$/g, '');
+    }
+
     // データベースシミュレータのテーブルをインポート
     importTables(simulatorTables) {
         this.tables = {};
@@ -197,8 +203,10 @@ class SQLEngine {
 
     // SELECT文の実行
     executeSelect(sql) {
-        // JOINを含むかチェック
-        const joinMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+(\S+)\s+((?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN)\s+(\S+)\s+ON\s+(\S+)\s*=\s*(\S+)(?:\s+WHERE\s+(.+))?/i);
+        // JOINを含むかチェック（ダブルクォート、エイリアス対応）
+        // テーブル名: "テーブル名" または テーブル名
+        // エイリアス: AS エイリアス または エイリアス（オプション）
+        const joinMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?\s+((?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN)\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?\s+ON\s+(\S+)\s*=\s*(\S+)(?:\s+(?:WHERE|GROUP|ORDER)\s+(.+))?/i);
 
         if (joinMatch) {
             return this.executeSelectWithJoin(sql, joinMatch);
@@ -260,12 +268,23 @@ class SQLEngine {
     // JOIN付きSELECT文の実行
     executeSelectWithJoin(sql, joinMatch) {
         const columnsStr = joinMatch[1].trim();
-        const table1Name = joinMatch[2].trim();
-        const joinType = joinMatch[3].trim().toUpperCase();
-        const table2Name = joinMatch[4].trim();
-        const joinCol1 = joinMatch[5].trim();
-        const joinCol2 = joinMatch[6].trim();
-        const whereClause = joinMatch[7] ? joinMatch[7].trim() : null;
+        let table1Name = this.removeQuotes(joinMatch[2].trim());
+        const table1Alias = joinMatch[3] ? joinMatch[3].trim() : null;
+        const joinType = joinMatch[4].trim().toUpperCase();
+        let table2Name = this.removeQuotes(joinMatch[5].trim());
+        const table2Alias = joinMatch[6] ? joinMatch[6].trim() : null;
+        const joinCol1 = joinMatch[7].trim();
+        const joinCol2 = joinMatch[8].trim();
+        const restClause = joinMatch[9] ? joinMatch[9].trim() : null;
+
+        // エイリアスマッピング（エイリアス → 実際のテーブル名）
+        const aliasMap = {};
+        if (table1Alias) {
+            aliasMap[table1Alias] = table1Name;
+        }
+        if (table2Alias) {
+            aliasMap[table2Alias] = table2Name;
+        }
 
         // テーブルの存在確認
         if (!this.tables[table1Name]) {
@@ -278,12 +297,32 @@ class SQLEngine {
         const table1 = this.tables[table1Name];
         const table2 = this.tables[table2Name];
 
-        // 結合列名を解析（テーブル名.列名 の形式に対応）
+        // 結合列名を解析（エイリアス.列名 または テーブル名.列名 の形式に対応）
         const col1Parts = joinCol1.split('.');
-        const col1Name = col1Parts.length > 1 ? col1Parts[1] : col1Parts[0];
+        let col1Name;
+        let col1TableName = table1Name;
+
+        if (col1Parts.length > 1) {
+            const prefix = col1Parts[0];
+            col1Name = this.removeQuotes(col1Parts[1]);
+            // エイリアスまたはテーブル名
+            col1TableName = aliasMap[prefix] || this.removeQuotes(prefix);
+        } else {
+            col1Name = this.removeQuotes(col1Parts[0]);
+        }
 
         const col2Parts = joinCol2.split('.');
-        const col2Name = col2Parts.length > 1 ? col2Parts[1] : col2Parts[0];
+        let col2Name;
+        let col2TableName = table2Name;
+
+        if (col2Parts.length > 1) {
+            const prefix = col2Parts[0];
+            col2Name = this.removeQuotes(col2Parts[1]);
+            // エイリアスまたはテーブル名
+            col2TableName = aliasMap[prefix] || this.removeQuotes(prefix);
+        } else {
+            col2Name = this.removeQuotes(col2Parts[0]);
+        }
 
         // JOIN処理
         let joinedRows = [];
@@ -297,6 +336,15 @@ class SQLEngine {
         } else if (joinType === 'RIGHT JOIN') {
             // RIGHT JOIN
             joinedRows = this.rightJoin(table1.rows, table2.rows, col1Name, col2Name, table1Name, table2Name);
+        }
+
+        // WHERE句の抽出と処理（GROUP BY、ORDER BYは現時点では無視）
+        let whereClause = null;
+        if (restClause) {
+            const whereMatch = restClause.match(/WHERE\s+(.+?)(?:\s+(?:GROUP|ORDER)|$)/i);
+            if (whereMatch) {
+                whereClause = whereMatch[1].trim();
+            }
         }
 
         // WHERE句の処理
@@ -328,19 +376,57 @@ class SQLEngine {
             columns = columnMapping.map(c => c.display);
             resultRows = joinedRows.map(row => columnMapping.map(c => row[c.key] || ''));
         } else {
-            // 指定された列を選択
-            columns = columnsStr.split(',').map(col => col.trim());
+            // 指定された列を選択（エイリアス対応）
+            const selectedCols = columnsStr.split(',').map(col => col.trim());
+            columns = [];
+
             resultRows = joinedRows.map(row => {
-                return columns.map(col => {
-                    // テーブル名.列名 または 列名 の形式に対応
-                    if (col.includes('.')) {
-                        return row[col] || '';
+                return selectedCols.map(colExpr => {
+                    // AS句で列エイリアスが指定されている場合（例: COUNT(*) AS "貸出冊数"）
+                    const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                    let displayName, colKey;
+
+                    if (asMatch) {
+                        const expr = asMatch[1].trim();
+                        displayName = this.removeQuotes(asMatch[2].trim());
+
+                        // 集約関数の場合は現時点では未対応
+                        if (expr.includes('(')) {
+                            columns.push(displayName);
+                            return '(未対応)';
+                        }
+
+                        colKey = expr;
+                    } else {
+                        displayName = colExpr;
+                        colKey = colExpr;
+                    }
+
+                    // 列名を解決（エイリアス.列名 または テーブル名.列名 または 列名）
+                    if (colKey.includes('.')) {
+                        const parts = colKey.split('.');
+                        const prefix = parts[0];
+                        const colName = this.removeQuotes(parts[1]);
+
+                        // エイリアスを実際のテーブル名に変換
+                        const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                        const fullColName = `${actualTableName}.${colName}`;
+
+                        columns.push(displayName);
+                        return row[fullColName] || '';
                     } else {
                         // テーブル名なしの場合、両方のテーブルから検索
-                        return row[`${table1Name}.${col}`] || row[`${table2Name}.${col}`] || '';
+                        const cleanColName = this.removeQuotes(colKey);
+                        columns.push(displayName);
+                        return row[`${table1Name}.${cleanColName}`] || row[`${table2Name}.${cleanColName}`] || '';
                     }
                 });
             });
+
+            // columnsが空の場合（初回のみ設定）
+            if (columns.length === 0) {
+                columns = selectedCols;
+            }
         }
 
         return {
