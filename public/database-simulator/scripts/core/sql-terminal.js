@@ -49,6 +49,11 @@ class SQLTerminal {
 
         // textareaの入力に応じて高さを自動調整
         this.input.addEventListener('input', () => this.autoResize());
+
+        // 貼り付け時にも高さを自動調整
+        this.input.addEventListener('paste', () => {
+            setTimeout(() => this.autoResize(), 0);
+        });
     }
 
     open() {
