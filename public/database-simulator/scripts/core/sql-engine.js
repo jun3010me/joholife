@@ -378,55 +378,69 @@ class SQLEngine {
         } else {
             // 指定された列を選択（エイリアス対応）
             const selectedCols = columnsStr.split(',').map(col => col.trim());
+
+            // 最初に列情報を解析してcolumns配列を構築
             columns = [];
+            const columnResolvers = [];
 
+            for (const colExpr of selectedCols) {
+                // AS句で列エイリアスが指定されている場合（例: COUNT(*) AS "貸出冊数"）
+                const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                let displayName, colKey;
+
+                if (asMatch) {
+                    const expr = asMatch[1].trim();
+                    displayName = this.removeQuotes(asMatch[2].trim());
+
+                    // 集約関数の場合は現時点では未対応
+                    if (expr.includes('(')) {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'unsupported' });
+                        continue;
+                    }
+
+                    colKey = expr;
+                } else {
+                    displayName = colExpr;
+                    colKey = colExpr;
+                }
+
+                // 列名を解決（エイリアス.列名 または テーブル名.列名 または 列名）
+                if (colKey.includes('.')) {
+                    const parts = colKey.split('.');
+                    const prefix = parts[0];
+                    const colName = this.removeQuotes(parts[1]);
+
+                    // エイリアスを実際のテーブル名に変換
+                    const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                    const fullColName = `${actualTableName}.${colName}`;
+
+                    columns.push(displayName);
+                    columnResolvers.push({ type: 'qualified', key: fullColName });
+                } else {
+                    // テーブル名なしの場合、両方のテーブルから検索
+                    const cleanColName = this.removeQuotes(colKey);
+                    columns.push(displayName);
+                    columnResolvers.push({
+                        type: 'unqualified',
+                        keys: [`${table1Name}.${cleanColName}`, `${table2Name}.${cleanColName}`]
+                    });
+                }
+            }
+
+            // 実際のデータ行を構築
             resultRows = joinedRows.map(row => {
-                return selectedCols.map(colExpr => {
-                    // AS句で列エイリアスが指定されている場合（例: COUNT(*) AS "貸出冊数"）
-                    const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
-                    let displayName, colKey;
-
-                    if (asMatch) {
-                        const expr = asMatch[1].trim();
-                        displayName = this.removeQuotes(asMatch[2].trim());
-
-                        // 集約関数の場合は現時点では未対応
-                        if (expr.includes('(')) {
-                            columns.push(displayName);
-                            return '(未対応)';
-                        }
-
-                        colKey = expr;
-                    } else {
-                        displayName = colExpr;
-                        colKey = colExpr;
+                return columnResolvers.map(resolver => {
+                    if (resolver.type === 'unsupported') {
+                        return '(未対応)';
+                    } else if (resolver.type === 'qualified') {
+                        return row[resolver.key] || '';
+                    } else if (resolver.type === 'unqualified') {
+                        return resolver.keys.map(k => row[k]).find(v => v) || '';
                     }
-
-                    // 列名を解決（エイリアス.列名 または テーブル名.列名 または 列名）
-                    if (colKey.includes('.')) {
-                        const parts = colKey.split('.');
-                        const prefix = parts[0];
-                        const colName = this.removeQuotes(parts[1]);
-
-                        // エイリアスを実際のテーブル名に変換
-                        const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
-                        const fullColName = `${actualTableName}.${colName}`;
-
-                        columns.push(displayName);
-                        return row[fullColName] || '';
-                    } else {
-                        // テーブル名なしの場合、両方のテーブルから検索
-                        const cleanColName = this.removeQuotes(colKey);
-                        columns.push(displayName);
-                        return row[`${table1Name}.${cleanColName}`] || row[`${table2Name}.${cleanColName}`] || '';
-                    }
+                    return '';
                 });
             });
-
-            // columnsが空の場合（初回のみ設定）
-            if (columns.length === 0) {
-                columns = selectedCols;
-            }
         }
 
         return {
