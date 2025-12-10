@@ -203,13 +203,9 @@ class SQLEngine {
 
     // SELECT文の実行
     executeSelect(sql) {
-        // JOINを含むかチェック（ダブルクォート、エイリアス対応）
-        // テーブル名: "テーブル名" または テーブル名
-        // エイリアス: AS エイリアス または エイリアス（オプション）
-        const joinMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?\s+((?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN)\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?\s+ON\s+(\S+)\s*=\s*(\S+)(?:\s+(?:WHERE|GROUP|ORDER)\s+(.+))?/i);
-
-        if (joinMatch) {
-            return this.executeSelectWithJoin(sql, joinMatch);
+        // JOINを含むかチェック（複数JOIN対応）
+        if (sql.toUpperCase().includes(' JOIN ')) {
+            return this.executeSelectWithMultiJoin(sql);
         }
 
         // 通常のSELECT文
@@ -262,6 +258,242 @@ class SQLEngine {
                 rows: resultRows
             },
             message: `${resultRows.length}件のレコードが見つかりました`
+        };
+    }
+
+    // 複数テーブルJOIN対応のSELECT実行
+    executeSelectWithMultiJoin(sql) {
+        // FROM句とJOIN句を抽出
+        const fromMatch = sql.match(/FROM\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?/i);
+        if (!fromMatch) {
+            throw new Error('FROM句が見つかりません');
+        }
+
+        let baseTableName = this.removeQuotes(fromMatch[1].trim());
+        const baseTableAlias = fromMatch[2] ? fromMatch[2].trim() : null;
+
+        // エイリアスマッピング
+        const aliasMap = {};
+        if (baseTableAlias) {
+            aliasMap[baseTableAlias] = baseTableName;
+        }
+
+        // テーブルの存在確認
+        if (!this.tables[baseTableName]) {
+            throw new Error(`テーブル '${baseTableName}' が存在しません`);
+        }
+
+        // 全てのJOIN句を抽出
+        const joinPattern = /((?:INNER\s+|LEFT\s+|RIGHT\s+)?JOIN)\s+("[^"]+"|\S+)(?:\s+(?:AS\s+)?(\w+))?\s+ON\s+(\S+)\s*=\s*(\S+)/gi;
+        const joins = [];
+        let match;
+
+        while ((match = joinPattern.exec(sql)) !== null) {
+            const joinType = match[1].trim().toUpperCase();
+            const tableName = this.removeQuotes(match[2].trim());
+            const tableAlias = match[3] ? match[3].trim() : null;
+            const leftCol = match[4].trim();
+            const rightCol = match[5].trim();
+
+            if (tableAlias) {
+                aliasMap[tableAlias] = tableName;
+            }
+
+            if (!this.tables[tableName]) {
+                throw new Error(`テーブル '${tableName}' が存在しません`);
+            }
+
+            joins.push({
+                type: joinType,
+                tableName: tableName,
+                alias: tableAlias,
+                leftCol: leftCol,
+                rightCol: rightCol
+            });
+        }
+
+        // SELECT句を抽出
+        const selectMatch = sql.match(/SELECT\s+(.+?)\s+FROM/i);
+        if (!selectMatch) {
+            throw new Error('SELECT句が見つかりません');
+        }
+        const columnsStr = selectMatch[1].trim();
+
+        // ベーステーブルから開始
+        let resultRows = this.tables[baseTableName].rows.map(row => {
+            const newRow = {};
+            for (const key in row) {
+                newRow[`${baseTableName}.${key}`] = row[key];
+            }
+            return newRow;
+        });
+
+        // 全てのテーブル情報を保持
+        const allTables = [{ name: baseTableName, alias: baseTableAlias }];
+
+        // 各JOIN句を順次適用
+        for (const join of joins) {
+            const joinTable = this.tables[join.tableName];
+
+            // 結合列名を解析
+            const leftParts = join.leftCol.split('.');
+            let leftColName;
+            if (leftParts.length > 1) {
+                const prefix = leftParts[0];
+                leftColName = this.removeQuotes(leftParts[1]);
+                const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                leftColName = `${actualTableName}.${leftColName}`;
+            } else {
+                leftColName = this.removeQuotes(leftParts[0]);
+            }
+
+            const rightParts = join.rightCol.split('.');
+            let rightColName;
+            if (rightParts.length > 1) {
+                const prefix = rightParts[0];
+                rightColName = this.removeQuotes(rightParts[1]);
+            } else {
+                rightColName = this.removeQuotes(rightParts[0]);
+            }
+
+            // JOINを実行
+            const newResultRows = [];
+
+            if (join.type === 'JOIN' || join.type === 'INNER JOIN') {
+                // INNER JOIN
+                for (const leftRow of resultRows) {
+                    for (const rightRow of joinTable.rows) {
+                        if (leftRow[leftColName] && rightRow[rightColName] &&
+                            leftRow[leftColName] === rightRow[rightColName]) {
+                            const joinedRow = { ...leftRow };
+                            for (const key in rightRow) {
+                                joinedRow[`${join.tableName}.${key}`] = rightRow[key];
+                            }
+                            newResultRows.push(joinedRow);
+                        }
+                    }
+                }
+            } else if (join.type === 'LEFT JOIN') {
+                // LEFT JOIN
+                for (const leftRow of resultRows) {
+                    let matched = false;
+                    for (const rightRow of joinTable.rows) {
+                        if (leftRow[leftColName] && rightRow[rightColName] &&
+                            leftRow[leftColName] === rightRow[rightColName]) {
+                            const joinedRow = { ...leftRow };
+                            for (const key in rightRow) {
+                                joinedRow[`${join.tableName}.${key}`] = rightRow[key];
+                            }
+                            newResultRows.push(joinedRow);
+                            matched = true;
+                        }
+                    }
+                    if (!matched) {
+                        const joinedRow = { ...leftRow };
+                        for (const col of joinTable.columns) {
+                            joinedRow[`${join.tableName}.${col.name}`] = '';
+                        }
+                        newResultRows.push(joinedRow);
+                    }
+                }
+            }
+
+            resultRows = newResultRows;
+            allTables.push({ name: join.tableName, alias: join.alias });
+        }
+
+        // WHERE句の処理
+        const whereMatch = sql.match(/WHERE\s+(.+?)(?:\s+(?:GROUP|ORDER)|$)/i);
+        if (whereMatch) {
+            const whereClause = whereMatch[1].trim();
+            resultRows = this.filterRows(resultRows, whereClause);
+        }
+
+        // 列の選択
+        let columns;
+        let finalRows;
+
+        if (columnsStr === '*') {
+            // 全列を選択
+            const columnMapping = [];
+            for (const tableInfo of allTables) {
+                const table = this.tables[tableInfo.name];
+                for (const col of table.columns) {
+                    const colName = `${tableInfo.name}.${col.name}`;
+                    columnMapping.push({ display: colName, key: colName });
+                }
+            }
+
+            columns = columnMapping.map(c => c.display);
+            finalRows = resultRows.map(row => columnMapping.map(c => row[c.key] || ''));
+        } else {
+            // 指定された列を選択
+            const selectedCols = columnsStr.split(',').map(col => col.trim());
+            columns = [];
+            const columnResolvers = [];
+
+            for (const colExpr of selectedCols) {
+                // AS句の処理
+                const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                let displayName, colKey;
+
+                if (asMatch) {
+                    const expr = asMatch[1].trim();
+                    displayName = this.removeQuotes(asMatch[2].trim());
+
+                    if (expr.includes('(')) {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'unsupported' });
+                        continue;
+                    }
+
+                    colKey = expr;
+                } else {
+                    displayName = colExpr;
+                    colKey = colExpr;
+                }
+
+                // 列名を解決
+                if (colKey.includes('.')) {
+                    const parts = colKey.split('.');
+                    const prefix = parts[0];
+                    const colName = this.removeQuotes(parts[1]);
+                    const actualTableName = aliasMap[prefix] || this.removeQuotes(prefix);
+                    const fullColName = `${actualTableName}.${colName}`;
+
+                    columns.push(displayName);
+                    columnResolvers.push({ type: 'qualified', key: fullColName });
+                } else {
+                    // テーブル名なしの場合、全テーブルから検索
+                    const cleanColName = this.removeQuotes(colKey);
+                    const keys = allTables.map(t => `${t.name}.${cleanColName}`);
+
+                    columns.push(displayName);
+                    columnResolvers.push({ type: 'unqualified', keys: keys });
+                }
+            }
+
+            finalRows = resultRows.map(row => {
+                return columnResolvers.map(resolver => {
+                    if (resolver.type === 'unsupported') {
+                        return '(未対応)';
+                    } else if (resolver.type === 'qualified') {
+                        return row[resolver.key] || '';
+                    } else if (resolver.type === 'unqualified') {
+                        return resolver.keys.map(k => row[k]).find(v => v) || '';
+                    }
+                    return '';
+                });
+            });
+        }
+
+        return {
+            success: true,
+            table: {
+                columns: columns,
+                rows: finalRows
+            },
+            message: `${finalRows.length}件のレコードが見つかりました`
         };
     }
 
