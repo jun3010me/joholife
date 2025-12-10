@@ -26,11 +26,18 @@ class SQLTerminal {
             }
         });
 
-        // Enterキーでコマンド実行
+        // Enterキーでコマンド実行、Shift+Enterで改行
         this.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                e.preventDefault();
-                this.executeCommand();
+                if (e.shiftKey) {
+                    // Shift+Enterの場合は改行を許可（何もしない）
+                    // textareaの高さを自動調整
+                    setTimeout(() => this.autoResize(), 0);
+                } else {
+                    // Enterのみの場合はコマンド実行
+                    e.preventDefault();
+                    this.executeCommand();
+                }
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 this.navigateHistory(-1);
@@ -39,6 +46,9 @@ class SQLTerminal {
                 this.navigateHistory(1);
             }
         });
+
+        // textareaの入力に応じて高さを自動調整
+        this.input.addEventListener('input', () => this.autoResize());
     }
 
     open() {
@@ -142,6 +152,10 @@ class SQLTerminal {
         // 入力欄をクリア
         this.input.value = '';
 
+        // textareaの高さをリセット
+        this.input.style.height = 'auto';
+        this.input.style.overflowY = 'hidden';
+
         // 出力を最下部にスクロール
         this.output.scrollTop = this.output.scrollHeight;
     }
@@ -154,6 +168,18 @@ class SQLTerminal {
     }
 
     displayResult(result) {
+        // 複数コマンドの結果の場合
+        if (result.results && Array.isArray(result.results)) {
+            for (const singleResult of result.results) {
+                this.displaySingleResult(singleResult);
+            }
+        } else {
+            // 単一コマンドの結果
+            this.displaySingleResult(result);
+        }
+    }
+
+    displaySingleResult(result) {
         if (result.success) {
             if (result.table) {
                 // テーブル形式で表示
@@ -243,6 +269,26 @@ class SQLTerminal {
         this.output.innerHTML = '';
         if (welcome) {
             this.output.appendChild(welcome);
+        }
+    }
+
+    // textareaの高さを自動調整
+    autoResize() {
+        if (!this.input) return;
+
+        // 一度高さをリセット
+        this.input.style.height = 'auto';
+
+        // コンテンツに合わせて高さを調整（最大10行程度）
+        const maxHeight = 200; // 約10行分
+        const scrollHeight = this.input.scrollHeight;
+
+        if (scrollHeight > maxHeight) {
+            this.input.style.height = maxHeight + 'px';
+            this.input.style.overflowY = 'auto';
+        } else {
+            this.input.style.height = scrollHeight + 'px';
+            this.input.style.overflowY = 'hidden';
         }
     }
 }

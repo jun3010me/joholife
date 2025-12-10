@@ -60,18 +60,56 @@ class SQLEngine {
         return simulatorTables;
     }
 
-    // SQLコマンドを実行
+    // SQLコマンドを実行（セミコロン区切りの複数コマンド対応）
     execute(sql) {
         try {
             sql = sql.trim();
 
             if (!sql) {
-                return { success: true, message: '' };
+                return { success: true, message: '', results: [] };
             }
 
-            // セミコロンを削除
-            if (sql.endsWith(';')) {
-                sql = sql.slice(0, -1).trim();
+            // セミコロンで分割して複数コマンドを抽出
+            const commands = sql.split(';')
+                .map(cmd => cmd.trim())
+                .filter(cmd => cmd.length > 0);
+
+            // コマンドが1つの場合は従来の動作
+            if (commands.length === 1) {
+                return this.executeSingleCommand(commands[0]);
+            }
+
+            // 複数コマンドの場合は順次実行
+            const results = [];
+            for (const command of commands) {
+                const result = this.executeSingleCommand(command);
+                results.push(result);
+
+                // エラーが発生した場合は処理を中断
+                if (!result.success) {
+                    break;
+                }
+            }
+
+            return {
+                success: true,
+                results: results
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    // 単一のSQLコマンドを実行
+    executeSingleCommand(sql) {
+        try {
+            sql = sql.trim();
+
+            if (!sql) {
+                return { success: true, message: '' };
             }
 
             // コマンドの種類を判定
