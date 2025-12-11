@@ -8,6 +8,7 @@ class SQLTerminal {
         this.input = null;
         this.history = [];
         this.historyIndex = -1;
+        this.isComposing = false; // IME入力中かどうか
     }
 
     init() {
@@ -47,12 +48,27 @@ class SQLTerminal {
             }
         });
 
-        // textareaの入力に応じて高さを自動調整
-        this.input.addEventListener('input', () => this.autoResize());
+        // IME入力の開始と終了を検出
+        this.input.addEventListener('compositionstart', () => {
+            this.isComposing = true;
+        });
 
-        // 貼り付け時にも高さを自動調整
+        this.input.addEventListener('compositionend', () => {
+            this.isComposing = false;
+        });
+
+        // textareaの入力に応じて高さを自動調整とアルファベット大文字化
+        this.input.addEventListener('input', () => {
+            this.autoUpperCase();
+            this.autoResize();
+        });
+
+        // 貼り付け時にも高さを自動調整と大文字化
         this.input.addEventListener('paste', () => {
-            setTimeout(() => this.autoResize(), 0);
+            setTimeout(() => {
+                this.autoUpperCase();
+                this.autoResize();
+            }, 0);
         });
     }
 
@@ -276,6 +292,24 @@ class SQLTerminal {
         this.output.innerHTML = '';
         if (welcome) {
             this.output.appendChild(welcome);
+        }
+    }
+
+    // アルファベットを自動的に大文字に変換
+    autoUpperCase() {
+        if (!this.input || this.isComposing) return;
+
+        const cursorPos = this.input.selectionStart;
+        const cursorEnd = this.input.selectionEnd;
+        const originalValue = this.input.value;
+        const upperValue = originalValue.toUpperCase();
+
+        // 値が変わった場合のみ更新
+        if (originalValue !== upperValue) {
+            this.input.value = upperValue;
+
+            // カーソル位置を復元
+            this.input.setSelectionRange(cursorPos, cursorEnd);
         }
     }
 
