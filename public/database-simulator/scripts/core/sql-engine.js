@@ -209,16 +209,40 @@ class SQLEngine {
             return this.executeSelectWithMultiJoin(sql);
         }
 
-        // 通常のSELECT文
-        const match = sql.match(/SELECT\s+(.+?)\s+FROM\s+(\S+)(?:\s+WHERE\s+(.+))?/i);
+        // 通常のSELECT文（スペースを含むテーブル名に対応）
+        // SELECT句とFROM句を抽出
+        const selectFromMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+(.+)$/i);
 
-        if (!match) {
+        if (!selectFromMatch) {
             throw new Error('構文エラー: SELECT 列名 FROM テーブル名 [WHERE 条件]');
         }
 
-        const columnsStr = match[1].trim();
-        const tableName = match[2].trim();
-        let restClause = match[3] ? match[3].trim() : null;
+        const columnsStr = selectFromMatch[1].trim();
+        const fromClause = selectFromMatch[2].trim();
+
+        // FROM句以降をキーワードで分割（WHERE、ORDER BY、LIMITの最初に出現するものを探す）
+        let tableName = fromClause;
+        let restClause = null;
+
+        // WHERE句の位置を探す
+        const wherePos = fromClause.search(/\s+WHERE\s+/i);
+        // ORDER BY句の位置を探す
+        const orderByPos = fromClause.search(/\s+ORDER\s+BY\s+/i);
+        // LIMIT句の位置を探す
+        const limitPos = fromClause.search(/\s+LIMIT\s+/i);
+
+        // 最初に出現するキーワードの位置を特定
+        const positions = [
+            { pos: wherePos, keyword: 'WHERE' },
+            { pos: orderByPos, keyword: 'ORDER BY' },
+            { pos: limitPos, keyword: 'LIMIT' }
+        ].filter(p => p.pos !== -1).sort((a, b) => a.pos - b.pos);
+
+        if (positions.length > 0) {
+            const firstKeyword = positions[0];
+            tableName = fromClause.substring(0, firstKeyword.pos).trim();
+            restClause = fromClause.substring(firstKeyword.pos).trim();
+        }
 
         // WHERE句、ORDER BY句、LIMIT句を順次抽出
         let whereClause = null;
@@ -227,8 +251,14 @@ class SQLEngine {
         let limitCount = null;
 
         if (restClause) {
+            // WHERE句を先に除去
+            let cleanRestClause = restClause;
+            if (cleanRestClause.toUpperCase().startsWith('WHERE ')) {
+                cleanRestClause = cleanRestClause.substring(6).trim();
+            }
+
             // ORDER BY句を抽出
-            const orderByMatch = restClause.match(/^(.*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+            const orderByMatch = cleanRestClause.match(/^(.*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
             if (orderByMatch) {
                 whereClause = orderByMatch[1].trim() || null;
                 orderByColumn = orderByMatch[2].trim();
@@ -238,13 +268,13 @@ class SQLEngine {
                 }
             } else {
                 // ORDER BYがない場合、LIMIT句のみを抽出
-                const limitMatch = restClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
+                const limitMatch = cleanRestClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
                 if (limitMatch) {
                     whereClause = limitMatch[1].trim() || null;
                     limitCount = parseInt(limitMatch[2], 10);
                 } else {
                     // LIMIT句もない場合、全体がWHERE句
-                    whereClause = restClause;
+                    whereClause = cleanRestClause;
                 }
             }
         } else {
