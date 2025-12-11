@@ -262,10 +262,12 @@ class SQLTerminal {
         } else if (this.historyIndex >= this.history.length) {
             this.historyIndex = this.history.length;
             this.input.value = '';
+            this.autoResize(); // 高さをリセット
             return;
         }
 
         this.input.value = this.history[this.historyIndex];
+        this.autoResize(); // 複数行のコマンドに合わせて高さを調整
     }
 
     clear() {
