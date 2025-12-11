@@ -257,8 +257,8 @@ class SQLEngine {
                 cleanRestClause = cleanRestClause.substring(6).trim();
             }
 
-            // ORDER BY句を抽出
-            const orderByMatch = cleanRestClause.match(/^(.*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+            // ORDER BY句を抽出（改行対応）
+            const orderByMatch = cleanRestClause.match(/^([\s\S]*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
             if (orderByMatch) {
                 whereClause = orderByMatch[1].trim() || null;
                 orderByColumn = orderByMatch[2].trim();
@@ -267,8 +267,8 @@ class SQLEngine {
                     limitCount = parseInt(orderByMatch[4], 10);
                 }
             } else {
-                // ORDER BYがない場合、LIMIT句のみを抽出
-                const limitMatch = cleanRestClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
+                // ORDER BYがない場合、LIMIT句のみを抽出（改行対応）
+                const limitMatch = cleanRestClause.match(/^([\s\S]*?)\s+LIMIT\s+(\d+)$/i);
                 if (limitMatch) {
                     whereClause = limitMatch[1].trim() || null;
                     limitCount = parseInt(limitMatch[2], 10);
