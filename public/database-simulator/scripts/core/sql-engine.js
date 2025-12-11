@@ -1157,9 +1157,11 @@ class SQLEngine {
             // _ -> . (1文字の任意の文字)
             // その他の特殊文字はエスケープ
             const regexPattern = pattern
+                .replace(/%/g, '__PERCENT__')  // %を一時プレースホルダーに
+                .replace(/_/g, '__UNDERSCORE__')  // _を一時プレースホルダーに
                 .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 正規表現の特殊文字をエスケープ
-                .replace(/\\%/g, '.*') // %を.*に変換
-                .replace(/\\_/g, '.'); // _を.に変換
+                .replace(/__PERCENT__/g, '.*')  // プレースホルダーを.*に
+                .replace(/__UNDERSCORE__/g, '.'); // プレースホルダーを.に
 
             const regex = new RegExp(`^${regexPattern}$`, 'i'); // 大文字小文字を区別しない
 
