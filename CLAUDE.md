@@ -649,6 +649,7 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   - **WHERE句**: 条件フィルタリング（`=`演算子、`IN`句、`BETWEEN`句、`LIKE`句対応）
   - **ORDER BY句**: 並び替え（ASC/DESC）
   - **GROUP BY句**: グループ化（COUNT(*) 集計関数対応）
+  - **COUNT(*)**: レコード数のカウント（GROUP BYなしでも使用可能）
   - **LIMIT句**: 結果の行数制限（`SELECT * FROM テーブル名 LIMIT 10`）
   - **IN句**: 複数の値のいずれかに一致（`列名 IN ('値1', '値2', '値3')`）
   - **BETWEEN句**: 範囲指定（日付・数値・文字列に対応）
@@ -681,6 +682,12 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
 
   -- ORDER BYとLIMITの組み合わせ
   SELECT * FROM 貸出 ORDER BY 貸出日 DESC LIMIT 10;
+
+  -- COUNT(*)でレコード数をカウント
+  SELECT COUNT(*) AS 貸出中件数 FROM 貸出テーブル;
+
+  -- WHERE句と組み合わせた条件付きカウント
+  SELECT COUNT(*) AS 文学書籍数 FROM 書籍テーブル WHERE 分類 = '文学';
 
   -- JOINとLIMITの組み合わせ
   SELECT * FROM 会員 JOIN 貸出 ON 会員.会員番号 = 貸出.会員番号 LIMIT 10;

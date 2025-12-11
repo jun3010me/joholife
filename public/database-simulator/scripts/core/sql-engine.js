@@ -707,26 +707,67 @@ class SQLEngine {
             columns = [];
             const columnResolvers = [];
 
+            // COUNT(*)が含まれているかチェック
+            let hasCount = false;
             for (const colExpr of selectedCols) {
-                // AS句の処理
-                const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
-                let displayName, colKey;
+                if (/COUNT\s*\(\s*\*\s*\)/i.test(colExpr)) {
+                    hasCount = true;
+                    break;
+                }
+            }
 
-                if (asMatch) {
-                    const expr = asMatch[1].trim();
-                    displayName = this.removeQuotes(asMatch[2].trim());
+            // COUNT(*)が含まれている場合は集計処理
+            if (hasCount) {
+                for (const colExpr of selectedCols) {
+                    const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                    let displayName;
 
-                    if (expr.includes('(')) {
-                        columns.push(displayName);
-                        columnResolvers.push({ type: 'unsupported' });
-                        continue;
+                    if (asMatch) {
+                        displayName = this.removeQuotes(asMatch[2].trim());
+                    } else {
+                        displayName = colExpr;
                     }
 
-                    colKey = expr;
-                } else {
-                    displayName = colExpr;
-                    colKey = colExpr;
+                    if (/COUNT\s*\(\s*\*\s*\)/i.test(colExpr)) {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'count' });
+                    } else {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'unsupported' });
+                    }
                 }
+
+                // 結果は1行のみ（集計結果）
+                const resultRow = columnResolvers.map(resolver => {
+                    if (resolver.type === 'count') {
+                        return resultRows.length.toString();
+                    } else {
+                        return '(未対応)';
+                    }
+                });
+                finalRows = [resultRow];
+            } else {
+                // 通常の列選択処理
+                for (const colExpr of selectedCols) {
+                    // AS句の処理
+                    const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                    let displayName, colKey;
+
+                    if (asMatch) {
+                        const expr = asMatch[1].trim();
+                        displayName = this.removeQuotes(asMatch[2].trim());
+
+                        if (expr.includes('(')) {
+                            columns.push(displayName);
+                            columnResolvers.push({ type: 'unsupported' });
+                            continue;
+                        }
+
+                        colKey = expr;
+                    } else {
+                        displayName = colExpr;
+                        colKey = colExpr;
+                    }
 
                 // 列名を解決
                 if (colKey.includes('.')) {
@@ -746,20 +787,21 @@ class SQLEngine {
                     columns.push(displayName);
                     columnResolvers.push({ type: 'unqualified', keys: keys });
                 }
-            }
+                }
 
-            finalRows = resultRows.map(row => {
-                return columnResolvers.map(resolver => {
-                    if (resolver.type === 'unsupported') {
-                        return '(未対応)';
-                    } else if (resolver.type === 'qualified') {
-                        return row[resolver.key] || '';
-                    } else if (resolver.type === 'unqualified') {
-                        return resolver.keys.map(k => row[k]).find(v => v) || '';
-                    }
-                    return '';
+                finalRows = resultRows.map(row => {
+                    return columnResolvers.map(resolver => {
+                        if (resolver.type === 'unsupported') {
+                            return '(未対応)';
+                        } else if (resolver.type === 'qualified') {
+                            return row[resolver.key] || '';
+                        } else if (resolver.type === 'unqualified') {
+                            return resolver.keys.map(k => row[k]).find(v => v) || '';
+                        }
+                        return '';
+                    });
                 });
-            });
+            }
         }
 
         // ORDER BY処理
