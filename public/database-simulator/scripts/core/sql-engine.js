@@ -1146,6 +1146,30 @@ class SQLEngine {
 
     // WHERE句のフィルタリング
     filterRows(rows, whereClause) {
+        // LIKE句のパターン: 列名 LIKE 'パターン'
+        const likeMatch = whereClause.match(/(\S+)\s+LIKE\s+'([^']+)'/i);
+        if (likeMatch) {
+            const column = likeMatch[1];
+            const pattern = likeMatch[2];
+
+            // SQLのLIKEパターンを正規表現に変換
+            // % -> .* (0文字以上の任意の文字)
+            // _ -> . (1文字の任意の文字)
+            // その他の特殊文字はエスケープ
+            const regexPattern = pattern
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 正規表現の特殊文字をエスケープ
+                .replace(/\\%/g, '.*') // %を.*に変換
+                .replace(/\\_/g, '.'); // _を.に変換
+
+            const regex = new RegExp(`^${regexPattern}$`, 'i'); // 大文字小文字を区別しない
+
+            return rows.filter(row => {
+                const rowValue = row[column];
+                if (!rowValue) return false;
+                return regex.test(rowValue.toString());
+            });
+        }
+
         // IN句のパターン: 列名 IN ('値1', '値2', ...)
         const inMatch = whereClause.match(/(\S+)\s+IN\s+\(([^)]+)\)/i);
         if (inMatch) {
