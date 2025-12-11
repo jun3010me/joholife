@@ -632,6 +632,39 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
 - **読込**: 保存したJSONファイルを読み込み
 - **リセット**: 初期状態（図書館貸出管理の非正規化テーブル）に戻す
 
+#### 8. SQLコマンド機能
+
+- **SQLターミナル**: ツールバーの「💻 SQLコマンド」ボタンでターミナルを開く
+- **対応コマンド**:
+  - **SELECT**: データの取得（`SELECT * FROM テーブル名`）
+  - **INSERT**: データの挿入（`INSERT INTO テーブル名 (列1, 列2) VALUES (値1, 値2)`）
+  - **UPDATE**: データの更新（`UPDATE テーブル名 SET 列名 = 値 WHERE 条件`）
+  - **DELETE**: データの削除（`DELETE FROM テーブル名 WHERE 条件`）
+  - **CREATE TABLE**: テーブル作成（`CREATE TABLE テーブル名 (列1 型, 列2 型 PRIMARY KEY)`）
+  - **DROP TABLE**: テーブル削除（`DROP TABLE テーブル名`）
+  - **SHOW TABLES**: テーブル一覧表示
+  - **DESC/DESCRIBE**: テーブル構造表示（`DESC テーブル名`）
+  - **JOIN**: 複数テーブル結合（INNER JOIN, LEFT JOIN対応）
+- **サポート構文**:
+  - **WHERE句**: 条件フィルタリング
+  - **ORDER BY句**: 並び替え（ASC/DESC）
+  - **GROUP BY句**: グループ化（COUNT(*) 集計関数対応）
+  - **LIMIT句**: 結果の行数制限（`SELECT * FROM テーブル名 LIMIT 10`）
+- **使用例**:
+  ```sql
+  -- 基本的なSELECT
+  SELECT * FROM 会員;
+
+  -- LIMIT句で先頭5件のみ取得
+  SELECT * FROM 会員 LIMIT 5;
+
+  -- JOINとLIMITの組み合わせ
+  SELECT * FROM 会員 JOIN 貸出 ON 会員.会員番号 = 貸出.会員番号 LIMIT 10;
+
+  -- WHERE句とLIMITの組み合わせ
+  SELECT * FROM 会員 WHERE 会員氏名 = '田中太郎' LIMIT 1;
+  ```
+
 ### サンプルデータ
 
 初期状態では、図書館貸出管理の非正規化テーブルが表示されます：
