@@ -1165,11 +1165,25 @@ class SQLEngine {
 
             const regex = new RegExp(`^${regexPattern}$`, 'i'); // 大文字小文字を区別しない
 
-            return rows.filter(row => {
+            console.log('[LIKE Debug]', {
+                column,
+                pattern,
+                regexPattern,
+                regex: regex.toString(),
+                rowCount: rows.length,
+                sampleRow: rows[0]
+            });
+
+            const filtered = rows.filter(row => {
                 const rowValue = row[column];
                 if (!rowValue) return false;
-                return regex.test(rowValue.toString());
+                const matches = regex.test(rowValue.toString());
+                console.log(`  Row value: "${rowValue}" -> ${matches}`);
+                return matches;
             });
+
+            console.log(`[LIKE Result] ${filtered.length} rows matched`);
+            return filtered;
         }
 
         // IN句のパターン: 列名 IN ('値1', '値2', ...)
