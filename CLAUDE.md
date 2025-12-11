@@ -646,12 +646,13 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   - **DESC/DESCRIBE**: テーブル構造表示（`DESC テーブル名`）
   - **JOIN**: 複数テーブル結合（INNER JOIN, LEFT JOIN対応）
 - **サポート構文**:
-  - **WHERE句**: 条件フィルタリング（`=`演算子、`IN`句、`BETWEEN`句対応）
+  - **WHERE句**: 条件フィルタリング（`=`演算子、`IN`句、`BETWEEN`句、`LIKE`句対応）
   - **ORDER BY句**: 並び替え（ASC/DESC）
   - **GROUP BY句**: グループ化（COUNT(*) 集計関数対応）
   - **LIMIT句**: 結果の行数制限（`SELECT * FROM テーブル名 LIMIT 10`）
   - **IN句**: 複数の値のいずれかに一致（`列名 IN ('値1', '値2', '値3')`）
   - **BETWEEN句**: 範囲指定（日付・数値・文字列に対応）
+  - **LIKE句**: パターンマッチング（`%`は0文字以上の任意の文字、`_`は1文字の任意の文字）
 - **使用例**:
   ```sql
   -- 基本的なSELECT
@@ -665,6 +666,12 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
 
   -- BETWEEN句で日付範囲指定
   SELECT * FROM 貸出 WHERE 返却予定日 BETWEEN '2024-12-01' AND '2024-12-05';
+
+  -- LIKE句でパターンマッチング（前方一致）
+  SELECT * FROM 貸出テーブル WHERE 書籍ID LIKE 'B00%';
+
+  -- LIKE句でパターンマッチング（部分一致）
+  SELECT * FROM 会員 WHERE 会員氏名 LIKE '%田中%';
 
   -- ORDER BY句で並び替え
   SELECT * FROM 貸出 ORDER BY 貸出ID DESC;
