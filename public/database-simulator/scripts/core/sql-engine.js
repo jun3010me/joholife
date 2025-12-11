@@ -218,7 +218,23 @@ class SQLEngine {
 
         const columnsStr = match[1].trim();
         const tableName = match[2].trim();
-        const whereClause = match[3] ? match[3].trim() : null;
+        let whereClause = match[3] ? match[3].trim() : null;
+
+        // LIMIT句を抽出（WHERE句がある場合はその中から）
+        let limitCount = null;
+        if (whereClause) {
+            const limitMatch = whereClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
+            if (limitMatch) {
+                whereClause = limitMatch[1].trim() || null;
+                limitCount = parseInt(limitMatch[2], 10);
+            }
+        } else {
+            // WHERE句がない場合、SQL全体からLIMITを抽出
+            const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
+            if (limitMatch) {
+                limitCount = parseInt(limitMatch[1], 10);
+            }
+        }
 
         if (!this.tables[tableName]) {
             throw new Error(`テーブル '${tableName}' が存在しません`);
@@ -252,13 +268,25 @@ class SQLEngine {
             resultRows = rows.map(row => columns.map(col => row[col] || ''));
         }
 
+        // LIMIT句の適用
+        const totalRows = resultRows.length;
+        if (limitCount !== null && limitCount >= 0) {
+            resultRows = resultRows.slice(0, limitCount);
+        }
+
+        // メッセージの生成
+        let message = `${totalRows}件のレコードが見つかりました`;
+        if (limitCount !== null && limitCount < totalRows) {
+            message += ` (LIMIT ${limitCount}件を表示)`;
+        }
+
         return {
             success: true,
             table: {
                 columns: columns,
                 rows: resultRows
             },
-            message: `${resultRows.length}件のレコードが見つかりました`
+            message: message
         };
     }
 
@@ -647,13 +675,32 @@ class SQLEngine {
             }
         }
 
+        // LIMIT句の抽出と適用
+        const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
+        const totalRows = finalRows.length;
+        if (limitMatch) {
+            const limitCount = parseInt(limitMatch[1], 10);
+            if (limitCount >= 0) {
+                finalRows = finalRows.slice(0, limitCount);
+            }
+        }
+
+        // メッセージの生成
+        let message = `${totalRows}件のレコードが見つかりました`;
+        if (limitMatch) {
+            const limitCount = parseInt(limitMatch[1], 10);
+            if (limitCount < totalRows) {
+                message += ` (LIMIT ${limitCount}件を表示)`;
+            }
+        }
+
         return {
             success: true,
             table: {
                 columns: columns,
                 rows: finalRows
             },
-            message: `${finalRows.length}件のレコードが見つかりました`
+            message: message
         };
     }
 
