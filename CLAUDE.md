@@ -646,10 +646,11 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   - **DESC/DESCRIBE**: テーブル構造表示（`DESC テーブル名`）
   - **JOIN**: 複数テーブル結合（INNER JOIN, LEFT JOIN対応）
 - **サポート構文**:
-  - **WHERE句**: 条件フィルタリング（`=`演算子、`BETWEEN`句対応）
+  - **WHERE句**: 条件フィルタリング（`=`演算子、`IN`句、`BETWEEN`句対応）
   - **ORDER BY句**: 並び替え（ASC/DESC）
   - **GROUP BY句**: グループ化（COUNT(*) 集計関数対応）
   - **LIMIT句**: 結果の行数制限（`SELECT * FROM テーブル名 LIMIT 10`）
+  - **IN句**: 複数の値のいずれかに一致（`列名 IN ('値1', '値2', '値3')`）
   - **BETWEEN句**: 範囲指定（日付・数値・文字列に対応）
 - **使用例**:
   ```sql
@@ -658,6 +659,9 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
 
   -- WHERE句で条件フィルタリング
   SELECT * FROM 貸出 WHERE 貸出状態 = '貸出中';
+
+  -- IN句で複数の値に一致
+  SELECT * FROM 貸出 WHERE 会員ID IN ('M001', 'M002', 'M003');
 
   -- BETWEEN句で日付範囲指定
   SELECT * FROM 貸出 WHERE 返却予定日 BETWEEN '2024-12-01' AND '2024-12-05';
@@ -674,8 +678,8 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   -- JOINとLIMITの組み合わせ
   SELECT * FROM 会員 JOIN 貸出 ON 会員.会員番号 = 貸出.会員番号 LIMIT 10;
 
-  -- WHERE句（BETWEEN）とORDER BYとLIMITの組み合わせ
-  SELECT * FROM 貸出 WHERE 返却予定日 BETWEEN '2024-12-01' AND '2024-12-10' ORDER BY 返却予定日 ASC LIMIT 5;
+  -- WHERE句（IN）とORDER BYの組み合わせ
+  SELECT * FROM 貸出 WHERE 会員ID IN ('M001', 'M002') ORDER BY 貸出日 DESC;
   ```
 
 ### サンプルデータ

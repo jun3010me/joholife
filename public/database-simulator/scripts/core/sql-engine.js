@@ -1146,6 +1146,24 @@ class SQLEngine {
 
     // WHERE句のフィルタリング
     filterRows(rows, whereClause) {
+        // IN句のパターン: 列名 IN ('値1', '値2', ...)
+        const inMatch = whereClause.match(/(\S+)\s+IN\s+\(([^)]+)\)/i);
+        if (inMatch) {
+            const column = inMatch[1];
+            const valuesStr = inMatch[2];
+
+            // カンマ区切りの値をパース（クォートを除去）
+            const values = valuesStr.split(',').map(v => v.trim().replace(/^['"]|['"]$/g, ''));
+
+            return rows.filter(row => {
+                const rowValue = row[column];
+                if (!rowValue) return false;
+
+                // 値のリストに含まれるかチェック
+                return values.includes(rowValue.toString());
+            });
+        }
+
         // BETWEEN句のパターン: 列名 BETWEEN '値1' AND '値2'
         const betweenMatch = whereClause.match(/(\S+)\s+BETWEEN\s+'([^']+)'\s+AND\s+'([^']+)'/i);
         if (betweenMatch) {
