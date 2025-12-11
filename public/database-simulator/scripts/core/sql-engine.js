@@ -257,24 +257,45 @@ class SQLEngine {
                 cleanRestClause = cleanRestClause.substring(6).trim();
             }
 
-            // ORDER BY句を抽出（改行対応）
-            const orderByMatch = cleanRestClause.match(/^([\s\S]*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
-            if (orderByMatch) {
-                whereClause = orderByMatch[1].trim() || null;
-                orderByColumn = orderByMatch[2].trim();
-                orderByDirection = orderByMatch[3] ? orderByMatch[3].toUpperCase() : 'ASC';
-                if (orderByMatch[4]) {
-                    limitCount = parseInt(orderByMatch[4], 10);
+            // ORDER BYで始まっている場合（WHERE句がない）
+            if (cleanRestClause.toUpperCase().startsWith('ORDER BY ')) {
+                const orderByMatch = cleanRestClause.match(/^ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+                if (orderByMatch) {
+                    orderByColumn = orderByMatch[1].trim();
+                    orderByDirection = orderByMatch[2] ? orderByMatch[2].toUpperCase() : 'ASC';
+                    if (orderByMatch[3]) {
+                        limitCount = parseInt(orderByMatch[3], 10);
+                    }
                 }
-            } else {
-                // ORDER BYがない場合、LIMIT句のみを抽出（改行対応）
-                const limitMatch = cleanRestClause.match(/^([\s\S]*?)\s+LIMIT\s+(\d+)$/i);
+            }
+            // LIMITで始まっている場合（WHERE句もORDER BYもない）
+            else if (cleanRestClause.toUpperCase().startsWith('LIMIT ')) {
+                const limitMatch = cleanRestClause.match(/^LIMIT\s+(\d+)$/i);
                 if (limitMatch) {
-                    whereClause = limitMatch[1].trim() || null;
-                    limitCount = parseInt(limitMatch[2], 10);
+                    limitCount = parseInt(limitMatch[1], 10);
+                }
+            }
+            // WHERE句がある場合
+            else {
+                // ORDER BY句を抽出（改行対応）
+                const orderByMatch = cleanRestClause.match(/^([\s\S]*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+                if (orderByMatch) {
+                    whereClause = orderByMatch[1].trim() || null;
+                    orderByColumn = orderByMatch[2].trim();
+                    orderByDirection = orderByMatch[3] ? orderByMatch[3].toUpperCase() : 'ASC';
+                    if (orderByMatch[4]) {
+                        limitCount = parseInt(orderByMatch[4], 10);
+                    }
                 } else {
-                    // LIMIT句もない場合、全体がWHERE句
-                    whereClause = cleanRestClause;
+                    // ORDER BYがない場合、LIMIT句のみを抽出（改行対応）
+                    const limitMatch = cleanRestClause.match(/^([\s\S]*?)\s+LIMIT\s+(\d+)$/i);
+                    if (limitMatch) {
+                        whereClause = limitMatch[1].trim() || null;
+                        limitCount = parseInt(limitMatch[2], 10);
+                    } else {
+                        // LIMIT句もない場合、全体がWHERE句
+                        whereClause = cleanRestClause;
+                    }
                 }
             }
         } else {
