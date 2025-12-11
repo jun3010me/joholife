@@ -1146,7 +1146,40 @@ class SQLEngine {
 
     // WHERE句のフィルタリング
     filterRows(rows, whereClause) {
-        // 簡易的な実装: 列名 = '値' または 列名 = 値 の形式のみ対応
+        // BETWEEN句のパターン: 列名 BETWEEN '値1' AND '値2'
+        const betweenMatch = whereClause.match(/(\S+)\s+BETWEEN\s+'([^']+)'\s+AND\s+'([^']+)'/i);
+        if (betweenMatch) {
+            const column = betweenMatch[1];
+            const value1 = betweenMatch[2];
+            const value2 = betweenMatch[3];
+
+            return rows.filter(row => {
+                const rowValue = row[column];
+                if (!rowValue) return false;
+
+                // 日付形式の場合
+                const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+                if (datePattern.test(value1) && datePattern.test(value2) && datePattern.test(rowValue)) {
+                    const rowDate = new Date(rowValue);
+                    const date1 = new Date(value1);
+                    const date2 = new Date(value2);
+                    return rowDate >= date1 && rowDate <= date2;
+                }
+
+                // 数値の場合
+                const rowNum = parseFloat(rowValue);
+                const num1 = parseFloat(value1);
+                const num2 = parseFloat(value2);
+                if (!isNaN(rowNum) && !isNaN(num1) && !isNaN(num2)) {
+                    return rowNum >= num1 && rowNum <= num2;
+                }
+
+                // 文字列比較
+                return rowValue >= value1 && rowValue <= value2;
+            });
+        }
+
+        // 簡易的な実装: 列名 = '値' または 列名 = 値 の形式
         const match = whereClause.match(/(\S+)\s*=\s*'?([^']+)'?/);
 
         if (!match) {
