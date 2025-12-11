@@ -218,21 +218,50 @@ class SQLEngine {
 
         const columnsStr = match[1].trim();
         const tableName = match[2].trim();
-        let whereClause = match[3] ? match[3].trim() : null;
+        let restClause = match[3] ? match[3].trim() : null;
 
-        // LIMIT句を抽出（WHERE句がある場合はその中から）
+        // WHERE句、ORDER BY句、LIMIT句を順次抽出
+        let whereClause = null;
+        let orderByColumn = null;
+        let orderByDirection = 'ASC';
         let limitCount = null;
-        if (whereClause) {
-            const limitMatch = whereClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
-            if (limitMatch) {
-                whereClause = limitMatch[1].trim() || null;
-                limitCount = parseInt(limitMatch[2], 10);
+
+        if (restClause) {
+            // ORDER BY句を抽出
+            const orderByMatch = restClause.match(/^(.*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+            if (orderByMatch) {
+                whereClause = orderByMatch[1].trim() || null;
+                orderByColumn = orderByMatch[2].trim();
+                orderByDirection = orderByMatch[3] ? orderByMatch[3].toUpperCase() : 'ASC';
+                if (orderByMatch[4]) {
+                    limitCount = parseInt(orderByMatch[4], 10);
+                }
+            } else {
+                // ORDER BYがない場合、LIMIT句のみを抽出
+                const limitMatch = restClause.match(/^(.*?)\s+LIMIT\s+(\d+)$/i);
+                if (limitMatch) {
+                    whereClause = limitMatch[1].trim() || null;
+                    limitCount = parseInt(limitMatch[2], 10);
+                } else {
+                    // LIMIT句もない場合、全体がWHERE句
+                    whereClause = restClause;
+                }
             }
         } else {
-            // WHERE句がない場合、SQL全体からLIMITを抽出
-            const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
-            if (limitMatch) {
-                limitCount = parseInt(limitMatch[1], 10);
+            // WHERE句がない場合、SQL全体からORDER BY句とLIMIT句を抽出
+            const orderByMatch = sql.match(/ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
+            if (orderByMatch) {
+                orderByColumn = orderByMatch[1].trim();
+                orderByDirection = orderByMatch[2] ? orderByMatch[2].toUpperCase() : 'ASC';
+                if (orderByMatch[3]) {
+                    limitCount = parseInt(orderByMatch[3], 10);
+                }
+            } else {
+                // ORDER BYがない場合、LIMIT句のみを抽出
+                const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
+                if (limitMatch) {
+                    limitCount = parseInt(limitMatch[1], 10);
+                }
             }
         }
 
@@ -266,6 +295,33 @@ class SQLEngine {
             }
 
             resultRows = rows.map(row => columns.map(col => row[col] || ''));
+        }
+
+        // ORDER BY句の処理
+        if (orderByColumn) {
+            const orderByIndex = columns.findIndex(col => col === orderByColumn);
+
+            if (orderByIndex !== -1) {
+                resultRows.sort((a, b) => {
+                    const aVal = a[orderByIndex];
+                    const bVal = b[orderByIndex];
+
+                    // 数値として解釈できる場合は数値比較
+                    const aNum = parseFloat(aVal);
+                    const bNum = parseFloat(bVal);
+
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return orderByDirection === 'DESC' ? bNum - aNum : aNum - bNum;
+                    }
+
+                    // 文字列比較
+                    if (orderByDirection === 'DESC') {
+                        return bVal.localeCompare(aVal);
+                    } else {
+                        return aVal.localeCompare(bVal);
+                    }
+                });
+            }
         }
 
         // LIMIT句の適用

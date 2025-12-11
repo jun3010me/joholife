@@ -655,14 +655,20 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   -- 基本的なSELECT
   SELECT * FROM 会員;
 
+  -- ORDER BY句で並び替え
+  SELECT * FROM 貸出 ORDER BY 貸出ID DESC;
+
   -- LIMIT句で先頭5件のみ取得
   SELECT * FROM 会員 LIMIT 5;
+
+  -- ORDER BYとLIMITの組み合わせ
+  SELECT * FROM 貸出 ORDER BY 貸出日 DESC LIMIT 10;
 
   -- JOINとLIMITの組み合わせ
   SELECT * FROM 会員 JOIN 貸出 ON 会員.会員番号 = 貸出.会員番号 LIMIT 10;
 
-  -- WHERE句とLIMITの組み合わせ
-  SELECT * FROM 会員 WHERE 会員氏名 = '田中太郎' LIMIT 1;
+  -- WHERE句とORDER BYとLIMITの組み合わせ
+  SELECT * FROM 会員 WHERE 会員氏名 = '田中太郎' ORDER BY 登録日 DESC LIMIT 1;
   ```
 
 ### サンプルデータ
