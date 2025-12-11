@@ -209,9 +209,9 @@ class SQLEngine {
             return this.executeSelectWithMultiJoin(sql);
         }
 
-        // 通常のSELECT文（スペースを含むテーブル名に対応）
-        // SELECT句とFROM句を抽出
-        const selectFromMatch = sql.match(/SELECT\s+(.+?)\s+FROM\s+(.+)$/i);
+        // 通常のSELECT文（スペースを含むテーブル名、改行に対応）
+        // SELECT句とFROM句を抽出（[\s\S]で改行にも対応）
+        const selectFromMatch = sql.match(/SELECT\s+([\s\S]+?)\s+FROM\s+([\s\S]+)$/i);
 
         if (!selectFromMatch) {
             throw new Error('構文エラー: SELECT 列名 FROM テーブル名 [WHERE 条件]');
