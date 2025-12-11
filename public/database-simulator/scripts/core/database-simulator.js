@@ -1501,7 +1501,21 @@ class DatabaseSimulator {
             }
         });
 
-        return uniqueRecords;
+        // 全てのフィールドが空（null, undefined, 空文字列）のレコードを削除
+        const filteredRecords = uniqueRecords.filter(record => {
+            // 全ての列の値をチェック
+            for (const column of table.columns) {
+                const value = record[column.name];
+                // 1つでも空でない値があればtrue（レコードを保持）
+                if (value !== null && value !== undefined && value !== '') {
+                    return true;
+                }
+            }
+            // 全てのフィールドが空の場合はfalse（レコードを削除）
+            return false;
+        });
+
+        return filteredRecords;
     }
 
     // 全テーブルの重複レコードを削除
@@ -1532,9 +1546,9 @@ class DatabaseSimulator {
 
         // 結果を表示
         if (totalRemoved > 0) {
-            alert(`${tablesProcessed}個のテーブルから合計${totalRemoved}件の重複レコードを削除しました。`);
+            alert(`${tablesProcessed}個のテーブルから合計${totalRemoved}件の不要なレコード（重複レコードおよび全フィールド空のレコード）を削除しました。`);
         } else {
-            alert('重複レコードは見つかりませんでした。');
+            alert('削除対象のレコードは見つかりませんでした。');
         }
 
         // 履歴に保存
