@@ -336,6 +336,16 @@ class SQLEngine {
                     const aVal = a[orderByIndex];
                     const bVal = b[orderByIndex];
 
+                    // 日付として解釈できる場合は日付比較（YYYY-MM-DD形式）
+                    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+                    if (datePattern.test(aVal) && datePattern.test(bVal)) {
+                        const aDate = new Date(aVal);
+                        const bDate = new Date(bVal);
+                        if (!isNaN(aDate.getTime()) && !isNaN(bDate.getTime())) {
+                            return orderByDirection === 'DESC' ? bDate - aDate : aDate - bDate;
+                        }
+                    }
+
                     // 数値として解釈できる場合は数値比較
                     const aNum = parseFloat(aVal);
                     const bNum = parseFloat(bVal);
@@ -742,6 +752,16 @@ class SQLEngine {
                 finalRows.sort((a, b) => {
                     const aVal = a[orderByIndex];
                     const bVal = b[orderByIndex];
+
+                    // 日付として解釈できる場合は日付比較（YYYY-MM-DD形式）
+                    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+                    if (datePattern.test(aVal) && datePattern.test(bVal)) {
+                        const aDate = new Date(aVal);
+                        const bDate = new Date(bVal);
+                        if (!isNaN(aDate.getTime()) && !isNaN(bDate.getTime())) {
+                            return orderByDirection === 'DESC' ? bDate - aDate : aDate - bDate;
+                        }
+                    }
 
                     // 数値として解釈できる場合は数値比較
                     const aNum = parseFloat(aVal);
