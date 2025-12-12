@@ -560,8 +560,8 @@ class SQLEngine {
             });
         }
 
-        // SELECT句を抽出
-        const selectMatch = sql.match(/SELECT\s+(.+?)\s+FROM/i);
+        // SELECT句を抽出（改行対応）
+        const selectMatch = sql.match(/SELECT\s+([\s\S]+?)\s+FROM/i);
         if (!selectMatch) {
             throw new Error('SELECT句が見つかりません');
         }
@@ -657,15 +657,15 @@ class SQLEngine {
             allTables.push({ name: join.tableName, alias: join.alias });
         }
 
-        // WHERE句の処理
-        const whereMatch = sql.match(/WHERE\s+(.+?)(?:\s+(?:GROUP|ORDER)|$)/i);
+        // WHERE句の処理（改行対応）
+        const whereMatch = sql.match(/WHERE\s+([\s\S]+?)(?:\s+(?:GROUP|ORDER)|$)/i);
         if (whereMatch) {
             const whereClause = whereMatch[1].trim();
             resultRows = this.filterRows(resultRows, whereClause);
         }
 
-        // GROUP BY句の抽出
-        const groupByMatch = sql.match(/GROUP\s+BY\s+(.+?)(?:\s+(?:ORDER|HAVING|$))/i);
+        // GROUP BY句の抽出（改行対応）
+        const groupByMatch = sql.match(/GROUP\s+BY\s+([\s\S]+?)(?:\s+(?:ORDER|HAVING|$))/i);
         const hasGroupBy = !!groupByMatch;
         let groupByColumns = [];
 
@@ -673,8 +673,8 @@ class SQLEngine {
             groupByColumns = groupByMatch[1].split(',').map(col => col.trim());
         }
 
-        // ORDER BY句の抽出
-        const orderByMatch = sql.match(/ORDER\s+BY\s+(.+?)$/i);
+        // ORDER BY句の抽出（改行対応）
+        const orderByMatch = sql.match(/ORDER\s+BY\s+([\s\S]+?)$/i);
         let orderByColumn = null;
         let orderByDirection = 'ASC';
 
