@@ -660,7 +660,15 @@ class SQLEngine {
         // WHERE句の処理（改行対応）
         const whereMatch = sql.match(/WHERE\s+([\s\S]+?)(?:\s+(?:GROUP|ORDER)|$)/i);
         if (whereMatch) {
-            const whereClause = whereMatch[1].trim();
+            let whereClause = whereMatch[1].trim();
+
+            // エイリアスを実際のテーブル名に置換
+            for (const [alias, tableName] of Object.entries(aliasMap)) {
+                // エイリアス.列名 を テーブル名.列名 に置換
+                const aliasPattern = new RegExp(`\\b${alias}\\.`, 'g');
+                whereClause = whereClause.replace(aliasPattern, `${tableName}.`);
+            }
+
             resultRows = this.filterRows(resultRows, whereClause);
         }
 
@@ -1314,8 +1322,8 @@ class SQLEngine {
 
     // WHERE句のフィルタリング
     filterRows(rows, whereClause) {
-        // LIKE句のパターン: 列名 LIKE 'パターン'
-        const likeMatch = whereClause.match(/(\S+)\s+LIKE\s+'([^']+)'/i);
+        // LIKE句のパターン: 列名 LIKE 'パターン' （テーブル名.列名 にも対応）
+        const likeMatch = whereClause.match(/([^\s]+)\s+LIKE\s+'([^']+)'/i);
         if (likeMatch) {
             const column = likeMatch[1];
             const pattern = likeMatch[2];
@@ -1354,8 +1362,8 @@ class SQLEngine {
             return filtered;
         }
 
-        // IN句のパターン: 列名 IN ('値1', '値2', ...)
-        const inMatch = whereClause.match(/(\S+)\s+IN\s+\(([^)]+)\)/i);
+        // IN句のパターン: 列名 IN ('値1', '値2', ...) （テーブル名.列名 にも対応）
+        const inMatch = whereClause.match(/([^\s]+)\s+IN\s+\(([^)]+)\)/i);
         if (inMatch) {
             const column = inMatch[1];
             const valuesStr = inMatch[2];
@@ -1372,8 +1380,8 @@ class SQLEngine {
             });
         }
 
-        // BETWEEN句のパターン: 列名 BETWEEN '値1' AND '値2'
-        const betweenMatch = whereClause.match(/(\S+)\s+BETWEEN\s+'([^']+)'\s+AND\s+'([^']+)'/i);
+        // BETWEEN句のパターン: 列名 BETWEEN '値1' AND '値2' （テーブル名.列名 にも対応）
+        const betweenMatch = whereClause.match(/([^\s]+)\s+BETWEEN\s+'([^']+)'\s+AND\s+'([^']+)'/i);
         if (betweenMatch) {
             const column = betweenMatch[1];
             const value1 = betweenMatch[2];
@@ -1405,8 +1413,8 @@ class SQLEngine {
             });
         }
 
-        // 簡易的な実装: 列名 = '値' または 列名 = 値 の形式
-        const match = whereClause.match(/(\S+)\s*=\s*'?([^']+)'?/);
+        // 簡易的な実装: 列名 = '値' または 列名 = 値 の形式 （テーブル名.列名 にも対応）
+        const match = whereClause.match(/([^\s]+)\s*=\s*'?([^']+)'?/);
 
         if (!match) {
             throw new Error(`WHERE句の構文エラー: ${whereClause}`);
