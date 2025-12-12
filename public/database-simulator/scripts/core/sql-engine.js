@@ -217,8 +217,15 @@ class SQLEngine {
             throw new Error('構文エラー: SELECT 列名 FROM テーブル名 [WHERE 条件]');
         }
 
-        const columnsStr = selectFromMatch[1].trim();
+        let columnsStr = selectFromMatch[1].trim();
         const fromClause = selectFromMatch[2].trim();
+
+        // DISTINCTキーワードを検出
+        let isDistinct = false;
+        if (/^DISTINCT\s+/i.test(columnsStr)) {
+            isDistinct = true;
+            columnsStr = columnsStr.replace(/^DISTINCT\s+/i, '').trim();
+        }
 
         // FROM句以降をキーワードで分割（WHERE、ORDER BY、LIMITの最初に出現するものを探す）
         let tableName = fromClause;
@@ -395,6 +402,23 @@ class SQLEngine {
             }
         }
 
+        // DISTINCT処理（重複行の削除）
+        if (isDistinct) {
+            const uniqueRows = [];
+            const seen = new Set();
+
+            for (const row of resultRows) {
+                // 行を文字列化してキーとする
+                const rowKey = JSON.stringify(row);
+                if (!seen.has(rowKey)) {
+                    seen.add(rowKey);
+                    uniqueRows.push(row);
+                }
+            }
+
+            resultRows = uniqueRows;
+        }
+
         // ORDER BY句の処理
         if (orderByColumn) {
             const orderByIndex = columns.findIndex(col => col === orderByColumn);
@@ -510,7 +534,14 @@ class SQLEngine {
         if (!selectMatch) {
             throw new Error('SELECT句が見つかりません');
         }
-        const columnsStr = selectMatch[1].trim();
+        let columnsStr = selectMatch[1].trim();
+
+        // DISTINCTキーワードを検出
+        let isDistinct = false;
+        if (/^DISTINCT\s+/i.test(columnsStr)) {
+            isDistinct = true;
+            columnsStr = columnsStr.replace(/^DISTINCT\s+/i, '').trim();
+        }
 
         // ベーステーブルから開始
         let resultRows = this.tables[baseTableName].rows.map(row => {
@@ -849,6 +880,23 @@ class SQLEngine {
                     });
                 });
             }
+        }
+
+        // DISTINCT処理（重複行の削除）
+        if (isDistinct) {
+            const uniqueRows = [];
+            const seen = new Set();
+
+            for (const row of finalRows) {
+                // 行を文字列化してキーとする
+                const rowKey = JSON.stringify(row);
+                if (!seen.has(rowKey)) {
+                    seen.add(rowKey);
+                    uniqueRows.push(row);
+                }
+            }
+
+            finalRows = uniqueRows;
         }
 
         // ORDER BY処理
