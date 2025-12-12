@@ -336,16 +336,63 @@ class SQLEngine {
             columns = table.columns.map(col => col.name);
             resultRows = rows.map(row => columns.map(col => row[col] || ''));
         } else {
-            columns = columnsStr.split(',').map(col => col.trim());
+            // COUNT(*)が含まれているかチェック
+            let hasCount = false;
+            const selectedCols = columnsStr.split(',').map(col => col.trim());
 
-            // 列が存在するか確認
-            for (const col of columns) {
-                if (!table.columns.find(c => c.name === col)) {
-                    throw new Error(`列 '${col}' が存在しません`);
+            for (const colExpr of selectedCols) {
+                if (/COUNT\s*\(\s*\*\s*\)/i.test(colExpr)) {
+                    hasCount = true;
+                    break;
                 }
             }
 
-            resultRows = rows.map(row => columns.map(col => row[col] || ''));
+            // COUNT(*)が含まれている場合は集計処理
+            if (hasCount) {
+                columns = [];
+                const columnResolvers = [];
+
+                for (const colExpr of selectedCols) {
+                    const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                    let displayName;
+
+                    if (asMatch) {
+                        displayName = this.removeQuotes(asMatch[2].trim());
+                    } else {
+                        displayName = colExpr;
+                    }
+
+                    if (/COUNT\s*\(\s*\*\s*\)/i.test(colExpr)) {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'count' });
+                    } else {
+                        columns.push(displayName);
+                        columnResolvers.push({ type: 'unsupported' });
+                    }
+                }
+
+                // 結果は1行のみ（集計結果）
+                const resultRow = columnResolvers.map(resolver => {
+                    if (resolver.type === 'count') {
+                        return rows.length.toString();
+                    } else {
+                        return '(未対応)';
+                    }
+                });
+                resultRows = [resultRow];
+            } else {
+                // 通常の列選択処理
+                columns = selectedCols;
+
+                // 列が存在するか確認
+                for (const col of columns) {
+                    if (!table.columns.find(c => c.name === col)) {
+                        throw new Error(`列 '${col}' が存在しません`);
+                    }
+                }
+
+                resultRows = rows.map(row => columns.map(col => row[col] || ''));
+            }
         }
 
         // ORDER BY句の処理
