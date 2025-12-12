@@ -227,12 +227,14 @@ class SQLEngine {
             columnsStr = columnsStr.replace(/^DISTINCT\s+/i, '').trim();
         }
 
-        // FROM句以降をキーワードで分割（WHERE、ORDER BY、LIMITの最初に出現するものを探す）
+        // FROM句以降をキーワードで分割（WHERE、GROUP BY、ORDER BY、LIMITの最初に出現するものを探す）
         let tableName = fromClause;
         let restClause = null;
 
         // WHERE句の位置を探す
         const wherePos = fromClause.search(/\s+WHERE\s+/i);
+        // GROUP BY句の位置を探す
+        const groupByPos = fromClause.search(/\s+GROUP\s+BY\s+/i);
         // ORDER BY句の位置を探す
         const orderByPos = fromClause.search(/\s+ORDER\s+BY\s+/i);
         // LIMIT句の位置を探す
@@ -241,6 +243,7 @@ class SQLEngine {
         // 最初に出現するキーワードの位置を特定
         const positions = [
             { pos: wherePos, keyword: 'WHERE' },
+            { pos: groupByPos, keyword: 'GROUP BY' },
             { pos: orderByPos, keyword: 'ORDER BY' },
             { pos: limitPos, keyword: 'LIMIT' }
         ].filter(p => p.pos !== -1).sort((a, b) => a.pos - b.pos);
@@ -251,76 +254,38 @@ class SQLEngine {
             restClause = fromClause.substring(firstKeyword.pos).trim();
         }
 
-        // WHERE句、ORDER BY句、LIMIT句を順次抽出
+        // WHERE句、GROUP BY句、ORDER BY句、LIMIT句を順次抽出
         let whereClause = null;
+        let groupByColumns = [];
+        let hasGroupBy = false;
         let orderByColumn = null;
         let orderByDirection = 'ASC';
         let limitCount = null;
 
-        if (restClause) {
-            // WHERE句を先に除去
-            let cleanRestClause = restClause;
-            if (cleanRestClause.toUpperCase().startsWith('WHERE ')) {
-                cleanRestClause = cleanRestClause.substring(6).trim();
-            }
+        // WHERE句の抽出
+        const whereMatch = sql.match(/WHERE\s+([\s\S]+?)(?:\s+(?:GROUP\s+BY|ORDER\s+BY|LIMIT)|$)/i);
+        if (whereMatch) {
+            whereClause = whereMatch[1].trim();
+        }
 
-            // ORDER BYで始まっている場合（WHERE句がない）
-            if (cleanRestClause.toUpperCase().startsWith('ORDER BY ')) {
-                const orderByMatch = cleanRestClause.match(/^ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
-                if (orderByMatch) {
-                    orderByColumn = orderByMatch[1].trim();
-                    orderByDirection = orderByMatch[2] ? orderByMatch[2].toUpperCase() : 'ASC';
-                    if (orderByMatch[3]) {
-                        limitCount = parseInt(orderByMatch[3], 10);
-                    }
-                }
-            }
-            // LIMITで始まっている場合（WHERE句もORDER BYもない）
-            else if (cleanRestClause.toUpperCase().startsWith('LIMIT ')) {
-                const limitMatch = cleanRestClause.match(/^LIMIT\s+(\d+)$/i);
-                if (limitMatch) {
-                    limitCount = parseInt(limitMatch[1], 10);
-                }
-            }
-            // WHERE句がある場合
-            else {
-                // ORDER BY句を抽出（改行対応）
-                const orderByMatch = cleanRestClause.match(/^([\s\S]*?)\s+ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
-                if (orderByMatch) {
-                    whereClause = orderByMatch[1].trim() || null;
-                    orderByColumn = orderByMatch[2].trim();
-                    orderByDirection = orderByMatch[3] ? orderByMatch[3].toUpperCase() : 'ASC';
-                    if (orderByMatch[4]) {
-                        limitCount = parseInt(orderByMatch[4], 10);
-                    }
-                } else {
-                    // ORDER BYがない場合、LIMIT句のみを抽出（改行対応）
-                    const limitMatch = cleanRestClause.match(/^([\s\S]*?)\s+LIMIT\s+(\d+)$/i);
-                    if (limitMatch) {
-                        whereClause = limitMatch[1].trim() || null;
-                        limitCount = parseInt(limitMatch[2], 10);
-                    } else {
-                        // LIMIT句もない場合、全体がWHERE句
-                        whereClause = cleanRestClause;
-                    }
-                }
-            }
-        } else {
-            // WHERE句がない場合、SQL全体からORDER BY句とLIMIT句を抽出
-            const orderByMatch = sql.match(/ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?\s*(?:LIMIT\s+(\d+))?$/i);
-            if (orderByMatch) {
-                orderByColumn = orderByMatch[1].trim();
-                orderByDirection = orderByMatch[2] ? orderByMatch[2].toUpperCase() : 'ASC';
-                if (orderByMatch[3]) {
-                    limitCount = parseInt(orderByMatch[3], 10);
-                }
-            } else {
-                // ORDER BYがない場合、LIMIT句のみを抽出
-                const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
-                if (limitMatch) {
-                    limitCount = parseInt(limitMatch[1], 10);
-                }
-            }
+        // GROUP BY句の抽出
+        const groupByMatch = sql.match(/GROUP\s+BY\s+([\s\S]+?)(?:\s+(?:ORDER\s+BY|LIMIT)|$)/i);
+        if (groupByMatch) {
+            hasGroupBy = true;
+            groupByColumns = groupByMatch[1].split(',').map(col => col.trim());
+        }
+
+        // ORDER BY句の抽出
+        const orderByMatch = sql.match(/ORDER\s+BY\s+(\S+)(?:\s+(ASC|DESC))?(?:\s+|$)/i);
+        if (orderByMatch) {
+            orderByColumn = orderByMatch[1].trim();
+            orderByDirection = orderByMatch[2] ? orderByMatch[2].toUpperCase() : 'ASC';
+        }
+
+        // LIMIT句の抽出
+        const limitMatch = sql.match(/LIMIT\s+(\d+)$/i);
+        if (limitMatch) {
+            limitCount = parseInt(limitMatch[1], 10);
         }
 
         if (!this.tables[tableName]) {
@@ -342,6 +307,72 @@ class SQLEngine {
         if (columnsStr === '*') {
             columns = table.columns.map(col => col.name);
             resultRows = rows.map(row => columns.map(col => row[col] || ''));
+        } else if (hasGroupBy) {
+            // GROUP BYがある場合の処理
+            const selectedCols = columnsStr.split(',').map(col => col.trim());
+            columns = [];
+            const groupByCols = [];
+            const aggregateFuncs = [];
+
+            // SELECT句を解析（通常の列と集計関数を分離）
+            for (const colExpr of selectedCols) {
+                const asMatch = colExpr.match(/(.+?)\s+AS\s+(.+)/i);
+                let expr, displayName;
+
+                if (asMatch) {
+                    expr = asMatch[1].trim();
+                    displayName = this.removeQuotes(asMatch[2].trim());
+                } else {
+                    expr = colExpr;
+                    displayName = colExpr;
+                }
+
+                // COUNT(*)を検出
+                if (/COUNT\s*\(\s*\*\s*\)/i.test(expr)) {
+                    columns.push(displayName);
+                    aggregateFuncs.push({ type: 'count', displayName: displayName });
+                } else {
+                    // 通常の列（GROUP BY列）
+                    columns.push(displayName);
+                    groupByCols.push({ displayName: displayName, key: expr });
+                }
+            }
+
+            // グループ化処理
+            const groups = {};
+            for (const row of rows) {
+                // グループキーを生成
+                const groupKey = groupByColumns.map(key => row[key] || '').join('||');
+
+                if (!groups[groupKey]) {
+                    groups[groupKey] = {
+                        rows: [],
+                        groupValues: groupByColumns.map(key => row[key] || '')
+                    };
+                }
+                groups[groupKey].rows.push(row);
+            }
+
+            // 集計結果を構築
+            resultRows = [];
+            for (const groupKey in groups) {
+                const group = groups[groupKey];
+                const resultRow = [];
+
+                // 通常の列（GROUP BY列）の値を追加
+                for (const col of groupByCols) {
+                    resultRow.push(group.rows[0][col.key] || '');
+                }
+
+                // 集計関数の結果を追加
+                for (const agg of aggregateFuncs) {
+                    if (agg.type === 'count') {
+                        resultRow.push(group.rows.length.toString());
+                    }
+                }
+
+                resultRows.push(resultRow);
+            }
         } else {
             // COUNT(*)が含まれているかチェック
             let hasCount = false;
@@ -354,7 +385,7 @@ class SQLEngine {
                 }
             }
 
-            // COUNT(*)が含まれている場合は集計処理
+            // COUNT(*)が含まれている場合は集計処理（GROUP BYなし）
             if (hasCount) {
                 columns = [];
                 const columnResolvers = [];
