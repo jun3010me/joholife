@@ -160,3 +160,10 @@ questionSets:
   difficulty: hard
   estimatedTime: 40
   category: データベース
+- id: sql-select
+  title: SQLコマンド課題①SELECT文
+  description: SELECT文の基本的な使い方を学習します。データベース正規化シミュレータで読み込めるJSONファイルを使って、SQLコマンドを実行してみましょう。
+  icon: 💾
+  difficulty: easy
+  estimatedTime: 15
+  category: データベース
