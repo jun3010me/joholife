@@ -140,11 +140,10 @@ class SQLTerminal {
                 });
             }
 
-            if (newTables.size > 0) {
-                window.simulator.tables = newTables;
-                window.simulator.saveState();
-                window.simulator.render();
-            }
+            // SQLエンジンの状態をシミュレータに反映（削除も含む）
+            window.simulator.tables = newTables;
+            window.simulator.saveState();
+            window.simulator.render();
         }
     }
 
