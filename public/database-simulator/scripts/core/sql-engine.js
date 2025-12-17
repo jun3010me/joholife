@@ -1573,14 +1573,23 @@ class SQLEngine {
     // CREATE TABLE文の実行
     executeCreateTable(sql) {
         // CREATE TABLE table_name (column1 type, column2 type PRIMARY KEY, ...)
-        const match = sql.match(/CREATE\s+TABLE\s+(\S+)\s+\(([^)]+)\)/i);
+        const tableNameMatch = sql.match(/CREATE\s+TABLE\s+(\S+)/i);
 
-        if (!match) {
+        if (!tableNameMatch) {
             throw new Error('構文エラー: CREATE TABLE テーブル名 (列名1 型, 列名2 型 PRIMARY KEY, ...)');
         }
 
-        const tableName = match[1].trim();
-        const columnsStr = match[2].trim();
+        const tableName = tableNameMatch[1].trim();
+
+        // 括弧内の文字列を抽出（最初の ( から最後の ) まで）
+        const startIdx = sql.indexOf('(');
+        const endIdx = sql.lastIndexOf(')');
+
+        if (startIdx === -1 || endIdx === -1 || startIdx >= endIdx) {
+            throw new Error('構文エラー: CREATE TABLE テーブル名 (列名1 型, 列名2 型 PRIMARY KEY, ...)');
+        }
+
+        const columnsStr = sql.substring(startIdx + 1, endIdx).trim();
 
         if (this.tables[tableName]) {
             throw new Error(`テーブル '${tableName}' は既に存在します`);
