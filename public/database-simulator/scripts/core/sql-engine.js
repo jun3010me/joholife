@@ -26,7 +26,8 @@ class SQLEngine {
             const columns = table.columns.map(col => ({
                 name: col.name,
                 isPrimaryKey: col.isPrimaryKey || false,
-                dataType: col.dataType || 'VARCHAR'
+                dataType: col.dataType || 'VARCHAR',
+                foreignKey: col.foreignKey || null // 外部キー情報を取り込む
             }));
 
             const rows = table.sampleData || [];
@@ -57,7 +58,8 @@ class SQLEngine {
                     id: idx + 1,
                     name: col.name,
                     isPrimaryKey: col.isPrimaryKey,
-                    dataType: col.dataType
+                    dataType: col.dataType,
+                    foreignKey: col.foreignKey || null // 外部キー情報を渡す
                 })),
                 sampleData: tableData.rows
             });
@@ -186,16 +188,31 @@ class SQLEngine {
         }
 
         const table = this.tables[tableName];
-        const rows = table.columns.map(col => [
-            col.name,
-            col.dataType,
-            col.isPrimaryKey ? 'PRI' : ''
-        ]);
+        const rows = table.columns.map(col => {
+            let keyInfo = '';
+            if (col.isPrimaryKey) {
+                keyInfo = 'PRI';
+            } else if (col.foreignKey) {
+                keyInfo = 'FK';
+            }
+
+            let foreignKeyInfo = '';
+            if (col.foreignKey) {
+                foreignKeyInfo = `${col.foreignKey.refTable}(${col.foreignKey.refColumn})`;
+            }
+
+            return [
+                col.name,
+                col.dataType,
+                keyInfo,
+                foreignKeyInfo
+            ];
+        });
 
         return {
             success: true,
             table: {
-                columns: ['列名', 'データ型', 'キー'],
+                columns: ['列名', 'データ型', 'キー', '参照先'],
                 rows: rows
             }
         };
@@ -1597,7 +1614,7 @@ class SQLEngine {
 
     // CREATE TABLE文の実行
     executeCreateTable(sql) {
-        // CREATE TABLE table_name (column1 type, column2 type PRIMARY KEY, ...)
+        // CREATE TABLE table_name (column1 type, column2 type PRIMARY KEY, column3 type REFERENCES ref_table(ref_col), FOREIGN KEY (col) REFERENCES ref_table(ref_col), ...)
         const tableNameMatch = sql.match(/CREATE\s+TABLE\s+(\S+)/i);
 
         if (!tableNameMatch) {
@@ -1623,18 +1640,55 @@ class SQLEngine {
         // 列定義をパース
         const columnDefs = columnsStr.split(',').map(def => def.trim());
         const columns = [];
+        const foreignKeys = [];
 
         for (const def of columnDefs) {
+            // テーブル制約としてのFOREIGN KEYをチェック
+            // 例: FOREIGN KEY (列名) REFERENCES 参照先テーブル(参照先列)
+            const tableFkMatch = def.match(/FOREIGN\s+KEY\s*\(\s*(\w+)\s*\)\s+REFERENCES\s+(\w+)\s*\(\s*(\w+)\s*\)/i);
+            if (tableFkMatch) {
+                foreignKeys.push({
+                    columnName: tableFkMatch[1],
+                    refTable: tableFkMatch[2],
+                    refColumn: tableFkMatch[3]
+                });
+                continue; // この行は列定義ではないのでスキップ
+            }
+
+            // 通常の列定義をパース
             const parts = def.split(/\s+/);
             const columnName = parts[0];
             const dataType = parts[1] || 'VARCHAR';
             const isPrimaryKey = def.toUpperCase().includes('PRIMARY KEY');
 
+            // 列定義内のREFERENCESキーワードをチェック
+            // 例: 列名 型 REFERENCES 参照先テーブル(参照先列)
+            const columnFkMatch = def.match(/REFERENCES\s+(\w+)\s*\(\s*(\w+)\s*\)/i);
+            let foreignKey = null;
+            if (columnFkMatch) {
+                foreignKey = {
+                    refTable: columnFkMatch[1],
+                    refColumn: columnFkMatch[2]
+                };
+            }
+
             columns.push({
                 name: columnName,
                 dataType: dataType,
-                isPrimaryKey: isPrimaryKey
+                isPrimaryKey: isPrimaryKey,
+                foreignKey: foreignKey // 外部キー情報（nullまたは{refTable, refColumn}）
             });
+        }
+
+        // テーブル制約として定義された外部キーを列に適用
+        for (const fk of foreignKeys) {
+            const column = columns.find(col => col.name === fk.columnName);
+            if (column) {
+                column.foreignKey = {
+                    refTable: fk.refTable,
+                    refColumn: fk.refColumn
+                };
+            }
         }
 
         this.tables[tableName] = {

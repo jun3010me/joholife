@@ -1790,6 +1790,12 @@ class DatabaseSimulator {
     detectRelations() {
         this.relations = [];
 
+        // テーブル名からIDへのマッピングを作成
+        const tableNameToId = new Map();
+        this.tables.forEach((table, tableId) => {
+            tableNameToId.set(table.name, tableId);
+        });
+
         // 全テーブルの主キーを収集
         const primaryKeys = new Map();
         this.tables.forEach((table, tableId) => {
@@ -1800,10 +1806,22 @@ class DatabaseSimulator {
             });
         });
 
-        // 外部キーを検出（他のテーブルの主キーと同名の列）
+        // 外部キーを検出
         this.tables.forEach((table, tableId) => {
             table.columns.forEach(column => {
-                if (!column.isPrimaryKey && primaryKeys.has(column.name)) {
+                // 1. 明示的に定義された外部キー（foreignKeyプロパティ）を優先
+                if (column.foreignKey) {
+                    const refTableId = tableNameToId.get(column.foreignKey.refTable);
+                    if (refTableId && refTableId !== tableId) {
+                        this.relations.push({
+                            fromTable: refTableId,
+                            toTable: tableId,
+                            columnName: column.name
+                        });
+                    }
+                }
+                // 2. 暗黙的な外部キー検出（他のテーブルの主キーと同名の列）
+                else if (!column.isPrimaryKey && primaryKeys.has(column.name)) {
                     const fromTableId = primaryKeys.get(column.name);
                     if (fromTableId !== tableId) {
                         this.relations.push({
@@ -1821,7 +1839,12 @@ class DatabaseSimulator {
     isForeignKey(table, column) {
         if (column.isPrimaryKey) return false;
 
-        // 全テーブルの主キーを収集
+        // 1. 明示的に定義された外部キー（foreignKeyプロパティ）を優先
+        if (column.foreignKey) {
+            return true;
+        }
+
+        // 2. 暗黙的な外部キー判定（全テーブルの主キーと同名の列）
         for (const [tableId, t] of this.tables) {
             if (tableId === table.id) continue;
 
