@@ -198,6 +198,11 @@ class SQLQuizSession {
                       </span>
                     ` : ''}
                   </div>
+                  ${q.description ? `
+                    <div style="margin-bottom: 1rem; padding: 1rem; background: white; border-radius: var(--radius-md); border: 1px solid var(--border); color: var(--text-secondary); font-size: 0.875rem; line-height: 1.6;">
+                      ${parseMarkdown(q.description)}
+                    </div>
+                  ` : ''}
                   <textarea
                     id="sql-input-${q.id}"
                     rows="3"
