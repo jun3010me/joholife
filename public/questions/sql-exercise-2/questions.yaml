@@ -76,6 +76,7 @@ questions:
           **主キーは会員IDに設定すること**
         answers:
           - "CREATE TABLE 会員テーブル (会員ID VARCHAR(10) PRIMARY KEY, 名前 VARCHAR(50), 電話番号 INT(20), 生年月日 INT(8), 住所 VARCHAR(100))"
+          - "CREATE TABLE 会員テーブル ( 会員ID VARCHAR(10) PRIMARY KEY, 名前 VARCHAR(50), 電話番号 INT(20), 生年月日 INT(8), 住所 VARCHAR(100) )"
         hint: "CREATE TABLE テーブル名 (列名 データ型 PRIMARY KEY, 列名 データ型, ...) の形式で記述します"
       - id: 2
         statement: 設問2:会員テーブルにレコードを記録する
@@ -88,6 +89,9 @@ questions:
           - 住所: '小牧市1丁目1-1'
         answers:
           - "INSERT INTO 会員テーブル (会員ID, 名前, 電話番号, 生年月日, 住所) VALUES ('M001', '課題太郎', 0568991234, 20150403, '小牧市1丁目1-1')"
+          - "INSERT INTO 会員テーブル (会員ID, 名前, 電話番号, 生年月日, 住所) VALUES ('M001', '課題太郎', '0568991234', '20150403', '小牧市1丁目1-1')"
+          - "INSERT INTO 会員テーブル (会員ID, 名前, 電話番号, 生年月日,住所) VALUES ('M001', '課題太郎', '0568991234', '20150403', '小牧市1丁目1-1')"
+          - "INSERT INTO 会員テーブル (会員ID, 名前, 電話番号, 生年月日,住所) VALUES ('M001', '課題太郎', '0568991234','20150403', '小牧市1丁目1-1')"
         hint: "INSERT INTO テーブル名 (列1, 列2, ...) VALUES (値1, 値2, ...) の形式で記述します"
       - id: 3
         statement: 設問3:会員テーブル全てを抽出する
