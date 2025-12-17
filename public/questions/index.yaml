@@ -167,3 +167,10 @@ questionSets:
   difficulty: easy
   estimatedTime: 15
   category: データベース
+- id: sql-exercise-2
+  title: SQLコマンド課題②追加・更新・削除
+  description: CREATE TABLE、INSERT、SELECT、UPDATE、DROP TABLEなどのSQLコマンドを学習します。データベース正規化シミュレータを使って、SQLコマンドを実行してみましょう。
+  icon: 💾
+  difficulty: easy
+  estimatedTime: 20
+  category: データベース
