@@ -1432,15 +1432,40 @@ class SQLEngine {
     // INSERT文の実行
     executeInsert(sql) {
         // INSERT INTO table (columns) VALUES (values)
-        const match = sql.match(/INSERT\s+INTO\s+(\S+)\s+\(([^)]+)\)\s+VALUES\s+\(([^)]+)\)/i);
+        // テーブル名を抽出
+        const tableNameMatch = sql.match(/INSERT\s+INTO\s+(\S+)/i);
 
-        if (!match) {
+        if (!tableNameMatch) {
             throw new Error('構文エラー: INSERT INTO テーブル名 (列名1, 列名2, ...) VALUES (値1, 値2, ...)');
         }
 
-        const tableName = match[1].trim();
-        const columnsStr = match[2].trim();
-        const valuesStr = match[3].trim();
+        const tableName = tableNameMatch[1].trim();
+
+        // 列名リストを抽出（最初の括弧）
+        const firstOpenParen = sql.indexOf('(');
+        const firstCloseParen = sql.indexOf(')', firstOpenParen);
+
+        if (firstOpenParen === -1 || firstCloseParen === -1) {
+            throw new Error('構文エラー: 列名リストが見つかりません');
+        }
+
+        const columnsStr = sql.substring(firstOpenParen + 1, firstCloseParen).trim();
+
+        // VALUES句の位置を探す
+        const valuesIndex = sql.toUpperCase().indexOf('VALUES');
+        if (valuesIndex === -1) {
+            throw new Error('構文エラー: VALUES句が見つかりません');
+        }
+
+        // VALUES後の括弧を抽出（最後の括弧ペア）
+        const valuesStartParen = sql.indexOf('(', valuesIndex);
+        const valuesEndParen = sql.lastIndexOf(')');
+
+        if (valuesStartParen === -1 || valuesEndParen === -1 || valuesStartParen >= valuesEndParen) {
+            throw new Error('構文エラー: VALUES句の値リストが見つかりません');
+        }
+
+        const valuesStr = sql.substring(valuesStartParen + 1, valuesEndParen).trim();
 
         if (!this.tables[tableName]) {
             throw new Error(`テーブル '${tableName}' が存在しません`);
