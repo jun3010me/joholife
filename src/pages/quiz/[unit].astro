@@ -278,13 +278,17 @@ function shuffleArray(array) {
 
 function parseMarkdown(text) {
   if (!text) return '';
-  
+
   return text
+    // コードブロック: ```language\ncode\n``` -> <pre><code>code</code></pre>
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+      return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code>${code.trim()}</code></pre>`;
+    })
     // 太字: **text** -> <strong>text</strong>
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     // 斜体: *text* -> <em>text</em>
     .replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
-    // コード: `code` -> <code>code</code>
+    // インラインコード: `code` -> <code>code</code>
     .replace(/`([^`]+)`/g, '<code style="background: #f3f4f6; padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-family: monospace;">$1</code>')
     // 改行: <br> -> <br>
     .replace(/<br>/g, '<br>')
