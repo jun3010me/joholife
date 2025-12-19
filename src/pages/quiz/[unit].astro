@@ -282,8 +282,12 @@ function parseMarkdown(text) {
   return text
     // コードブロック: ```language\ncode\n``` -> <pre><code>code</code></pre>
     .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-      // Trim and split into lines
-      const lines = code.trim().split('\n');
+      // Split into lines first (before trim to preserve structure)
+      const lines = code.split('\n');
+
+      // Remove leading/trailing empty lines
+      while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+      while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
 
       // Find minimum indentation (excluding empty lines)
       const minIndent = lines
@@ -295,7 +299,10 @@ function parseMarkdown(text) {
 
       // Remove common indentation from all lines
       const dedented = lines
-        .map(line => minIndent === Infinity ? line : line.slice(minIndent))
+        .map(line => {
+          if (line.trim().length === 0) return '';
+          return minIndent === Infinity ? line : line.slice(minIndent);
+        })
         .join('\n');
 
       return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code style="color: #e2e8f0 !important; background: transparent !important;">${dedented}</code></pre>`;
@@ -665,7 +672,15 @@ class QuizSession {
             const questionId = e.target.getAttribute('data-question-id');
             const value = e.target.value;
             this.answers[questionId] = value;
-            this.render();
+            // Update next button state without re-rendering entire view
+            const nextButton = document.getElementById('next-button');
+            if (nextButton) {
+              const isAnswered = value.trim().length > 0;
+              nextButton.disabled = !isAnswered;
+              nextButton.className = isAnswered ? 'btn btn-primary' : 'btn btn-secondary';
+              nextButton.style.opacity = isAnswered ? '1' : '0.5';
+              nextButton.style.cursor = isAnswered ? 'pointer' : 'not-allowed';
+            }
           });
 
           // Focus on input field
