@@ -1,0 +1,131 @@
+id: winter-break-01
+title: 冬休み課題①順次構造
+description: Pythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+icon: ❄️
+difficulty: easy
+estimatedTime: 10
+category: 冬休み課題
+tags:
+  - Python
+  - コードトレース
+  - 順次構造
+
+questions:
+  - id: q1
+    type: text-input
+    title: 問題1
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 10
+      y = x + 3
+      x = y * 2
+      print(x)
+      ```
+    answer: "26"
+    explanation: |
+      **実行の流れ：**
+      1. `x = 10` → xには10が代入される
+      2. `y = x + 3` → yには10 + 3 = **13**が代入される
+      3. `x = y * 2` → xには13 × 2 = **26**が代入される
+      4. `print(x)` → **26**が出力される
+    difficulty: easy
+    points: 20
+
+  - id: q2
+    type: text-input
+    title: 問題2
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      a = 5
+      b = 3
+      c = a + b
+      a = c - 2
+      print(a)
+      ```
+    answer: "6"
+    explanation: |
+      **実行の流れ：**
+      1. `a = 5` → aには5が代入される
+      2. `b = 3` → bには3が代入される
+      3. `c = a + b` → cには5 + 3 = **8**が代入される
+      4. `a = c - 2` → aには8 - 2 = **6**が代入される（元のaの値5は上書きされる）
+      5. `print(a)` → **6**が出力される
+    difficulty: easy
+    points: 20
+
+  - id: q3
+    type: text-input
+    title: 問題3
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 7
+      x = x + 5
+      x = x * 2
+      print(x)
+      ```
+    answer: "24"
+    explanation: |
+      **実行の流れ：**
+      1. `x = 7` → xには7が代入される
+      2. `x = x + 5` → xには7 + 5 = **12**が代入される
+      3. `x = x * 2` → xには12 × 2 = **24**が代入される
+      4. `print(x)` → **24**が出力される
+
+      **ポイント：** `x = x + 5`のように、変数xを使って新しい値を計算し、再びxに代入することができます。
+    difficulty: easy
+    points: 20
+
+  - id: q4
+    type: text-input
+    title: 問題4
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      a = 4
+      b = 6
+      c = a * b
+      b = c // 3
+      a = b + 1
+      print(a)
+      ```
+    answer: "9"
+    explanation: |
+      **実行の流れ：**
+      1. `a = 4` → aには4が代入される
+      2. `b = 6` → bには6が代入される
+      3. `c = a * b` → cには4 × 6 = **24**が代入される
+      4. `b = c // 3` → bには24 ÷ 3 = **8**が代入される（`//`は整数除算）
+      5. `a = b + 1` → aには8 + 1 = **9**が代入される
+      6. `print(a)` → **9**が出力される
+
+      **ポイント：** `//`は整数除算で、小数点以下を切り捨てます。
+    difficulty: medium
+    points: 20
+
+  - id: q5
+    type: text-input
+    title: 問題5
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 15
+      y = 4
+      z = x % y
+      x = z * 10
+      y = x + z
+      print(y)
+      ```
+    answer: "33"
+    explanation: |
+      **実行の流れ：**
+      1. `x = 15` → xには15が代入される
+      2. `y = 4` → yには4が代入される
+      3. `z = x % y` → zには15 ÷ 4の余り = **3**が代入される
+      4. `x = z * 10` → xには3 × 10 = **30**が代入される
+      5. `y = x + z` → yには30 + 3 = **33**が代入される
+      6. `print(y)` → **33**が出力される
+
+      **ポイント：** `%`は剰余演算子で、割り算の余りを求めます。15 ÷ 4 = 3 余り **3**
