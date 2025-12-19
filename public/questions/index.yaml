@@ -174,3 +174,10 @@ questionSets:
   difficulty: easy
   estimatedTime: 20
   category: データベース
+- id: winter-break-01
+  title: 冬休み課題①順次構造
+  description: Pythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+  icon: ❄️
+  difficulty: easy
+  estimatedTime: 10
+  category: 冬休み課題

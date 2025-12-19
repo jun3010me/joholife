@@ -881,6 +881,139 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
 
 ---
 
+## 冬休み課題
+
+### 概要
+
+Pythonのコードトレース問題を記述式で解答するシステムです。変数の値の変化を追跡し、最終的な出力結果を予測する力を養います。
+
+### システムの特徴
+
+1. **記述式解答**
+   - テキストボックスに答えを入力
+   - 選択式ではなく、自分で答えを考える形式
+   - 正解判定は厳密に文字列比較
+
+2. **修了証発行**
+   - 全5問正解で修了証を発行
+   - 他の問題演習システムと同じ仕組み
+
+3. **段階的な学習**
+   - 冬休み課題①から⑥まで6つの課題
+   - 各課題5問構成
+
+### ファイル構成
+
+- **問題データ**: `public/questions/winter-break-[番号]/questions.yaml`
+- **問題一覧**: `public/questions/index.yaml`に追加
+- **動的ルーティング**: `src/pages/quiz/[unit].astro`（記述式対応済み）
+
+### 冬休み課題の作成手順
+
+1. **問題ディレクトリの作成**
+   ```bash
+   mkdir public/questions/winter-break-01
+   ```
+
+2. **問題YAMLファイルの作成**
+   `public/questions/winter-break-01/questions.yaml`を作成：
+   ```yaml
+   id: winter-break-01
+   title: 冬休み課題①順次構造
+   description: Pythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+   icon: ❄️
+   difficulty: easy
+   estimatedTime: 10
+   category: 冬休み課題
+   tags:
+     - Python
+     - コードトレース
+     - 順次構造
+   questions:
+     - id: q1
+       type: text-input
+       title: 問題1
+       description: |
+         以下のPythonコードを実行すると、どんな値が出力されますか？
+         ```python
+         x = 10
+         y = x + 3
+         x = y * 2
+         print(x)
+         ```
+       answer: "26"
+       explanation: |
+         実行の流れ：
+         1. x = 10（xは10）
+         2. y = x + 3（yは13）
+         3. x = y * 2（xは26）
+         4. print(x)で26が出力される
+       difficulty: easy
+       points: 20
+   ```
+
+3. **問題タイプ `text-input` の仕様**
+   - `type: text-input`：記述式問題
+   - `answer`：正解の文字列（厳密に一致）
+   - `options`フィールドは不要
+
+4. **index.yamlへの追加**
+   ```yaml
+   questionSets:
+     - binary_conversion
+     - algorithms
+     - copyright
+     - industrial
+     - winter-break-01  # 追加
+   ```
+
+### 課題一覧（予定）
+
+1. **冬休み課題①順次構造**（winter-break-01）
+   - 変数の代入と計算を順番に実行
+   - 基本的な算術演算
+
+2. **冬休み課題②条件分岐**（winter-break-02）
+   - if文の実行順序の理解
+   - 条件による処理の分岐
+
+3. **冬休み課題③繰り返し**（winter-break-03）
+   - for文、while文の実行回数
+   - ループ変数の値の変化
+
+4. **冬休み課題④リスト操作**（winter-break-04）
+   - リストの要素の追加・削除
+   - インデックスによるアクセス
+
+5. **冬休み課題⑤文字列操作**（winter-break-05）
+   - 文字列の結合、スライス
+   - 文字列メソッドの使用
+
+6. **冬休み課題⑥関数呼び出し**（winter-break-06）
+   - 関数の引数と戻り値
+   - 複数の関数の組み合わせ
+
+### 問題作成のポイント
+
+1. **答えの形式を明確に**
+   - 数値のみ、文字列のみなど、答えの形式を統一
+   - 余計な文字（「です」「ます」など）を含めないように指示
+
+2. **段階的な難易度**
+   - 1問目：簡単な計算
+   - 2-3問目：やや複雑な計算や変数の再代入
+   - 4-5問目：複数の変数を使った計算
+
+3. **解説の充実**
+   - 実行の流れを順番に説明
+   - 各ステップでの変数の値を明記
+
+### 現在利用可能な冬休み課題
+
+1. **winter-break-01** (冬休み課題①順次構造): 変数と計算のトレース - 初級レベル
+
+---
+
 ## コマンド
 
 - 開発サーバー起動: `npm run dev`
