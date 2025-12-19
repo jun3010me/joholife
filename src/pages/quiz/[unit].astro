@@ -282,7 +282,23 @@ function parseMarkdown(text) {
   return text
     // コードブロック: ```language\ncode\n``` -> <pre><code>code</code></pre>
     .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-      return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code style="color: #e2e8f0 !important; background: transparent !important;">${code.trim()}</code></pre>`;
+      // Trim and split into lines
+      const lines = code.trim().split('\n');
+
+      // Find minimum indentation (excluding empty lines)
+      const minIndent = lines
+        .filter(line => line.trim().length > 0)
+        .reduce((min, line) => {
+          const indent = line.match(/^\s*/)[0].length;
+          return Math.min(min, indent);
+        }, Infinity);
+
+      // Remove common indentation from all lines
+      const dedented = lines
+        .map(line => minIndent === Infinity ? line : line.slice(minIndent))
+        .join('\n');
+
+      return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code style="color: #e2e8f0 !important; background: transparent !important;">${dedented}</code></pre>`;
     })
     // 太字: **text** -> <strong>text</strong>
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
