@@ -1,0 +1,120 @@
+id: winter-break-06
+title: 冬休み課題⑥ソートアルゴリズム
+description: バブルソートと選択ソートのアルゴリズムを理解し、並び替えの過程を追跡する問題です。
+icon: 🔢
+difficulty: medium
+estimatedTime: 20
+category: 冬休み課題
+tags:
+  - Python
+  - コードトレース
+  - ソート
+  - アルゴリズム
+questions:
+  - id: q1
+    type: text-input
+    title: 問題1
+    description: |
+      以下のバブルソートのコードを実行すると、1回目のパス（外側のループの1回目）が終わった時点で、dataはどのような状態になっていますか？カンマ区切りで答えてください（例：1,2,3,4）
+      ```python
+      data = [5, 2, 8, 1]
+      n = 4
+
+      for i in range(n - 1):
+          for j in range(n - 1 - i):
+              if data[j] > data[j + 1]:
+                  data[j], data[j + 1] = data[j + 1], data[j]
+      ```
+    answer: "2,5,1,8"
+    explanation: バブルソートでは、隣り合う要素を比較して交換することで、大きい値が後ろに移動していきます。
+    difficulty: easy
+    points: 20
+
+  - id: q2
+    type: text-input
+    title: 問題2
+    description: |
+      以下の選択ソートのコードを実行すると、1回目のパス（外側のループの1回目）が終わった時点で、dataはどのような状態になっていますか？カンマ区切りで答えてください（例：1,2,3,4）
+      ```python
+      data = [4, 2, 7, 1]
+      n = 4
+
+      for i in range(n - 1):
+          min_idx = i
+          for j in range(i + 1, n):
+              if data[j] < data[min_idx]:
+                  min_idx = j
+          data[i], data[min_idx] = data[min_idx], data[i]
+      ```
+    answer: "1,2,7,4"
+    explanation: 選択ソートでは、未整列部分から最小値を見つけて、先頭の要素と交換します。
+    difficulty: easy
+    points: 20
+
+  - id: q3
+    type: text-input
+    title: 問題3
+    description: |
+      以下のバブルソートのコードを実行すると、交換（swap）は合計で何回行われますか？
+      ```python
+      data = [3, 1, 4, 2]
+      n = 4
+      count = 0
+
+      for i in range(n - 1):
+          for j in range(n - 1 - i):
+              if data[j] > data[j + 1]:
+                  data[j], data[j + 1] = data[j + 1], data[j]
+                  count = count + 1
+
+      print(count)
+      ```
+    answer: "4"
+    explanation: バブルソートでの交換回数は、データの初期状態によって異なります。
+    difficulty: medium
+    points: 20
+
+  - id: q4
+    type: text-input
+    title: 問題4
+    description: |
+      以下の選択ソートのコードを実行すると、交換（swap）は合計で何回行われますか？
+      ```python
+      data = [5, 3, 8, 1]
+      n = 4
+      count = 0
+
+      for i in range(n - 1):
+          min_idx = i
+          for j in range(i + 1, n):
+              if data[j] < data[min_idx]:
+                  min_idx = j
+          if i != min_idx:
+              data[i], data[min_idx] = data[min_idx], data[i]
+              count = count + 1
+
+      print(count)
+      ```
+    answer: "3"
+    explanation: 選択ソートでは、各パスで最大1回の交換が行われます。
+    difficulty: medium
+    points: 20
+
+  - id: q5
+    type: text-input
+    title: 問題5
+    description: |
+      以下のバブルソートのコードで、dataが[2,3,5,6]という状態になるのは、外側のループの何回目が終わった時点ですか？
+      ```python
+      data = [5, 2, 6, 3]
+      n = 4
+
+      for i in range(n - 1):
+          for j in range(n - 1 - i):
+              if data[j] > data[j + 1]:
+                  data[j], data[j + 1] = data[j + 1], data[j]
+      ```
+    answer: "2"
+    explanation: バブルソートでは、パスを重ねるごとに整列された要素が増えていきます。
+    difficulty: medium
+    points: 20

@@ -1,0 +1,99 @@
+id: winter-break-04
+title: 冬休み課題④条件と繰り返しの組み合わせ
+description: if文とfor文を組み合わせたPythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+icon: 🔀🔄
+difficulty: medium
+estimatedTime: 15
+category: 冬休み課題
+tags:
+  - Python
+  - コードトレース
+  - 条件分岐
+  - 繰り返し構造
+questions:
+  - id: q1
+    type: text-input
+    title: 問題1
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      count = 0
+      for i in range(1, 11):
+          if i % 3 == 0:
+              count = count + 1
+      print(count)
+      ```
+    answer: "3"
+    explanation: for文とif文を組み合わせることで、条件に合う要素の個数を数えることができます。
+    difficulty: easy
+    points: 20
+
+  - id: q2
+    type: text-input
+    title: 問題2
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      total = 0
+      for i in range(1, 6):
+          if i % 2 == 1:
+              total = total + i
+      print(total)
+      ```
+    answer: "9"
+    explanation: for文とif文を組み合わせることで、条件に合う要素だけを合計することができます。
+    difficulty: easy
+    points: 20
+
+  - id: q3
+    type: text-input
+    title: 問題3
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      numbers = [10, 25, 8, 42, 15]
+      result = 0
+      for n in numbers:
+          if n > 20:
+              result = result + 1
+      print(result)
+      ```
+    answer: "2"
+    explanation: リストの要素を順番に取り出し、条件に合うものだけをカウントすることができます。
+    difficulty: easy
+    points: 20
+
+  - id: q4
+    type: text-input
+    title: 問題4
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      count = 0
+      for i in range(1, 4):
+          for j in range(1, 4):
+              if i == j:
+                  count = count + 1
+      print(count)
+      ```
+    answer: "3"
+    explanation: ネストしたfor文の中でif文を使うことで、複雑な条件判定を行うことができます。
+    difficulty: medium
+    points: 20
+
+  - id: q5
+    type: text-input
+    title: 問題5
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      result = 0
+      for i in range(1, 21):
+          if i % 2 == 0 and i % 5 == 0:
+              result = result + i
+      print(result)
+      ```
+    answer: "30"
+    explanation: 複数の条件をandやorで組み合わせることで、より詳細な条件判定ができます。
+    difficulty: medium
+    points: 20
