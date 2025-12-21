@@ -1,0 +1,138 @@
+id: winter-break-02
+title: 冬休み課題②選択構造
+description: if文を使ったPythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+icon: 🔀
+difficulty: easy
+estimatedTime: 10
+category: 冬休み課題
+tags:
+  - Python
+  - コードトレース
+  - 選択構造
+  - if文
+questions:
+  - id: q1
+    type: text-input
+    title: 問題1
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 10
+      if x > 5:
+          x = x + 3
+      print(x)
+      ```
+    answer: "13"
+    explanation: |
+      実行の流れ：
+      1. x = 10（xは10）
+      2. if x > 5:（10 > 5は真なので、if文の中が実行される）
+      3. x = x + 3（xは10 + 3で13になる）
+      4. print(x)で13が出力される
+    difficulty: easy
+    points: 20
+
+  - id: q2
+    type: text-input
+    title: 問題2
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      a = 7
+      if a > 10:
+          a = a * 2
+      else:
+          a = a + 5
+      print(a)
+      ```
+    answer: "12"
+    explanation: |
+      実行の流れ：
+      1. a = 7（aは7）
+      2. if a > 10:（7 > 10は偽なので、else文の中が実行される）
+      3. a = a + 5（aは7 + 5で12になる）
+      4. print(a)で12が出力される
+    difficulty: easy
+    points: 20
+
+  - id: q3
+    type: text-input
+    title: 問題3
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 15
+      y = 10
+      if x >= y:
+          z = x - y
+      else:
+          z = y - x
+      print(z)
+      ```
+    answer: "5"
+    explanation: |
+      実行の流れ：
+      1. x = 15（xは15）
+      2. y = 10（yは10）
+      3. if x >= y:（15 >= 10は真なので、if文の中が実行される）
+      4. z = x - y（zは15 - 10で5になる）
+      5. print(z)で5が出力される
+    difficulty: easy
+    points: 20
+
+  - id: q4
+    type: text-input
+    title: 問題4
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      score = 75
+      if score >= 80:
+          rank = "A"
+      elif score >= 60:
+          rank = "B"
+      else:
+          rank = "C"
+      print(rank)
+      ```
+    answer: "B"
+    explanation: |
+      実行の流れ：
+      1. score = 75（scoreは75）
+      2. if score >= 80:（75 >= 80は偽なので、次の条件へ）
+      3. elif score >= 60:（75 >= 60は真なので、この中が実行される）
+      4. rank = "B"（rankは"B"になる）
+      5. print(rank)で「B」が出力される
+    difficulty: medium
+    points: 20
+
+  - id: q5
+    type: text-input
+    title: 問題5
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 12
+      y = 8
+      if x > 10:
+          if y > 5:
+              result = x + y
+          else:
+              result = x - y
+      else:
+          result = 0
+      print(result)
+      ```
+    answer: "20"
+    explanation: |
+      実行の流れ：
+      1. x = 12（xは12）
+      2. y = 8（yは8）
+      3. if x > 10:（12 > 10は真なので、この中が実行される）
+      4. if y > 5:（8 > 5は真なので、この中が実行される）
+      5. result = x + y（resultは12 + 8で20になる）
+      6. print(result)で20が出力される
+
+      ポイント：ネストしたif文では、外側のif文が真の場合のみ、内側のif文が評価されます。
+    difficulty: medium
+    points: 20
