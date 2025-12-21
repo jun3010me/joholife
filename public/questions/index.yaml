@@ -195,3 +195,24 @@ questionSets:
   difficulty: easy
   estimatedTime: 10
   category: 冬休み課題
+- id: winter-break-04
+  title: 冬休み課題④条件と繰り返しの組み合わせ
+  description: if文とfor文を組み合わせたPythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+  icon: 🔀🔄
+  difficulty: medium
+  estimatedTime: 15
+  category: 冬休み課題
+- id: winter-break-05
+  title: 冬休み課題⑤二分探索
+  description: 二分探索のアルゴリズムを理解し、探索の過程を追跡する問題です。
+  icon: 🔍
+  difficulty: medium
+  estimatedTime: 15
+  category: 冬休み課題
+- id: winter-break-06
+  title: 冬休み課題⑥ソートアルゴリズム
+  description: バブルソートと選択ソートのアルゴリズムを理解し、並び替えの過程を追跡する問題です。
+  icon: 🔢
+  difficulty: medium
+  estimatedTime: 20
+  category: 冬休み課題

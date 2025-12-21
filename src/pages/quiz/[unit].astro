@@ -226,7 +226,6 @@ async function loadQuestionSet(setId) {
       // Multi-line content
       else if (currentQuestion && indent >= 6 && (currentQuestion._isReadingDescription || currentQuestion._isReadingExplanation)) {
         const content = line.substring(6); // Remove 6 spaces of indentation
-        console.log(`[DEBUG] indent=${indent}, isReadingDescription=${currentQuestion._isReadingDescription}, content="${content}"`);
         if (currentQuestion._isReadingDescription) {
           currentQuestion.description += (currentQuestion.description ? '\n' : '') + content;
         } else if (currentQuestion._isReadingExplanation) {
