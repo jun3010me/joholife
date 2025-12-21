@@ -23,8 +23,7 @@ questions:
       print(x)
       ```
     answer: "13"
-    explanation: |
-      条件（x > 5）が真なので、if文の中が実行され、xに3が加算されます。
+    explanation: if文では、条件式が真の場合にif文の中が実行されます。
     difficulty: easy
     points: 20
 
@@ -42,8 +41,7 @@ questions:
       print(a)
       ```
     answer: "12"
-    explanation: |
-      条件（a > 10）が偽なので、else文の中が実行され、aに5が加算されます。
+    explanation: if-else文では、条件式が偽の場合にelse文の中が実行されます。
     difficulty: easy
     points: 20
 
@@ -62,8 +60,7 @@ questions:
       print(z)
       ```
     answer: "5"
-    explanation: |
-      条件（x >= y）が真なので、if文の中が実行され、zにはx - yの結果が代入されます。
+    explanation: if-else文では、条件式の真偽によって実行される文が変わります。
     difficulty: easy
     points: 20
 
@@ -83,8 +80,7 @@ questions:
       print(rank)
       ```
     answer: "B"
-    explanation: |
-      scoreは75なので、最初の条件（80以上）は偽、次の条件（60以上）が真となり、rankに"B"が代入されます。
+    explanation: elif文を使うと、複数の条件を順番に判定できます。
     difficulty: medium
     points: 20
 
@@ -106,7 +102,6 @@ questions:
       print(result)
       ```
     answer: "20"
-    explanation: |
-      外側のif文（x > 10）も内側のif文（y > 5）も真なので、resultにはx + yの結果が代入されます。ネストしたif文では、外側の条件が真の場合のみ、内側の条件が評価される点に注意しましょう。
+    explanation: if文は入れ子（ネスト）にして使うことができます。
     difficulty: medium
     points: 20
