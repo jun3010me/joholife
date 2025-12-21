@@ -721,11 +721,13 @@ class QuizSession {
         });
       }
       
-      // Navigation button
+      // Navigation button - Clone to remove old event listeners
       const nextButton = document.getElementById('next-button');
-      
-      if (nextButton && !nextButton.disabled) {
-        nextButton.addEventListener('click', () => this.nextQuestion());
+
+      if (nextButton) {
+        const newNextButton = nextButton.cloneNode(true);
+        nextButton.parentNode.replaceChild(newNextButton, nextButton);
+        newNextButton.addEventListener('click', () => this.nextQuestion());
       }
     }, 0);
   }
@@ -1135,11 +1137,13 @@ class QuizSession {
       </div>
     `;
 
-    // Add event listener
+    // Add event listener - Clone to remove old event listeners
     setTimeout(() => {
       const continueButton = document.getElementById('continue-button');
       if (continueButton) {
-        continueButton.addEventListener('click', () => this.continueAfterExplanation());
+        const newContinueButton = continueButton.cloneNode(true);
+        continueButton.parentNode.replaceChild(newContinueButton, continueButton);
+        newContinueButton.addEventListener('click', () => this.continueAfterExplanation());
       }
     }, 0);
   }
