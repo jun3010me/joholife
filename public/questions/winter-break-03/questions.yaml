@@ -1,0 +1,95 @@
+id: winter-break-03
+title: 冬休み課題③繰り返し構造
+description: for文を使ったPythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+icon: 🔄
+difficulty: easy
+estimatedTime: 10
+category: 冬休み課題
+tags:
+  - Python
+  - コードトレース
+  - 繰り返し構造
+  - for文
+questions:
+  - id: q1
+    type: text-input
+    title: 問題1
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 0
+      for i in range(4):
+          x = x + 2
+      print(x)
+      ```
+    answer: "8"
+    explanation: for文では、指定した回数だけ繰り返し処理を実行できます。
+    difficulty: easy
+    points: 20
+
+  - id: q2
+    type: text-input
+    title: 問題2
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      total = 0
+      for i in range(1, 6):
+          total = total + i
+      print(total)
+      ```
+    answer: "15"
+    explanation: range(開始, 終了)では、開始の値から終了の値の1つ前まで繰り返します。
+    difficulty: easy
+    points: 20
+
+  - id: q3
+    type: text-input
+    title: 問題3
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      numbers = [3, 7, 2, 5]
+      result = 0
+      for n in numbers:
+          result = result + n
+      print(result)
+      ```
+    answer: "17"
+    explanation: for文では、リストの要素を順番に取り出して処理できます。
+    difficulty: easy
+    points: 20
+
+  - id: q4
+    type: text-input
+    title: 問題4
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      x = 0
+      for i in range(3):
+          for j in range(2):
+              x = x + 1
+      print(x)
+      ```
+    answer: "6"
+    explanation: for文は入れ子（ネスト）にして使うことができます。
+    difficulty: medium
+    points: 20
+
+  - id: q5
+    type: text-input
+    title: 問題5
+    description: |
+      以下のPythonコードを実行すると、どんな値が出力されますか？
+      ```python
+      count = 0
+      for i in range(1, 11):
+          if i % 2 == 0:
+              count = count + 1
+      print(count)
+      ```
+    answer: "5"
+    explanation: for文とif文を組み合わせることで、条件に合う要素だけを処理できます。
+    difficulty: medium
+    points: 20
