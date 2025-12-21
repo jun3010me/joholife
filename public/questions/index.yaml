@@ -181,3 +181,10 @@ questionSets:
   difficulty: easy
   estimatedTime: 10
   category: 冬休み課題
+- id: winter-break-02
+  title: 冬休み課題②選択構造
+  description: if文を使ったPythonのコードを読んで、変数の値の変化を追跡し、出力結果を予測する問題です。
+  icon: 🔀
+  difficulty: easy
+  estimatedTime: 10
+  category: 冬休み課題
