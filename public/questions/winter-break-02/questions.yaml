@@ -24,11 +24,7 @@ questions:
       ```
     answer: "13"
     explanation: |
-      実行の流れ：
-      1. x = 10（xは10）
-      2. if x > 5:（10 > 5は真なので、if文の中が実行される）
-      3. x = x + 3（xは10 + 3で13になる）
-      4. print(x)で13が出力される
+      条件（x > 5）が真なので、if文の中が実行され、xに3が加算されます。
     difficulty: easy
     points: 20
 
@@ -47,11 +43,7 @@ questions:
       ```
     answer: "12"
     explanation: |
-      実行の流れ：
-      1. a = 7（aは7）
-      2. if a > 10:（7 > 10は偽なので、else文の中が実行される）
-      3. a = a + 5（aは7 + 5で12になる）
-      4. print(a)で12が出力される
+      条件（a > 10）が偽なので、else文の中が実行され、aに5が加算されます。
     difficulty: easy
     points: 20
 
@@ -71,12 +63,7 @@ questions:
       ```
     answer: "5"
     explanation: |
-      実行の流れ：
-      1. x = 15（xは15）
-      2. y = 10（yは10）
-      3. if x >= y:（15 >= 10は真なので、if文の中が実行される）
-      4. z = x - y（zは15 - 10で5になる）
-      5. print(z)で5が出力される
+      条件（x >= y）が真なので、if文の中が実行され、zにはx - yの結果が代入されます。
     difficulty: easy
     points: 20
 
@@ -97,12 +84,7 @@ questions:
       ```
     answer: "B"
     explanation: |
-      実行の流れ：
-      1. score = 75（scoreは75）
-      2. if score >= 80:（75 >= 80は偽なので、次の条件へ）
-      3. elif score >= 60:（75 >= 60は真なので、この中が実行される）
-      4. rank = "B"（rankは"B"になる）
-      5. print(rank)で「B」が出力される
+      scoreは75なので、最初の条件（80以上）は偽、次の条件（60以上）が真となり、rankに"B"が代入されます。
     difficulty: medium
     points: 20
 
@@ -125,14 +107,6 @@ questions:
       ```
     answer: "20"
     explanation: |
-      実行の流れ：
-      1. x = 12（xは12）
-      2. y = 8（yは8）
-      3. if x > 10:（12 > 10は真なので、この中が実行される）
-      4. if y > 5:（8 > 5は真なので、この中が実行される）
-      5. result = x + y（resultは12 + 8で20になる）
-      6. print(result)で20が出力される
-
-      ポイント：ネストしたif文では、外側のif文が真の場合のみ、内側のif文が評価されます。
+      外側のif文（x > 10）も内側のif文（y > 5）も真なので、resultにはx + yの結果が代入されます。ネストしたif文では、外側の条件が真の場合のみ、内側の条件が評価される点に注意しましょう。
     difficulty: medium
     points: 20
