@@ -224,7 +224,7 @@ async function loadQuestionSet(setId) {
         }
       }
       // Multi-line content
-      else if (currentQuestion && indent === 6 && (currentQuestion._isReadingDescription || currentQuestion._isReadingExplanation)) {
+      else if (currentQuestion && indent >= 6 && (currentQuestion._isReadingDescription || currentQuestion._isReadingExplanation)) {
         const content = line.substring(6); // Remove 6 spaces of indentation
         if (currentQuestion._isReadingDescription) {
           currentQuestion.description += (currentQuestion.description ? '\n' : '') + content;
