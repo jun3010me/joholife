@@ -305,7 +305,7 @@ function parseMarkdown(text) {
         })
         .join('\n');
 
-      return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code style="color: #e2e8f0 !important; background: transparent !important;">${dedented}</code></pre>`;
+      return `<pre style="background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-family: 'Courier New', monospace; font-size: 0.875rem; line-height: 1.5;"><code style="display: block; color: #e2e8f0 !important; background: transparent !important; margin: 0; padding: 0; white-space: pre;">${dedented}</code></pre>`;
     })
     // 太字: **text** -> <strong>text</strong>
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -2025,8 +2025,8 @@ class QuizSession {
 
   isAnswerCorrect(question, answer) {
     if (question.type === 'text-input') {
-      // For text input, compare with the correct answer (case-sensitive)
-      return question.answer && answer === question.answer;
+      // For text input, compare with the correct answer (case-sensitive, trimmed)
+      return question.answer && answer.trim() === question.answer.trim();
     } else if (question.type === 'file-analysis') {
       return answer === 'correct';
     } else if (question.type === 'multiple-choice') {
