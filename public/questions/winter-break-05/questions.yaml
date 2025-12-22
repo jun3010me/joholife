@@ -48,10 +48,10 @@ questions:
     description: |
       以下のPythonコードを実行すると、どんな値が出力されますか？
       ```python
-      data = [2, 5, 8, 12, 16, 23, 38, 45]
+      data = [2, 5, 8, 12, 16, 23, 38]
       target = 23
       left = 0
-      right = 7
+      right = 6
       count = 0
 
       while left <= right:
@@ -106,10 +106,10 @@ questions:
     description: |
       以下のPythonコードを実行すると、どんな値が出力されますか？
       ```python
-      data = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30]
+      data = [3, 6, 9, 12, 15, 18, 21, 24, 27]
       target = 27
       left = 0
-      right = 9
+      right = 8
       count = 0
 
       while left <= right:
@@ -124,7 +124,7 @@ questions:
 
       print(count)
       ```
-    answer: "3"
+    answer: "4"
     explanation: データ数が増えても、二分探索では比較的少ない回数で目的の値を見つけることができます。
     difficulty: medium
     points: 20
@@ -135,10 +135,10 @@ questions:
     description: |
       以下のPythonコードを実行すると、どんな値が出力されますか？
       ```python
-      data = [5, 10, 15, 20, 25, 30, 35, 40]
-      target = 40
+      data = [5, 10, 15, 20, 25, 30, 35]
+      target = 35
       left = 0
-      right = 7
+      right = 6
       count = 0
       found = False
 
@@ -158,7 +158,7 @@ questions:
       else:
           print(-1)
       ```
-    answer: "4"
+    answer: "3"
     explanation: 最後の要素を探す場合でも、二分探索は効率的に動作します。
     difficulty: medium
     points: 20
