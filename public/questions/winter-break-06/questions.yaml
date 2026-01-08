@@ -95,8 +95,8 @@ questions:
 
       print(count)
       ```
-    answer: "3"
-    explanation: 選択ソートでは、各パスで最大1回の交換が行われます。
+    answer: "2"
+    explanation: 選択ソートでは、各パスで最大1回の交換が行われます。i=1の時は既に最小値が正しい位置にあるため交換は不要です。
     difficulty: medium
     points: 20
 
