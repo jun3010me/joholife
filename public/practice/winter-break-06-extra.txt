@@ -1,0 +1,83 @@
+冬休み課題⑥ソートアルゴリズム - 類題5問
+
+【問題1】
+以下のバブルソートのコードを実行すると、1回目のパス（外側のループの1回目）が終わった時点で、dataはどのような状態になっていますか？カンマ区切りで答えてください（例：1,2,3,4）
+
+data = [6, 3, 9, 2]
+n = 4
+
+for i in range(n - 1):
+    for j in range(n - 1 - i):
+        if data[j] > data[j + 1]:
+            data[j], data[j + 1] = data[j + 1], data[j]
+
+答え: 3,6,2,9
+
+
+【問題2】
+以下の選択ソートのコードを実行すると、1回目のパス（外側のループの1回目）が終わった時点で、dataはどのような状態になっていますか？カンマ区切りで答えてください（例：1,2,3,4）
+
+data = [5, 3, 8, 2]
+n = 4
+
+for i in range(n - 1):
+    min_idx = i
+    for j in range(i + 1, n):
+        if data[j] < data[min_idx]:
+            min_idx = j
+    data[i], data[min_idx] = data[min_idx], data[i]
+
+答え: 2,3,8,5
+
+
+【問題3】
+以下のバブルソートのコードを実行すると、交換（swap）は合計で何回行われますか？
+
+data = [4, 2, 5, 1]
+n = 4
+count = 0
+
+for i in range(n - 1):
+    for j in range(n - 1 - i):
+        if data[j] > data[j + 1]:
+            data[j], data[j + 1] = data[j + 1], data[j]
+            count = count + 1
+
+print(count)
+
+答え: 4
+
+
+【問題4】
+以下の選択ソートのコードを実行すると、交換（swap）は合計で何回行われますか？
+
+data = [6, 2, 9, 3]
+n = 4
+count = 0
+
+for i in range(n - 1):
+    min_idx = i
+    for j in range(i + 1, n):
+        if data[j] < data[min_idx]:
+            min_idx = j
+    if i != min_idx:
+        data[i], data[min_idx] = data[min_idx], data[i]
+        count = count + 1
+
+print(count)
+
+答え: 3
+
+
+【問題5】
+以下のバブルソートのコードで、dataが[3,4,6,8]という状態になるのは、外側のループの何回目が終わった時点ですか？
+
+data = [6, 3, 8, 4]
+n = 4
+
+for i in range(n - 1):
+    for j in range(n - 1 - i):
+        if data[j] > data[j + 1]:
+            data[j], data[j + 1] = data[j + 1], data[j]
+
+答え: 2

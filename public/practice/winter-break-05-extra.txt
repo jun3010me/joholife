@@ -1,0 +1,127 @@
+冬休み課題⑤二分探索 - 類題5問
+
+【問題1】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+data = [2, 4, 6, 8, 10]
+target = 6
+left = 0
+right = 4
+count = 0
+found = False
+
+while left <= right:
+    count = count + 1
+    mid = (left + right) // 2
+    if data[mid] == target:
+        found = True
+        break
+    elif data[mid] < target:
+        left = mid + 1
+    else:
+        right = mid - 1
+
+print(count)
+
+答え: 1
+
+
+【問題2】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+data = [1, 5, 9, 13, 17, 21, 25]
+target = 21
+left = 0
+right = 6
+count = 0
+
+while left <= right:
+    count = count + 1
+    mid = (left + right) // 2
+    if data[mid] == target:
+        break
+    elif data[mid] < target:
+        left = mid + 1
+    else:
+        right = mid - 1
+
+print(count)
+
+答え: 2
+
+
+【問題3】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+data = [2, 6, 10, 14, 18, 22, 26]
+target = 20
+left = 0
+right = 6
+result = -1
+
+while left <= right:
+    mid = (left + right) // 2
+    if data[mid] == target:
+        result = mid
+        break
+    elif data[mid] < target:
+        left = mid + 1
+    else:
+        right = mid - 1
+
+print(result)
+
+答え: -1
+
+
+【問題4】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+data = [4, 8, 12, 16, 20, 24, 28, 32, 36]
+target = 4
+left = 0
+right = 8
+count = 0
+
+while left <= right:
+    count = count + 1
+    mid = (left + right) // 2
+    if data[mid] == target:
+        break
+    elif data[mid] < target:
+        left = mid + 1
+    else:
+        right = mid - 1
+
+print(count)
+
+答え: 3
+
+
+【問題5】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+data = [7, 14, 21, 28, 35, 42, 49]
+target = 49
+left = 0
+right = 6
+count = 0
+found = False
+
+while left <= right:
+    count = count + 1
+    mid = (left + right) // 2
+    if data[mid] == target:
+        found = True
+        break
+    elif data[mid] < target:
+        left = mid + 1
+    else:
+        right = mid - 1
+
+if found:
+    print(count)
+else:
+    print(-1)
+
+答え: 3
