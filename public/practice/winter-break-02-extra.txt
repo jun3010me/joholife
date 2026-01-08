@@ -1,0 +1,70 @@
+冬休み課題②選択構造 - 類題5問
+
+【問題1】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+x = 8
+if x > 6:
+    x = x * 2
+print(x)
+
+答え: 16
+
+
+【問題2】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+a = 5
+if a > 8:
+    a = a + 10
+else:
+    a = a * 3
+print(a)
+
+答え: 15
+
+
+【問題3】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+x = 12
+y = 18
+if x >= y:
+    z = x + y
+else:
+    z = y - x
+print(z)
+
+答え: 6
+
+
+【問題4】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+score = 45
+if score >= 70:
+    rank = "A"
+elif score >= 50:
+    rank = "B"
+else:
+    rank = "C"
+print(rank)
+
+答え: C
+
+
+【問題5】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+x = 9
+y = 4
+if x > 7:
+    if y > 3:
+        result = x * y
+    else:
+        result = x + y
+else:
+    result = 0
+print(result)
+
+答え: 36
