@@ -1,0 +1,62 @@
+冬休み課題④条件と繰り返しの組み合わせ - 類題5問
+
+【問題1】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+count = 0
+for i in range(1, 16):
+    if i % 4 == 0:
+        count = count + 1
+print(count)
+
+答え: 3
+
+
+【問題2】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+total = 0
+for i in range(1, 11):
+    if i % 2 == 0:
+        total = total + i
+print(total)
+
+答え: 30
+
+
+【問題3】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+numbers = [12, 7, 33, 18, 5]
+result = 0
+for n in numbers:
+    if n > 10:
+        result = result + 1
+print(result)
+
+答え: 3
+
+
+【問題4】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+count = 0
+for i in range(1, 5):
+    for j in range(1, 5):
+        if i < j:
+            count = count + 1
+print(count)
+
+答え: 6
+
+
+【問題5】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+result = 0
+for i in range(1, 31):
+    if i % 3 == 0 and i % 4 == 0:
+        result = result + i
+print(result)
+
+答え: 36
