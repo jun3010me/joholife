@@ -1,0 +1,58 @@
+冬休み課題③繰り返し構造 - 類題5問
+
+【問題1】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+x = 0
+for i in range(5):
+    x = x + 3
+print(x)
+
+答え: 15
+
+
+【問題2】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+total = 0
+for i in range(2, 7):
+    total = total + i
+print(total)
+
+答え: 20
+
+
+【問題3】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+numbers = [4, 6, 1, 8]
+result = 0
+for n in numbers:
+    result = result + n
+print(result)
+
+答え: 19
+
+
+【問題4】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+x = 0
+for i in range(4):
+    for j in range(3):
+        x = x + 1
+print(x)
+
+答え: 12
+
+
+【問題5】
+以下のPythonコードを実行すると、どんな値が出力されますか？
+
+count = 0
+for i in range(1, 16):
+    if i % 3 == 0:
+        count = count + 1
+print(count)
+
+答え: 5
