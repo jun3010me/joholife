@@ -69,8 +69,8 @@ questions:
 
       print(count)
       ```
-    answer: "4"
-    explanation: バブルソートでの交換回数は、データの初期状態によって異なります。
+    answer: "3"
+    explanation: バブルソートでの交換回数は、データの初期状態によって異なります。この場合、逆転している3組のペアが交換されます。
     difficulty: medium
     points: 20
 
