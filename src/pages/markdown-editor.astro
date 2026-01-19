@@ -515,7 +515,17 @@ import Layout from '../layouts/Layout.astro';
             { label: '/h1', detail: '見出し1', apply: '# ', type: 'keyword' },
             { label: '/h2', detail: '見出し2', apply: '## ', type: 'keyword' },
             { label: '/h3', detail: '見出し3', apply: '### ', type: 'keyword' },
-            { label: '/bold', detail: '強調', apply: '**text**', type: 'keyword' },
+            {
+                label: '/bold',
+                detail: '強調',
+                apply: (view, completion, from, to) => {
+                    view.dispatch({
+                        changes: { from, to, insert: '****' },
+                        selection: { anchor: from + 2 }
+                    });
+                },
+                type: 'keyword'
+            },
             { label: '/ul', detail: '箇条書き', apply: '- ', type: 'keyword' },
             { label: '/ol', detail: '番号付きリスト', apply: '1. ', type: 'keyword' },
             {
