@@ -483,6 +483,7 @@ import Layout from '../layouts/Layout.astro';
             extensions: [
                 basicSetup,
                 markdown(),
+                EditorView.lineWrapping,
                 autocompletion({
                     override: [slashCommands],
                 }),
