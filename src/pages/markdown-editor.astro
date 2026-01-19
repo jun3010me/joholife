@@ -487,8 +487,8 @@ import Layout from '../layouts/Layout.astro';
                     override: [slashCommands],
                 }),
                 keymap.of([
-                    { key: 'Ctrl-ArrowUp', run: moveLineUp },
-                    { key: 'Ctrl-ArrowDown', run: moveLineDown },
+                    { key: 'Ctrl-Shift-ArrowUp', run: moveLineUp },
+                    { key: 'Ctrl-Shift-ArrowDown', run: moveLineDown },
                 ]),
                 EditorView.updateListener.of((update) => {
                     if (update.docChanged) {
