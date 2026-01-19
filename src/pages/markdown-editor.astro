@@ -441,8 +441,10 @@ import Layout from '../layouts/Layout.astro';
     // Import CodeMirror
     import { EditorView, basicSetup } from 'codemirror';
     import { EditorState } from '@codemirror/state';
+    import { keymap } from '@codemirror/view';
     import { markdown } from '@codemirror/lang-markdown';
     import { autocompletion, CompletionContext } from '@codemirror/autocomplete';
+    import { moveLineUp, moveLineDown } from '@codemirror/commands';
     import markdownit from 'markdown-it';
 
     // Initialize Markdown parser
@@ -484,6 +486,10 @@ import Layout from '../layouts/Layout.astro';
                 autocompletion({
                     override: [slashCommands],
                 }),
+                keymap.of([
+                    { key: 'Ctrl-ArrowUp', run: moveLineUp },
+                    { key: 'Ctrl-ArrowDown', run: moveLineDown },
+                ]),
                 EditorView.updateListener.of((update) => {
                     if (update.docChanged) {
                         handleContentChange();
