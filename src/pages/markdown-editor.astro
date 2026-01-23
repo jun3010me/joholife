@@ -19,6 +19,15 @@ import Layout from '../layouts/Layout.astro';
                     <input type="checkbox" id="layout-toggle" checked>
                     <span>プレビューを左に表示</span>
                 </label>
+                <button id="copy-btn" class="btn btn-info">
+                    📋 コピー
+                </button>
+                <button id="chatgpt-open-btn" class="btn btn-ai">
+                    🤖 ChatGPTで開く
+                </button>
+                <button id="chatgpt-copy-btn" class="btn btn-ai-secondary">
+                    🔗 ChatGPT URLコピー
+                </button>
                 <button id="open-file-btn" class="btn btn-secondary">
                     📂 ファイルを開く
                 </button>
@@ -148,6 +157,36 @@ import Layout from '../layouts/Layout.astro';
 
     .btn-success:hover {
         background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-info {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-ai {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .btn-ai:hover {
+        background: #7c3aed;
+        transform: translateY(-1px);
+    }
+
+    .btn-ai-secondary {
+        background: #a78bfa;
+        color: white;
+    }
+
+    .btn-ai-secondary:hover {
+        background: #8b5cf6;
         transform: translateY(-1px);
     }
 
@@ -758,7 +797,51 @@ import Layout from '../layouts/Layout.astro';
     function initializeFileHandlers() {
         const openBtn = document.getElementById('open-file-btn');
         const downloadBtn = document.getElementById('download-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const chatgptOpenBtn = document.getElementById('chatgpt-open-btn');
+        const chatgptCopyBtn = document.getElementById('chatgpt-copy-btn');
         const fileInput = document.getElementById('file-input') as HTMLInputElement;
+
+        // Copy to clipboard
+        copyBtn?.addEventListener('click', async () => {
+            const content = editorView.state.doc.toString();
+            try {
+                await navigator.clipboard.writeText(content);
+                showNotification('クリップボードにコピーしました', 'success');
+            } catch (err) {
+                console.error('Copy failed:', err);
+                showNotification('コピーに失敗しました', 'error');
+            }
+        });
+
+        // Open in ChatGPT
+        chatgptOpenBtn?.addEventListener('click', () => {
+            const content = editorView.state.doc.toString();
+            if (!content.trim()) {
+                showNotification('エディタが空です', 'warning');
+                return;
+            }
+            const url = `https://chatgpt.com/?q=${encodeURIComponent(content)}`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+            showNotification('ChatGPTを新しいタブで開きました', 'success');
+        });
+
+        // Copy ChatGPT URL
+        chatgptCopyBtn?.addEventListener('click', async () => {
+            const content = editorView.state.doc.toString();
+            if (!content.trim()) {
+                showNotification('エディタが空です', 'warning');
+                return;
+            }
+            const url = `https://chatgpt.com/?q=${encodeURIComponent(content)}`;
+            try {
+                await navigator.clipboard.writeText(url);
+                showNotification('ChatGPT URLをコピーしました', 'success');
+            } catch (err) {
+                console.error('Copy URL failed:', err);
+                showNotification('URLのコピーに失敗しました', 'error');
+            }
+        });
 
         // Open file
         openBtn?.addEventListener('click', () => {
