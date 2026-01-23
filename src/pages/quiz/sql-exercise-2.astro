@@ -39,9 +39,24 @@ function parseMarkdown(text) {
 function normalizeSql(sql) {
   return sql
     .trim()
+    // 複数の空白を1つにまとめる
     .replace(/\s+/g, ' ')
+    // カンマの前後のスペースを統一: カンマの前のスペースを削除、カンマの後に1つのスペース
+    .replace(/\s*,\s*/g, ', ')
+    // 開き括弧の前後のスペースを統一: 前はそのまま、後のスペースを削除
+    .replace(/\(\s+/g, '(')
+    // 閉じ括弧の前後のスペースを統一: 前のスペースを削除、後はそのまま
+    .replace(/\s+\)/g, ')')
+    // 等号の前後のスペースを統一: 前後に1つずつスペース
+    .replace(/\s*=\s*/g, ' = ')
+    // 末尾のセミコロンを削除
     .replace(/;+$/g, '')
-    .toUpperCase();
+    // 大文字に統一
+    .toUpperCase()
+    // 最終的に複数の空白が残っている場合は1つにまとめる
+    .replace(/\s+/g, ' ')
+    // 最後にtrimして前後の空白を削除
+    .trim();
 }
 
 class SQLQuizSession {
