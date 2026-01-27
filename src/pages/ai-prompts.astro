@@ -535,11 +535,14 @@ const prompts = [
                 const content = (btn as HTMLButtonElement).dataset.content;
                 if (!content) return;
 
-                // Encode content as base64 to handle special characters
-                // Then URL-encode to handle base64 special chars (+, /, =)
-                const base64Content = btoa(unescape(encodeURIComponent(content)));
-                const url = `/markdown-editor?prompt=${encodeURIComponent(base64Content)}`;
-                window.location.href = url;
+                // Use localStorage to pass content (avoids URL encoding issues on Safari/iOS)
+                try {
+                    localStorage.setItem('pendingPrompt', content);
+                    window.location.href = '/markdown-editor?fromPrompt=true';
+                } catch (e) {
+                    console.error('Failed to save to localStorage:', e);
+                    showNotification('エラーが発生しました', 'error');
+                }
             });
         });
     });
