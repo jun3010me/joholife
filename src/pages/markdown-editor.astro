@@ -503,6 +503,7 @@ import Layout from '../layouts/Layout.astro';
     let fileHandle: FileSystemFileHandle | null = null;
     let autoSaveTimeout: number | null = null;
     let hasPromptedForSave = false;
+    let isPromptMode = false; // プロンプトテンプレートから開いた場合のフラグ
 
     // LocalStorage keys
     const STORAGE_KEY_CONTENT = 'editorContent';
@@ -513,8 +514,38 @@ import Layout from '../layouts/Layout.astro';
         initializeEditor();
         initializeLayoutToggle();
         initializeFileHandlers();
-        restoreContent();
+
+        // Check for prompt parameter from AI Prompts page
+        const urlParams = new URLSearchParams(window.location.search);
+        const promptParam = urlParams.get('prompt');
+
+        if (promptParam) {
+            // Prompt mode: load from URL parameter and disable file sync
+            isPromptMode = true;
+            hasPromptedForSave = true; // Disable 100-char save prompt
+            loadPromptFromUrl(promptParam);
+            showNotification('プロンプトテンプレートを読み込みました。編集してからAIに送信してください。', 'info');
+        } else {
+            // Normal mode: restore from localStorage
+            restoreContent();
+        }
     });
+
+    // Load prompt from URL parameter (base64 encoded)
+    function loadPromptFromUrl(encodedPrompt: string) {
+        try {
+            const decoded = decodeURIComponent(escape(atob(encodedPrompt)));
+            editorView.dispatch({
+                changes: { from: 0, to: editorView.state.doc.length, insert: decoded },
+            });
+            // Clear the URL parameter to avoid reloading on refresh
+            window.history.replaceState({}, '', '/markdown-editor');
+        } catch (e) {
+            console.error('Failed to decode prompt:', e);
+            showNotification('プロンプトの読み込みに失敗しました', 'error');
+            restoreContent();
+        }
+    }
 
     // Initialize CodeMirror editor
     function initializeEditor() {
@@ -596,11 +627,13 @@ import Layout from '../layouts/Layout.astro';
         // Update preview
         updatePreview(content);
 
-        // Save to localStorage
-        saveToLocalStorage(content);
+        // Save to localStorage only in normal mode (not prompt mode)
+        if (!isPromptMode) {
+            saveToLocalStorage(content);
+        }
 
-        // Check for 100-character threshold
-        if (content.length > 100 && !hasPromptedForSave && !fileHandle) {
+        // Check for 100-character threshold (disabled in prompt mode)
+        if (content.length > 100 && !hasPromptedForSave && !fileHandle && !isPromptMode) {
             promptForSave();
         }
 
