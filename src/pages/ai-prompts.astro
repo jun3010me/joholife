@@ -1,0 +1,471 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// プロンプトテンプレートのデータ
+const prompts = [
+    {
+        id: 'quiz-generator',
+        title: '復習問題クイズの作成',
+        description: '情報Ⅰの復習問題クイズを作成し、ChatGPTにクイズ形式で出題してもらうプロンプトです。',
+        icon: '📝',
+        content: `# 情報Ⅰの復習問題クイズの作成
+これからあなたには、情報Ⅰの復習問題である、次に提示するテーマについての復習問題を作成してもらいます。
+作成した後、私にクイズ問題として提示してください。
+あなたは問題文を提示したあとに、解答の選択肢も提示して、私からの入力を待ってください。
+
+## 作問してほしい内容
+2進数から10進数への変換
+ただし、2進数の上限は8ビットまでの留めること。
+それから、5問全てが同じ選択肢にならないようにしてください。
+
+## 作成する問題数
+全部で5問です。
+
+## 解いた後の動き
+正解率の提示
+解き方のアドバイス
+
+これから何を復習したら良いのか、どのように勉強したら良いのかも教えてください。
+
+## 学年末考査の範囲
+- 進数計算
+- 2進数同士の計算
+- 論理回路
+- ネットワーク
+- プログラミング
+- データベース`
+    }
+];
+---
+
+<Layout
+    title="生成AI活用 - じょうほうらいふ"
+    description="情報Ⅰの学習に役立つ生成AI用プロンプトテンプレート集。ChatGPTやその他のAIツールで活用できます。"
+    keywords="生成AI,ChatGPT,プロンプト,情報Ⅰ,学習,教育"
+>
+    <div class="ai-prompts-container">
+        <header class="page-header">
+            <div class="header-content">
+                <h1>🤖 生成AI活用</h1>
+                <p class="header-description">
+                    情報Ⅰの学習に役立つ生成AI用プロンプトテンプレート集です。<br>
+                    各プロンプトをコピーしてChatGPTなどのAIツールで活用してください。
+                </p>
+            </div>
+        </header>
+
+        <main class="prompts-grid">
+            {prompts.map((prompt, index) => (
+                <article class="prompt-card" data-prompt-id={prompt.id}>
+                    <div class="prompt-header">
+                        <span class="prompt-icon">{prompt.icon}</span>
+                        <h2 class="prompt-title">{prompt.title}</h2>
+                    </div>
+                    <p class="prompt-description">{prompt.description}</p>
+
+                    <details class="prompt-content-details">
+                        <summary>プロンプト内容を表示</summary>
+                        <pre class="prompt-content">{prompt.content}</pre>
+                    </details>
+
+                    <div class="prompt-actions">
+                        <button
+                            class="action-btn copy-btn"
+                            data-content={prompt.content}
+                            title="クリップボードにコピー"
+                        >
+                            📋 クリップボードにコピー
+                        </button>
+                        <button
+                            class="action-btn chatgpt-btn"
+                            data-content={prompt.content}
+                            title="ChatGPTで開く"
+                        >
+                            🤖 ChatGPTで開く
+                        </button>
+                        <button
+                            class="action-btn editor-btn"
+                            data-content={prompt.content}
+                            title="Markdownエディタで開く"
+                        >
+                            📝 Markdownエディタで開く
+                        </button>
+                    </div>
+                </article>
+            ))}
+        </main>
+
+        <section class="usage-guide">
+            <h2>使い方</h2>
+            <div class="guide-cards">
+                <div class="guide-card">
+                    <span class="guide-icon">📋</span>
+                    <h3>クリップボードにコピー</h3>
+                    <p>プロンプトをクリップボードにコピーして、お好みのAIツールに貼り付けて使用できます。</p>
+                </div>
+                <div class="guide-card">
+                    <span class="guide-icon">🤖</span>
+                    <h3>ChatGPTで開く</h3>
+                    <p>ChatGPTを新しいタブで開き、プロンプトを自動的に入力した状態で開始します。</p>
+                </div>
+                <div class="guide-card">
+                    <span class="guide-icon">📝</span>
+                    <h3>Markdownエディタで開く</h3>
+                    <p>じょうほうらいふのMarkdownエディタでプロンプトを編集できます。カスタマイズしてからAIに送信しましょう。</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 通知エリア -->
+    <div id="notification" class="notification hidden"></div>
+</Layout>
+
+<style>
+    .ai-prompts-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding-bottom: 3rem;
+    }
+
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .header-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .page-header h1 {
+        font-size: 2.5rem;
+        margin: 0 0 1rem 0;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .header-description {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+        line-height: 1.8;
+    }
+
+    /* Prompts Grid */
+    .prompts-grid {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Prompt Card */
+    .prompt-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .prompt-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .prompt-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .prompt-icon {
+        font-size: 2rem;
+    }
+
+    .prompt-title {
+        font-size: 1.5rem;
+        margin: 0;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .prompt-description {
+        color: #64748b;
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+
+    /* Prompt Content Details */
+    .prompt-content-details {
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .prompt-content-details summary {
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        cursor: pointer;
+        font-weight: 500;
+        color: #475569;
+        transition: background 0.2s;
+    }
+
+    .prompt-content-details summary:hover {
+        background: #f1f5f9;
+    }
+
+    .prompt-content-details[open] summary {
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .prompt-content {
+        margin: 0;
+        padding: 1rem;
+        background: #1e293b;
+        color: #e2e8f0;
+        font-size: 0.875rem;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: 'Courier New', Consolas, monospace;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    /* Action Buttons */
+    .prompt-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        flex: 1;
+        min-width: 180px;
+        padding: 0.875rem 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .copy-btn {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .copy-btn:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .chatgpt-btn {
+        background: #10b981;
+        color: white;
+    }
+
+    .chatgpt-btn:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .editor-btn {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .editor-btn:hover {
+        background: #7c3aed;
+        transform: translateY(-1px);
+    }
+
+    /* Usage Guide */
+    .usage-guide {
+        max-width: 1000px;
+        margin: 3rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .usage-guide h2 {
+        text-align: center;
+        font-size: 1.75rem;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+    }
+
+    .guide-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .guide-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .guide-icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .guide-card h3 {
+        font-size: 1.1rem;
+        color: #1e293b;
+        margin: 0 0 0.75rem 0;
+    }
+
+    .guide-card p {
+        color: #64748b;
+        margin: 0;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* Notification */
+    .notification {
+        position: fixed;
+        top: 5rem;
+        right: 1.5rem;
+        padding: 1rem 1.5rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        max-width: 400px;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .notification.hidden {
+        display: none;
+    }
+
+    .notification.success {
+        border-left: 4px solid #10b981;
+    }
+
+    .notification.error {
+        border-left: 4px solid #ef4444;
+    }
+
+    .notification.info {
+        border-left: 4px solid #3b82f6;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 2rem 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .header-description {
+            font-size: 1rem;
+        }
+
+        .prompt-actions {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            min-width: 100%;
+        }
+
+        .prompts-grid {
+            padding: 0 1rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Notification helper
+        function showNotification(message: string, type: 'success' | 'error' | 'info' = 'info') {
+            const notification = document.getElementById('notification');
+            if (!notification) return;
+
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.remove('hidden');
+
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Copy to clipboard
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const content = (btn as HTMLButtonElement).dataset.content;
+                if (!content) return;
+
+                try {
+                    await navigator.clipboard.writeText(content);
+                    showNotification('クリップボードにコピーしました', 'success');
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                    showNotification('コピーに失敗しました', 'error');
+                }
+            });
+        });
+
+        // Open in ChatGPT
+        document.querySelectorAll('.chatgpt-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = (btn as HTMLButtonElement).dataset.content;
+                if (!content) return;
+
+                const url = `https://chatgpt.com/?q=${encodeURIComponent(content)}`;
+                window.open(url, '_blank', 'noopener,noreferrer');
+                showNotification('ChatGPTを新しいタブで開きました', 'success');
+            });
+        });
+
+        // Open in Markdown Editor
+        document.querySelectorAll('.editor-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const content = (btn as HTMLButtonElement).dataset.content;
+                if (!content) return;
+
+                // Encode content as base64 to handle special characters
+                const encodedContent = btoa(unescape(encodeURIComponent(content)));
+                const url = `/markdown-editor?prompt=${encodedContent}`;
+                window.location.href = url;
+            });
+        });
+    });
+</script>
