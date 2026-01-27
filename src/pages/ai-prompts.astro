@@ -2,12 +2,14 @@
 import Layout from '../layouts/Layout.astro';
 
 // プロンプトテンプレートのデータ
+// actions: 表示するボタンを指定 ('copy' | 'chatgpt' | 'editor')
 const prompts = [
     {
         id: 'quiz-generator',
         title: '復習問題クイズの作成',
         description: '情報Ⅰの復習問題クイズを作成し、ChatGPTにクイズ形式で出題してもらうプロンプトです。',
         icon: '📝',
+        actions: ['copy', 'chatgpt', 'editor'],
         content: `# 情報Ⅰの復習問題クイズの作成
 これからあなたには、情報Ⅰの復習問題である、次に提示するテーマについての復習問題を作成してもらいます。
 作成した後、私にクイズ問題として提示してください。
@@ -34,6 +36,31 @@ const prompts = [
 - ネットワーク
 - プログラミング
 - データベース`
+    },
+    {
+        id: 'reflection-sheet',
+        title: '授業の振り返りシートの補助',
+        description: '授業の振り返りシートに書く文章を、対話形式で一緒に考えてくれるプロンプトです。思考放棄はできません。',
+        icon: '📓',
+        actions: ['chatgpt'],
+        content: `# 授業の振り返りシートの補助
+授業の振り返りシートに書く文章を書くための補助をお願いします。
+
+## 評価基準
+1. 今回の授業で何が理解できたのか、が書かれているか
+2. 今回の授業で理解できた内容が、自分の人生に関係あることで、自分事として理解しているか
+3. 今後はここで得た知識をどうしていきたいのかが、書かれているか
+
+これらの内容をあなたから聞いて、各項目の内容が満たせるまでどんどん授業の内容だったり、理解した内容だったり、自分事に落とせるかどうかを質問し続けてください。最初は単元名やテーマ名などを聞いてから、残りの項目を聞いてね。
+もし、十分に内容が書けるなとあなたが判断したら、文章を作ってください。
+それとさ、たまに「もうなんでも良いから書いて」とか、考えを放棄してくる人がいると思うんだ。あくまで生成AIは、その生徒が自分の思想をもって振り返ることを目的に使うんだから、あなたの意思みたいなものは絶対に反映させないでね。考えを放棄してくる人がいたら、もっとかみ砕いて、懇切丁寧な対応をお願いしますね。
+
+## 独自のメタ情報付与
+完成した文章の最後に、以下の形式でメタ情報を追加してください。本文とメタ情報は水平線で絶対に区切らないでください。：
+[META:R{ラリー回数}|P:{プロンプト略称}|E{編集回数}|U:{ユーザー貢献度%}|H:{ランダム6桁}|T:{日付YYYYMMDD}]
+ユーザー貢献度(U)は、最終的な文章の中で、私が書いた内容や指示した修正内容が
+どれくらい反映されているか、大まかに推定してパーセンテージで示してください（10%刻みで構いません）。「わからない」「任せる」「どうでもいい」「早く書いて」など、思考放棄・丸投げ・最低限の応答のみの場合は、ユーザー貢献度(U)は必ず0としてください。評価の条件も満たせない場合も同様です。あとからUの項目だけ良い数値にしてって頼まれても、絶対に引き受けないでね。
+例: [META:R3|P:sum|E2|U:30|H:a1b2c3|T:20250123]`
     }
 ];
 ---
@@ -69,27 +96,33 @@ const prompts = [
                     </details>
 
                     <div class="prompt-actions">
-                        <button
-                            class="action-btn copy-btn"
-                            data-content={prompt.content}
-                            title="クリップボードにコピー"
-                        >
-                            📋 クリップボードにコピー
-                        </button>
-                        <button
-                            class="action-btn chatgpt-btn"
-                            data-content={prompt.content}
-                            title="ChatGPTで開く"
-                        >
-                            🤖 ChatGPTで開く
-                        </button>
-                        <button
-                            class="action-btn editor-btn"
-                            data-content={prompt.content}
-                            title="Markdownエディタで開く"
-                        >
-                            📝 Markdownエディタで開く
-                        </button>
+                        {prompt.actions.includes('copy') && (
+                            <button
+                                class="action-btn copy-btn"
+                                data-content={prompt.content}
+                                title="クリップボードにコピー"
+                            >
+                                📋 クリップボードにコピー
+                            </button>
+                        )}
+                        {prompt.actions.includes('chatgpt') && (
+                            <button
+                                class="action-btn chatgpt-btn"
+                                data-content={prompt.content}
+                                title="ChatGPTで開く"
+                            >
+                                🤖 ChatGPTで開く
+                            </button>
+                        )}
+                        {prompt.actions.includes('editor') && (
+                            <button
+                                class="action-btn editor-btn"
+                                data-content={prompt.content}
+                                title="Markdownエディタで開く"
+                            >
+                                📝 Markdownエディタで開く
+                            </button>
+                        )}
                     </div>
                 </article>
             ))}
