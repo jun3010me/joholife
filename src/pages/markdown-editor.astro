@@ -515,33 +515,40 @@ import Layout from '../layouts/Layout.astro';
         initializeLayoutToggle();
         initializeFileHandlers();
 
-        // Check for prompt parameter from AI Prompts page
+        // Check for prompt from AI Prompts page (via localStorage)
         const urlParams = new URLSearchParams(window.location.search);
-        const promptParam = urlParams.get('prompt');
+        const fromPrompt = urlParams.get('fromPrompt');
 
-        if (promptParam) {
-            // Prompt mode: load from URL parameter and disable file sync
+        if (fromPrompt === 'true') {
+            // Prompt mode: load from localStorage and disable file sync
             isPromptMode = true;
             hasPromptedForSave = true; // Disable 100-char save prompt
-            loadPromptFromUrl(promptParam);
-            showNotification('プロンプトテンプレートを読み込みました。編集してからAIに送信してください。', 'info');
+            loadPromptFromStorage();
         } else {
             // Normal mode: restore from localStorage
             restoreContent();
         }
     });
 
-    // Load prompt from URL parameter (base64 encoded)
-    function loadPromptFromUrl(encodedPrompt: string) {
+    // Load prompt from localStorage (set by AI Prompts page)
+    function loadPromptFromStorage() {
         try {
-            const decoded = decodeURIComponent(escape(atob(encodedPrompt)));
-            editorView.dispatch({
-                changes: { from: 0, to: editorView.state.doc.length, insert: decoded },
-            });
-            // Clear the URL parameter to avoid reloading on refresh
+            const pendingPrompt = localStorage.getItem('pendingPrompt');
+            if (pendingPrompt) {
+                editorView.dispatch({
+                    changes: { from: 0, to: editorView.state.doc.length, insert: pendingPrompt },
+                });
+                // Remove the pending prompt to avoid reloading on refresh
+                localStorage.removeItem('pendingPrompt');
+                showNotification('プロンプトテンプレートを読み込みました。編集してからAIに送信してください。', 'info');
+            } else {
+                // No pending prompt found, fall back to normal restore
+                restoreContent();
+            }
+            // Clear the URL parameter
             window.history.replaceState({}, '', '/markdown-editor');
         } catch (e) {
-            console.error('Failed to decode prompt:', e);
+            console.error('Failed to load prompt from storage:', e);
             showNotification('プロンプトの読み込みに失敗しました', 'error');
             restoreContent();
         }
