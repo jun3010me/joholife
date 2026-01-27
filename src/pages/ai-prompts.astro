@@ -536,8 +536,9 @@ const prompts = [
                 if (!content) return;
 
                 // Encode content as base64 to handle special characters
-                const encodedContent = btoa(unescape(encodeURIComponent(content)));
-                const url = `/markdown-editor?prompt=${encodedContent}`;
+                // Then URL-encode to handle base64 special chars (+, /, =)
+                const base64Content = btoa(unescape(encodeURIComponent(content)));
+                const url = `/markdown-editor?prompt=${encodeURIComponent(base64Content)}`;
                 window.location.href = url;
             });
         });
