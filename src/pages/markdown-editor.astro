@@ -500,9 +500,6 @@ import Layout from '../layouts/Layout.astro';
 
     // Global state
     let editorView: EditorView;
-    let fileHandle: FileSystemFileHandle | null = null;
-    let autoSaveTimeout: number | null = null;
-    let hasPromptedForSave = false;
     let isPromptMode = false; // プロンプトテンプレートから開いた場合のフラグ
 
     // LocalStorage keys
@@ -522,7 +519,6 @@ import Layout from '../layouts/Layout.astro';
         if (fromPrompt === 'true') {
             // Prompt mode: load from localStorage and disable file sync
             isPromptMode = true;
-            hasPromptedForSave = true; // Disable 100-char save prompt
             loadPromptFromStorage();
         } else {
             // Normal mode: restore from localStorage
@@ -638,16 +634,6 @@ import Layout from '../layouts/Layout.astro';
         if (!isPromptMode) {
             saveToLocalStorage(content);
         }
-
-        // Check for 100-character threshold (disabled in prompt mode)
-        if (content.length > 100 && !hasPromptedForSave && !fileHandle && !isPromptMode) {
-            promptForSave();
-        }
-
-        // Auto-save to file if handle exists
-        if (fileHandle) {
-            scheduleAutoSave(content);
-        }
     }
 
     // Update character count
@@ -693,25 +679,6 @@ import Layout from '../layouts/Layout.astro';
         }
     }
 
-    // Prompt for save at 100 characters
-    function promptForSave() {
-        hasPromptedForSave = true;
-        showNotification(
-            '100文字を超えました。ファイルとして保存しますか？',
-            'warning',
-            [
-                {
-                    text: '保存する',
-                    action: () => initiateFileSave(),
-                },
-                {
-                    text: '後で',
-                    action: () => {},
-                },
-            ]
-        );
-    }
-
     // Show notification
     function showNotification(
         message: string,
@@ -746,72 +713,6 @@ import Layout from '../layouts/Layout.astro';
             setTimeout(() => {
                 notificationEl.classList.add('hidden');
             }, 5000);
-        }
-    }
-
-    // Initiate file save via File System Access API
-    async function initiateFileSave() {
-        try {
-            const options = {
-                types: [
-                    {
-                        description: 'Markdown Files',
-                        accept: { 'text/markdown': ['.md'] },
-                    },
-                ],
-                suggestedName: 'document.md',
-            };
-
-            fileHandle = await (window as any).showSaveFilePicker(options);
-            const content = editorView.state.doc.toString();
-            await saveToFile(content);
-            showNotification('ファイルを保存しました', 'success');
-            updateSaveStatus('💾 自動保存: 有効');
-        } catch (err: any) {
-            if (err.name !== 'AbortError') {
-                console.error('File save failed:', err);
-                showNotification('ファイルの保存に失敗しました', 'error');
-            }
-        }
-    }
-
-    // Save to file
-    async function saveToFile(content: string) {
-        if (!fileHandle) return;
-
-        try {
-            const writable = await fileHandle.createWritable();
-            await writable.write(content);
-            await writable.close();
-        } catch (err) {
-            console.error('File write failed:', err);
-            throw err;
-        }
-    }
-
-    // Schedule auto-save (debounce)
-    function scheduleAutoSave(content: string) {
-        if (autoSaveTimeout !== null) {
-            clearTimeout(autoSaveTimeout);
-        }
-
-        autoSaveTimeout = window.setTimeout(async () => {
-            try {
-                updateSaveStatus('💾 保存中...');
-                await saveToFile(content);
-                updateSaveStatus('💾 自動保存: 最新');
-            } catch (err) {
-                console.error('Auto-save failed:', err);
-                updateSaveStatus('💾 自動保存: 失敗');
-            }
-        }, 3000);
-    }
-
-    // Update save status
-    function updateSaveStatus(status: string) {
-        const statusEl = document.getElementById('save-status');
-        if (statusEl) {
-            statusEl.textContent = status;
         }
     }
 
