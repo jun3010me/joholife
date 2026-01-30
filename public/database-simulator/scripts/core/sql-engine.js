@@ -1430,19 +1430,57 @@ class SQLEngine {
             });
         }
 
-        // 簡易的な実装: 列名 = '値' または 列名 = 値 の形式 （テーブル名.列名 にも対応）
-        const match = whereClause.match(/([^\s]+)\s*=\s*'?([^']+)'?/);
+        // 比較演算子対応: 列名 演算子 '値' または 列名 演算子 値 の形式 （テーブル名.列名 にも対応）
+        // 対応演算子: =, !=, <>, >=, <=, >, <
+        const match = whereClause.match(/([^\s]+)\s*(!=|<>|>=|<=|>|<|=)\s*'?([^']*)'?/);
 
         if (!match) {
             throw new Error(`WHERE句の構文エラー: ${whereClause}`);
         }
 
         const column = match[1];
-        const value = match[2];
+        const operator = match[2];
+        const value = match[3];
 
         return rows.filter(row => {
             const rowValue = row[column];
-            return rowValue && rowValue.toString() === value;
+            if (rowValue === undefined || rowValue === null) return false;
+            const rowStr = rowValue.toString();
+
+            // 数値として比較可能か判定
+            const rowNum = parseFloat(rowStr);
+            const valNum = parseFloat(value);
+            const isNumeric = !isNaN(rowNum) && !isNaN(valNum);
+
+            // 日付として比較可能か判定（YYYY-MM-DD形式）
+            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+            const isDate = datePattern.test(rowStr) && datePattern.test(value);
+
+            switch (operator) {
+                case '=':
+                    return rowStr === value;
+                case '!=':
+                case '<>':
+                    return rowStr !== value;
+                case '>':
+                    if (isDate) return new Date(rowStr) > new Date(value);
+                    if (isNumeric) return rowNum > valNum;
+                    return rowStr > value;
+                case '<':
+                    if (isDate) return new Date(rowStr) < new Date(value);
+                    if (isNumeric) return rowNum < valNum;
+                    return rowStr < value;
+                case '>=':
+                    if (isDate) return new Date(rowStr) >= new Date(value);
+                    if (isNumeric) return rowNum >= valNum;
+                    return rowStr >= value;
+                case '<=':
+                    if (isDate) return new Date(rowStr) <= new Date(value);
+                    if (isNumeric) return rowNum <= valNum;
+                    return rowStr <= value;
+                default:
+                    throw new Error(`未対応の演算子: ${operator}`);
+            }
         });
     }
 

@@ -663,7 +663,7 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   - **DESC/DESCRIBE**: テーブル構造表示（`DESC テーブル名`）
   - **JOIN**: 複数テーブル結合（INNER JOIN, LEFT JOIN対応）
 - **サポート構文**:
-  - **WHERE句**: 条件フィルタリング（`=`演算子、`IN`句、`BETWEEN`句、`LIKE`句対応）
+  - **WHERE句**: 条件フィルタリング（`=`, `!=`, `<>`, `>`, `<`, `>=`, `<=`演算子、`IN`句、`BETWEEN`句、`LIKE`句対応）
   - **ORDER BY句**: 並び替え（ASC/DESC）
   - **GROUP BY句**: グループ化（COUNT(*) 集計関数対応）
   - **COUNT(*)**: レコード数のカウント（GROUP BYなしでも使用可能）
@@ -676,8 +676,12 @@ AtCoderのような、Pythonのコードを入力してその場で判定でき�
   -- 基本的なSELECT
   SELECT * FROM 会員;
 
-  -- WHERE句で条件フィルタリング
+  -- WHERE句で条件フィルタリング（等値）
   SELECT * FROM 貸出 WHERE 貸出状態 = '貸出中';
+
+  -- WHERE句で不等号を使ったフィルタリング
+  SELECT * FROM 貸出 WHERE 出版年 >= '2023';
+  SELECT * FROM 貸出 WHERE 出版年 != '2020';
 
   -- IN句で複数の値に一致
   SELECT * FROM 貸出 WHERE 会員ID IN ('M001', 'M002', 'M003');
