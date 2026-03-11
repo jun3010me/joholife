@@ -651,7 +651,7 @@ class TypingGame {
     this.particles = [];
     this.flashes = [];
     this.score = 0; this.combo = 0; this.maxCombo = 0;
-    this.totalCount = 0; this.hitCount = 0; this.perfectCount = 0;
+    this.totalCount = 0; this.hitCount = 0; this.perfectCount = 0; this.missCount = 0;
     this.t = 0;
     this.baseSpawnInterval = this.demonMode ? 16 : 95; // 鬼モード：ほぼ隣同士
     this.spawnInterval = this.baseSpawnInterval;
@@ -686,9 +686,8 @@ class TypingGame {
 
   showResults() {
     this.state = 'result';
-    const acc = this.totalCount > 0 ? Math.round(this.hitCount / this.totalCount * 100) : 0;
-    const noMiss = this.hitCount === this.totalCount && this.totalCount > 0;
-    const rank = this._calcRank(acc, noMiss);
+    const acc = this.totalCount > 0 ? Math.round((this.totalCount - this.missCount) / this.totalCount * 100) : 0;
+    const rank = this._calcRank(acc, this.missCount === 0 && this.totalCount > 0);
     document.getElementById('screen-menu').hidden = true;
     document.getElementById('screen-game').hidden = true;
     document.getElementById('screen-result').hidden = false;
@@ -697,7 +696,7 @@ class TypingGame {
     document.getElementById('res-score').textContent = this.score.toLocaleString();
     document.getElementById('res-accuracy').textContent = acc + '%';
     document.getElementById('res-combo').textContent = this.maxCombo;
-    document.getElementById('res-perfect').textContent = this.perfectCount;
+    document.getElementById('res-perfect').textContent = this.missCount;
     document.getElementById('res-mode').textContent = this.mode?.name || '';
   }
 
@@ -948,6 +947,7 @@ class TypingGame {
           if (k.x < this.lineX - this.goodWin - 20) {
             k.startWaiting(this.scrollSpeed);
             this.combo = 0;
+            this.missCount++;
             this.spawnInterval = this.baseSpawnInterval; // ミスで密度リセット
             this._updateHUD();
           }
