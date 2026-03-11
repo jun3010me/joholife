@@ -71,7 +71,7 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     gap: 10px;
     width: 100%;
-    max-width: 960px;
+    max-width: 1200px;
     flex-shrink: 0;
     align-items: flex-start;
   }
@@ -202,6 +202,40 @@ import Layout from '../layouts/Layout.astro';
     height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
+  }
+
+  .demon-toggle-btn {
+    margin-top: 14px;
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 80, 80, 0.3);
+    background: rgba(255, 80, 80, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
+    flex-shrink: 0;
+  }
+
+  .demon-toggle-btn:hover {
+    border-color: rgba(255, 80, 80, 0.6);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 80, 80, 0.1);
+  }
+
+  .demon-toggle-btn.active {
+    border-color: #FF4444;
+    background: rgba(255, 50, 50, 0.2);
+    color: #FF8080;
+    box-shadow: 0 0 20px rgba(255, 50, 50, 0.35), inset 0 0 12px rgba(255, 50, 50, 0.15);
+    animation: demonPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes demonPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 50, 50, 0.35), inset 0 0 12px rgba(255, 50, 50, 0.15); }
+    50%       { box-shadow: 0 0 36px rgba(255, 50, 50, 0.6),  inset 0 0 20px rgba(255, 50, 50, 0.25); }
   }
 
   .menu-hint {
@@ -494,6 +528,14 @@ import Layout from '../layouts/Layout.astro';
             </span>
             <span class="mode-dot"></span>
           </button>
+          <button class="mode-btn" data-mode="a-to-z" style="--mode-color:#94A3B8">
+            <span class="mode-icon">🔤</span>
+            <span class="mode-info">
+              <span class="mode-name">AtoZ</span>
+              <span class="mode-keys">A → B → C → … → Z</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
         </div>
       </div>
 
@@ -574,6 +616,45 @@ import Layout from '../layouts/Layout.astro';
           </button>
         </div>
       </div>
+
+      <!-- 指ごとモード（両手） -->
+      <div class="menu-section">
+        <div class="section-label">指ごとモード（両手）</div>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="both-index" style="--mode-color:#22D3EE">
+            <span class="mode-icon">🤜🤛</span>
+            <span class="mode-info">
+              <span class="mode-name">両手人差し指</span>
+              <span class="mode-keys">R T F G V B + Y U H J N M</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="both-middle" style="--mode-color:#A78BFA">
+            <span class="mode-icon">✌️</span>
+            <span class="mode-info">
+              <span class="mode-name">両手中指</span>
+              <span class="mode-keys">E D C + I K ,</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="both-ring" style="--mode-color:#FB923C">
+            <span class="mode-icon">💍</span>
+            <span class="mode-info">
+              <span class="mode-name">両手薬指</span>
+              <span class="mode-keys">W S X + O L .</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="both-pinky" style="--mode-color:#34D399">
+            <span class="mode-icon">🤙</span>
+            <span class="mode-info">
+              <span class="mode-name">両手小指</span>
+              <span class="mode-keys">Q A Z + P ; /</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 指の色凡例 -->
@@ -587,6 +668,8 @@ import Layout from '../layouts/Layout.astro';
       <div class="legend-item"><div class="legend-dot" style="background:#F06595"></div>右薬指</div>
       <div class="legend-item"><div class="legend-dot" style="background:#20C997"></div>右小指</div>
     </div>
+
+    <button id="demon-toggle" class="demon-toggle-btn">💀 鬼モード OFF</button>
 
     <p class="menu-hint">クリックまたは Enter でスタート　／　Esc で前の画面へ</p>
   </div>
@@ -609,8 +692,8 @@ import Layout from '../layouts/Layout.astro';
         <span class="hud-value" id="hud-score">0</span>
       </div>
       <div class="hud-stat">
-        <span class="hud-label">残り</span>
-        <span class="hud-value" id="hud-remaining">—</span>
+        <span class="hud-label">タイム</span>
+        <span class="hud-value" id="hud-remaining">40s</span>
       </div>
     </div>
 

@@ -48,6 +48,7 @@ const GAME_MODES = [
   { id: 'home-row',   name: '中段（ホームポジション）', subtitle: 'A S D F G H J K L',         icon: '🏠', keys: ['A','S','D','F','G','H','J','K','L'],                                               color: '#339AF0' },
   { id: 'bottom-row', name: '下段',                  subtitle: 'Z X C V B N M',               icon: '⬇️', keys: ['Z','X','C','V','B','N','M'],                                                       color: '#FF922B' },
   { id: 'all-rows',   name: '上段＋中段＋下段',       subtitle: 'アルファベット全26キー',       icon: '🌟', keys: ['Q','W','E','R','T','Y','U','I','O','P','A','S','D','F','G','H','J','K','L','Z','X','C','V','B','N','M'], color: '#F06595' },
+  { id: 'a-to-z',    name: 'AtoZ',                  subtitle: 'A → B → C → … → Z',          icon: '🔤', keys: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'], color: '#94A3B8', ordered: true },
   // 指ごとモード（左手）
   { id: 'left-pinky',  name: '左小指',    subtitle: 'Q A Z',     icon: '🤙', keys: ['Q','A','Z'],           color: '#FF6B6B' },
   { id: 'left-ring',   name: '左薬指',    subtitle: 'W S X',     icon: '💍', keys: ['W','S','X'],           color: '#FF922B' },
@@ -58,6 +59,11 @@ const GAME_MODES = [
   { id: 'right-middle', name: '右中指',    subtitle: 'I K ,',    icon: '✋', keys: ['I','K',','],           color: '#7950F2' },
   { id: 'right-ring',   name: '右薬指',    subtitle: 'O L .',    icon: '💍', keys: ['O','L','.'],           color: '#F06595' },
   { id: 'right-pinky',  name: '右小指',    subtitle: 'P ; /',    icon: '🤙', keys: ['P',';','/'],           color: '#20C997' },
+  // 指ごとモード（両手）
+  { id: 'both-index',  name: '両手人差し指', subtitle: 'R T F G V B + Y U H J N M', icon: '🤜🤛', keys: ['R','T','F','G','V','B','Y','U','H','J','N','M'], color: '#22D3EE' },
+  { id: 'both-middle', name: '両手中指',    subtitle: 'E D C + I K ,',             icon: '✌️',  keys: ['E','D','C','I','K',','],                         color: '#A78BFA' },
+  { id: 'both-ring',   name: '両手薬指',    subtitle: 'W S X + O L .',             icon: '💍💍', keys: ['W','S','X','O','L','.'],                         color: '#FB923C' },
+  { id: 'both-pinky',  name: '両手小指',    subtitle: 'Q A Z + P ; /',             icon: '🤙🤙', keys: ['Q','A','Z','P',';','/'],                         color: '#34D399' },
 ];
 
 // ============================================================
@@ -553,6 +559,9 @@ class TypingGame {
     this.spawnTimer = 0;
     this.baseSpawnInterval = 95;
     this.spawnInterval = 95;
+    this.gameDuration = 40000; // ms
+    this.timeLeftMs = 0;
+    this.demonMode = false;
 
     this.lineX = 200;
     this.trackY = 0;
@@ -584,6 +593,14 @@ class TypingGame {
     document.getElementById('btn-menu')?.addEventListener('click', () => this.showMenu());
     document.getElementById('btn-retry')?.addEventListener('click', () => {
       if (this.lastModeId) this.startGame(this.lastModeId);
+    });
+
+    // 鬼モードトグル
+    document.getElementById('demon-toggle')?.addEventListener('click', () => {
+      this.demonMode = !this.demonMode;
+      const btn = document.getElementById('demon-toggle');
+      btn.classList.toggle('active', this.demonMode);
+      btn.textContent = this.demonMode ? '🔥 鬼モード ON' : '💀 鬼モード OFF';
     });
 
     // Generate background menu demo keys
@@ -636,11 +653,13 @@ class TypingGame {
     this.score = 0; this.combo = 0; this.maxCombo = 0;
     this.totalCount = 0; this.hitCount = 0; this.perfectCount = 0;
     this.t = 0;
-    this.spawnInterval = this.baseSpawnInterval; // 密度リセット
+    this.baseSpawnInterval = this.demonMode ? 16 : 95; // 鬼モード：ほぼ隣同士
+    this.spawnInterval = this.baseSpawnInterval;
     this.spawnTimer = this.baseSpawnInterval; // spawn first key immediately
+    this.timeLeftMs = this.gameDuration;
 
-    this.keyQueue = this._genQueue(this.mode.keys, 30);
-    this.totalCount = this.keyQueue.length;
+    // キューを先行バッファとして用意（自動補充あり）
+    this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, this.mode.ordered);
 
     this.state = 'playing';
     document.getElementById('screen-menu').hidden = true;
@@ -651,8 +670,8 @@ class TypingGame {
     this._resize();
 
     document.getElementById('hud-mode-name').textContent = this.mode.name;
-    document.getElementById('hud-remaining').textContent = this.totalCount;
     this._updateHUD();
+    this._updateTimer();
   }
 
   showMenu() {
@@ -668,7 +687,8 @@ class TypingGame {
   showResults() {
     this.state = 'result';
     const acc = this.totalCount > 0 ? Math.round(this.hitCount / this.totalCount * 100) : 0;
-    const rank = this._calcRank(acc, this.maxCombo, this.totalCount, this.perfectCount);
+    const noMiss = this.hitCount === this.totalCount && this.totalCount > 0;
+    const rank = this._calcRank(acc, noMiss);
     document.getElementById('screen-menu').hidden = true;
     document.getElementById('screen-game').hidden = true;
     document.getElementById('screen-result').hidden = false;
@@ -681,8 +701,8 @@ class TypingGame {
     document.getElementById('res-mode').textContent = this.mode?.name || '';
   }
 
-  _calcRank(acc, combo, total, perfect) {
-    if (acc === 100 && combo === total) return 'S';
+  _calcRank(acc, noMiss) {
+    if (noMiss) return 'S';
     if (acc >= 90) return 'A';
     if (acc >= 75) return 'B';
     if (acc >= 50) return 'C';
@@ -690,11 +710,10 @@ class TypingGame {
     return 'E';
   }
 
-  _genQueue(keys, count) {
+  _genQueue(keys, count, ordered = false) {
     const q = [];
     while (q.length < count) {
-      const s = [...keys].sort(() => Math.random() - 0.5);
-      q.push(...s);
+      q.push(...(ordered ? keys : [...keys].sort(() => Math.random() - 0.5)));
     }
     return q.slice(0, count);
   }
@@ -761,8 +780,8 @@ class TypingGame {
                    : Math.abs(signedDist) <= this.goodWin        ? 'good'
                    : 'ok';
 
-    // 早打ちのたびにキー間隔を縮める（密度アップ）→ 上限：baseSpawnInterval の 0.35倍
-    if (isEarly) {
+    // 早打ちのたびにキー間隔を縮める（密度アップ）→ 鬼モード中は固定密度なので無効
+    if (isEarly && !this.demonMode) {
       this.spawnInterval = Math.max(this.spawnInterval * 0.88, this.baseSpawnInterval * 0.35);
     }
 
@@ -784,7 +803,6 @@ class TypingGame {
     this._showJudgment(judgment);
     this._playSound(judgment);
     this._updateHUD();
-    this._updateRemaining();
   }
 
   _onMiss(key) {
@@ -881,9 +899,9 @@ class TypingGame {
     el('hud-score').textContent = this.score.toLocaleString();
   }
 
-  _updateRemaining() {
-    const remaining = this.keyQueue.length + this.flowKeys.filter(k => k.state !== 'done').length;
-    document.getElementById('hud-remaining').textContent = remaining;
+  _updateTimer() {
+    const secs = Math.ceil(this.timeLeftMs / 1000);
+    document.getElementById('hud-remaining').textContent = secs + 's';
   }
 
   // ── Game Loop ─────────────────────────────────────────────
@@ -895,19 +913,23 @@ class TypingGame {
     const dtF = dt / (1000 / 60);
     this._lastTime = now;
 
-    this._update(dtF);
+    this._update(dtF, dt);
     this._render();
     requestAnimationFrame(t => this._loop(t));
   }
 
-  _update(dtF = 1) {
+  _update(dtF = 1, dt = 1000 / 60) {
     this.t += dtF;
     this.kbd?.update();
 
     if (this.state === 'playing') {
-      // Spawn keys（dtF で時間基準に）
+      // タイマーカウントダウン
+      this.timeLeftMs = Math.max(0, this.timeLeftMs - dt);
+      this._updateTimer();
+
+      // Spawn keys（時間が残っている＆重なりなし）
       this.spawnTimer += dtF;
-      if (this.spawnTimer >= this.spawnInterval && this.keyQueue.length > 0) {
+      if (this.spawnTimer >= this.spawnInterval && this.timeLeftMs > 0 && this._canSpawnKey()) {
         this._spawnKey();
         this.spawnTimer = 0;
       }
@@ -937,8 +959,8 @@ class TypingGame {
       this.particles = this.particles.filter(p => { p.update(dtF); return !p.isDead(); });
       this.flashes = this.flashes.filter(f => { f.alpha -= f.decay * dtF; return f.alpha > 0; });
 
-      // Game end check
-      if (this.keyQueue.length === 0 && this.flowKeys.every(k => k.state === 'done')) {
+      // Game end: タイマー切れ＆画面上のキーが全て処理済み
+      if (this.timeLeftMs <= 0 && !this.flowKeys.some(k => k.state === 'flowing' || k.state === 'waiting')) {
         setTimeout(() => this.showResults(), 800);
         this.state = 'ending';
       }
@@ -948,8 +970,23 @@ class TypingGame {
   }
 
   _spawnKey() {
+    if (this.keyQueue.length === 0) {
+      this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, this.mode.ordered);
+    }
     const letter = this.keyQueue.shift();
     this.flowKeys.push(new FlowKey(letter, this.W + 90, this.trackY));
+    this.totalCount++;
+  }
+
+  // 次のキーをスポーンしても重ならないか確認
+  _canSpawnKey() {
+    const spawnX = this.W + 90;
+    const KEY_SIZE = 76; // キー本体幅(72px) + 最小余白
+    for (const k of this.flowKeys) {
+      if (k.state === 'done') continue;
+      if (spawnX - k.x < KEY_SIZE) return false;
+    }
+    return true;
   }
 
   // ── Menu background animation ─────────────────────────────
