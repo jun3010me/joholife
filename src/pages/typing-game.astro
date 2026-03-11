@@ -1,0 +1,663 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="タイピングゲーム - じょうほうらいふ">
+
+<!-- グローバルスタイル：Layoutのnavbar/footerを非表示にする -->
+<style is:global>
+  body.typing-game-page { overflow: hidden; background: #08081a; }
+  body.typing-game-page .navbar  { display: none !important; }
+  body.typing-game-page .footer  { display: none !important; }
+  body.typing-game-page .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+  /* hidden属性をCSSのdisplayで上書きしないよう保護 */
+  #game-app [hidden] { display: none !important; }
+</style>
+
+<style>
+  /* ── Root ─────────────────────────────── */
+  #game-app {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+    color: #fff;
+    background: #08081a;
+  }
+
+  /* ═══════════════════════════════════════
+     SCREEN: MENU
+  ════════════════════════════════════════ */
+  #screen-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 16px 24px;
+    gap: 0;
+  }
+
+  .menu-title {
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 2px;
+    background: linear-gradient(135deg, #fff 30%, #74C0FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .menu-subtitle {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    margin: 0 0 14px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* 段ごと・左手・右手を横3列 */
+  .menu-body {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 960px;
+    flex-shrink: 0;
+    align-items: flex-start;
+  }
+
+  .menu-section {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 7px;
+    padding-left: 2px;
+  }
+
+  .mode-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mode-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: transform 0.16s cubic-bezier(.34,1.56,.64,1),
+                border-color 0.2s, background 0.2s, box-shadow 0.18s;
+    text-align: left;
+    color: #fff;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--mode-color, #339AF0);
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: inherit;
+  }
+
+  .mode-btn:hover, .mode-btn:focus {
+    transform: translateX(3px);
+    border-color: var(--mode-color, #339AF0);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    outline: none;
+  }
+  .mode-btn:hover::before { opacity: 0.08; }
+  .mode-btn:active { transform: scale(0.98); }
+
+  .mode-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .mode-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+  }
+
+  .mode-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mode-keys {
+    font-size: 0.65rem;
+    font-family: 'Courier New', monospace;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .mode-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mode-color, #339AF0);
+    box-shadow: 0 0 8px var(--mode-color, #339AF0);
+    opacity: 0.75;
+    flex-shrink: 0;
+  }
+
+  /* 指の色凡例 */
+  .finger-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    justify-content: center;
+    margin-top: 12px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 840px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .menu-hint {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════
+     SCREEN: GAME
+  ════════════════════════════════════════ */
+  #screen-game {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* HUD: コンパクトに1行 */
+  #game-hud {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    height: 38px;
+    box-sizing: border-box;
+  }
+
+  #btn-back {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.65);
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  #btn-back:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+  #hud-mode-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #judgment-text {
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    width: 110px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    flex-shrink: 0;
+  }
+
+  #judgment-text.pop {
+    animation: judgePop 0.5s ease-out forwards;
+  }
+
+  @keyframes judgePop {
+    0%   { opacity: 1; transform: scale(0.75) translateY(3px); }
+    25%  { opacity: 1; transform: scale(1.15) translateY(-1px); }
+    70%  { opacity: 1; transform: scale(1) translateY(-4px); }
+    100% { opacity: 0; transform: scale(0.95) translateY(-12px); }
+  }
+
+  .hud-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .hud-label {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .hud-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  #hud-combo    { color: #51CF66; }
+  #hud-score    { color: #74C0FC; }
+  #hud-remaining{ color: rgba(255,255,255,0.4); }
+
+  /* ゲームフィールド canvas: 上1/3 */
+  #game-canvas {
+    width: 100%;
+    flex: 0 0 32%;
+    display: block;
+    min-height: 80px;
+    max-height: 260px;
+  }
+
+  /* キーボード canvas: 残り全部 */
+  #keyboard-canvas {
+    width: 100%;
+    flex: 1;
+    display: block;
+    min-height: 0;
+  }
+
+  /* ═══════════════════════════════════════
+     SCREEN: RESULT
+  ════════════════════════════════════════ */
+  #screen-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 20px;
+    background: radial-gradient(ellipse at 50% 20%, rgba(51,154,240,0.1) 0%, transparent 65%);
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 28px 36px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    animation: slideIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: scale(0.85) translateY(28px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .result-mode-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .rank {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 6px 0 16px;
+    text-shadow: 0 0 36px currentColor;
+    animation: rankBounce 0.6s 0.3s cubic-bezier(.34,1.56,.64,1) both;
+  }
+
+  @keyframes rankBounce {
+    from { opacity: 0; transform: scale(0.3); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .rank-S { color: #FFD700; }
+  .rank-A { color: #51CF66; }
+  .rank-B { color: #74C0FC; }
+  .rank-C { color: #FF922B; }
+  .rank-D { color: #FF6B6B; }
+  .rank-E { color: #aaa; }
+
+  .result-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 14px 0 22px;
+  }
+
+  .result-stat-item {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .result-stat-label {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+
+  .result-stat-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(.34,1.56,.64,1), box-shadow 0.15s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #339AF0, #228BE6);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(51,154,240,0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(51,154,240,0.5); }
+  .btn-secondary:hover{ transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+</style>
+
+<div id="game-app">
+
+  <!-- ═══════ SCREEN: MENU ═══════ -->
+  <div id="screen-menu">
+    <h1 class="menu-title">⌨️ タイピングゲーム</h1>
+    <p class="menu-subtitle">正しい運指で楽しく練習しよう</p>
+
+    <div class="menu-body">
+      <!-- 段ごとモード -->
+      <div class="menu-section">
+        <div class="section-label">段ごとモード</div>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="number-row" style="--mode-color:#FCC419">
+            <span class="mode-icon">🔢</span>
+            <span class="mode-info">
+              <span class="mode-name">数字段</span>
+              <span class="mode-keys">1 2 3 4 5 6 7 8 9 0</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="top-row" style="--mode-color:#51CF66">
+            <span class="mode-icon">⬆️</span>
+            <span class="mode-info">
+              <span class="mode-name">上段</span>
+              <span class="mode-keys">Q W E R T Y U I O P</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="home-row" style="--mode-color:#339AF0">
+            <span class="mode-icon">🏠</span>
+            <span class="mode-info">
+              <span class="mode-name">中段（ホームポジション）</span>
+              <span class="mode-keys">A S D F G H J K L</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="bottom-row" style="--mode-color:#FF922B">
+            <span class="mode-icon">⬇️</span>
+            <span class="mode-info">
+              <span class="mode-name">下段</span>
+              <span class="mode-keys">Z X C V B N M</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="all-rows" style="--mode-color:#F06595">
+            <span class="mode-icon">🌟</span>
+            <span class="mode-info">
+              <span class="mode-name">上段＋中段＋下段</span>
+              <span class="mode-keys">アルファベット全26キー</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 指ごとモード（左手） -->
+      <div class="menu-section">
+        <div class="section-label">指ごとモード（左手）</div>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="left-index" style="--mode-color:#51CF66">
+            <span class="mode-icon">👈</span>
+            <span class="mode-info">
+              <span class="mode-name">左人差し指</span>
+              <span class="mode-keys">R T F G V B</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="left-middle" style="--mode-color:#FCC419">
+            <span class="mode-icon">✋</span>
+            <span class="mode-info">
+              <span class="mode-name">左中指</span>
+              <span class="mode-keys">E D C</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="left-ring" style="--mode-color:#FF922B">
+            <span class="mode-icon">💍</span>
+            <span class="mode-info">
+              <span class="mode-name">左薬指</span>
+              <span class="mode-keys">W S X</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="left-pinky" style="--mode-color:#FF6B6B">
+            <span class="mode-icon">🤙</span>
+            <span class="mode-info">
+              <span class="mode-name">左小指</span>
+              <span class="mode-keys">Q A Z</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 指ごとモード（右手） -->
+      <div class="menu-section">
+        <div class="section-label">指ごとモード（右手）</div>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="right-index" style="--mode-color:#339AF0">
+            <span class="mode-icon">👉</span>
+            <span class="mode-info">
+              <span class="mode-name">右人差し指</span>
+              <span class="mode-keys">Y U H J N M</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="right-middle" style="--mode-color:#7950F2">
+            <span class="mode-icon">✋</span>
+            <span class="mode-info">
+              <span class="mode-name">右中指</span>
+              <span class="mode-keys">I K ,</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="right-ring" style="--mode-color:#F06595">
+            <span class="mode-icon">💍</span>
+            <span class="mode-info">
+              <span class="mode-name">右薬指</span>
+              <span class="mode-keys">O L .</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+          <button class="mode-btn" data-mode="right-pinky" style="--mode-color:#20C997">
+            <span class="mode-icon">🤙</span>
+            <span class="mode-info">
+              <span class="mode-name">右小指</span>
+              <span class="mode-keys">P ; /</span>
+            </span>
+            <span class="mode-dot"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 指の色凡例 -->
+    <div class="finger-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#FF6B6B"></div>左小指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF922B"></div>左薬指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FCC419"></div>左中指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#51CF66"></div>左人差し指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#339AF0"></div>右人差し指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7950F2"></div>右中指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F06595"></div>右薬指</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#20C997"></div>右小指</div>
+    </div>
+
+    <p class="menu-hint">クリックまたは Enter でスタート　／　Esc で前の画面へ</p>
+  </div>
+
+  <!-- ═══════ SCREEN: GAME ═══════ -->
+  <div id="screen-game" hidden>
+    <!-- HUD（1行コンパクト） -->
+    <div id="game-hud">
+      <button id="btn-back">← 戻る</button>
+      <span id="hud-mode-name">モード名</span>
+
+      <span id="judgment-text"></span>
+
+      <div class="hud-stat">
+        <span class="hud-label">コンボ</span>
+        <span class="hud-value" id="hud-combo">0</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">スコア</span>
+        <span class="hud-value" id="hud-score">0</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">残り</span>
+        <span class="hud-value" id="hud-remaining">—</span>
+      </div>
+    </div>
+
+    <!-- ゲームフィールド（キーが流れる） -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- キーボード図（大きく表示） -->
+    <canvas id="keyboard-canvas"></canvas>
+  </div>
+
+  <!-- ═══════ SCREEN: RESULT ═══════ -->
+  <div id="screen-result" hidden>
+    <div class="result-card">
+      <div class="result-mode-label" id="res-mode"></div>
+      <div class="rank" id="res-rank">S</div>
+      <div class="result-stats">
+        <div class="result-stat-item">
+          <div class="result-stat-label">スコア</div>
+          <div class="result-stat-value" id="res-score">0</div>
+        </div>
+        <div class="result-stat-item">
+          <div class="result-stat-label">精度</div>
+          <div class="result-stat-value" id="res-accuracy">0%</div>
+        </div>
+        <div class="result-stat-item">
+          <div class="result-stat-label">最大コンボ</div>
+          <div class="result-stat-value" id="res-combo">0</div>
+        </div>
+        <div class="result-stat-item">
+          <div class="result-stat-label">PERFECT</div>
+          <div class="result-stat-value" id="res-perfect">0</div>
+        </div>
+      </div>
+      <div class="result-buttons">
+        <button class="btn-primary" id="btn-retry">もう一度</button>
+        <button class="btn-secondary" id="btn-menu">メニューへ</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+  // bodyにクラスを付けてグローバルCSSを適用
+  document.body.classList.add('typing-game-page');
+</script>
+
+<script is:inline src="/typing-game/game.js"></script>
+
+</Layout>
