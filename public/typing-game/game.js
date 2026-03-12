@@ -45,9 +45,9 @@ const GAME_MODES = [
   // 段ごとモード
   { id: 'number-row', name: '数字段',               subtitle: '1 2 3 4 5 6 7 8 9 0',         icon: '🔢', keys: ['1','2','3','4','5','6','7','8','9','0'],                                               color: '#FCC419' },
   { id: 'top-row',    name: '上段',                  subtitle: 'Q W E R T Y U I O P',         icon: '⬆️', keys: ['Q','W','E','R','T','Y','U','I','O','P'],                                           color: '#51CF66' },
-  { id: 'home-row',   name: '中段（ホームポジション）', subtitle: 'A S D F G H J K L',         icon: '🏠', keys: ['A','S','D','F','G','H','J','K','L'],                                               color: '#339AF0' },
-  { id: 'bottom-row', name: '下段',                  subtitle: 'Z X C V B N M',               icon: '⬇️', keys: ['Z','X','C','V','B','N','M'],                                                       color: '#FF922B' },
-  { id: 'all-rows',   name: '上段＋中段＋下段',       subtitle: 'アルファベット全26キー',       icon: '🌟', keys: ['Q','W','E','R','T','Y','U','I','O','P','A','S','D','F','G','H','J','K','L','Z','X','C','V','B','N','M'], color: '#F06595' },
+  { id: 'home-row',   name: '中段（ホームポジション）', subtitle: 'A S D F G H J K L ;',       icon: '🏠', keys: ['A','S','D','F','G','H','J','K','L',';'],                                           color: '#339AF0' },
+  { id: 'bottom-row', name: '下段',                  subtitle: 'Z X C V B N M , . /',         icon: '⬇️', keys: ['Z','X','C','V','B','N','M',',','.','/'],                                           color: '#FF922B' },
+  { id: 'all-rows',   name: '上段＋中段＋下段',       subtitle: 'アルファベット＋記号キー',     icon: '🌟', keys: ['Q','W','E','R','T','Y','U','I','O','P','A','S','D','F','G','H','J','K','L',';','Z','X','C','V','B','N','M',',','.','/'], color: '#F06595' },
   { id: 'a-to-z',    name: 'AtoZ',                  subtitle: 'A → B → C → … → Z',          icon: '🔤', keys: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'], color: '#94A3B8', ordered: true },
   // 指ごとモード（左手）
   { id: 'left-pinky',  name: '左小指',    subtitle: 'Q A Z',     icon: '🤙', keys: ['Q','A','Z'],           color: '#FF6B6B' },
