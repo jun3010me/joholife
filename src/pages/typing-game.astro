@@ -204,8 +204,14 @@ import Layout from '../layouts/Layout.astro';
     flex-shrink: 0;
   }
 
-  .demon-toggle-btn {
+  .toggle-row {
+    display: flex;
+    gap: 10px;
     margin-top: 14px;
+    flex-shrink: 0;
+  }
+
+  .demon-toggle-btn {
     padding: 10px 28px;
     border-radius: 10px;
     border: 2px solid rgba(255, 80, 80, 0.3);
@@ -236,6 +242,33 @@ import Layout from '../layouts/Layout.astro';
   @keyframes demonPulse {
     0%, 100% { box-shadow: 0 0 20px rgba(255, 50, 50, 0.35), inset 0 0 12px rgba(255, 50, 50, 0.15); }
     50%       { box-shadow: 0 0 36px rgba(255, 50, 50, 0.6),  inset 0 0 20px rgba(255, 50, 50, 0.25); }
+  }
+
+  .random-toggle-btn {
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: 2px solid rgba(100, 180, 255, 0.3);
+    background: rgba(100, 180, 255, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .random-toggle-btn:hover {
+    border-color: rgba(100, 180, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(100, 180, 255, 0.1);
+  }
+
+  /* ランダムOFF（固定順）時にアクティブ表示 */
+  .random-toggle-btn.active {
+    border-color: #60A5FA;
+    background: rgba(96, 165, 250, 0.15);
+    color: #93C5FD;
+    box-shadow: 0 0 16px rgba(96, 165, 250, 0.3);
   }
 
   .menu-hint {
@@ -669,7 +702,10 @@ import Layout from '../layouts/Layout.astro';
       <div class="legend-item"><div class="legend-dot" style="background:#20C997"></div>右小指</div>
     </div>
 
-    <button id="demon-toggle" class="demon-toggle-btn">💀 鬼モード OFF</button>
+    <div class="toggle-row">
+      <button id="demon-toggle" class="demon-toggle-btn">💀 鬼モード OFF</button>
+      <button id="random-toggle" class="random-toggle-btn">🔀 ランダム ON</button>
+    </div>
 
     <p class="menu-hint">クリックまたは Enter でスタート　／　Esc で前の画面へ</p>
   </div>

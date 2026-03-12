@@ -59,11 +59,11 @@ const GAME_MODES = [
   { id: 'right-middle', name: '右中指',    subtitle: 'I K ,',    icon: '✋', keys: ['I','K',','],           color: '#7950F2' },
   { id: 'right-ring',   name: '右薬指',    subtitle: 'O L .',    icon: '💍', keys: ['O','L','.'],           color: '#F06595' },
   { id: 'right-pinky',  name: '右小指',    subtitle: 'P ; /',    icon: '🤙', keys: ['P',';','/'],           color: '#20C997' },
-  // 指ごとモード（両手）
-  { id: 'both-index',  name: '両手人差し指', subtitle: 'R T F G V B + Y U H J N M', icon: '🤜🤛', keys: ['R','T','F','G','V','B','Y','U','H','J','N','M'], color: '#22D3EE' },
-  { id: 'both-middle', name: '両手中指',    subtitle: 'E D C + I K ,',             icon: '✌️',  keys: ['E','D','C','I','K',','],                         color: '#A78BFA' },
-  { id: 'both-ring',   name: '両手薬指',    subtitle: 'W S X + O L .',             icon: '💍💍', keys: ['W','S','X','O','L','.'],                         color: '#FB923C' },
-  { id: 'both-pinky',  name: '両手小指',    subtitle: 'Q A Z + P ; /',             icon: '🤙🤙', keys: ['Q','A','Z','P',';','/'],                         color: '#34D399' },
+  // 指ごとモード（両手）　ordered時は行ごとに左→右の順
+  { id: 'both-index',  name: '両手人差し指', subtitle: 'R T F G V B + Y U H J N M', icon: '🤜🤛', keys: ['R','T','Y','U','F','G','H','J','V','B','N','M'], color: '#22D3EE' },
+  { id: 'both-middle', name: '両手中指',    subtitle: 'E D C + I K ,',             icon: '✌️',  keys: ['E','I','D','K','C',','],                         color: '#A78BFA' },
+  { id: 'both-ring',   name: '両手薬指',    subtitle: 'W S X + O L .',             icon: '💍💍', keys: ['W','O','S','L','X','.'],                         color: '#FB923C' },
+  { id: 'both-pinky',  name: '両手小指',    subtitle: 'Q A Z + P ; /',             icon: '🤙🤙', keys: ['Q','P','A',';','Z','/'],                         color: '#34D399' },
 ];
 
 // ============================================================
@@ -562,6 +562,7 @@ class TypingGame {
     this.gameDuration = 40000; // ms
     this.timeLeftMs = 0;
     this.demonMode = false;
+    this.randomMode = true; // false = ordered（固定順）
 
     this.lineX = 200;
     this.trackY = 0;
@@ -601,6 +602,14 @@ class TypingGame {
       const btn = document.getElementById('demon-toggle');
       btn.classList.toggle('active', this.demonMode);
       btn.textContent = this.demonMode ? '🔥 鬼モード ON' : '💀 鬼モード OFF';
+    });
+
+    // ランダムトグル
+    document.getElementById('random-toggle')?.addEventListener('click', () => {
+      this.randomMode = !this.randomMode;
+      const btn = document.getElementById('random-toggle');
+      btn.classList.toggle('active', !this.randomMode);
+      btn.textContent = this.randomMode ? '🔀 ランダム ON' : '📋 ランダム OFF';
     });
 
     // Generate background menu demo keys
@@ -659,7 +668,8 @@ class TypingGame {
     this.timeLeftMs = this.gameDuration;
 
     // キューを先行バッファとして用意（自動補充あり）
-    this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, this.mode.ordered);
+    const ordered = !this.randomMode || !!this.mode.ordered;
+    this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, ordered);
 
     this.state = 'playing';
     document.getElementById('screen-menu').hidden = true;
@@ -971,7 +981,8 @@ class TypingGame {
 
   _spawnKey() {
     if (this.keyQueue.length === 0) {
-      this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, this.mode.ordered);
+      const ordered = !this.randomMode || !!this.mode.ordered;
+      this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, ordered);
     }
     const letter = this.keyQueue.shift();
     this.flowKeys.push(new FlowKey(letter, this.W + 90, this.trackY));
