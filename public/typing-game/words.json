@@ -1,0 +1,3577 @@
+[
+  {
+    "word": "red",
+    "meaning": "赤い",
+    "level": 1
+  },
+  {
+    "word": "blue",
+    "meaning": "青い",
+    "level": 1
+  },
+  {
+    "word": "green",
+    "meaning": "緑の",
+    "level": 1
+  },
+  {
+    "word": "white",
+    "meaning": "白い",
+    "level": 1
+  },
+  {
+    "word": "black",
+    "meaning": "黒い",
+    "level": 1
+  },
+  {
+    "word": "pink",
+    "meaning": "ピンクの",
+    "level": 1
+  },
+  {
+    "word": "gray",
+    "meaning": "灰色の",
+    "level": 1
+  },
+  {
+    "word": "gold",
+    "meaning": "金色の",
+    "level": 1
+  },
+  {
+    "word": "cat",
+    "meaning": "ネコ",
+    "level": 1
+  },
+  {
+    "word": "dog",
+    "meaning": "イヌ",
+    "level": 1
+  },
+  {
+    "word": "cow",
+    "meaning": "ウシ",
+    "level": 1
+  },
+  {
+    "word": "pig",
+    "meaning": "ブタ",
+    "level": 1
+  },
+  {
+    "word": "hen",
+    "meaning": "メンドリ",
+    "level": 1
+  },
+  {
+    "word": "fox",
+    "meaning": "キツネ",
+    "level": 1
+  },
+  {
+    "word": "bee",
+    "meaning": "ハチ",
+    "level": 1
+  },
+  {
+    "word": "ant",
+    "meaning": "アリ",
+    "level": 1
+  },
+  {
+    "word": "owl",
+    "meaning": "フクロウ",
+    "level": 1
+  },
+  {
+    "word": "frog",
+    "meaning": "カエル",
+    "level": 1
+  },
+  {
+    "word": "fish",
+    "meaning": "魚",
+    "level": 1
+  },
+  {
+    "word": "bear",
+    "meaning": "クマ",
+    "level": 1
+  },
+  {
+    "word": "lion",
+    "meaning": "ライオン",
+    "level": 1
+  },
+  {
+    "word": "deer",
+    "meaning": "シカ",
+    "level": 1
+  },
+  {
+    "word": "wolf",
+    "meaning": "オオカミ",
+    "level": 1
+  },
+  {
+    "word": "duck",
+    "meaning": "アヒル",
+    "level": 1
+  },
+  {
+    "word": "lamb",
+    "meaning": "子羊",
+    "level": 1
+  },
+  {
+    "word": "crab",
+    "meaning": "カニ",
+    "level": 1
+  },
+  {
+    "word": "bird",
+    "meaning": "鳥",
+    "level": 1
+  },
+  {
+    "word": "worm",
+    "meaning": "ミミズ",
+    "level": 1
+  },
+  {
+    "word": "one",
+    "meaning": "1・一つの",
+    "level": 1
+  },
+  {
+    "word": "two",
+    "meaning": "2・二つの",
+    "level": 1
+  },
+  {
+    "word": "six",
+    "meaning": "6・六つの",
+    "level": 1
+  },
+  {
+    "word": "ten",
+    "meaning": "10・十の",
+    "level": 1
+  },
+  {
+    "word": "egg",
+    "meaning": "卵",
+    "level": 1
+  },
+  {
+    "word": "ham",
+    "meaning": "ハム",
+    "level": 1
+  },
+  {
+    "word": "jam",
+    "meaning": "ジャム",
+    "level": 1
+  },
+  {
+    "word": "pie",
+    "meaning": "パイ",
+    "level": 1
+  },
+  {
+    "word": "cake",
+    "meaning": "ケーキ",
+    "level": 1
+  },
+  {
+    "word": "rice",
+    "meaning": "ご飯・米",
+    "level": 1
+  },
+  {
+    "word": "milk",
+    "meaning": "牛乳",
+    "level": 1
+  },
+  {
+    "word": "soup",
+    "meaning": "スープ",
+    "level": 1
+  },
+  {
+    "word": "bean",
+    "meaning": "豆",
+    "level": 1
+  },
+  {
+    "word": "corn",
+    "meaning": "トウモロコシ",
+    "level": 1
+  },
+  {
+    "word": "salt",
+    "meaning": "塩",
+    "level": 1
+  },
+  {
+    "word": "pear",
+    "meaning": "洋ナシ",
+    "level": 1
+  },
+  {
+    "word": "plum",
+    "meaning": "プラム",
+    "level": 1
+  },
+  {
+    "word": "lime",
+    "meaning": "ライム",
+    "level": 1
+  },
+  {
+    "word": "fig",
+    "meaning": "イチジク",
+    "level": 1
+  },
+  {
+    "word": "arm",
+    "meaning": "腕",
+    "level": 1
+  },
+  {
+    "word": "leg",
+    "meaning": "脚",
+    "level": 1
+  },
+  {
+    "word": "eye",
+    "meaning": "目",
+    "level": 1
+  },
+  {
+    "word": "ear",
+    "meaning": "耳",
+    "level": 1
+  },
+  {
+    "word": "lip",
+    "meaning": "唇",
+    "level": 1
+  },
+  {
+    "word": "toe",
+    "meaning": "足の指",
+    "level": 1
+  },
+  {
+    "word": "hip",
+    "meaning": "腰",
+    "level": 1
+  },
+  {
+    "word": "jaw",
+    "meaning": "あご",
+    "level": 1
+  },
+  {
+    "word": "rib",
+    "meaning": "肋骨",
+    "level": 1
+  },
+  {
+    "word": "back",
+    "meaning": "背中",
+    "level": 1
+  },
+  {
+    "word": "head",
+    "meaning": "頭",
+    "level": 1
+  },
+  {
+    "word": "neck",
+    "meaning": "首",
+    "level": 1
+  },
+  {
+    "word": "nose",
+    "meaning": "鼻",
+    "level": 1
+  },
+  {
+    "word": "hand",
+    "meaning": "手",
+    "level": 1
+  },
+  {
+    "word": "foot",
+    "meaning": "足",
+    "level": 1
+  },
+  {
+    "word": "hair",
+    "meaning": "髪",
+    "level": 1
+  },
+  {
+    "word": "skin",
+    "meaning": "皮膚",
+    "level": 1
+  },
+  {
+    "word": "knee",
+    "meaning": "膝",
+    "level": 1
+  },
+  {
+    "word": "chin",
+    "meaning": "あご先",
+    "level": 1
+  },
+  {
+    "word": "face",
+    "meaning": "顔",
+    "level": 1
+  },
+  {
+    "word": "dad",
+    "meaning": "お父さん",
+    "level": 1
+  },
+  {
+    "word": "mom",
+    "meaning": "お母さん",
+    "level": 1
+  },
+  {
+    "word": "son",
+    "meaning": "息子",
+    "level": 1
+  },
+  {
+    "word": "run",
+    "meaning": "走る",
+    "level": 1
+  },
+  {
+    "word": "eat",
+    "meaning": "食べる",
+    "level": 1
+  },
+  {
+    "word": "sit",
+    "meaning": "座る",
+    "level": 1
+  },
+  {
+    "word": "hit",
+    "meaning": "打つ",
+    "level": 1
+  },
+  {
+    "word": "cut",
+    "meaning": "切る",
+    "level": 1
+  },
+  {
+    "word": "put",
+    "meaning": "置く",
+    "level": 1
+  },
+  {
+    "word": "get",
+    "meaning": "得る・手に入れる",
+    "level": 1
+  },
+  {
+    "word": "see",
+    "meaning": "見る・わかる",
+    "level": 1
+  },
+  {
+    "word": "say",
+    "meaning": "言う",
+    "level": 1
+  },
+  {
+    "word": "ask",
+    "meaning": "尋ねる",
+    "level": 1
+  },
+  {
+    "word": "add",
+    "meaning": "加える",
+    "level": 1
+  },
+  {
+    "word": "act",
+    "meaning": "行動する",
+    "level": 1
+  },
+  {
+    "word": "fly",
+    "meaning": "飛ぶ",
+    "level": 1
+  },
+  {
+    "word": "cry",
+    "meaning": "泣く",
+    "level": 1
+  },
+  {
+    "word": "try",
+    "meaning": "試みる",
+    "level": 1
+  },
+  {
+    "word": "buy",
+    "meaning": "買う",
+    "level": 1
+  },
+  {
+    "word": "pay",
+    "meaning": "払う",
+    "level": 1
+  },
+  {
+    "word": "use",
+    "meaning": "使う",
+    "level": 1
+  },
+  {
+    "word": "set",
+    "meaning": "置く・設定する",
+    "level": 1
+  },
+  {
+    "word": "win",
+    "meaning": "勝つ",
+    "level": 1
+  },
+  {
+    "word": "let",
+    "meaning": "させる",
+    "level": 1
+  },
+  {
+    "word": "lie",
+    "meaning": "横になる・嘘をつく",
+    "level": 1
+  },
+  {
+    "word": "tie",
+    "meaning": "結ぶ",
+    "level": 1
+  },
+  {
+    "word": "mix",
+    "meaning": "混ぜる",
+    "level": 1
+  },
+  {
+    "word": "fix",
+    "meaning": "直す",
+    "level": 1
+  },
+  {
+    "word": "fit",
+    "meaning": "合う・体調が良い",
+    "level": 1
+  },
+  {
+    "word": "dig",
+    "meaning": "掘る",
+    "level": 1
+  },
+  {
+    "word": "beg",
+    "meaning": "頼む・乞う",
+    "level": 1
+  },
+  {
+    "word": "rub",
+    "meaning": "こする",
+    "level": 1
+  },
+  {
+    "word": "nod",
+    "meaning": "うなずく",
+    "level": 1
+  },
+  {
+    "word": "bow",
+    "meaning": "おじぎする",
+    "level": 1
+  },
+  {
+    "word": "dip",
+    "meaning": "浸す",
+    "level": 1
+  },
+  {
+    "word": "tap",
+    "meaning": "軽く叩く",
+    "level": 1
+  },
+  {
+    "word": "wag",
+    "meaning": "振る",
+    "level": 1
+  },
+  {
+    "word": "pat",
+    "meaning": "軽く叩く",
+    "level": 1
+  },
+  {
+    "word": "pet",
+    "meaning": "なでる・ペット",
+    "level": 1
+  },
+  {
+    "word": "big",
+    "meaning": "大きい",
+    "level": 1
+  },
+  {
+    "word": "hot",
+    "meaning": "熱い・辛い",
+    "level": 1
+  },
+  {
+    "word": "old",
+    "meaning": "古い・年老いた",
+    "level": 1
+  },
+  {
+    "word": "new",
+    "meaning": "新しい",
+    "level": 1
+  },
+  {
+    "word": "bad",
+    "meaning": "悪い",
+    "level": 1
+  },
+  {
+    "word": "sad",
+    "meaning": "悲しい",
+    "level": 1
+  },
+  {
+    "word": "mad",
+    "meaning": "怒った・狂った",
+    "level": 1
+  },
+  {
+    "word": "fat",
+    "meaning": "太った",
+    "level": 1
+  },
+  {
+    "word": "wet",
+    "meaning": "濡れた",
+    "level": 1
+  },
+  {
+    "word": "dry",
+    "meaning": "乾いた",
+    "level": 1
+  },
+  {
+    "word": "raw",
+    "meaning": "生の",
+    "level": 1
+  },
+  {
+    "word": "shy",
+    "meaning": "恥ずかしがり屋の",
+    "level": 1
+  },
+  {
+    "word": "dim",
+    "meaning": "薄暗い",
+    "level": 1
+  },
+  {
+    "word": "dull",
+    "meaning": "鈍い・退屈な",
+    "level": 1
+  },
+  {
+    "word": "loud",
+    "meaning": "うるさい",
+    "level": 1
+  },
+  {
+    "word": "bold",
+    "meaning": "大胆な",
+    "level": 1
+  },
+  {
+    "word": "cold",
+    "meaning": "冷たい・寒い",
+    "level": 1
+  },
+  {
+    "word": "warm",
+    "meaning": "暖かい",
+    "level": 1
+  },
+  {
+    "word": "cool",
+    "meaning": "涼しい・かっこいい",
+    "level": 1
+  },
+  {
+    "word": "dark",
+    "meaning": "暗い",
+    "level": 1
+  },
+  {
+    "word": "pure",
+    "meaning": "純粋な",
+    "level": 1
+  },
+  {
+    "word": "soft",
+    "meaning": "柔らかい",
+    "level": 1
+  },
+  {
+    "word": "hard",
+    "meaning": "硬い・難しい",
+    "level": 1
+  },
+  {
+    "word": "tall",
+    "meaning": "背が高い",
+    "level": 1
+  },
+  {
+    "word": "long",
+    "meaning": "長い",
+    "level": 1
+  },
+  {
+    "word": "wide",
+    "meaning": "広い",
+    "level": 1
+  },
+  {
+    "word": "deep",
+    "meaning": "深い",
+    "level": 1
+  },
+  {
+    "word": "flat",
+    "meaning": "平らな",
+    "level": 1
+  },
+  {
+    "word": "free",
+    "meaning": "自由な・無料の",
+    "level": 1
+  },
+  {
+    "word": "safe",
+    "meaning": "安全な",
+    "level": 1
+  },
+  {
+    "word": "calm",
+    "meaning": "穏やかな",
+    "level": 1
+  },
+  {
+    "word": "busy",
+    "meaning": "忙しい",
+    "level": 1
+  },
+  {
+    "word": "lazy",
+    "meaning": "怠け者の",
+    "level": 1
+  },
+  {
+    "word": "neat",
+    "meaning": "きちんとした",
+    "level": 1
+  },
+  {
+    "word": "tiny",
+    "meaning": "とても小さい",
+    "level": 1
+  },
+  {
+    "word": "vast",
+    "meaning": "広大な",
+    "level": 1
+  },
+  {
+    "word": "wild",
+    "meaning": "野生の",
+    "level": 1
+  },
+  {
+    "word": "wise",
+    "meaning": "賢い",
+    "level": 1
+  },
+  {
+    "word": "day",
+    "meaning": "日・昼間",
+    "level": 1
+  },
+  {
+    "word": "sun",
+    "meaning": "太陽",
+    "level": 1
+  },
+  {
+    "word": "sky",
+    "meaning": "空",
+    "level": 1
+  },
+  {
+    "word": "sea",
+    "meaning": "海",
+    "level": 1
+  },
+  {
+    "word": "air",
+    "meaning": "空気",
+    "level": 1
+  },
+  {
+    "word": "car",
+    "meaning": "車",
+    "level": 1
+  },
+  {
+    "word": "bus",
+    "meaning": "バス",
+    "level": 1
+  },
+  {
+    "word": "map",
+    "meaning": "地図",
+    "level": 1
+  },
+  {
+    "word": "box",
+    "meaning": "箱",
+    "level": 1
+  },
+  {
+    "word": "cup",
+    "meaning": "カップ",
+    "level": 1
+  },
+  {
+    "word": "key",
+    "meaning": "鍵",
+    "level": 1
+  },
+  {
+    "word": "hat",
+    "meaning": "帽子",
+    "level": 1
+  },
+  {
+    "word": "bag",
+    "meaning": "バッグ",
+    "level": 1
+  },
+  {
+    "word": "bed",
+    "meaning": "ベッド",
+    "level": 1
+  },
+  {
+    "word": "toy",
+    "meaning": "おもちゃ",
+    "level": 1
+  },
+  {
+    "word": "pen",
+    "meaning": "ペン",
+    "level": 1
+  },
+  {
+    "word": "ink",
+    "meaning": "インク",
+    "level": 1
+  },
+  {
+    "word": "ice",
+    "meaning": "氷",
+    "level": 1
+  },
+  {
+    "word": "oil",
+    "meaning": "油",
+    "level": 1
+  },
+  {
+    "word": "mud",
+    "meaning": "泥",
+    "level": 1
+  },
+  {
+    "word": "gas",
+    "meaning": "ガス・気体",
+    "level": 1
+  },
+  {
+    "word": "fur",
+    "meaning": "毛皮",
+    "level": 1
+  },
+  {
+    "word": "fog",
+    "meaning": "霧",
+    "level": 1
+  },
+  {
+    "word": "log",
+    "meaning": "丸太",
+    "level": 1
+  },
+  {
+    "word": "rod",
+    "meaning": "棒",
+    "level": 1
+  },
+  {
+    "word": "pot",
+    "meaning": "鍋・つぼ",
+    "level": 1
+  },
+  {
+    "word": "lid",
+    "meaning": "ふた",
+    "level": 1
+  },
+  {
+    "word": "web",
+    "meaning": "くも の巣・ウェブ",
+    "level": 1
+  },
+  {
+    "word": "net",
+    "meaning": "網・ネット",
+    "level": 1
+  },
+  {
+    "word": "fan",
+    "meaning": "扇風機・ファン",
+    "level": 1
+  },
+  {
+    "word": "jar",
+    "meaning": "瓶",
+    "level": 1
+  },
+  {
+    "word": "jug",
+    "meaning": "水差し",
+    "level": 1
+  },
+  {
+    "word": "mug",
+    "meaning": "マグカップ",
+    "level": 1
+  },
+  {
+    "word": "pin",
+    "meaning": "ピン",
+    "level": 1
+  },
+  {
+    "word": "zip",
+    "meaning": "ジッパー・郵便番号",
+    "level": 1
+  },
+  {
+    "word": "book",
+    "meaning": "本",
+    "level": 2
+  },
+  {
+    "word": "desk",
+    "meaning": "机",
+    "level": 2
+  },
+  {
+    "word": "read",
+    "meaning": "読む",
+    "level": 2
+  },
+  {
+    "word": "test",
+    "meaning": "テスト",
+    "level": 2
+  },
+  {
+    "word": "note",
+    "meaning": "ノート・メモ",
+    "level": 2
+  },
+  {
+    "word": "quiz",
+    "meaning": "小テスト",
+    "level": 2
+  },
+  {
+    "word": "rule",
+    "meaning": "ルール・規則",
+    "level": 2
+  },
+  {
+    "word": "list",
+    "meaning": "リスト",
+    "level": 2
+  },
+  {
+    "word": "poem",
+    "meaning": "詩",
+    "level": 2
+  },
+  {
+    "word": "page",
+    "meaning": "ページ",
+    "level": 2
+  },
+  {
+    "word": "line",
+    "meaning": "線・列",
+    "level": 2
+  },
+  {
+    "word": "text",
+    "meaning": "テキスト・文章",
+    "level": 2
+  },
+  {
+    "word": "draw",
+    "meaning": "描く",
+    "level": 2
+  },
+  {
+    "word": "copy",
+    "meaning": "コピーする",
+    "level": 2
+  },
+  {
+    "word": "mark",
+    "meaning": "印・採点する",
+    "level": 2
+  },
+  {
+    "word": "plan",
+    "meaning": "計画",
+    "level": 2
+  },
+  {
+    "word": "work",
+    "meaning": "働く・仕事",
+    "level": 2
+  },
+  {
+    "word": "task",
+    "meaning": "課題・タスク",
+    "level": 2
+  },
+  {
+    "word": "team",
+    "meaning": "チーム",
+    "level": 2
+  },
+  {
+    "word": "club",
+    "meaning": "クラブ・部活",
+    "level": 2
+  },
+  {
+    "word": "apple",
+    "meaning": "リンゴ",
+    "level": 2
+  },
+  {
+    "word": "bread",
+    "meaning": "パン",
+    "level": 2
+  },
+  {
+    "word": "fruit",
+    "meaning": "果物",
+    "level": 2
+  },
+  {
+    "word": "sugar",
+    "meaning": "砂糖",
+    "level": 2
+  },
+  {
+    "word": "salad",
+    "meaning": "サラダ",
+    "level": 2
+  },
+  {
+    "word": "honey",
+    "meaning": "はちみつ",
+    "level": 2
+  },
+  {
+    "word": "juice",
+    "meaning": "ジュース",
+    "level": 2
+  },
+  {
+    "word": "water",
+    "meaning": "水",
+    "level": 2
+  },
+  {
+    "word": "lemon",
+    "meaning": "レモン",
+    "level": 2
+  },
+  {
+    "word": "grape",
+    "meaning": "ブドウ",
+    "level": 2
+  },
+  {
+    "word": "melon",
+    "meaning": "メロン",
+    "level": 2
+  },
+  {
+    "word": "onion",
+    "meaning": "タマネギ",
+    "level": 2
+  },
+  {
+    "word": "garlic",
+    "meaning": "ニンニク",
+    "level": 2
+  },
+  {
+    "word": "potato",
+    "meaning": "ジャガイモ",
+    "level": 2
+  },
+  {
+    "word": "tomato",
+    "meaning": "トマト",
+    "level": 2
+  },
+  {
+    "word": "butter",
+    "meaning": "バター",
+    "level": 2
+  },
+  {
+    "word": "cream",
+    "meaning": "クリーム",
+    "level": 2
+  },
+  {
+    "word": "candy",
+    "meaning": "キャンディ",
+    "level": 2
+  },
+  {
+    "word": "snack",
+    "meaning": "おやつ",
+    "level": 2
+  },
+  {
+    "word": "steak",
+    "meaning": "ステーキ",
+    "level": 2
+  },
+  {
+    "word": "pasta",
+    "meaning": "パスタ",
+    "level": 2
+  },
+  {
+    "word": "pizza",
+    "meaning": "ピザ",
+    "level": 2
+  },
+  {
+    "word": "donut",
+    "meaning": "ドーナツ",
+    "level": 2
+  },
+  {
+    "word": "happy",
+    "meaning": "幸せな",
+    "level": 2
+  },
+  {
+    "word": "angry",
+    "meaning": "怒った",
+    "level": 2
+  },
+  {
+    "word": "tired",
+    "meaning": "疲れた",
+    "level": 2
+  },
+  {
+    "word": "brave",
+    "meaning": "勇敢な",
+    "level": 2
+  },
+  {
+    "word": "funny",
+    "meaning": "おかしい・面白い",
+    "level": 2
+  },
+  {
+    "word": "proud",
+    "meaning": "誇りに思う",
+    "level": 2
+  },
+  {
+    "word": "sorry",
+    "meaning": "ごめんなさい・残念な",
+    "level": 2
+  },
+  {
+    "word": "lucky",
+    "meaning": "運のいい",
+    "level": 2
+  },
+  {
+    "word": "home",
+    "meaning": "家・自宅",
+    "level": 2
+  },
+  {
+    "word": "room",
+    "meaning": "部屋",
+    "level": 2
+  },
+  {
+    "word": "park",
+    "meaning": "公園",
+    "level": 2
+  },
+  {
+    "word": "city",
+    "meaning": "都市",
+    "level": 2
+  },
+  {
+    "word": "town",
+    "meaning": "町",
+    "level": 2
+  },
+  {
+    "word": "farm",
+    "meaning": "農場",
+    "level": 2
+  },
+  {
+    "word": "shop",
+    "meaning": "店・買い物する",
+    "level": 2
+  },
+  {
+    "word": "road",
+    "meaning": "道路",
+    "level": 2
+  },
+  {
+    "word": "store",
+    "meaning": "店・保存する",
+    "level": 2
+  },
+  {
+    "word": "lake",
+    "meaning": "湖",
+    "level": 2
+  },
+  {
+    "word": "hill",
+    "meaning": "丘",
+    "level": 2
+  },
+  {
+    "word": "cave",
+    "meaning": "洞窟",
+    "level": 2
+  },
+  {
+    "word": "field",
+    "meaning": "野原・分野",
+    "level": 2
+  },
+  {
+    "word": "beach",
+    "meaning": "浜辺",
+    "level": 2
+  },
+  {
+    "word": "river",
+    "meaning": "川",
+    "level": 2
+  },
+  {
+    "word": "ocean",
+    "meaning": "大洋",
+    "level": 2
+  },
+  {
+    "word": "coast",
+    "meaning": "海岸",
+    "level": 2
+  },
+  {
+    "word": "tower",
+    "meaning": "塔",
+    "level": 2
+  },
+  {
+    "word": "market",
+    "meaning": "市場",
+    "level": 2
+  },
+  {
+    "word": "garden",
+    "meaning": "庭",
+    "level": 2
+  },
+  {
+    "word": "bring",
+    "meaning": "持ってくる",
+    "level": 2
+  },
+  {
+    "word": "carry",
+    "meaning": "運ぶ",
+    "level": 2
+  },
+  {
+    "word": "catch",
+    "meaning": "捕まえる",
+    "level": 2
+  },
+  {
+    "word": "check",
+    "meaning": "確認する",
+    "level": 2
+  },
+  {
+    "word": "clean",
+    "meaning": "掃除する・清潔な",
+    "level": 2
+  },
+  {
+    "word": "close",
+    "meaning": "閉める・近い",
+    "level": 2
+  },
+  {
+    "word": "count",
+    "meaning": "数える",
+    "level": 2
+  },
+  {
+    "word": "dance",
+    "meaning": "踊る",
+    "level": 2
+  },
+  {
+    "word": "drive",
+    "meaning": "運転する",
+    "level": 2
+  },
+  {
+    "word": "enter",
+    "meaning": "入る",
+    "level": 2
+  },
+  {
+    "word": "fight",
+    "meaning": "戦う",
+    "level": 2
+  },
+  {
+    "word": "float",
+    "meaning": "浮く",
+    "level": 2
+  },
+  {
+    "word": "guard",
+    "meaning": "守る・警備員",
+    "level": 2
+  },
+  {
+    "word": "guess",
+    "meaning": "推測する",
+    "level": 2
+  },
+  {
+    "word": "knock",
+    "meaning": "ノックする",
+    "level": 2
+  },
+  {
+    "word": "laugh",
+    "meaning": "笑う",
+    "level": 2
+  },
+  {
+    "word": "learn",
+    "meaning": "学ぶ",
+    "level": 2
+  },
+  {
+    "word": "paint",
+    "meaning": "塗る・描く",
+    "level": 2
+  },
+  {
+    "word": "reach",
+    "meaning": "届く・到着する",
+    "level": 2
+  },
+  {
+    "word": "share",
+    "meaning": "共有する",
+    "level": 2
+  },
+  {
+    "word": "sleep",
+    "meaning": "眠る",
+    "level": 2
+  },
+  {
+    "word": "smile",
+    "meaning": "微笑む",
+    "level": 2
+  },
+  {
+    "word": "speak",
+    "meaning": "話す",
+    "level": 2
+  },
+  {
+    "word": "stand",
+    "meaning": "立つ",
+    "level": 2
+  },
+  {
+    "word": "start",
+    "meaning": "始める",
+    "level": 2
+  },
+  {
+    "word": "teach",
+    "meaning": "教える",
+    "level": 2
+  },
+  {
+    "word": "throw",
+    "meaning": "投げる",
+    "level": 2
+  },
+  {
+    "word": "touch",
+    "meaning": "触る",
+    "level": 2
+  },
+  {
+    "word": "trust",
+    "meaning": "信頼する",
+    "level": 2
+  },
+  {
+    "word": "watch",
+    "meaning": "見る・時計",
+    "level": 2
+  },
+  {
+    "word": "today",
+    "meaning": "今日",
+    "level": 2
+  },
+  {
+    "word": "night",
+    "meaning": "夜",
+    "level": 2
+  },
+  {
+    "word": "early",
+    "meaning": "早い・早く",
+    "level": 2
+  },
+  {
+    "word": "month",
+    "meaning": "月（1ヶ月）",
+    "level": 2
+  },
+  {
+    "word": "often",
+    "meaning": "しばしば",
+    "level": 2
+  },
+  {
+    "word": "never",
+    "meaning": "決して〜ない",
+    "level": 2
+  },
+  {
+    "word": "daily",
+    "meaning": "毎日の",
+    "level": 2
+  },
+  {
+    "word": "still",
+    "meaning": "まだ・静止した",
+    "level": 2
+  },
+  {
+    "word": "twice",
+    "meaning": "2回",
+    "level": 2
+  },
+  {
+    "word": "later",
+    "meaning": "後で",
+    "level": 2
+  },
+  {
+    "word": "young",
+    "meaning": "若い",
+    "level": 2
+  },
+  {
+    "word": "sweet",
+    "meaning": "甘い",
+    "level": 2
+  },
+  {
+    "word": "small",
+    "meaning": "小さい",
+    "level": 2
+  },
+  {
+    "word": "light",
+    "meaning": "軽い・明るい・光",
+    "level": 2
+  },
+  {
+    "word": "heavy",
+    "meaning": "重い",
+    "level": 2
+  },
+  {
+    "word": "quiet",
+    "meaning": "静かな",
+    "level": 2
+  },
+  {
+    "word": "sharp",
+    "meaning": "鋭い",
+    "level": 2
+  },
+  {
+    "word": "rough",
+    "meaning": "荒い・ざらざらした",
+    "level": 2
+  },
+  {
+    "word": "thick",
+    "meaning": "厚い・濃い",
+    "level": 2
+  },
+  {
+    "word": "loose",
+    "meaning": "ゆるい",
+    "level": 2
+  },
+  {
+    "word": "tight",
+    "meaning": "きつい・ぴったりの",
+    "level": 2
+  },
+  {
+    "word": "round",
+    "meaning": "丸い",
+    "level": 2
+  },
+  {
+    "word": "giant",
+    "meaning": "巨大な・巨人",
+    "level": 2
+  },
+  {
+    "word": "magic",
+    "meaning": "魔法・魔法の",
+    "level": 2
+  },
+  {
+    "word": "blank",
+    "meaning": "空白の",
+    "level": 2
+  },
+  {
+    "word": "plain",
+    "meaning": "平らな・明らかな・質素な",
+    "level": 2
+  },
+  {
+    "word": "basic",
+    "meaning": "基本的な",
+    "level": 2
+  },
+  {
+    "word": "local",
+    "meaning": "地元の・地域の",
+    "level": 2
+  },
+  {
+    "word": "extra",
+    "meaning": "余分な・特別な",
+    "level": 2
+  },
+  {
+    "word": "total",
+    "meaning": "合計の",
+    "level": 2
+  },
+  {
+    "word": "final",
+    "meaning": "最後の・最終的な",
+    "level": 2
+  },
+  {
+    "word": "inner",
+    "meaning": "内側の",
+    "level": 2
+  },
+  {
+    "word": "upper",
+    "meaning": "上の",
+    "level": 2
+  },
+  {
+    "word": "outer",
+    "meaning": "外側の",
+    "level": 2
+  },
+  {
+    "word": "rain",
+    "meaning": "雨",
+    "level": 2
+  },
+  {
+    "word": "snow",
+    "meaning": "雪",
+    "level": 2
+  },
+  {
+    "word": "wind",
+    "meaning": "風",
+    "level": 2
+  },
+  {
+    "word": "leaf",
+    "meaning": "葉",
+    "level": 2
+  },
+  {
+    "word": "seed",
+    "meaning": "種",
+    "level": 2
+  },
+  {
+    "word": "root",
+    "meaning": "根・根本",
+    "level": 2
+  },
+  {
+    "word": "stem",
+    "meaning": "茎",
+    "level": 2
+  },
+  {
+    "word": "bark",
+    "meaning": "樹皮・吠える",
+    "level": 2
+  },
+  {
+    "word": "moss",
+    "meaning": "コケ",
+    "level": 2
+  },
+  {
+    "word": "sand",
+    "meaning": "砂",
+    "level": 2
+  },
+  {
+    "word": "rock",
+    "meaning": "岩・揺れる",
+    "level": 2
+  },
+  {
+    "word": "soil",
+    "meaning": "土壌",
+    "level": 2
+  },
+  {
+    "word": "dust",
+    "meaning": "ほこり",
+    "level": 2
+  },
+  {
+    "word": "wave",
+    "meaning": "波・手を振る",
+    "level": 2
+  },
+  {
+    "word": "tide",
+    "meaning": "潮",
+    "level": 2
+  },
+  {
+    "word": "star",
+    "meaning": "星",
+    "level": 2
+  },
+  {
+    "word": "moon",
+    "meaning": "月",
+    "level": 2
+  },
+  {
+    "word": "cloud",
+    "meaning": "雲",
+    "level": 2
+  },
+  {
+    "word": "storm",
+    "meaning": "嵐",
+    "level": 2
+  },
+  {
+    "word": "frost",
+    "meaning": "霜",
+    "level": 2
+  },
+  {
+    "word": "flood",
+    "meaning": "洪水",
+    "level": 2
+  },
+  {
+    "word": "flame",
+    "meaning": "炎",
+    "level": 2
+  },
+  {
+    "word": "grade",
+    "meaning": "学年・成績",
+    "level": 2
+  },
+  {
+    "word": "class",
+    "meaning": "クラス・授業",
+    "level": 2
+  },
+  {
+    "word": "chair",
+    "meaning": "椅子",
+    "level": 2
+  },
+  {
+    "word": "board",
+    "meaning": "黒板・ボード",
+    "level": 2
+  },
+  {
+    "word": "chalk",
+    "meaning": "チョーク",
+    "level": 2
+  },
+  {
+    "word": "exam",
+    "meaning": "試験",
+    "level": 2
+  },
+  {
+    "word": "essay",
+    "meaning": "作文・エッセイ",
+    "level": 2
+  },
+  {
+    "word": "topic",
+    "meaning": "テーマ・話題",
+    "level": 2
+  },
+  {
+    "word": "music",
+    "meaning": "音楽",
+    "level": 2
+  },
+  {
+    "word": "sport",
+    "meaning": "スポーツ",
+    "level": 2
+  },
+  {
+    "word": "train",
+    "meaning": "電車・訓練する",
+    "level": 2
+  },
+  {
+    "word": "plane",
+    "meaning": "飛行機",
+    "level": 2
+  },
+  {
+    "word": "phone",
+    "meaning": "電話",
+    "level": 2
+  },
+  {
+    "word": "photo",
+    "meaning": "写真",
+    "level": 2
+  },
+  {
+    "word": "money",
+    "meaning": "お金",
+    "level": 2
+  },
+  {
+    "word": "price",
+    "meaning": "値段",
+    "level": 2
+  },
+  {
+    "word": "color",
+    "meaning": "色",
+    "level": 2
+  },
+  {
+    "word": "space",
+    "meaning": "宇宙・空間",
+    "level": 2
+  },
+  {
+    "word": "story",
+    "meaning": "物語",
+    "level": 2
+  },
+  {
+    "word": "world",
+    "meaning": "世界",
+    "level": 2
+  },
+  {
+    "word": "point",
+    "meaning": "点・指摘する",
+    "level": 2
+  },
+  {
+    "word": "power",
+    "meaning": "力・電力",
+    "level": 2
+  },
+  {
+    "word": "place",
+    "meaning": "場所",
+    "level": 2
+  },
+  {
+    "word": "party",
+    "meaning": "パーティー",
+    "level": 2
+  },
+  {
+    "word": "paper",
+    "meaning": "紙",
+    "level": 2
+  },
+  {
+    "word": "voice",
+    "meaning": "声",
+    "level": 2
+  },
+  {
+    "word": "sound",
+    "meaning": "音・聞こえる",
+    "level": 2
+  },
+  {
+    "word": "speed",
+    "meaning": "速さ",
+    "level": 2
+  },
+  {
+    "word": "visit",
+    "meaning": "訪れる",
+    "level": 2
+  },
+  {
+    "word": "serve",
+    "meaning": "仕える・提供する",
+    "level": 2
+  },
+  {
+    "word": "spend",
+    "meaning": "過ごす・費やす",
+    "level": 2
+  },
+  {
+    "word": "solve",
+    "meaning": "解く・解決する",
+    "level": 2
+  },
+  {
+    "word": "raise",
+    "meaning": "上げる・育てる",
+    "level": 2
+  },
+  {
+    "word": "offer",
+    "meaning": "申し出る・提供する",
+    "level": 2
+  },
+  {
+    "word": "order",
+    "meaning": "注文する・順序",
+    "level": 2
+  },
+  {
+    "word": "build",
+    "meaning": "建てる",
+    "level": 2
+  },
+  {
+    "word": "break",
+    "meaning": "壊す・休憩",
+    "level": 2
+  },
+  {
+    "word": "agree",
+    "meaning": "同意する",
+    "level": 2
+  },
+  {
+    "word": "allow",
+    "meaning": "許可する",
+    "level": 2
+  },
+  {
+    "word": "enjoy",
+    "meaning": "楽しむ",
+    "level": 2
+  },
+  {
+    "word": "exist",
+    "meaning": "存在する",
+    "level": 2
+  },
+  {
+    "word": "found",
+    "meaning": "見つけた・設立した",
+    "level": 2
+  },
+  {
+    "word": "given",
+    "meaning": "与えられた",
+    "level": 2
+  },
+  {
+    "word": "grow",
+    "meaning": "育つ・成長する",
+    "level": 2
+  },
+  {
+    "word": "help",
+    "meaning": "助ける",
+    "level": 2
+  },
+  {
+    "word": "hold",
+    "meaning": "持つ・開催する",
+    "level": 2
+  },
+  {
+    "word": "join",
+    "meaning": "参加する",
+    "level": 2
+  },
+  {
+    "word": "jump",
+    "meaning": "跳ぶ",
+    "level": 2
+  },
+  {
+    "word": "keep",
+    "meaning": "保つ・続ける",
+    "level": 2
+  },
+  {
+    "word": "live",
+    "meaning": "住む・生きる",
+    "level": 2
+  },
+  {
+    "word": "look",
+    "meaning": "見る・見た目",
+    "level": 2
+  },
+  {
+    "word": "love",
+    "meaning": "愛する・愛",
+    "level": 2
+  },
+  {
+    "word": "make",
+    "meaning": "作る",
+    "level": 2
+  },
+  {
+    "word": "meet",
+    "meaning": "会う",
+    "level": 2
+  },
+  {
+    "word": "move",
+    "meaning": "動く・引っ越す",
+    "level": 2
+  },
+  {
+    "word": "need",
+    "meaning": "必要とする",
+    "level": 2
+  },
+  {
+    "word": "open",
+    "meaning": "開ける・開いた",
+    "level": 2
+  },
+  {
+    "word": "pass",
+    "meaning": "通る・合格する",
+    "level": 2
+  },
+  {
+    "word": "play",
+    "meaning": "遊ぶ・演奏する",
+    "level": 2
+  },
+  {
+    "word": "pull",
+    "meaning": "引く",
+    "level": 2
+  },
+  {
+    "word": "push",
+    "meaning": "押す",
+    "level": 2
+  },
+  {
+    "word": "save",
+    "meaning": "救う・節約する",
+    "level": 2
+  },
+  {
+    "word": "send",
+    "meaning": "送る",
+    "level": 2
+  },
+  {
+    "word": "show",
+    "meaning": "見せる・番組",
+    "level": 2
+  },
+  {
+    "word": "sing",
+    "meaning": "歌う",
+    "level": 2
+  },
+  {
+    "word": "stop",
+    "meaning": "止まる・止める",
+    "level": 2
+  },
+  {
+    "word": "swim",
+    "meaning": "泳ぐ",
+    "level": 2
+  },
+  {
+    "word": "take",
+    "meaning": "取る・かかる",
+    "level": 2
+  },
+  {
+    "word": "talk",
+    "meaning": "話す",
+    "level": 2
+  },
+  {
+    "word": "tell",
+    "meaning": "伝える・教える",
+    "level": 2
+  },
+  {
+    "word": "think",
+    "meaning": "思う・考える",
+    "level": 2
+  },
+  {
+    "word": "turn",
+    "meaning": "曲がる・回る・番",
+    "level": 2
+  },
+  {
+    "word": "walk",
+    "meaning": "歩く",
+    "level": 2
+  },
+  {
+    "word": "want",
+    "meaning": "欲しい・したい",
+    "level": 2
+  },
+  {
+    "word": "wear",
+    "meaning": "着る",
+    "level": 2
+  },
+  {
+    "word": "wish",
+    "meaning": "願う・望む",
+    "level": 2
+  },
+  {
+    "word": "write",
+    "meaning": "書く",
+    "level": 2
+  },
+  {
+    "word": "science",
+    "meaning": "科学",
+    "level": 3
+  },
+  {
+    "word": "history",
+    "meaning": "歴史",
+    "level": 3
+  },
+  {
+    "word": "culture",
+    "meaning": "文化",
+    "level": 3
+  },
+  {
+    "word": "global",
+    "meaning": "世界的な・地球規模の",
+    "level": 3
+  },
+  {
+    "word": "society",
+    "meaning": "社会",
+    "level": 3
+  },
+  {
+    "word": "project",
+    "meaning": "プロジェクト・課題",
+    "level": 3
+  },
+  {
+    "word": "problem",
+    "meaning": "問題",
+    "level": 3
+  },
+  {
+    "word": "program",
+    "meaning": "プログラム",
+    "level": 3
+  },
+  {
+    "word": "subject",
+    "meaning": "科目・テーマ",
+    "level": 3
+  },
+  {
+    "word": "object",
+    "meaning": "物・目的・反対する",
+    "level": 3
+  },
+  {
+    "word": "example",
+    "meaning": "例・例えば",
+    "level": 3
+  },
+  {
+    "word": "explain",
+    "meaning": "説明する",
+    "level": 3
+  },
+  {
+    "word": "express",
+    "meaning": "表現する",
+    "level": 3
+  },
+  {
+    "word": "compare",
+    "meaning": "比較する",
+    "level": 3
+  },
+  {
+    "word": "describe",
+    "meaning": "描写する",
+    "level": 3
+  },
+  {
+    "word": "research",
+    "meaning": "研究・調査",
+    "level": 3
+  },
+  {
+    "word": "improve",
+    "meaning": "改善する",
+    "level": 3
+  },
+  {
+    "word": "protect",
+    "meaning": "守る・保護する",
+    "level": 3
+  },
+  {
+    "word": "suggest",
+    "meaning": "提案する",
+    "level": 3
+  },
+  {
+    "word": "produce",
+    "meaning": "生産する",
+    "level": 3
+  },
+  {
+    "word": "forest",
+    "meaning": "森",
+    "level": 3
+  },
+  {
+    "word": "island",
+    "meaning": "島",
+    "level": 3
+  },
+  {
+    "word": "climate",
+    "meaning": "気候",
+    "level": 3
+  },
+  {
+    "word": "weather",
+    "meaning": "天気",
+    "level": 3
+  },
+  {
+    "word": "season",
+    "meaning": "季節",
+    "level": 3
+  },
+  {
+    "word": "mountain",
+    "meaning": "山",
+    "level": 3
+  },
+  {
+    "word": "flower",
+    "meaning": "花",
+    "level": 3
+  },
+  {
+    "word": "desert",
+    "meaning": "砂漠",
+    "level": 3
+  },
+  {
+    "word": "volcano",
+    "meaning": "火山",
+    "level": 3
+  },
+  {
+    "word": "rainbow",
+    "meaning": "虹",
+    "level": 3
+  },
+  {
+    "word": "horizon",
+    "meaning": "地平線・水平線",
+    "level": 3
+  },
+  {
+    "word": "sunrise",
+    "meaning": "日の出",
+    "level": 3
+  },
+  {
+    "word": "thunder",
+    "meaning": "雷",
+    "level": 3
+  },
+  {
+    "word": "tornado",
+    "meaning": "竜巻",
+    "level": 3
+  },
+  {
+    "word": "freedom",
+    "meaning": "自由",
+    "level": 3
+  },
+  {
+    "word": "justice",
+    "meaning": "正義",
+    "level": 3
+  },
+  {
+    "word": "respect",
+    "meaning": "尊重する・尊敬",
+    "level": 3
+  },
+  {
+    "word": "support",
+    "meaning": "支援する・サポート",
+    "level": 3
+  },
+  {
+    "word": "success",
+    "meaning": "成功",
+    "level": 3
+  },
+  {
+    "word": "believe",
+    "meaning": "信じる",
+    "level": 3
+  },
+  {
+    "word": "imagine",
+    "meaning": "想像する",
+    "level": 3
+  },
+  {
+    "word": "develop",
+    "meaning": "発達する・開発する",
+    "level": 3
+  },
+  {
+    "word": "achieve",
+    "meaning": "達成する",
+    "level": 3
+  },
+  {
+    "word": "balance",
+    "meaning": "バランス・均衡",
+    "level": 3
+  },
+  {
+    "word": "benefit",
+    "meaning": "利益・恩恵",
+    "level": 3
+  },
+  {
+    "word": "comfort",
+    "meaning": "快適さ・慰める",
+    "level": 3
+  },
+  {
+    "word": "contact",
+    "meaning": "連絡する・接触",
+    "level": 3
+  },
+  {
+    "word": "control",
+    "meaning": "コントロールする",
+    "level": 3
+  },
+  {
+    "word": "courage",
+    "meaning": "勇気",
+    "level": 3
+  },
+  {
+    "word": "digital",
+    "meaning": "デジタルの",
+    "level": 3
+  },
+  {
+    "word": "disease",
+    "meaning": "病気",
+    "level": 3
+  },
+  {
+    "word": "emotion",
+    "meaning": "感情",
+    "level": 3
+  },
+  {
+    "word": "feature",
+    "meaning": "特徴・特集する",
+    "level": 3
+  },
+  {
+    "word": "feeling",
+    "meaning": "感情・感覚",
+    "level": 3
+  },
+  {
+    "word": "growth",
+    "meaning": "成長",
+    "level": 3
+  },
+  {
+    "word": "impact",
+    "meaning": "影響・衝撃",
+    "level": 3
+  },
+  {
+    "word": "inspire",
+    "meaning": "刺激する・鼓舞する",
+    "level": 3
+  },
+  {
+    "word": "involve",
+    "meaning": "含む・巻き込む",
+    "level": 3
+  },
+  {
+    "word": "manage",
+    "meaning": "管理する・なんとかする",
+    "level": 3
+  },
+  {
+    "word": "memory",
+    "meaning": "記憶",
+    "level": 3
+  },
+  {
+    "word": "mission",
+    "meaning": "使命・ミッション",
+    "level": 3
+  },
+  {
+    "word": "modern",
+    "meaning": "現代の",
+    "level": 3
+  },
+  {
+    "word": "motion",
+    "meaning": "動き・動作",
+    "level": 3
+  },
+  {
+    "word": "notice",
+    "meaning": "気づく・お知らせ",
+    "level": 3
+  },
+  {
+    "word": "option",
+    "meaning": "選択肢",
+    "level": 3
+  },
+  {
+    "word": "origin",
+    "meaning": "起源・出身",
+    "level": 3
+  },
+  {
+    "word": "output",
+    "meaning": "出力・産出",
+    "level": 3
+  },
+  {
+    "word": "policy",
+    "meaning": "政策・方針",
+    "level": 3
+  },
+  {
+    "word": "poverty",
+    "meaning": "貧困",
+    "level": 3
+  },
+  {
+    "word": "process",
+    "meaning": "過程・処理する",
+    "level": 3
+  },
+  {
+    "word": "quality",
+    "meaning": "質・品質",
+    "level": 3
+  },
+  {
+    "word": "reason",
+    "meaning": "理由・理性",
+    "level": 3
+  },
+  {
+    "word": "reduce",
+    "meaning": "減らす",
+    "level": 3
+  },
+  {
+    "word": "reform",
+    "meaning": "改革する",
+    "level": 3
+  },
+  {
+    "word": "region",
+    "meaning": "地域・地方",
+    "level": 3
+  },
+  {
+    "word": "relate",
+    "meaning": "関係する",
+    "level": 3
+  },
+  {
+    "word": "relief",
+    "meaning": "安堵・救済",
+    "level": 3
+  },
+  {
+    "word": "repeat",
+    "meaning": "繰り返す",
+    "level": 3
+  },
+  {
+    "word": "report",
+    "meaning": "報告する・レポート",
+    "level": 3
+  },
+  {
+    "word": "result",
+    "meaning": "結果",
+    "level": 3
+  },
+  {
+    "word": "review",
+    "meaning": "復習する・レビュー",
+    "level": 3
+  },
+  {
+    "word": "reward",
+    "meaning": "報酬・ご褒美",
+    "level": 3
+  },
+  {
+    "word": "rights",
+    "meaning": "権利",
+    "level": 3
+  },
+  {
+    "word": "safety",
+    "meaning": "安全",
+    "level": 3
+  },
+  {
+    "word": "sample",
+    "meaning": "見本・サンプル",
+    "level": 3
+  },
+  {
+    "word": "system",
+    "meaning": "システム・体系",
+    "level": 3
+  },
+  {
+    "word": "theory",
+    "meaning": "理論",
+    "level": 3
+  },
+  {
+    "word": "travel",
+    "meaning": "旅行する",
+    "level": 3
+  },
+  {
+    "word": "unique",
+    "meaning": "独特の・唯一の",
+    "level": 3
+  },
+  {
+    "word": "useful",
+    "meaning": "役に立つ",
+    "level": 3
+  },
+  {
+    "word": "vision",
+    "meaning": "視覚・ビジョン",
+    "level": 3
+  },
+  {
+    "word": "wisdom",
+    "meaning": "知恵",
+    "level": 3
+  },
+  {
+    "word": "wonder",
+    "meaning": "不思議・驚く",
+    "level": 3
+  },
+  {
+    "word": "always",
+    "meaning": "いつも",
+    "level": 3
+  },
+  {
+    "word": "animal",
+    "meaning": "動物",
+    "level": 3
+  },
+  {
+    "word": "artist",
+    "meaning": "芸術家",
+    "level": 3
+  },
+  {
+    "word": "basket",
+    "meaning": "バスケット",
+    "level": 3
+  },
+  {
+    "word": "beauty",
+    "meaning": "美しさ",
+    "level": 3
+  },
+  {
+    "word": "bottle",
+    "meaning": "ビン・ボトル",
+    "level": 3
+  },
+  {
+    "word": "button",
+    "meaning": "ボタン",
+    "level": 3
+  },
+  {
+    "word": "camera",
+    "meaning": "カメラ",
+    "level": 3
+  },
+  {
+    "word": "center",
+    "meaning": "中心・センター",
+    "level": 3
+  },
+  {
+    "word": "change",
+    "meaning": "変える・変化",
+    "level": 3
+  },
+  {
+    "word": "choice",
+    "meaning": "選択",
+    "level": 3
+  },
+  {
+    "word": "choose",
+    "meaning": "選ぶ",
+    "level": 3
+  },
+  {
+    "word": "circle",
+    "meaning": "円・囲む",
+    "level": 3
+  },
+  {
+    "word": "column",
+    "meaning": "列・コラム",
+    "level": 3
+  },
+  {
+    "word": "common",
+    "meaning": "共通の・一般的な",
+    "level": 3
+  },
+  {
+    "word": "corner",
+    "meaning": "角・隅",
+    "level": 3
+  },
+  {
+    "word": "cotton",
+    "meaning": "綿",
+    "level": 3
+  },
+  {
+    "word": "course",
+    "meaning": "コース・もちろん",
+    "level": 3
+  },
+  {
+    "word": "create",
+    "meaning": "作る・創造する",
+    "level": 3
+  },
+  {
+    "word": "credit",
+    "meaning": "クレジット・信用",
+    "level": 3
+  },
+  {
+    "word": "damage",
+    "meaning": "損害・傷つける",
+    "level": 3
+  },
+  {
+    "word": "danger",
+    "meaning": "危険",
+    "level": 3
+  },
+  {
+    "word": "decide",
+    "meaning": "決める",
+    "level": 3
+  },
+  {
+    "word": "design",
+    "meaning": "デザインする・設計",
+    "level": 3
+  },
+  {
+    "word": "detail",
+    "meaning": "詳細",
+    "level": 3
+  },
+  {
+    "word": "dinner",
+    "meaning": "夕食",
+    "level": 3
+  },
+  {
+    "word": "doctor",
+    "meaning": "医者",
+    "level": 3
+  },
+  {
+    "word": "double",
+    "meaning": "2倍の・二重の",
+    "level": 3
+  },
+  {
+    "word": "driver",
+    "meaning": "運転手",
+    "level": 3
+  },
+  {
+    "word": "during",
+    "meaning": "〜の間",
+    "level": 3
+  },
+  {
+    "word": "either",
+    "meaning": "どちらかの",
+    "level": 3
+  },
+  {
+    "word": "energy",
+    "meaning": "エネルギー",
+    "level": 3
+  },
+  {
+    "word": "engine",
+    "meaning": "エンジン",
+    "level": 3
+  },
+  {
+    "word": "entire",
+    "meaning": "全体の",
+    "level": 3
+  },
+  {
+    "word": "escape",
+    "meaning": "逃げる・脱出",
+    "level": 3
+  },
+  {
+    "word": "except",
+    "meaning": "〜を除いて",
+    "level": 3
+  },
+  {
+    "word": "expect",
+    "meaning": "期待する・予想する",
+    "level": 3
+  },
+  {
+    "word": "extend",
+    "meaning": "延ばす・広げる",
+    "level": 3
+  },
+  {
+    "word": "factor",
+    "meaning": "要因",
+    "level": 3
+  },
+  {
+    "word": "famous",
+    "meaning": "有名な",
+    "level": 3
+  },
+  {
+    "word": "figure",
+    "meaning": "数字・人物・形",
+    "level": 3
+  },
+  {
+    "word": "finger",
+    "meaning": "指",
+    "level": 3
+  },
+  {
+    "word": "flight",
+    "meaning": "飛行・フライト",
+    "level": 3
+  },
+  {
+    "word": "follow",
+    "meaning": "従う・ついていく",
+    "level": 3
+  },
+  {
+    "word": "former",
+    "meaning": "以前の・前者の",
+    "level": 3
+  },
+  {
+    "word": "future",
+    "meaning": "未来",
+    "level": 3
+  },
+  {
+    "word": "gender",
+    "meaning": "性別",
+    "level": 3
+  },
+  {
+    "word": "gentle",
+    "meaning": "優しい・穏やかな",
+    "level": 3
+  },
+  {
+    "word": "golden",
+    "meaning": "金色の・黄金の",
+    "level": 3
+  },
+  {
+    "word": "ground",
+    "meaning": "地面・根拠",
+    "level": 3
+  },
+  {
+    "word": "happen",
+    "meaning": "起こる",
+    "level": 3
+  },
+  {
+    "word": "health",
+    "meaning": "健康",
+    "level": 3
+  },
+  {
+    "word": "honest",
+    "meaning": "正直な",
+    "level": 3
+  },
+  {
+    "word": "indoor",
+    "meaning": "室内の",
+    "level": 3
+  },
+  {
+    "word": "junior",
+    "meaning": "後輩の・下位の",
+    "level": 3
+  },
+  {
+    "word": "kitchen",
+    "meaning": "台所",
+    "level": 3
+  },
+  {
+    "word": "launch",
+    "meaning": "打ち上げる・発売する",
+    "level": 3
+  },
+  {
+    "word": "lawyer",
+    "meaning": "弁護士",
+    "level": 3
+  },
+  {
+    "word": "leader",
+    "meaning": "リーダー",
+    "level": 3
+  },
+  {
+    "word": "lesson",
+    "meaning": "授業・レッスン",
+    "level": 3
+  },
+  {
+    "word": "letter",
+    "meaning": "手紙・文字",
+    "level": 3
+  },
+  {
+    "word": "manner",
+    "meaning": "方法・マナー",
+    "level": 3
+  },
+  {
+    "word": "master",
+    "meaning": "マスターする・主人",
+    "level": 3
+  },
+  {
+    "word": "matter",
+    "meaning": "問題・重要である",
+    "level": 3
+  },
+  {
+    "word": "member",
+    "meaning": "メンバー・会員",
+    "level": 3
+  },
+  {
+    "word": "mental",
+    "meaning": "精神的な",
+    "level": 3
+  },
+  {
+    "word": "method",
+    "meaning": "方法",
+    "level": 3
+  },
+  {
+    "word": "minute",
+    "meaning": "分・わずかな",
+    "level": 3
+  },
+  {
+    "word": "mirror",
+    "meaning": "鏡",
+    "level": 3
+  },
+  {
+    "word": "moment",
+    "meaning": "瞬間・ちょっとの間",
+    "level": 3
+  },
+  {
+    "word": "museum",
+    "meaning": "博物館・美術館",
+    "level": 3
+  },
+  {
+    "word": "nation",
+    "meaning": "国・国家",
+    "level": 3
+  },
+  {
+    "word": "native",
+    "meaning": "生まれた土地の・原住民",
+    "level": 3
+  },
+  {
+    "word": "number",
+    "meaning": "数・番号",
+    "level": 3
+  },
+  {
+    "word": "online",
+    "meaning": "オンラインの",
+    "level": 3
+  },
+  {
+    "word": "person",
+    "meaning": "人",
+    "level": 3
+  },
+  {
+    "word": "phrase",
+    "meaning": "フレーズ・句",
+    "level": 3
+  },
+  {
+    "word": "planet",
+    "meaning": "惑星",
+    "level": 3
+  },
+  {
+    "word": "police",
+    "meaning": "警察",
+    "level": 3
+  },
+  {
+    "word": "prefer",
+    "meaning": "〜の方が好き",
+    "level": 3
+  },
+  {
+    "word": "prince",
+    "meaning": "王子",
+    "level": 3
+  },
+  {
+    "word": "prison",
+    "meaning": "刑務所",
+    "level": 3
+  },
+  {
+    "word": "profit",
+    "meaning": "利益",
+    "level": 3
+  },
+  {
+    "word": "public",
+    "meaning": "公共の・一般の",
+    "level": 3
+  },
+  {
+    "word": "record",
+    "meaning": "記録する・記録",
+    "level": 3
+  },
+  {
+    "word": "return",
+    "meaning": "戻る・返す",
+    "level": 3
+  },
+  {
+    "word": "rocket",
+    "meaning": "ロケット",
+    "level": 3
+  },
+  {
+    "word": "rubber",
+    "meaning": "ゴム",
+    "level": 3
+  },
+  {
+    "word": "school",
+    "meaning": "学校",
+    "level": 3
+  },
+  {
+    "word": "screen",
+    "meaning": "スクリーン・画面",
+    "level": 3
+  },
+  {
+    "word": "second",
+    "meaning": "2番目・秒",
+    "level": 3
+  },
+  {
+    "word": "secret",
+    "meaning": "秘密",
+    "level": 3
+  },
+  {
+    "word": "select",
+    "meaning": "選ぶ・選択する",
+    "level": 3
+  },
+  {
+    "word": "signal",
+    "meaning": "信号・合図",
+    "level": 3
+  },
+  {
+    "word": "silver",
+    "meaning": "銀・銀色の",
+    "level": 3
+  },
+  {
+    "word": "simple",
+    "meaning": "簡単な・単純な",
+    "level": 3
+  },
+  {
+    "word": "single",
+    "meaning": "一つの・独身の",
+    "level": 3
+  },
+  {
+    "word": "sister",
+    "meaning": "姉妹",
+    "level": 3
+  },
+  {
+    "word": "social",
+    "meaning": "社会的な",
+    "level": 3
+  },
+  {
+    "word": "source",
+    "meaning": "源・情報源",
+    "level": 3
+  },
+  {
+    "word": "spirit",
+    "meaning": "精神・霊",
+    "level": 3
+  },
+  {
+    "word": "status",
+    "meaning": "状態・地位",
+    "level": 3
+  },
+  {
+    "word": "strong",
+    "meaning": "強い",
+    "level": 3
+  },
+  {
+    "word": "studio",
+    "meaning": "スタジオ",
+    "level": 3
+  },
+  {
+    "word": "summer",
+    "meaning": "夏",
+    "level": 3
+  },
+  {
+    "word": "survey",
+    "meaning": "調査する・アンケート",
+    "level": 3
+  },
+  {
+    "word": "target",
+    "meaning": "目標・ターゲット",
+    "level": 3
+  },
+  {
+    "word": "temple",
+    "meaning": "寺・神殿",
+    "level": 3
+  },
+  {
+    "word": "tennis",
+    "meaning": "テニス",
+    "level": 3
+  },
+  {
+    "word": "ticket",
+    "meaning": "チケット",
+    "level": 3
+  },
+  {
+    "word": "tunnel",
+    "meaning": "トンネル",
+    "level": 3
+  },
+  {
+    "word": "valley",
+    "meaning": "谷",
+    "level": 3
+  },
+  {
+    "word": "violin",
+    "meaning": "バイオリン",
+    "level": 3
+  },
+  {
+    "word": "visual",
+    "meaning": "視覚的な",
+    "level": 3
+  },
+  {
+    "word": "volume",
+    "meaning": "音量・体積・巻",
+    "level": 3
+  },
+  {
+    "word": "window",
+    "meaning": "窓",
+    "level": 3
+  },
+  {
+    "word": "winter",
+    "meaning": "冬",
+    "level": 3
+  },
+  {
+    "word": "worker",
+    "meaning": "労働者・作業員",
+    "level": 3
+  },
+  {
+    "word": "accept",
+    "meaning": "受け入れる",
+    "level": 3
+  },
+  {
+    "word": "across",
+    "meaning": "〜を横切って",
+    "level": 3
+  },
+  {
+    "word": "action",
+    "meaning": "行動・アクション",
+    "level": 3
+  },
+  {
+    "word": "active",
+    "meaning": "活動的な",
+    "level": 3
+  },
+  {
+    "word": "actual",
+    "meaning": "実際の",
+    "level": 3
+  },
+  {
+    "word": "affect",
+    "meaning": "影響する",
+    "level": 3
+  },
+  {
+    "word": "afford",
+    "meaning": "余裕がある",
+    "level": 3
+  },
+  {
+    "word": "afraid",
+    "meaning": "恐れている",
+    "level": 3
+  },
+  {
+    "word": "against",
+    "meaning": "〜に対して",
+    "level": 3
+  },
+  {
+    "word": "amount",
+    "meaning": "量・合計",
+    "level": 3
+  },
+  {
+    "word": "appear",
+    "meaning": "現れる・〜のように見える",
+    "level": 3
+  },
+  {
+    "word": "around",
+    "meaning": "〜の周りに",
+    "level": 3
+  },
+  {
+    "word": "attack",
+    "meaning": "攻撃する",
+    "level": 3
+  },
+  {
+    "word": "attend",
+    "meaning": "出席する",
+    "level": 3
+  },
+  {
+    "word": "autumn",
+    "meaning": "秋",
+    "level": 3
+  },
+  {
+    "word": "borrow",
+    "meaning": "借りる",
+    "level": 3
+  },
+  {
+    "word": "bridge",
+    "meaning": "橋",
+    "level": 3
+  },
+  {
+    "word": "bright",
+    "meaning": "明るい・賢い",
+    "level": 3
+  },
+  {
+    "word": "castle",
+    "meaning": "城",
+    "level": 3
+  },
+  {
+    "word": "collect",
+    "meaning": "集める",
+    "level": 3
+  },
+  {
+    "word": "connect",
+    "meaning": "つなげる",
+    "level": 3
+  },
+  {
+    "word": "correct",
+    "meaning": "正しい・訂正する",
+    "level": 3
+  },
+  {
+    "word": "country",
+    "meaning": "国・田舎",
+    "level": 3
+  },
+  {
+    "word": "current",
+    "meaning": "現在の・流れ",
+    "level": 3
+  },
+  {
+    "word": "deliver",
+    "meaning": "届ける",
+    "level": 3
+  },
+  {
+    "word": "differ",
+    "meaning": "異なる",
+    "level": 3
+  },
+  {
+    "word": "discuss",
+    "meaning": "議論する",
+    "level": 3
+  },
+  {
+    "word": "effect",
+    "meaning": "効果・影響",
+    "level": 3
+  },
+  {
+    "word": "effort",
+    "meaning": "努力",
+    "level": 3
+  },
+  {
+    "word": "enable",
+    "meaning": "可能にする",
+    "level": 3
+  },
+  {
+    "word": "enough",
+    "meaning": "十分な",
+    "level": 3
+  },
+  {
+    "word": "ensure",
+    "meaning": "確実にする",
+    "level": 3
+  },
+  {
+    "word": "event",
+    "meaning": "イベント・出来事",
+    "level": 3
+  },
+  {
+    "word": "expert",
+    "meaning": "専門家",
+    "level": 3
+  },
+  {
+    "word": "export",
+    "meaning": "輸出する",
+    "level": 3
+  },
+  {
+    "word": "family",
+    "meaning": "家族",
+    "level": 3
+  },
+  {
+    "word": "finish",
+    "meaning": "終わる・終える",
+    "level": 3
+  },
+  {
+    "word": "forget",
+    "meaning": "忘れる",
+    "level": 3
+  },
+  {
+    "word": "formal",
+    "meaning": "正式な",
+    "level": 3
+  },
+  {
+    "word": "friend",
+    "meaning": "友達",
+    "level": 3
+  },
+  {
+    "word": "gather",
+    "meaning": "集まる・集める",
+    "level": 3
+  },
+  {
+    "word": "import",
+    "meaning": "輸入する・重要性",
+    "level": 3
+  },
+  {
+    "word": "income",
+    "meaning": "収入",
+    "level": 3
+  },
+  {
+    "word": "indeed",
+    "meaning": "確かに",
+    "level": 3
+  },
+  {
+    "word": "inform",
+    "meaning": "知らせる",
+    "level": 3
+  },
+  {
+    "word": "insect",
+    "meaning": "昆虫",
+    "level": 3
+  },
+  {
+    "word": "inside",
+    "meaning": "内側・の中に",
+    "level": 3
+  },
+  {
+    "word": "intend",
+    "meaning": "意図する・つもりである",
+    "level": 3
+  },
+  {
+    "word": "itself",
+    "meaning": "それ自体",
+    "level": 3
+  },
+  {
+    "word": "latest",
+    "meaning": "最新の",
+    "level": 3
+  },
+  {
+    "word": "likely",
+    "meaning": "ありそうな",
+    "level": 3
+  },
+  {
+    "word": "listen",
+    "meaning": "聞く・耳を傾ける",
+    "level": 3
+  },
+  {
+    "word": "living",
+    "meaning": "生活・生きている",
+    "level": 3
+  },
+  {
+    "word": "losing",
+    "meaning": "失っている・負けている",
+    "level": 3
+  },
+  {
+    "word": "mostly",
+    "meaning": "ほとんど",
+    "level": 3
+  },
+  {
+    "word": "nature",
+    "meaning": "自然・本質",
+    "level": 3
+  },
+  {
+    "word": "nearly",
+    "meaning": "ほぼ・もう少しで",
+    "level": 3
+  },
+  {
+    "word": "obtain",
+    "meaning": "得る・手に入れる",
+    "level": 3
+  },
+  {
+    "word": "office",
+    "meaning": "オフィス・事務所",
+    "level": 3
+  },
+  {
+    "word": "oppose",
+    "meaning": "反対する",
+    "level": 3
+  },
+  {
+    "word": "outside",
+    "meaning": "外側・の外に",
+    "level": 3
+  },
+  {
+    "word": "patient",
+    "meaning": "患者・忍耐強い",
+    "level": 3
+  },
+  {
+    "word": "pattern",
+    "meaning": "模様・パターン",
+    "level": 3
+  },
+  {
+    "word": "perhaps",
+    "meaning": "おそらく",
+    "level": 3
+  },
+  {
+    "word": "picture",
+    "meaning": "写真・絵",
+    "level": 3
+  },
+  {
+    "word": "popular",
+    "meaning": "人気のある",
+    "level": 3
+  },
+  {
+    "word": "prepare",
+    "meaning": "準備する",
+    "level": 3
+  },
+  {
+    "word": "prevent",
+    "meaning": "防ぐ",
+    "level": 3
+  },
+  {
+    "word": "private",
+    "meaning": "私的な・プライベートな",
+    "level": 3
+  },
+  {
+    "word": "provide",
+    "meaning": "提供する",
+    "level": 3
+  },
+  {
+    "word": "purpose",
+    "meaning": "目的",
+    "level": 3
+  },
+  {
+    "word": "realize",
+    "meaning": "気づく・実現する",
+    "level": 3
+  },
+  {
+    "word": "receive",
+    "meaning": "受け取る",
+    "level": 3
+  },
+  {
+    "word": "recycle",
+    "meaning": "リサイクルする",
+    "level": 3
+  },
+  {
+    "word": "regular",
+    "meaning": "定期的な・普通の",
+    "level": 3
+  },
+  {
+    "word": "require",
+    "meaning": "必要とする",
+    "level": 3
+  },
+  {
+    "word": "several",
+    "meaning": "いくつかの",
+    "level": 3
+  },
+  {
+    "word": "similar",
+    "meaning": "似た・類似した",
+    "level": 3
+  },
+  {
+    "word": "special",
+    "meaning": "特別な",
+    "level": 3
+  },
+  {
+    "word": "spring",
+    "meaning": "春・バネ・湧き出る",
+    "level": 3
+  },
+  {
+    "word": "student",
+    "meaning": "学生",
+    "level": 3
+  },
+  {
+    "word": "through",
+    "meaning": "〜を通して",
+    "level": 3
+  },
+  {
+    "word": "together",
+    "meaning": "一緒に",
+    "level": 3
+  },
+  {
+    "word": "trading",
+    "meaning": "貿易・取引",
+    "level": 3
+  },
+  {
+    "word": "typical",
+    "meaning": "典型的な",
+    "level": 3
+  },
+  {
+    "word": "usually",
+    "meaning": "たいてい・普通は",
+    "level": 3
+  },
+  {
+    "word": "various",
+    "meaning": "さまざまな",
+    "level": 3
+  },
+  {
+    "word": "village",
+    "meaning": "村",
+    "level": 3
+  },
+  {
+    "word": "welcome",
+    "meaning": "歓迎する",
+    "level": 3
+  },
+  {
+    "word": "without",
+    "meaning": "〜なしで",
+    "level": 3
+  },
+  {
+    "word": "writing",
+    "meaning": "書くこと・文章",
+    "level": 3
+  }
+]

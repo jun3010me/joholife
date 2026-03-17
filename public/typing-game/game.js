@@ -59,6 +59,11 @@ const GAME_MODES = [
   { id: 'right-middle', name: '右中指',    subtitle: 'I K ,',    icon: '✋', keys: ['I','K',','],           color: '#7950F2' },
   { id: 'right-ring',   name: '右薬指',    subtitle: 'O L .',    icon: '💍', keys: ['O','L','.'],           color: '#F06595' },
   { id: 'right-pinky',  name: '右小指',    subtitle: 'P ; /',    icon: '🤙', keys: ['P',';','/'],           color: '#20C997' },
+  // 英単語モード
+  { id: 'word-lv1', name: '英単語 レベル1', subtitle: '基本単語', icon: '📖', wordMode: true, wordLevel: 1, color: '#4ECDC4' },
+  { id: 'word-lv2', name: '英単語 レベル2', subtitle: '標準単語', icon: '📚', wordMode: true, wordLevel: 2, color: '#45B7D1' },
+  { id: 'word-lv3', name: '英単語 レベル3', subtitle: '応用単語', icon: '🎓', wordMode: true, wordLevel: 3, color: '#96CEB4' },
+  { id: 'word-mix', name: '英単語 ミックス', subtitle: '全レベル混合', icon: '🌀', wordMode: true, wordLevel: 0, color: '#DDA0DD' },
   // 指ごとモード（両手）　ordered時は行ごとに左→右の順
   { id: 'both-index',  name: '両手人差し指', subtitle: 'R T F G V B + Y U H J N M', icon: '🤜🤛', keys: ['R','T','Y','U','F','G','H','J','V','B','N','M'], color: '#22D3EE' },
   { id: 'both-middle', name: '両手中指',    subtitle: 'E D C + I K ,',             icon: '✌️',  keys: ['E','I','D','K','C',','],                         color: '#A78BFA' },
@@ -574,6 +579,19 @@ class TypingGame {
     this._sprites = new KeySpriteCache(); // キースプライトキャッシュ（初回のみ生成）
     this._bgPattern = null;               // 背景ドットパターン
 
+    // 英単語モード状態
+    this._wordData = null;       // words.json データ
+    this.wordMode = false;
+    this.wordPool = [];
+    this.wordPoolIdx = 0;
+    this.currentWord = null;     // { word, meaning, level }
+    this.currentCharIdx = 0;     // 次に打つ文字インデックス
+    this.wordsCompleted = 0;
+    this._wordEntryErrors = 0;   // 現在の単語内のミス数
+    this.memLevel = 1;           // 1=全表示 2=一部ヒント 3=意味のみ
+    this._wordFlash = null;      // { type: 'ok'|'miss', life }
+    this._wordTransition = false; // 単語切り替えアニメーション中
+
     this.init();
   }
 
@@ -585,8 +603,8 @@ class TypingGame {
     });
     document.addEventListener('keydown', e => this._onKey(e));
 
-    // Mode buttons
-    document.querySelectorAll('[data-mode]').forEach(btn => {
+    // キー練習モードボタン（英単語モードボタンは除外）
+    document.querySelectorAll('[data-mode]:not([data-word])').forEach(btn => {
       btn.addEventListener('click', () => this.startGame(btn.dataset.mode));
     });
 
@@ -611,6 +629,25 @@ class TypingGame {
       btn.classList.toggle('active', !this.randomMode);
       btn.textContent = this.randomMode ? '🔀 ランダム ON' : '📋 ランダム OFF';
     });
+
+    // 英単語モードボタン（wordMode フラグ付き）
+    document.querySelectorAll('[data-mode][data-word]').forEach(btn => {
+      btn.addEventListener('click', () => this._startWordGame(btn.dataset.mode));
+    });
+
+    // 暗記レベルボタン
+    document.querySelectorAll('[data-mem-level]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.memLevel = parseInt(btn.dataset.memLevel, 10);
+        document.querySelectorAll('[data-mem-level]').forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
+    // words.json をバックグラウンドで先読み
+    fetch('/typing-game/words.json')
+      .then(r => r.json())
+      .then(data => { this._wordData = data; })
+      .catch(() => {});
 
     // Generate background menu demo keys
     this._spawnMenuBgKeys();
@@ -654,7 +691,17 @@ class TypingGame {
   startGame(modeId) {
     this.mode = GAME_MODES.find(m => m.id === modeId);
     if (!this.mode) return;
+
+    // 英単語モードでデータ未ロードの場合はロードしてから再実行
+    if (this.mode.wordMode && !this._wordData) {
+      fetch('/typing-game/words.json')
+        .then(r => r.json())
+        .then(data => { this._wordData = data; this.startGame(modeId); });
+      return;
+    }
+
     this.lastModeId = modeId;
+    this.wordMode = !!this.mode.wordMode;
 
     this.flowKeys = [];
     this.particles = [];
@@ -662,14 +709,26 @@ class TypingGame {
     this.score = 0; this.combo = 0; this.maxCombo = 0;
     this.totalCount = 0; this.hitCount = 0; this.perfectCount = 0; this.missCount = 0;
     this.t = 0;
-    this.baseSpawnInterval = this.demonMode ? 16 : 95; // 鬼モード：ほぼ隣同士
-    this.spawnInterval = this.baseSpawnInterval;
-    this.spawnTimer = this.baseSpawnInterval; // spawn first key immediately
     this.timeLeftMs = this.gameDuration;
 
-    // キューを先行バッファとして用意（自動補充あり）
-    const ordered = !this.randomMode || !!this.mode.ordered;
-    this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, ordered);
+    if (this.wordMode) {
+      // 英単語モード初期化
+      this.wordsCompleted = 0;
+      this.currentWord = null;
+      this.currentCharIdx = 0;
+      this._wordEntryErrors = 0;
+      this._wordFlash = null;
+      this._wordTransition = false;
+      this._prepareWordPool();
+      this._startNextWord();
+    } else {
+      // キー練習モード初期化
+      this.baseSpawnInterval = this.demonMode ? 16 : 95;
+      this.spawnInterval = this.baseSpawnInterval;
+      this.spawnTimer = this.baseSpawnInterval;
+      const ordered = !this.randomMode || !!this.mode.ordered;
+      this.keyQueue = this._genQueue(this.mode.keys, this.mode.keys.length * 4, ordered);
+    }
 
     this.state = 'playing';
     document.getElementById('screen-menu').hidden = true;
@@ -682,6 +741,39 @@ class TypingGame {
     document.getElementById('hud-mode-name').textContent = this.mode.name;
     this._updateHUD();
     this._updateTimer();
+  }
+
+  // 英単語モードをデータロード後に起動（ボタンから呼ばれる）
+  _startWordGame(modeId) {
+    if (!this._wordData) {
+      fetch('/typing-game/words.json')
+        .then(r => r.json())
+        .then(data => { this._wordData = data; this.startGame(modeId); });
+    } else {
+      this.startGame(modeId);
+    }
+  }
+
+  // 単語プールを作成（レベル/シャッフル）
+  _prepareWordPool() {
+    if (!this._wordData) return;
+    const lvl = this.mode.wordLevel;
+    const filtered = lvl === 0 ? [...this._wordData] : this._wordData.filter(w => w.level === lvl);
+    // シャッフル
+    this.wordPool = filtered.sort(() => Math.random() - 0.5);
+    this.wordPoolIdx = 0;
+  }
+
+  // 次の単語をセット
+  _startNextWord() {
+    if (this.wordPool.length === 0) return;
+    this.currentWord = this.wordPool[this.wordPoolIdx % this.wordPool.length];
+    this.wordPoolIdx++;
+    this.currentCharIdx = 0;
+    this._wordEntryErrors = 0;
+    this._wordTransition = false;
+    const firstChar = this.currentWord.word.toUpperCase()[0];
+    this.kbd?.setTarget(firstChar);
   }
 
   showMenu() {
@@ -706,7 +798,13 @@ class TypingGame {
     document.getElementById('res-score').textContent = this.score.toLocaleString();
     document.getElementById('res-accuracy').textContent = acc + '%';
     document.getElementById('res-combo').textContent = this.maxCombo;
-    document.getElementById('res-perfect').textContent = this.missCount;
+    if (this.wordMode) {
+      document.getElementById('res-perfect-label').textContent = '完了単語数';
+      document.getElementById('res-perfect').textContent = this.wordsCompleted + '語';
+    } else {
+      document.getElementById('res-perfect-label').textContent = 'ミス';
+      document.getElementById('res-perfect').textContent = this.missCount;
+    }
     document.getElementById('res-mode').textContent = this.mode?.name || '';
   }
 
@@ -749,6 +847,12 @@ class TypingGame {
     if (this.state !== 'playing') return;
     if (e.key === 'Escape') { this.showMenu(); return; }
 
+    // 英単語モードは専用ハンドラへ
+    if (this.wordMode) {
+      this._onWordKey(e);
+      return;
+    }
+
     // キー文字を正規化：英数字は大文字に、記号はそのまま
     const SYMBOL_KEYS = [';', '/', ',', '.'];
     let key;
@@ -771,6 +875,80 @@ class TypingGame {
     } else {
       this._onMiss(active);
     }
+  }
+
+  // 英単語モードのキー入力処理
+  _onWordKey(e) {
+    if (!this.currentWord || this._wordTransition) return;
+    if (e.key.length !== 1 || !/[a-zA-Z]/.test(e.key)) return;
+    e.preventDefault();
+
+    const key = e.key.toUpperCase();
+    const word = this.currentWord.word.toUpperCase();
+    const target = word[this.currentCharIdx];
+
+    this.kbd?.press(key);
+
+    if (key === target) {
+      // 正解
+      this.currentCharIdx++;
+      this.hitCount++;
+      this.totalCount++;
+      const color = FINGER_COLORS[KEY_FINGER[key] || 'right-index'];
+      this._wordFlash = { type: 'ok', life: 1, color };
+      this._playSound('perfect');
+
+      if (this.currentCharIdx >= word.length) {
+        // 単語完了！
+        this._onWordComplete();
+      } else {
+        this.kbd?.setTarget(word[this.currentCharIdx]);
+        this._spawnParticles(this.W * 0.5, this.H * 0.38, color, 'ok');
+      }
+    } else {
+      // ミス
+      this._wordEntryErrors++;
+      this.missCount++;
+      this.totalCount++;
+      this.combo = 0;
+      this._wordFlash = { type: 'miss', life: 1, color: '#FF4444' };
+      this._playSound('wrong');
+      this._showJudgment('miss');
+      this._addFlash(this.W * 0.5, this.H * 0.38, '#FF4444', 'miss');
+    }
+    this._updateHUD();
+  }
+
+  _onWordComplete() {
+    const noError = this._wordEntryErrors === 0;
+    this.wordsCompleted++;
+    const color = noError ? '#FFD700' : '#74C0FC';
+
+    if (noError) {
+      this.combo++;
+      this.maxCombo = Math.max(this.maxCombo, this.combo);
+      this.score += 500 + Math.min(this.combo, 20) * 25;
+      this._showJudgment('perfect');
+      this._spawnParticles(this.W * 0.5, this.H * 0.38, color, 'perfect');
+      this._addFlash(this.W * 0.5, this.H * 0.38, color, 'perfect');
+    } else {
+      this.combo = 0;
+      this.score += Math.max(100, 300 - this._wordEntryErrors * 40);
+      this._showJudgment('good');
+      this._spawnParticles(this.W * 0.5, this.H * 0.38, color, 'good');
+    }
+
+    this._playSound(noError ? 'perfect' : 'good');
+    this._wordTransition = true;
+    this._wordFlash = { type: noError ? 'perfect' : 'ok', life: 1, color };
+    this._updateHUD();
+
+    // 少し待ってから次の単語へ
+    setTimeout(() => {
+      if (this.state === 'playing' && this.timeLeftMs > 0) {
+        this._startNextWord();
+      }
+    }, 500);
   }
 
   _getActive() {
@@ -932,6 +1110,36 @@ class TypingGame {
     this.kbd?.update();
 
     if (this.state === 'playing') {
+      if (this.wordMode) {
+        this._updateWordMode(dtF, dt);
+      } else {
+        this._updateKeyMode(dtF, dt);
+      }
+    } else if (this.state === 'menu') {
+      this._updateMenuBg(dtF);
+    }
+  }
+
+  _updateWordMode(dtF, dt) {
+    this.timeLeftMs = Math.max(0, this.timeLeftMs - dt);
+    this._updateTimer();
+
+    // wordFlash ライフ減衰
+    if (this._wordFlash) {
+      this._wordFlash.life -= 0.06 * dtF;
+      if (this._wordFlash.life <= 0) this._wordFlash = null;
+    }
+
+    this.particles = this.particles.filter(p => { p.update(dtF); return !p.isDead(); });
+    this.flashes = this.flashes.filter(f => { f.alpha -= f.decay * dtF; return f.alpha > 0; });
+
+    if (this.timeLeftMs <= 0 && this.state === 'playing') {
+      setTimeout(() => this.showResults(), 600);
+      this.state = 'ending';
+    }
+  }
+
+  _updateKeyMode(dtF, dt) {
       // タイマーカウントダウン
       this.timeLeftMs = Math.max(0, this.timeLeftMs - dt);
       this._updateTimer();
@@ -974,9 +1182,6 @@ class TypingGame {
         setTimeout(() => this.showResults(), 800);
         this.state = 'ending';
       }
-    } else if (this.state === 'menu') {
-      this._updateMenuBg(dtF);
-    }
   }
 
   _spawnKey() {
@@ -1053,6 +1258,12 @@ class TypingGame {
       return;
     }
 
+    // 英単語モードは専用レンダー
+    if (this.wordMode) {
+      this._renderWordMode(ctx, W, H);
+      return;
+    }
+
     this._drawTrack(ctx, W, H);
     this._drawFlashes(ctx);
     this._drawJudgeLine(ctx, W, H);
@@ -1067,6 +1278,112 @@ class TypingGame {
     this._drawJudgeAccent(ctx);
 
     this._drawComboDisplay(ctx, W, H);
+  }
+
+  // ── 英単語モード レンダリング ─────────────────────────────
+  _renderWordMode(ctx, W, H) {
+    if (!this.currentWord) return;
+
+    const word = this.currentWord.word.toUpperCase();
+    const meaning = this.currentWord.meaning;
+
+    // フラッシュエフェクト
+    this._drawFlashes(ctx);
+    for (const p of this.particles) p.draw(ctx);
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // === 暗記レベル表示（左上） ===
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.textAlign = 'left';
+    ctx.fillText('暗記レベル ' + '★'.repeat(this.memLevel), 12, 14);
+    ctx.textAlign = 'center';
+
+    // === ヒント表示（上部） ===
+    const hintY = H * 0.22;
+
+    // 意味（常に表示）
+    ctx.font = `bold ${clamp(Math.floor(H * 0.09), 18, 32)}px sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.85;
+    ctx.fillText(meaning, W * 0.5, hintY);
+    ctx.globalAlpha = 1;
+
+    // === 単語文字ボックス（中央） ===
+    const centerY = H * 0.55;
+    const maxBoxW = Math.min(72, Math.floor((W * 0.9) / word.length) - 6);
+    const boxW = Math.max(28, maxBoxW);
+    const boxH = boxW;
+    const gap = Math.max(4, boxW * 0.1);
+    const totalW = word.length * boxW + (word.length - 1) * gap;
+    const startX = (W - totalW) / 2;
+
+    for (let i = 0; i < word.length; i++) {
+      const ch = word[i];
+      const bx = startX + i * (boxW + gap);
+      const by = centerY - boxH / 2;
+      const finger = KEY_FINGER[ch] || 'right-index';
+      const color = FINGER_COLORS[finger];
+      const isTyped = i < this.currentCharIdx;
+      const isCurrent = i === this.currentCharIdx;
+
+      // 表示する文字を決定（暗記レベルによる）
+      let displayChar = ch;
+      if (!isTyped) {
+        if (this.memLevel === 2 && i > 0 && i < word.length - 1) displayChar = '_';
+        else if (this.memLevel === 3) displayChar = '_';
+      }
+
+      // 背景ボックス
+      const boxAlpha = isTyped ? 0.25 : isCurrent ? 0.45 : 0.1;
+      const boxColor = isTyped ? '#51CF66' : color;
+      ctx.fillStyle = rgba(boxColor, boxAlpha);
+      const r = Math.min(10, boxW * 0.16);
+      roundRect(ctx, bx, by, boxW, boxH, r);
+      ctx.fill();
+
+      // ボーダー
+      ctx.strokeStyle = isTyped ? rgba('#51CF66', 0.7)
+                      : isCurrent ? color
+                      : rgba(color, 0.3);
+      ctx.lineWidth = isCurrent ? 2.5 : 1.5;
+      roundRect(ctx, bx, by, boxW, boxH, r);
+      ctx.stroke();
+
+      // 文字テキスト
+      const fontSize = Math.floor(boxW * 0.52);
+      ctx.font = `bold ${fontSize}px monospace`;
+      ctx.fillStyle = isTyped ? rgba('#88FF99', 0.95)
+                    : isCurrent ? '#ffffff'
+                    : rgba('#fff', 0.38);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(displayChar, bx + boxW / 2, by + boxH / 2);
+    }
+
+    // === ワードフラッシュ（入力フィードバック） ===
+    if (this._wordFlash && this._wordFlash.life > 0) {
+      const life = this._wordFlash.life;
+      ctx.save();
+      ctx.globalAlpha = life * 0.4;
+      ctx.fillStyle = this._wordFlash.color;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+
+    // === コンボ表示 ===
+    this._drawComboDisplay(ctx, W, H);
+
+    // === 完了単語数（右上） ===
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${this.wordsCompleted}語完了`, W - 12, 14);
+
+    ctx.restore();
   }
 
   // 背景ドットを OffscreenCanvas に1回だけ描いてパターン化

@@ -279,6 +279,140 @@ import Layout from '../layouts/Layout.astro';
     flex-shrink: 0;
   }
 
+  /* ── 英単語モードセクション ─────────────── */
+  .word-section {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 14px;
+    flex-shrink: 0;
+  }
+
+  .word-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .word-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding-left: 2px;
+    white-space: nowrap;
+  }
+
+  .word-divider {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .word-body {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .word-levels {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .word-mode-btn {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: transform 0.16s cubic-bezier(.34,1.56,.64,1),
+                border-color 0.2s, background 0.2s, box-shadow 0.18s;
+    color: #fff;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .word-mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--wm-color, #4ECDC4);
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: inherit;
+  }
+
+  .word-mode-btn:hover {
+    transform: translateY(-3px);
+    border-color: var(--wm-color, #4ECDC4);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+  }
+  .word-mode-btn:hover::before { opacity: 0.09; }
+  .word-mode-btn:active { transform: scale(0.97); }
+
+  .wm-icon { font-size: 1.2rem; line-height: 1; }
+  .wm-name { font-size: 0.75rem; font-weight: 700; }
+  .wm-sub  { font-size: 0.58rem; color: rgba(255,255,255,0.35); }
+  .wm-dot  {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--wm-color, #4ECDC4);
+    box-shadow: 0 0 6px var(--wm-color, #4ECDC4);
+    margin-top: 2px;
+  }
+
+  /* 暗記レベルボタン */
+  .mem-level-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .mem-level-label {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .mem-level-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mem-btn {
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.45);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .mem-btn:hover { border-color: rgba(255,200,100,0.5); color: rgba(255,255,255,0.8); }
+  .mem-btn.active {
+    border-color: #F59E0B;
+    background: rgba(245,158,11,0.12);
+    color: #FCD34D;
+    box-shadow: 0 0 12px rgba(245,158,11,0.25);
+  }
+
   /* ═══════════════════════════════════════
      SCREEN: GAME
   ════════════════════════════════════════ */
@@ -690,6 +824,51 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </div>
 
+    <!-- 英単語モード -->
+    <div class="word-section">
+      <div class="word-section-header">
+        <div class="word-section-label">🇬🇧 英単語モード</div>
+        <div class="word-divider"></div>
+      </div>
+      <div class="word-body">
+        <div class="word-levels">
+          <button class="word-mode-btn" data-mode="word-lv1" data-word="1" style="--wm-color:#4ECDC4">
+            <span class="wm-icon">📖</span>
+            <span class="wm-name">レベル1</span>
+            <span class="wm-sub">基本単語</span>
+            <span class="wm-dot"></span>
+          </button>
+          <button class="word-mode-btn" data-mode="word-lv2" data-word="2" style="--wm-color:#45B7D1">
+            <span class="wm-icon">📚</span>
+            <span class="wm-name">レベル2</span>
+            <span class="wm-sub">標準単語</span>
+            <span class="wm-dot"></span>
+          </button>
+          <button class="word-mode-btn" data-mode="word-lv3" data-word="3" style="--wm-color:#96CEB4">
+            <span class="wm-icon">🎓</span>
+            <span class="wm-name">レベル3</span>
+            <span class="wm-sub">応用単語</span>
+            <span class="wm-dot"></span>
+          </button>
+          <button class="word-mode-btn" data-mode="word-mix" data-word="0" style="--wm-color:#DDA0DD">
+            <span class="wm-icon">🌀</span>
+            <span class="wm-name">ミックス</span>
+            <span class="wm-sub">全レベル</span>
+            <span class="wm-dot"></span>
+          </button>
+        </div>
+        <!-- 暗記レベル -->
+        <div class="mem-level-group">
+          <div class="mem-level-label">暗記レベル</div>
+          <div class="mem-level-btns">
+            <button class="mem-btn active" data-mem-level="1">★ 見て打つ</button>
+            <button class="mem-btn" data-mem-level="2">★★ 一部ヒント</button>
+            <button class="mem-btn" data-mem-level="3">★★★ 意味だけ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 指の色凡例 -->
     <div class="finger-legend">
       <div class="legend-item"><div class="legend-dot" style="background:#FF6B6B"></div>左小指</div>
@@ -759,7 +938,7 @@ import Layout from '../layouts/Layout.astro';
           <div class="result-stat-value" id="res-combo">0</div>
         </div>
         <div class="result-stat-item">
-          <div class="result-stat-label">ミス</div>
+          <div class="result-stat-label" id="res-perfect-label">ミス</div>
           <div class="result-stat-value" id="res-perfect">0</div>
         </div>
       </div>
