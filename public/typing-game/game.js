@@ -60,10 +60,10 @@ const GAME_MODES = [
   { id: 'right-ring',   name: '右薬指',    subtitle: 'O L .',    icon: '💍', keys: ['O','L','.'],           color: '#F06595' },
   { id: 'right-pinky',  name: '右小指',    subtitle: 'P ; /',    icon: '🤙', keys: ['P',';','/'],           color: '#20C997' },
   // 英単語モード
-  { id: 'word-lv1', name: '英単語 レベル1', subtitle: '基本単語', icon: '📖', wordMode: true, wordLevel: 1, color: '#4ECDC4' },
-  { id: 'word-lv2', name: '英単語 レベル2', subtitle: '標準単語', icon: '📚', wordMode: true, wordLevel: 2, color: '#45B7D1' },
-  { id: 'word-lv3', name: '英単語 レベル3', subtitle: '応用単語', icon: '🎓', wordMode: true, wordLevel: 3, color: '#96CEB4' },
-  { id: 'word-mix', name: '英単語 ミックス', subtitle: '全レベル混合', icon: '🌀', wordMode: true, wordLevel: 0, color: '#DDA0DD' },
+  { id: 'word-lv1', name: '英単語 中学1年生', subtitle: '基本単語', icon: '📖', wordMode: true, wordLevel: 1, color: '#4ECDC4' },
+  { id: 'word-lv2', name: '英単語 中学2年生', subtitle: '標準単語', icon: '📚', wordMode: true, wordLevel: 2, color: '#45B7D1' },
+  { id: 'word-lv3', name: '英単語 中学3年生', subtitle: '応用単語', icon: '🎓', wordMode: true, wordLevel: 3, color: '#96CEB4' },
+  { id: 'word-mix', name: '英単語 ミックス', subtitle: '全学年混合', icon: '🌀', wordMode: true, wordLevel: 0, color: '#DDA0DD' },
   // 指ごとモード（両手）　ordered時は行ごとに左→右の順
   { id: 'both-index',  name: '両手人差し指', subtitle: 'R T F G V B + Y U H J N M', icon: '🤜🤛', keys: ['R','T','Y','U','F','G','H','J','V','B','N','M'], color: '#22D3EE' },
   { id: 'both-middle', name: '両手中指',    subtitle: 'E D C + I K ,',             icon: '✌️',  keys: ['E','I','D','K','C',','],                         color: '#A78BFA' },
@@ -884,8 +884,8 @@ class TypingGame {
     e.preventDefault();
 
     const key = e.key.toUpperCase();
-    const word = this.currentWord.word.toUpperCase();
-    const target = word[this.currentCharIdx];
+    const word = this.currentWord.word; // 小文字のまま
+    const target = word[this.currentCharIdx].toUpperCase();
 
     this.kbd?.press(key);
 
@@ -902,7 +902,7 @@ class TypingGame {
         // 単語完了！
         this._onWordComplete();
       } else {
-        this.kbd?.setTarget(word[this.currentCharIdx]);
+        this.kbd?.setTarget(word[this.currentCharIdx].toUpperCase());
         this._spawnParticles(this.W * 0.5, this.H * 0.38, color, 'ok');
       }
     } else {
@@ -1284,7 +1284,7 @@ class TypingGame {
   _renderWordMode(ctx, W, H) {
     if (!this.currentWord) return;
 
-    const word = this.currentWord.word.toUpperCase();
+    const word = this.currentWord.word; // 小文字のまま表示
     const meaning = this.currentWord.meaning;
 
     // フラッシュエフェクト
@@ -1322,8 +1322,8 @@ class TypingGame {
     const startX = (W - totalW) / 2;
 
     for (let i = 0; i < word.length; i++) {
-      const ch = word[i];
-      const finger = KEY_FINGER[ch] || 'right-index';
+      const ch = word[i]; // 小文字
+      const finger = KEY_FINGER[ch.toUpperCase()] || 'right-index';
       const color = FINGER_COLORS[finger];
       const isTyped   = i < this.currentCharIdx;
       const isCurrent = i === this.currentCharIdx;
