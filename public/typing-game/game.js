@@ -1323,12 +1323,11 @@ class TypingGame {
 
     for (let i = 0; i < word.length; i++) {
       const ch = word[i];
-      const bx = startX + i * (boxW + gap);
-      const by = centerY - boxH / 2;
       const finger = KEY_FINGER[ch] || 'right-index';
       const color = FINGER_COLORS[finger];
-      const isTyped = i < this.currentCharIdx;
+      const isTyped   = i < this.currentCharIdx;
       const isCurrent = i === this.currentCharIdx;
+      // isCurrent でも isTyped でもなければ upcoming
 
       // 表示する文字を決定（暗記レベルによる）
       let displayChar = ch;
@@ -1337,40 +1336,84 @@ class TypingGame {
         else if (this.memLevel === 3) displayChar = '_';
       }
 
-      // 背景ボックス
-      const boxAlpha = isTyped ? 0.25 : isCurrent ? 0.45 : 0.1;
-      const boxColor = isTyped ? '#51CF66' : color;
-      ctx.fillStyle = rgba(boxColor, boxAlpha);
-      const r = Math.min(10, boxW * 0.16);
-      roundRect(ctx, bx, by, boxW, boxH, r);
+      // 現在のキーは少しボックスを大きく見せる
+      const inflate = isCurrent ? 4 : 0;
+      const bx = startX + i * (boxW + gap) - inflate / 2;
+      const by = centerY - boxH / 2      - inflate / 2;
+      const bw = boxW + inflate;
+      const bh = boxH + inflate;
+      const r  = Math.min(12, bw * 0.16);
+
+      // ── 背景ボックス ──
+      if (isTyped) {
+        ctx.fillStyle = rgba('#51CF66', 0.18);
+      } else if (isCurrent) {
+        ctx.fillStyle = rgba(color, 0.30);
+      } else {
+        // upcoming: やや明るめ（薄い指色）
+        ctx.fillStyle = rgba(color, 0.12);
+      }
+      roundRect(ctx, bx, by, bw, bh, r);
       ctx.fill();
 
-      // ボーダー
-      ctx.strokeStyle = isTyped ? rgba('#51CF66', 0.7)
-                      : isCurrent ? color
-                      : rgba(color, 0.3);
-      ctx.lineWidth = isCurrent ? 2.5 : 1.5;
-      roundRect(ctx, bx, by, boxW, boxH, r);
-      ctx.stroke();
+      // ── ボーダー ──
+      if (isTyped) {
+        ctx.strokeStyle = rgba('#51CF66', 0.45);
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, bx, by, bw, bh, r);
+        ctx.stroke();
+      } else if (isCurrent) {
+        // 脈動グロー
+        const pulse = 0.5 + 0.5 * Math.sin(this.t * 0.14);
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 16 + pulse * 14;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        roundRect(ctx, bx, by, bw, bh, r);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // upcoming: 指色のボーダーをちゃんと見せる
+        ctx.strokeStyle = rgba(color, 0.55);
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, bx, by, bw, bh, r);
+        ctx.stroke();
+      }
 
-      // 文字テキスト
-      const fontSize = Math.floor(boxW * 0.52);
+      // ── 文字テキスト ──
+      const fontSize = Math.floor(bw * 0.52);
       ctx.font = `bold ${fontSize}px monospace`;
-      ctx.fillStyle = isTyped ? rgba('#88FF99', 0.95)
-                    : isCurrent ? '#ffffff'
-                    : rgba('#fff', 0.38);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(displayChar, bx + boxW / 2, by + boxH / 2);
+
+      if (isTyped) {
+        // 入力済み：緑（やや控えめ）
+        ctx.fillStyle = rgba('#51CF66', 0.65);
+      } else if (isCurrent) {
+        // 現在のキー：真っ白 + 指色のグロー
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(displayChar, bx + bw / 2, by + bh / 2);
+        ctx.restore();
+        continue; // fillText 済みなので skip
+      } else {
+        // upcoming：ちゃんと白く読める
+        ctx.fillStyle = 'rgba(220, 220, 220, 0.85)';
+      }
+      ctx.fillText(displayChar, bx + bw / 2, by + bh / 2);
     }
 
-    // === ワードフラッシュ（入力フィードバック） ===
+    // === ワードフラッシュ（画面下部の細いバー演出・文字を邪魔しない） ===
     if (this._wordFlash && this._wordFlash.life > 0) {
       const life = this._wordFlash.life;
       ctx.save();
-      ctx.globalAlpha = life * 0.4;
+      const barH = Math.round(H * 0.04 * life);
+      ctx.globalAlpha = life * 0.7;
       ctx.fillStyle = this._wordFlash.color;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(0, H - barH, W, barH);
       ctx.restore();
     }
 
