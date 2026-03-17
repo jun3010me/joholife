@@ -71,6 +71,9 @@ const GAME_MODES = [
   { id: 'both-pinky',  name: '両手小指',    subtitle: 'Q A Z + P ; /',             icon: '🤙🤙', keys: ['Q','P','A',';','Z','/'],                         color: '#34D399' },
 ];
 
+// 英単語モード：動詞セット（出現確率を上げるために使用）
+const WORD_VERBS = new Set(['accept','achieve','act','add','affect','afford','agree','allow','appear','ask','attack','attend','beg','believe','borrow','bow','break','bring','build','buy','carry','catch','change','check','choose','clean','close','collect','compare','connect','contact','control','copy','count','create','cry','cut','dance','decide','deliver','describe','design','develop','differ','dig','dip','discuss','draw','drive','eat','enable','enjoy','ensure','enter','escape','exist','expect','explain','export','express','extend','feature','fight','finish','fit','fix','float','fly','follow','forget','gather','get','grow','guard','guess','happen','help','hit','hold','imagine','import','improve','inform','inspire','intend','involve','join','jump','keep','knock','laugh','launch','learn','let','lie','listen','live','look','love','make','manage','mark','master','meet','mix','move','need','nod','notice','obtain','offer','open','oppose','order','paint','pass','pat','pay','pet','play','prefer','prepare','prevent','process','produce','protect','provide','pull','push','put','raise','reach','read','realize','receive','record','recycle','reduce','reform','relate','repeat','report','require','respect','return','review','rub','run','save','say','see','select','send','serve','set','share','show','sing','sit','sleep','smile','solve','speak','spend','stand','start','stop','suggest','support','swim','take','talk','tap','teach','tell','think','throw','tie','touch','train','travel','trust','try','use','visit','wag','walk','want','watch','wear','welcome','win','wish','wonder','work']);
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -754,13 +757,24 @@ class TypingGame {
     }
   }
 
-  // 単語プールを作成（レベル/シャッフル）
+  // 単語プールを作成（レベル別 + 動詞3倍ウェイト）
   _prepareWordPool() {
     if (!this._wordData) return;
     const lvl = this.mode.wordLevel;
     const filtered = lvl === 0 ? [...this._wordData] : this._wordData.filter(w => w.level === lvl);
+
+    // 動詞は3倍の確率で出現（非動詞は1回、動詞は3回プールに追加）
+    const weighted = [];
+    for (const w of filtered) {
+      weighted.push(w);
+      if (WORD_VERBS.has(w.word)) {
+        weighted.push(w);
+        weighted.push(w);
+      }
+    }
+
     // シャッフル
-    this.wordPool = filtered.sort(() => Math.random() - 0.5);
+    this.wordPool = weighted.sort(() => Math.random() - 0.5);
     this.wordPoolIdx = 0;
   }
 
