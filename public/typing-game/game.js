@@ -757,36 +757,41 @@ class TypingGame {
     }
   }
 
-  // 単語プールを作成（レベル別 + 動詞3倍ウェイト）
+  // 単語プールを作成（動詞3:非動詞1 のインターリーブ、各単語は1回のみ）
   _prepareWordPool() {
     if (!this._wordData) return;
     const lvl = this.mode.wordLevel;
     const filtered = lvl === 0 ? [...this._wordData] : this._wordData.filter(w => w.level === lvl);
 
-    // 動詞は3倍の確率で出現（非動詞は1回、動詞は3回プールに追加）
-    const weighted = [];
-    for (const w of filtered) {
-      weighted.push(w);
-      if (WORD_VERBS.has(w.word)) {
-        weighted.push(w);
-        weighted.push(w);
-      }
+    // 動詞と非動詞に分けてそれぞれシャッフル
+    const verbs  = filtered.filter(w =>  WORD_VERBS.has(w.word)).sort(() => Math.random() - 0.5);
+    const others = filtered.filter(w => !WORD_VERBS.has(w.word)).sort(() => Math.random() - 0.5);
+
+    // 動詞3つ → 非動詞1つ のリズムでインターリーブ（各単語は必ず1回だけ）
+    const pool = [];
+    let vi = 0, oi = 0;
+    while (vi < verbs.length || oi < others.length) {
+      for (let k = 0; k < 3 && vi < verbs.length; k++, vi++) pool.push(verbs[vi]);
+      if (oi < others.length) pool.push(others[oi++]);
     }
 
-    // シャッフル
-    this.wordPool = weighted.sort(() => Math.random() - 0.5);
+    this.wordPool = pool;
     this.wordPoolIdx = 0;
   }
 
   // 次の単語をセット
   _startNextWord() {
     if (this.wordPool.length === 0) return;
-    this.currentWord = this.wordPool[this.wordPoolIdx % this.wordPool.length];
+    // プール使い切ったら再シャッフルして最初から（同じ単語の連続を防ぐ）
+    if (this.wordPoolIdx >= this.wordPool.length) {
+      this._prepareWordPool();
+    }
+    this.currentWord = this.wordPool[this.wordPoolIdx];
     this.wordPoolIdx++;
     this.currentCharIdx = 0;
     this._wordEntryErrors = 0;
     this._wordTransition = false;
-    const firstChar = this.currentWord.word.toUpperCase()[0];
+    const firstChar = this.currentWord.word[0].toUpperCase();
     this.kbd?.setTarget(firstChar);
   }
 
