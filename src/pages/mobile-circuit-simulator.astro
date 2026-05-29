@@ -3004,24 +3004,27 @@ import Layout from '../layouts/Layout.astro';
             drawORGateInside(ctx, x, y, w, h) {
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                ctx.quadraticCurveTo(x + w * 0.6, y, x + w, y + h/2);
-                ctx.quadraticCurveTo(x + w * 0.6, y + h, x, y + h);
+                // 上辺: 右の先端へ向かうベジェ曲線
+                ctx.bezierCurveTo(x + w * 0.5, y, x + w * 0.85, y + h * 0.15, x + w, y + h/2);
+                // 下辺: 先端から左下へ（上辺の鏡像）
+                ctx.bezierCurveTo(x + w * 0.85, y + h * 0.85, x + w * 0.5, y + h, x, y + h);
+                // 左辺: 内側へ凹む曲線（OR記号の特徴）
                 ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y);
                 ctx.fill();
                 ctx.stroke();
             }
-            
+
             drawXORGateInside(ctx, x, y, w, h) {
-                // 外側の曲線
+                // 外側の曲線（ORゲートと同じ形）
                 ctx.beginPath();
                 ctx.moveTo(x, y);
-                ctx.quadraticCurveTo(x + w * 0.6, y, x + w, y + h/2);
-                ctx.quadraticCurveTo(x + w * 0.6, y + h, x, y + h);
+                ctx.bezierCurveTo(x + w * 0.5, y, x + w * 0.85, y + h * 0.15, x + w, y + h/2);
+                ctx.bezierCurveTo(x + w * 0.85, y + h * 0.85, x + w * 0.5, y + h, x, y + h);
                 ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y);
                 ctx.fill();
                 ctx.stroke();
-                
-                // 内側の追加線
+
+                // 左側の追加線（XOR固有の二重線）
                 ctx.beginPath();
                 ctx.moveTo(x - 4, y);
                 ctx.quadraticCurveTo(x + w * 0.2 - 4, y + h/2, x - 4, y + h);
@@ -3179,12 +3182,13 @@ import Layout from '../layouts/Layout.astro';
             
             drawORGate(ctx, x, y, w, h) {
                 ctx.beginPath();
-                // 左側の曲線
                 ctx.moveTo(x, y);
-                ctx.quadraticCurveTo(x + w * 0.3, y + h/2, x, y + h);
-                // 右側の曲線
-                ctx.quadraticCurveTo(x + w * 0.7, y + h * 0.8, x + w, y + h/2);
-                ctx.quadraticCurveTo(x + w * 0.7, y + h * 0.2, x, y);
+                // 上辺: 右の先端へ向かうベジェ曲線
+                ctx.bezierCurveTo(x + w * 0.5, y, x + w * 0.85, y + h * 0.15, x + w, y + h/2);
+                // 下辺: 先端から左下へ（上辺の鏡像）
+                ctx.bezierCurveTo(x + w * 0.85, y + h * 0.85, x + w * 0.5, y + h, x, y + h);
+                // 左辺: 内側へ凹む曲線（OR記号の特徴）
+                ctx.quadraticCurveTo(x + w * 0.2, y + h/2, x, y);
                 ctx.fill();
                 ctx.stroke();
             }
