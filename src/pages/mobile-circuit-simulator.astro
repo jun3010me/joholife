@@ -1478,7 +1478,7 @@ import Layout from '../layouts/Layout.astro';
                 let width = 90;
                 let height = 50;
                 if (['AND', 'OR', 'XOR', 'NAND', 'NOR', 'NOT'].includes(type)) {
-                    width = 80;
+                    width = 110;
                     height = 60;
                 } else if (['DFF', 'JKFF', 'TFF', 'RSFF'].includes(type)) {
                     width = 100;
@@ -1508,7 +1508,7 @@ import Layout from '../layouts/Layout.astro';
                             { id: 'in2', x: 0, y: 45, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'out', x: 80, y: 30, connected: [] }
+                            { id: 'out', x: 110, y: 30, connected: [] }
                         ];
                         break;
                     case 'NAND':
@@ -1518,7 +1518,7 @@ import Layout from '../layouts/Layout.astro';
                             { id: 'in2', x: 0, y: 45, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'out', x: 80, y: 30, connected: [] }
+                            { id: 'out', x: 110, y: 30, connected: [] }
                         ];
                         break;
                     case 'NOT':
@@ -1526,7 +1526,7 @@ import Layout from '../layouts/Layout.astro';
                             { id: 'in', x: 0, y: 30, connected: null }
                         ];
                         baseComponent.outputs = [
-                            { id: 'out', x: 80, y: 30, connected: [] }
+                            { id: 'out', x: 110, y: 30, connected: [] }
                         ];
                         break;
                     case 'INPUT':
