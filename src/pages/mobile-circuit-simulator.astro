@@ -525,6 +525,42 @@ import Layout from '../layouts/Layout.astro';
             transform: scale(1.1);
         }
 
+        /* 削除ゾーン表示（ドラッグ中にパレット上に来たとき） */
+        .component-palette.delete-zone {
+            background: #ffebee !important;
+            border: 3px dashed #f44336 !important;
+            border-bottom: 3px dashed #f44336 !important;
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3) !important;
+            transition: all 0.15s ease !important;
+        }
+
+        .component-palette.delete-zone::before {
+            content: "🗑️ ここにドロップすると削除されます";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 10001;
+            white-space: nowrap;
+        }
+
+        .component-palette.delete-zone-active {
+            background: #ffcdd2 !important;
+            animation: pulse-delete 0.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-delete {
+            0% { box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3); }
+            100% { box-shadow: 0 6px 20px rgba(244, 67, 54, 0.6); }
+        }
+
         /* 隠しファイル入力 */
         .hidden-file-input {
             display: none;
@@ -1151,9 +1187,22 @@ import Layout from '../layouts/Layout.astro';
                         this.dragStarted = true;
                         this.saveState();
                     }
-                    
+
                     this.selectedComponent.x = pos.x - this.dragOffset.x;
                     this.selectedComponent.y = pos.y - this.dragOffset.y;
+
+                    // 削除ゾーン（パレット）の上にいるか判定して表示を切り替える
+                    const palette = document.getElementById('component-palette');
+                    if (palette && !this.pendingComponent) {
+                        const rawX = event.clientX || (event.touches && event.touches[0] && event.touches[0].clientX);
+                        const rawY = event.clientY || (event.touches && event.touches[0] && event.touches[0].clientY);
+                        const paletteRect = palette.getBoundingClientRect();
+                        const isOverPalette = rawX >= paletteRect.left && rawX <= paletteRect.right &&
+                                              rawY >= paletteRect.top && rawY <= paletteRect.bottom;
+                        palette.classList.toggle('delete-zone', true);
+                        palette.classList.toggle('delete-zone-active', isOverPalette);
+                    }
+
                     this.render();
                 } else if (this.isPanning && this.lastPanPoint) {
                     // パン処理は生の座標を使用
@@ -1178,10 +1227,16 @@ import Layout from '../layouts/Layout.astro';
 
             handlePointerUp(event) {
                 event.preventDefault();
-                
+
                 // パレットスクロール状態をリセット
                 this.isPaletteScrolling = false;
-                
+
+                // 削除ゾーン表示をリセット
+                const paletteEl = document.getElementById('component-palette');
+                if (paletteEl) {
+                    paletteEl.classList.remove('delete-zone', 'delete-zone-active');
+                }
+
                 if (this.isConnecting && this.connectionStart) {
                     const pos = this.getPointerPos(event);
                     let port = this.getPortAt(pos.x, pos.y);
@@ -1236,9 +1291,41 @@ import Layout from '../layouts/Layout.astro';
                         touchDistance < this.dragThreshold) { // 10px以下の移動
                         this.adjustOscillatorFrequency(this.selectedComponent);
                     } else {
-                        // ドラッグ完了 - エリア外削除判定
+                        // ドラッグ完了 - 削除判定
                         const component = this.selectedComponent;
-                        
+
+                        // パレット上にドロップされた場合は削除
+                        const dropPaletteEl = document.getElementById('component-palette');
+                        let droppedOnPalette = false;
+                        if (dropPaletteEl && !component.isNewFromPalette) {
+                            const rawDropX = event.clientX || (event.changedTouches && event.changedTouches[0] && event.changedTouches[0].clientX);
+                            const rawDropY = event.clientY || (event.changedTouches && event.changedTouches[0] && event.changedTouches[0].clientY);
+                            const pRect = dropPaletteEl.getBoundingClientRect();
+                            droppedOnPalette = rawDropX >= pRect.left && rawDropX <= pRect.right &&
+                                              rawDropY >= pRect.top && rawDropY <= pRect.bottom;
+                        }
+
+                        if (droppedOnPalette) {
+                            console.log('Component dropped on palette, deleting:', component.type);
+                            const connectionsToDelete = this.connections.filter(c =>
+                                c.from.component.id === component.id || c.to.component.id === component.id
+                            );
+                            connectionsToDelete.forEach(c => this.removeConnection(c.id));
+                            this.components.delete(component.id);
+                            this.selectedComponent = null;
+                            this.render();
+                            this.saveState();
+                            this.updateSimulation();
+
+                            this.isDragging = false;
+                            this.pendingComponent = null;
+                            if (this.globalMouseMoveHandler) {
+                                document.removeEventListener('mousemove', this.globalMouseMoveHandler);
+                                document.removeEventListener('mouseup', this.globalMouseUpHandler);
+                            }
+                            return;
+                        }
+
                         // PC環境とモバイル環境で異なる削除判定を使用
                         const isDesktop = window.innerWidth > 768;
                         let shouldDelete = false;
@@ -3501,9 +3588,11 @@ import Layout from '../layouts/Layout.astro';
                     this.selectedComponent = null;
                     this.selectedConnection = null;
                     this.cancelConnection();
+                    const _p = document.getElementById('component-palette');
+                    if (_p) _p.classList.remove('delete-zone', 'delete-zone-active');
                 }
             }
-            
+
             handleTouchMove(event) {
                 event.preventDefault();
                 this.touches = Array.from(event.touches);
