@@ -708,6 +708,7 @@ import Layout from '../layouts/Layout.astro';
                 this.historyIndex = -1;
                 this.isConnecting = false;
                 this.connectionStart = null;
+                this.hoverPort = null;
                 this.currentMousePos = { x: 0, y: 0 };
                 this.isSimulating = true;
                 this.simulationInterval = null;
@@ -1178,6 +1179,8 @@ import Layout from '../layouts/Layout.astro';
                 this.currentMousePos = pos;
                 
                 if (this.isConnecting) {
+                    // 接続先候補ポートをハイライト
+                    this.hoverPort = this.getPortAt(pos.x, pos.y);
                     this.render();
                 } else if (this.isDragging && this.selectedComponent) {
                     // パレットから作成された部品で、まだマップに追加されていない場合
@@ -2015,6 +2018,7 @@ import Layout from '../layouts/Layout.astro';
                 console.log('cancelConnection - Was connecting:', this.isConnecting);
                 this.isConnecting = false;
                 this.connectionStart = null;
+                this.hoverPort = null;
             }
             
             removeConnection(connectionId) {
@@ -3553,24 +3557,54 @@ import Layout from '../layouts/Layout.astro';
             
             drawConnectionPreview(ctx) {
                 if (!this.connectionStart) return;
-                
+
                 const startX = this.connectionStart.component.x + this.connectionStart.port.x;
                 const startY = this.connectionStart.component.y + this.connectionStart.port.y;
-                const endX = this.currentMousePos.x;
-                const endY = this.currentMousePos.y;
-                
+
+                // 接続先候補ポートがある場合はそこへスナップ
+                let endX, endY;
+                if (this.hoverPort) {
+                    endX = this.hoverPort.component.x + this.hoverPort.port.x;
+                    endY = this.hoverPort.component.y + this.hoverPort.port.y;
+                } else {
+                    endX = this.currentMousePos.x;
+                    endY = this.currentMousePos.y;
+                }
+
                 ctx.strokeStyle = '#ff5722';
                 ctx.lineWidth = 4;
                 ctx.setLineDash([8, 8]);
-                
+
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
-                
+
                 const midX = (startX + endX) / 2;
                 ctx.bezierCurveTo(midX, startY, midX, endY, endX, endY);
                 ctx.stroke();
-                
+
                 ctx.setLineDash([]);
+
+                // ホバー中のポートをハイライト表示
+                if (this.hoverPort) {
+                    const hx = this.hoverPort.component.x + this.hoverPort.port.x;
+                    const hy = this.hoverPort.component.y + this.hoverPort.port.y;
+
+                    // 外側のグロー
+                    ctx.fillStyle = 'rgba(255, 87, 34, 0.25)';
+                    ctx.beginPath();
+                    ctx.arc(hx, hy, 14, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // ハイライト円
+                    ctx.fillStyle = '#ff5722';
+                    ctx.beginPath();
+                    ctx.arc(hx, hy, 9, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
             }
             
             handleTouchStart(event) {
