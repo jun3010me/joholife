@@ -3887,29 +3887,30 @@ class NetworkSimulator {
 
     // 同じルーターの異なるポート間の通信チェック
     checkSameRouterPortCommunication(clientDevice, routerDevice) {
-        // クライアントが接続されているルーターのポート（LAN1/LAN2）を判定
-        const clientLAN = this.determineLANConnection(clientDevice, routerDevice);
+        // クライアントが接続されているルーターのLAN設定を取得
+        const clientLANConfig = this.determineLANConnection(clientDevice, routerDevice);
 
-        // ルーターのどのIPアドレスに対する通信かを判定
-        const routerIP = routerDevice.config.ipAddress;
-        const lan1IP = routerDevice.config.lan1?.ipAddress;
-        const lan2IP = routerDevice.config.lan2?.ipAddress;
+        console.log(`🔍 ルーター通信チェック: ${clientDevice.name} → ${routerDevice.name}`);
+        console.log(`📍 クライアントLAN設定:`, clientLANConfig);
 
-        console.log(`🔍 ルーター通信チェック: ${clientDevice.name}(LAN${clientLAN}) → ${routerDevice.name}`);
-        console.log(`📍 ルーターIP: ${routerIP}, LAN1: ${lan1IP}, LAN2: ${lan2IP}`);
-
-        // クライアントが接続されているLANのIPアドレスなら通信可能
-        if (clientLAN === 1 && (routerIP === lan1IP || routerIP === routerDevice.config.ipAddress)) {
-            console.log(`✅ LAN1内通信: ${clientDevice.name} → ${routerDevice.name}`);
-            return true;
-        }
-        if (clientLAN === 2 && routerIP === lan2IP) {
-            console.log(`✅ LAN2内通信: ${clientDevice.name} → ${routerDevice.name}`);
-            return true;
+        if (!clientLANConfig) {
+            console.log(`🚫 LAN接続を判定できませんでした: ${clientDevice.name} → ${routerDevice.name}`);
+            return false;
         }
 
-        console.log(`🚫 セグメント越え通信: ${clientDevice.name}(LAN${clientLAN}) → ${routerDevice.name}(${routerIP})`);
-        return false;
+        // クライアントのIPがLANのサブネット内にあるか確認
+        const clientIP = clientDevice.config.ipAddress;
+        const lanIP = clientLANConfig.ipAddress;
+        const lanSubnet = clientLANConfig.subnetMask;
+        const inSameSubnet = this.isInSameSubnet(clientIP, lanIP, lanSubnet);
+
+        console.log(`📍 サブネット確認: ${clientIP} と ${lanIP}/${lanSubnet} → ${inSameSubnet ? '同一' : '異なる'}`);
+        if (inSameSubnet) {
+            console.log(`✅ 同一LAN内通信: ${clientDevice.name} → ${routerDevice.name}`);
+        } else {
+            console.log(`🚫 セグメント越え通信: ${clientDevice.name} → ${routerDevice.name}`);
+        }
+        return inSameSubnet;
     }
     
     // 詳細なサブネット不一致の理由を取得
@@ -4594,11 +4595,11 @@ class NetworkSimulator {
     getConnectedDevices(device) {
         const connected = [];
         for (const connection of this.connections) {
-            if (connection.device1 === device.id) {
-                const connectedDevice = this.devices.get(connection.device2);
+            if (connection.from?.device === device || connection.from?.deviceId === device.id) {
+                const connectedDevice = connection.to?.device || this.devices.get(connection.to?.deviceId);
                 if (connectedDevice) connected.push(connectedDevice);
-            } else if (connection.device2 === device.id) {
-                const connectedDevice = this.devices.get(connection.device1);
+            } else if (connection.to?.device === device || connection.to?.deviceId === device.id) {
+                const connectedDevice = connection.from?.device || this.devices.get(connection.from?.deviceId);
                 if (connectedDevice) connected.push(connectedDevice);
             }
         }
