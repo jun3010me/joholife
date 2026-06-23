@@ -565,6 +565,79 @@ import Layout from '../layouts/Layout.astro';
         .hidden-file-input {
             display: none;
         }
+
+        /* ========================================= */
+        /* iPhone横向き専用：左サイドバーレイアウト   */
+        /* ========================================= */
+        @media (orientation: landscape) and (max-height: 500px) {
+            /* パレットを左サイドバーに変更 */
+            .component-palette {
+                top: calc(env(safe-area-inset-top, 0px) + 4rem);
+                left: env(safe-area-inset-left, 0px);
+                right: auto;
+                bottom: 0;
+                width: 80px;
+                height: auto;
+                overflow-y: auto;
+                overflow-x: hidden;
+                flex-direction: column;
+                border-bottom: none;
+                border-right: 1px solid #ddd;
+                padding: 4px;
+            }
+
+            .palette-content {
+                flex-direction: column !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+                touch-action: pan-y !important;
+                width: 100% !important;
+                height: auto !important;
+                flex-wrap: nowrap !important;
+                gap: 6px !important;
+                align-items: center !important;
+                padding: 4px 2px !important;
+            }
+
+            .component-category {
+                flex-direction: column !important;
+                align-items: center !important;
+                margin-right: 0 !important;
+            }
+
+            .component-grid {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 6px !important;
+            }
+
+            .component-item {
+                width: 68px !important;
+                height: 68px !important;
+                min-height: 68px !important;
+                margin-right: 0 !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* キャンバスをサイドバーの右側に配置 */
+            .main-canvas {
+                top: calc(env(safe-area-inset-top, 0px) + 4rem) !important;
+                left: calc(env(safe-area-inset-left, 0px) + 80px) !important;
+                right: env(safe-area-inset-right, 0px) !important;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 60px) !important;
+            }
+
+            /* 削除ゾーンのテキストを左サイドバー向けに調整 */
+            .component-palette.delete-zone::before {
+                content: "🗑️ ここへ";
+                font-size: 12px;
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+                white-space: normal;
+                width: auto;
+                padding: 8px 4px;
+            }
+        }
     </style>
 
     <!-- メインアプリケーション -->
@@ -742,20 +815,10 @@ import Layout from '../layouts/Layout.astro';
             }
             
             // モバイル横画面の判定（CSSメディアクエリと完全統一）
+            // CSS: (orientation: landscape) and (max-height: 500px)
+            // iPhone横向きのみ該当（iPadは縦幅が500px超）
             isMobileLandscape() {
-                // CSSと同じ条件：(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)
-                const isLandscape = window.matchMedia('(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)').matches;
-                
-                console.log('Landscape detection:', {
-                    mediaQuery: window.matchMedia('(max-width: 1024px) and (hover: none) and (pointer: coarse) and (orientation: landscape)').matches,
-                    orientation: window.matchMedia('(orientation: landscape)').matches,
-                    maxWidth: window.matchMedia('(max-width: 1024px)').matches,
-                    hoverNone: window.matchMedia('(hover: none)').matches,
-                    pointerCoarse: window.matchMedia('(pointer: coarse)').matches,
-                    innerWidth: window.innerWidth,
-                    innerHeight: window.innerHeight,
-                    isLandscape: isLandscape
-                });
+                const isLandscape = window.matchMedia('(orientation: landscape) and (max-height: 500px) and (hover: none) and (pointer: coarse)').matches;
                 return isLandscape;
             }
 
@@ -891,37 +954,34 @@ import Layout from '../layouts/Layout.astro';
                 
                 // 現在の画面方向に応じてパレットを再構築
                 if (isLandscape) {
-                    // 横画面用の再構築
-                    console.log('Rebuilding for landscape mode');
-                    
+                    // 横画面用の再構築（左サイドバーレイアウト）
+                    console.log('Rebuilding for landscape mode (sidebar)');
+
                     // パレットのスクロール状態をリセット
                     this.isPaletteScrolling = false;
-                    
-                    // 部品グリッドを横スクロール用に再配置
+
+                    // 部品グリッドを縦並びに再配置
                     const componentGrids = palette.querySelectorAll('.component-grid');
                     componentGrids.forEach(grid => {
-                        // グリッドをフレックスボックスに変更
                         grid.style.display = 'flex';
-                        grid.style.flexDirection = 'row';
+                        grid.style.flexDirection = 'column';
+                        grid.style.alignItems = 'center';
                         grid.style.flexWrap = 'nowrap';
-                        grid.style.overflowX = 'visible';
-                        grid.style.gap = '4px';
-                        
-                        // 部品アイテムのサイズを調整（CSSで統一された80pxを維持）
+                        grid.style.gap = '6px';
+
                         const items = grid.querySelectorAll('.component-item');
                         items.forEach(item => {
-                            // CSS設定を優先して動的変更は行わない
                             item.style.flexShrink = '0';
                         });
                     });
-                    
-                    // パレットコンテンツを横スクロール用に調整
+
+                    // パレットコンテンツを縦スクロール用に調整
                     const paletteContent = palette.querySelector('.palette-content');
                     if (paletteContent) {
-                        paletteContent.style.overflowX = 'auto';
-                        paletteContent.style.overflowY = 'hidden';
+                        paletteContent.style.overflowX = 'hidden';
+                        paletteContent.style.overflowY = 'auto';
                         paletteContent.style.display = 'flex';
-                        paletteContent.style.flexDirection = 'row';
+                        paletteContent.style.flexDirection = 'column';
                         paletteContent.style.alignItems = 'center';
                     }
                 } else {
@@ -1490,36 +1550,18 @@ import Layout from '../layouts/Layout.astro';
                     console.log('Touch position:', touch.clientX, touch.clientY);
                     console.log('Canvas rect:', canvasRect);
                     
-                    // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
-                    let isWithinCanvas = false;
-                    const isLandscape = this.isMobileLandscape();
-                    
-                    if (isLandscape) {
-                        // 横レイアウト時：パレット領域（下部140px）を除外
-                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
-                                       touch.clientY >= canvasRect.top && touch.clientY <= (canvasRect.bottom - 140);
-                    } else {
-                        // 縦レイアウト時：通常の判定
-                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
-                                       touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
-                    }
-                    
+                    // タッチ位置がキャンバス内かチェック
+                    const isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                   touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
+
                     if (isWithinCanvas) {
-                        // キャンバス内の場合、その座標を使用
                         x = (touch.clientX - canvasRect.left - this.panX) / this.scale;
                         y = (touch.clientY - canvasRect.top - this.panY) / this.scale;
                         console.log('Touch within canvas, using touch position:', x, y);
                     } else {
                         // キャンバス外（パレット）の場合、キャンバス中央に配置
-                        if (isLandscape) {
-                            // 横レイアウト時：パレット領域を除いたキャンバス中央
-                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                            y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
-                        } else {
-                            // 縦レイアウト時：通常のキャンバス中央
-                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                            y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
-                        }
+                        x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                        y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
                         console.log('Touch outside canvas (palette), using center:', x, y);
                     }
                 } else {
@@ -1528,22 +1570,22 @@ import Layout from '../layouts/Layout.astro';
                     y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
                     console.log('Mouse event, using center:', x, y);
                 }
-                
+
                 const component = this.createComponent(type, x, y);
                 component.isNewFromPalette = true; // パレットから作成されたことを記録
-                
+
                 // 重要：まだマップには追加せず、一時的に保持
                 this.pendingComponent = component;
                 this.selectedComponent = component;
                 this.isDragging = true;
                 this.dragOffset = { x: 0, y: 0 };
                 this.dragStarted = false; // 実際のドラッグが開始されたかのフラグ
-                
+
                 // タッチイベントの場合、グローバルなイベントリスナーを追加
                 if (event.type === 'touchstart') {
                     this.setupGlobalTouchHandlers();
                 }
-                
+
                 // まだ描画はしない（部品は表示されない）
                 console.log('Component prepared for drag, not yet visible:', component.type);
             }
@@ -3725,6 +3767,7 @@ import Layout from '../layouts/Layout.astro';
                 // パレットコンテンツの現在のスクロール位置を記録
                 const paletteContent = document.querySelector('.palette-content');
                 this.paletteScrollStartScrollLeft = paletteContent ? paletteContent.scrollLeft : 0;
+                this.paletteScrollStartScrollTop = paletteContent ? paletteContent.scrollTop : 0;
                 
                 // 常にスクロール状態をリセット（部品アイテムタッチでも背景タッチでも）
                 console.log('handlePaletteScrollStart: resetting isPaletteScrolling from', this.isPaletteScrolling, 'to false');
@@ -3777,52 +3820,78 @@ import Layout from '../layouts/Layout.astro';
                     pendingComponentDrag: this.pendingComponentDrag ? 'exists' : 'null'
                 });
                 
-                // 移動判定の改善：縦方向の移動が大きい場合は部品ドラッグを優先
-                if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
-                    // 部品ドラッグ待機中の場合
-                    if (this.pendingComponentDrag) {
-                        console.log('Evaluating movement: deltaY:', deltaY, 'deltaX:', deltaX, 'deltaY > deltaX:', deltaY > deltaX);
-                        // 部品ドラッグ判定を緩く（斜め移動も含む）
-                        if ((deltaY > 12 || deltaX > 12) && deltaY > 8) {
-                            console.log('🔽 Starting component drag (vertical movement), deltaY:', deltaY, 'deltaX:', deltaX);
-                            this.startActualComponentDrag(this.pendingComponentDrag.type, event);
-                            this.pendingComponentDrag = null;
-                            return; // スクロール処理は実行しない
-                        }
-                        // 横方向の移動が大きい場合は常にスクロール優先
-                        else if (deltaX > 8) { // スクロール検出範囲を緩く
-                            this.isPaletteScrolling = true;
-                            console.log('◀️▶️ Palette scroll activated (horizontal movement)! deltaX:', deltaX);
-                            this.pendingComponentDrag = null;
-                            // スクロールを明示的に許可（preventDefaultしない）
-                        }
-                        // 横方向の移動が大きく、移動距離が長い場合はドラッグ
-                        else {
-                            console.log('🔽 Starting component drag (long horizontal movement), deltaX:', deltaX);
-                            this.startActualComponentDrag(this.pendingComponentDrag.type, event);
-                            this.pendingComponentDrag = null;
-                            return; // スクロール処理は実行しない
-                        }
-                    } else {
-                        console.log('No pending component drag, deltaX:', deltaX, 'deltaY:', deltaY);
-                        // 部品ドラッグ待機中でない場合で、横方向の移動が大きい場合はスクロール
-                        if (deltaX > deltaY) {
-                            this.isPaletteScrolling = true;
-                            console.log('Palette scroll activated!');
+                const isSidebar = this.isMobileLandscape();
+
+                if (isSidebar) {
+                    // ===== 左サイドバーモード =====
+                    // 横移動 → 部品ドラッグ（キャンバス方向）
+                    // 縦移動 → パレット縦スクロール
+                    if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
+                        if (this.pendingComponentDrag) {
+                            if (deltaX > 12 && deltaX > deltaY) {
+                                // 横方向の移動 = 部品をキャンバスへドラッグ
+                                this.startActualComponentDrag(this.pendingComponentDrag.type, event);
+                                this.pendingComponentDrag = null;
+                                return;
+                            } else if (deltaY > 8) {
+                                // 縦方向の移動 = パレットをスクロール
+                                this.isPaletteScrolling = true;
+                                this.pendingComponentDrag = null;
+                            }
+                        } else {
+                            if (deltaY > deltaX) {
+                                this.isPaletteScrolling = true;
+                            }
                         }
                     }
-                }
-                
-                // スクロール中は実際にパレットをスクロールさせる
-                if (this.isPaletteScrolling) {
-                    const paletteContent = document.querySelector('.palette-content');
-                    if (paletteContent) {
-                        const deltaX = touch.clientX - this.paletteScrollStartX;
-                        const newScrollLeft = this.paletteScrollStartScrollLeft - deltaX;
-                        paletteContent.scrollLeft = Math.max(0, Math.min(newScrollLeft, paletteContent.scrollWidth - paletteContent.clientWidth));
+
+                    // 縦スクロール実行
+                    if (this.isPaletteScrolling) {
+                        const paletteContent = document.querySelector('.palette-content');
+                        if (paletteContent) {
+                            const deltaYScroll = touch.clientY - this.paletteScrollStartY;
+                            const newScrollTop = this.paletteScrollStartScrollTop - deltaYScroll;
+                            paletteContent.scrollTop = Math.max(0, Math.min(newScrollTop, paletteContent.scrollHeight - paletteContent.clientHeight));
+                        }
+                        event.preventDefault();
+                        return;
                     }
-                    event.preventDefault();
-                    return;
+                } else {
+                    // ===== 上部バーモード（縦向き時）=====
+                    // 横移動 → パレット横スクロール
+                    // 縦移動 → 部品ドラッグ
+                    if (deltaX > this.paletteScrollThreshold || deltaY > this.paletteScrollThreshold) {
+                        if (this.pendingComponentDrag) {
+                            if ((deltaY > 12 || deltaX > 12) && deltaY > 8) {
+                                this.startActualComponentDrag(this.pendingComponentDrag.type, event);
+                                this.pendingComponentDrag = null;
+                                return;
+                            } else if (deltaX > 8) {
+                                this.isPaletteScrolling = true;
+                                this.pendingComponentDrag = null;
+                            } else {
+                                this.startActualComponentDrag(this.pendingComponentDrag.type, event);
+                                this.pendingComponentDrag = null;
+                                return;
+                            }
+                        } else {
+                            if (deltaX > deltaY) {
+                                this.isPaletteScrolling = true;
+                            }
+                        }
+                    }
+
+                    // 横スクロール実行
+                    if (this.isPaletteScrolling) {
+                        const paletteContent = document.querySelector('.palette-content');
+                        if (paletteContent) {
+                            const deltaXScroll = touch.clientX - this.paletteScrollStartX;
+                            const newScrollLeft = this.paletteScrollStartScrollLeft - deltaXScroll;
+                            paletteContent.scrollLeft = Math.max(0, Math.min(newScrollLeft, paletteContent.scrollWidth - paletteContent.clientWidth));
+                        }
+                        event.preventDefault();
+                        return;
+                    }
                 }
             }
             
@@ -3858,36 +3927,18 @@ import Layout from '../layouts/Layout.astro';
                     console.log('Touch position:', touch.clientX, touch.clientY);
                     console.log('Canvas rect:', canvasRect);
                     
-                    // タッチ位置がキャンバス内かチェック（横レイアウト時はパレット領域を除外）
-                    let isWithinCanvas = false;
-                    const isLandscape = this.isMobileLandscape();
-                    
-                    if (isLandscape) {
-                        // 横レイアウト時：パレット領域（下部140px）を除外
-                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
-                                       touch.clientY >= canvasRect.top && touch.clientY <= (canvasRect.bottom - 140);
-                    } else {
-                        // 縦レイアウト時：通常の判定
-                        isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
-                                       touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
-                    }
-                    
+                    // タッチ位置がキャンバス内かチェック
+                    const isWithinCanvas = touch.clientX >= canvasRect.left && touch.clientX <= canvasRect.right &&
+                                   touch.clientY >= canvasRect.top && touch.clientY <= canvasRect.bottom;
+
                     if (isWithinCanvas) {
-                        // キャンバス内の場合、その座標を使用
                         x = (touch.clientX - canvasRect.left - this.panX) / this.scale;
                         y = (touch.clientY - canvasRect.top - this.panY) / this.scale;
                         console.log('Touch within canvas, using touch position:', x, y);
                     } else {
                         // キャンバス外（パレット）の場合、キャンバス中央に配置
-                        if (isLandscape) {
-                            // 横レイアウト時：パレット領域を除いたキャンバス中央
-                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                            y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
-                        } else {
-                            // 縦レイアウト時：通常のキャンバス中央
-                            x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                            y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
-                        }
+                        x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                        y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
                         console.log('Touch outside canvas (palette), using center:', x, y);
                     }
                 } else {
@@ -3896,22 +3947,22 @@ import Layout from '../layouts/Layout.astro';
                     y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
                     console.log('Mouse event, using center:', x, y);
                 }
-                
+
                 const component = this.createComponent(type, x, y);
                 component.isNewFromPalette = true; // パレットから作成されたことを記録
-                
+
                 // 重要：まだマップには追加せず、一時的に保持
                 this.pendingComponent = component;
                 this.selectedComponent = component;
                 this.isDragging = true;
                 this.dragOffset = { x: 0, y: 0 };
                 this.dragStarted = false; // 実際のドラッグが開始されたかのフラグ
-                
+
                 // タッチイベントの場合、グローバルなイベントリスナーを追加
                 if (event.type === 'touchstart') {
                     this.setupGlobalTouchHandlers();
                 }
-                
+
                 // 実際のドラッグ開始フラグを設定
                 this.dragStarted = true;
                 
@@ -3933,16 +3984,10 @@ import Layout from '../layouts/Layout.astro';
                 const isLandscape = this.isMobileLandscape();
                 let x, y;
                 
-                if (isLandscape) {
-                    // 横レイアウト時：パレット領域を除いたキャンバス中央
-                    x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                    y = ((this.canvas.clientHeight - 140) / 2 - this.panY) / this.scale;
-                } else {
-                    // 縦レイアウト時：通常のキャンバス中央
-                    x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
-                    y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
-                }
-                
+                // サイドバーモードではキャンバスが左80pxを除いた全体なのでそのまま中央
+                x = (this.canvas.clientWidth / 2 - this.panX) / this.scale;
+                y = (this.canvas.clientHeight / 2 - this.panY) / this.scale;
+
                 console.log('Creating component at position:', x, y);
                 
                 const component = this.createComponent(type, x, y);
