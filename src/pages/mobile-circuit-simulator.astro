@@ -994,40 +994,46 @@ import Layout from '../layouts/Layout.astro';
                 const items = palette.querySelectorAll('.component-item');
 
                 const isTouch = this.isTouchDevice();
-                const isNarrowScreen = window.innerWidth <= 1024; // 狭い画面かどうか
-                
+
                 console.log('Device detection:', {
                     isTouchDevice: isTouch,
-                    isNarrowScreen: isNarrowScreen,
+                    isNarrowScreen: window.innerWidth <= 1024,
                     width: window.innerWidth,
                     hasTouch: ('ontouchstart' in window || navigator.maxTouchPoints > 0),
                     primaryTouch: window.matchMedia('(hover: none) and (pointer: coarse)').matches
                 });
 
-                // 狭い画面（1024px以下）では常にタッチスクロールを有効化
-                if (isNarrowScreen) {
-                    console.log('Setting up touch event handlers (narrow screen)');
-                    const paletteContent = document.querySelector('.palette-content');
-                    if (paletteContent) {
-                        // パレット全体でのスクロール処理（passive: falseで制御可能に）
-                        paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
-                        paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
-                        paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
-                    }
-                    
-                    // 狭い画面でもマウスイベントは併用（PCとタッチ両対応）
-                    items.forEach(item => {
-                        item.addEventListener('mousedown', this.startComponentDrag.bind(this));
-                        // 個別アイテムのタッチイベントは削除（パレット全体で処理）
-                    });
-                } else {
-                    console.log('Setting up mouse event handlers (wide screen)');
-                    // 広い画面ではマウス操作のみ
-                    items.forEach(item => {
-                        item.addEventListener('mousedown', this.startComponentDrag.bind(this));
-                        item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
-                    });
+                // タッチスクロールハンドラは常に登録（ハンドラ内でwidth判定済み）
+                const paletteContent = document.querySelector('.palette-content');
+                if (paletteContent) {
+                    paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
+                    paletteContent.addEventListener('touchmove', this.handlePaletteScrollMove.bind(this), { passive: false });
+                    paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
                 }
+
+                // マウス・タッチの部品ドラッグは常に両方登録
+                items.forEach(item => {
+                    item.addEventListener('mousedown', this.startComponentDrag.bind(this));
+                    item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
+                });
+
+                // リサイズ時にパレットのスクロール設定を更新
+                this._updatePaletteScroll = () => {
+                    const isNarrow = window.innerWidth <= 1024;
+                    const pc = document.querySelector('.palette-content');
+                    if (!pc) return;
+                    if (isNarrow) {
+                        pc.style.overflowX = 'auto';
+                        pc.style.overflowY = 'hidden';
+                        pc.style.touchAction = 'pan-x';
+                    } else {
+                        pc.style.overflowX = 'auto';
+                        pc.style.overflowY = 'hidden';
+                        pc.style.touchAction = '';
+                    }
+                };
+                window.addEventListener('resize', this._updatePaletteScroll);
+                this._updatePaletteScroll(); // 初回適用
             }
 
             setupFileHandling() {
