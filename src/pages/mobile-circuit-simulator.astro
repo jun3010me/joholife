@@ -1017,23 +1017,19 @@ import Layout from '../layouts/Layout.astro';
                     item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
                 });
 
-                // リサイズ時にパレットのスクロール設定を更新
-                this._updatePaletteScroll = () => {
-                    const isNarrow = window.innerWidth <= 1024;
+                // ResizeObserver でパレット自身のサイズ変化を確実に検知
+                // (window.resize より確実: Windowsスナップ・分割画面にも対応)
+                const ensurePaletteScrollable = () => {
                     const pc = document.querySelector('.palette-content');
                     if (!pc) return;
-                    if (isNarrow) {
-                        pc.style.overflowX = 'auto';
-                        pc.style.overflowY = 'hidden';
-                        pc.style.touchAction = 'pan-x';
-                    } else {
-                        pc.style.overflowX = 'auto';
-                        pc.style.overflowY = 'hidden';
-                        pc.style.touchAction = '';
-                    }
+                    pc.style.setProperty('overflow-x', 'auto', 'important');
+                    pc.style.setProperty('overflow-y', 'hidden', 'important');
                 };
-                window.addEventListener('resize', this._updatePaletteScroll);
-                this._updatePaletteScroll(); // 初回適用
+                if (window.ResizeObserver) {
+                    new ResizeObserver(ensurePaletteScrollable).observe(palette);
+                }
+                window.addEventListener('resize', ensurePaletteScrollable);
+                ensurePaletteScrollable();
             }
 
             setupFileHandling() {
@@ -3709,8 +3705,9 @@ import Layout from '../layouts/Layout.astro';
             
             // パレットスクロール処理
             handlePaletteScrollStart(event) {
-                // 狭い画面（1024px以下）でパレットスクロールを有効化
-                if (window.innerWidth > 1024) {
+                // パレットコンテンツが実際にオーバーフローしていない場合はスキップ
+                const paletteContent = document.querySelector('.palette-content');
+                if (!paletteContent || paletteContent.scrollWidth <= paletteContent.clientWidth + 2) {
                     return;
                 }
                 
@@ -3747,8 +3744,9 @@ import Layout from '../layouts/Layout.astro';
             }
             
             handlePaletteScrollMove(event) {
-                // 狭い画面（1024px以下）でパレットスクロールを有効化
-                if (window.innerWidth > 1024) {
+                // パレットコンテンツが実際にオーバーフローしていない場合はスキップ
+                const _pc = document.querySelector('.palette-content');
+                if (!_pc || _pc.scrollWidth <= _pc.clientWidth + 2) {
                     return;
                 }
                 
@@ -3823,10 +3821,6 @@ import Layout from '../layouts/Layout.astro';
             }
             
             handlePaletteScrollEnd(event) {
-                // 狭い画面（1024px以下）でパレットスクロールを有効化
-                if (window.innerWidth > 1024) {
-                    return;
-                }
                 
                 // 待機中の部品ドラッグをクリア
                 console.log('handlePaletteScrollEnd: clearing pendingComponentDrag from', this.pendingComponentDrag ? 'exists' : 'null');
