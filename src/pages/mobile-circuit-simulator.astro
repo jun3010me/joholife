@@ -1003,7 +1003,8 @@ import Layout from '../layouts/Layout.astro';
                     primaryTouch: window.matchMedia('(hover: none) and (pointer: coarse)').matches
                 });
 
-                // タッチスクロールハンドラは常に登録（ハンドラ内でwidth判定済み）
+                // パレットスクロール用タッチハンドラは常に登録
+                // リサイズ後も確実に動作するよう、初回幅に関係なく登録する
                 const paletteContent = document.querySelector('.palette-content');
                 if (paletteContent) {
                     paletteContent.addEventListener('touchstart', this.handlePaletteScrollStart.bind(this), { passive: false });
@@ -1011,25 +1012,32 @@ import Layout from '../layouts/Layout.astro';
                     paletteContent.addEventListener('touchend', this.handlePaletteScrollEnd.bind(this), { passive: false });
                 }
 
-                // マウス・タッチの部品ドラッグは常に両方登録
+                // mousedownは常に登録
                 items.forEach(item => {
                     item.addEventListener('mousedown', this.startComponentDrag.bind(this));
-                    item.addEventListener('touchstart', this.startComponentDrag.bind(this), { passive: false });
                 });
 
-                // ResizeObserver でパレット自身のサイズ変化を確実に検知
-                // (window.resize より確実: Windowsスナップ・分割画面にも対応)
-                const ensurePaletteScrollable = () => {
-                    const pc = document.querySelector('.palette-content');
-                    if (!pc) return;
-                    pc.style.setProperty('overflow-x', 'auto', 'important');
-                    pc.style.setProperty('overflow-y', 'hidden', 'important');
+                // touchstartはウインドウ幅に応じて動的に管理
+                // 狭い画面：paletteContentのハンドラがアイテムタッチを処理するため不要
+                // 広い画面：アイテムに直接touchstartを登録（パレットスクロールは不要）
+                let touchAbort = new AbortController();
+                const updateItemTouchHandlers = () => {
+                    const isNarrow = window.innerWidth <= 1024;
+                    touchAbort.abort();
+                    touchAbort = new AbortController();
+                    if (!isNarrow) {
+                        items.forEach(item => {
+                            item.addEventListener('touchstart', this.startComponentDrag.bind(this),
+                                { passive: false, signal: touchAbort.signal });
+                        });
+                    }
                 };
+
+                window.addEventListener('resize', updateItemTouchHandlers);
                 if (window.ResizeObserver) {
-                    new ResizeObserver(ensurePaletteScrollable).observe(palette);
+                    new ResizeObserver(updateItemTouchHandlers).observe(palette);
                 }
-                window.addEventListener('resize', ensurePaletteScrollable);
-                ensurePaletteScrollable();
+                updateItemTouchHandlers();
             }
 
             setupFileHandling() {
@@ -3705,9 +3713,8 @@ import Layout from '../layouts/Layout.astro';
             
             // パレットスクロール処理
             handlePaletteScrollStart(event) {
-                // パレットコンテンツが実際にオーバーフローしていない場合はスキップ
-                const paletteContent = document.querySelector('.palette-content');
-                if (!paletteContent || paletteContent.scrollWidth <= paletteContent.clientWidth + 2) {
+                // 狭い画面（1024px以下）でパレットスクロールを有効化
+                if (window.innerWidth > 1024) {
                     return;
                 }
                 
@@ -3744,9 +3751,8 @@ import Layout from '../layouts/Layout.astro';
             }
             
             handlePaletteScrollMove(event) {
-                // パレットコンテンツが実際にオーバーフローしていない場合はスキップ
-                const _pc = document.querySelector('.palette-content');
-                if (!_pc || _pc.scrollWidth <= _pc.clientWidth + 2) {
+                // 狭い画面（1024px以下）でパレットスクロールを有効化
+                if (window.innerWidth > 1024) {
                     return;
                 }
                 
