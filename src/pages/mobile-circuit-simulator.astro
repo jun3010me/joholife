@@ -1672,7 +1672,14 @@ import Layout from '../layouts/Layout.astro';
                         ];
                         break;
                     case 'INPUT':
+                        // 電源不要：入力端子なし、出力のみ
+                        baseComponent.inputs = [];
+                        baseComponent.outputs = [
+                            { id: 'out', x: 90, y: 25, connected: [] }
+                        ];
+                        break;
                     case 'SWITCH':
+                        // 電源必須：左に電源入力端子あり
                         baseComponent.inputs = [
                             { id: 'power', x: 0, y: 25, connected: null }
                         ];
@@ -2134,14 +2141,21 @@ import Layout from '../layouts/Layout.astro';
             }
             
             calculateComponentState(component) {
-                if (component.type === 'INPUT' || component.type === 'SWITCH') {
-                    // 入力部品の出力は手動状態とパワー入力の AND 演算
-                    const powerInput = this.getInputValue(component, 'power');
-                    // パワー接続がない場合は常にON（従来の動作を保持）
-                    const hasPower = powerInput || !component.inputs.find(input => input.id === 'power').connected;
-                    // userStateを保存して、実際の出力状態を計算
+                if (component.type === 'INPUT') {
+                    // 電源不要：スイッチのオンオフがそのまま出力
                     if (component.userState === undefined) {
-                        component.userState = component.state; // 初期化
+                        component.userState = component.state;
+                    }
+                    component.state = component.userState;
+                    return;
+                }
+                if (component.type === 'SWITCH') {
+                    // 電源必須：電源未接続なら出力は常に0
+                    const powerInput = this.getInputValue(component, 'power');
+                    const powerConnected = component.inputs.find(input => input.id === 'power')?.connected;
+                    const hasPower = powerConnected ? powerInput : false;
+                    if (component.userState === undefined) {
+                        component.userState = component.state;
                     }
                     component.state = component.userState && hasPower;
                     return;
