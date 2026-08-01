@@ -2768,6 +2768,37 @@ class NetworkSimulator {
         }
     }
 
+    // インターネット機器のISP設定（有効/無効・プール範囲）変更を、
+    // 既にONU経由で接続済みのルーター/PC/サーバー等に反映する
+    redistributeInternetISPConnections(internetDevice) {
+        if (!internetDevice || internetDevice.type !== 'internet') return;
+
+        console.log(`\n=== インターネットISP設定の再配布開始: ${internetDevice.name} ===`);
+
+        // このインターネット機器に直接つながっている全ONUを検出
+        const connectedONUs = [];
+        for (const connection of this.connections) {
+            let onuDevice = null;
+            if (connection.from.device === internetDevice && connection.to.device.type === 'onu') {
+                onuDevice = connection.to.device;
+            } else if (connection.to.device === internetDevice && connection.from.device.type === 'onu') {
+                onuDevice = connection.from.device;
+            }
+            if (onuDevice && !connectedONUs.includes(onuDevice)) {
+                connectedONUs.push(onuDevice);
+            }
+        }
+
+        console.log(`🔍 再評価対象のONU数: ${connectedONUs.length}`);
+
+        // 各ONUの先につながっているルーター/PC/サーバー等のグローバルIPを再評価
+        for (const onuDevice of connectedONUs) {
+            this.checkExistingONUConnections(onuDevice);
+        }
+
+        console.log(`=== インターネットISP設定の再配布終了 ===\n`);
+    }
+
     // ルーターのWAN接続かどうかを判定
     isRouterWANConnection(connection) {
         if (connection.from.device.type === 'router' && connection.from.port.id === 'wan') {
@@ -6675,6 +6706,8 @@ class NetworkSimulator {
         // インターネットデバイスの場合はISP設定を処理
         if (this.currentDeviceConfig.type === 'internet') {
             this.saveInternetISPConfig();
+            // ISP設定（有効/無効・プール範囲）の変更を、既に接続済みのルーター/PC/サーバー等に反映
+            this.redistributeInternetISPConnections(this.currentDeviceConfig);
         }
         // ルーター以外かつインターネット以外のデバイスの場合のみ基本ネットワーク設定を処理
         else if (this.currentDeviceConfig.type !== 'router') {
