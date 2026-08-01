@@ -1943,36 +1943,80 @@ function downloadTemplateJSON() {
         height: 70,
         config: {
           ipAddress: "",
-          subnetMask: "255.255.255.0",
+          subnetMask: "",
           defaultGateway: "",
           dhcpEnabled: false,
-          lan1: {
-            ipAddress: "",
+          isp1: {
             dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
+            name: "ISP1",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.10",
+            dhcpPoolEnd: "203.0.113.50",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
           },
-          lan2: {
-            ipAddress: "192.168.2.1",
+          isp2: {
             dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
+            name: "ISP2",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.51",
+            dhcpPoolEnd: "203.0.113.90",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
           },
-          lan3: {
-            ipAddress: "192.168.3.1",
+          isp3: {
             dhcpEnabled: false,
-            dhcpPoolStart: "192.168.1.100",
-            dhcpPoolEnd: "192.168.1.199",
-            dhcpAllocatedIPs: []
+            name: "ISP3",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.91",
+            dhcpPoolEnd: "203.0.113.130",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
+          },
+          isp4: {
+            dhcpEnabled: false,
+            name: "ISP4",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.131",
+            dhcpPoolEnd: "203.0.113.170",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
+          },
+          isp5: {
+            dhcpEnabled: false,
+            name: "ISP5",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.171",
+            dhcpPoolEnd: "203.0.113.210",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
+          },
+          isp6: {
+            dhcpEnabled: false,
+            name: "ISP6",
+            network: "203.0.113.0",
+            ipAddress: "203.0.113.1",
+            subnetMask: "255.255.255.0",
+            dhcpPoolStart: "203.0.113.211",
+            dhcpPoolEnd: "203.0.113.250",
+            dhcpAllocatedIPs: [],
+            gateway: "203.0.113.1"
           },
           dhcpLeaseTime: 3600,
           dhcpServerEnabled: false,
-          dhcpPoolStart: "192.168.1.100",
-          dhcpPoolEnd: "192.168.1.199",
-          internetDevice: null,
-          dhcp: {}
+          dhcpPoolStart: "203.0.113.10",
+          dhcpPoolEnd: "203.0.113.250",
+          dhcpAllocatedIPs: []
         },
         dnsTable: {},
         ports: {
