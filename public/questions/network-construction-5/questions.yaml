@@ -44,6 +44,7 @@ questions:
       8. ONU-3のWANポートをインターネットの別のISPポート（ISP2～ISP6のいずれか）に接続
 
       **設定要件**
+      - インターネット機器で、使用するISPポート（ISP1、Webサーバーが接続したISPポート、DNSサーバーが接続したISPポート）のDHCPサーバーを有効化
       - ルーターでDHCPサーバーを有効化し、PC1、PC2、DNSサーバーにIPアドレスを自動割り当て
       - ルーターとWebサーバー、DNSサーバーはインターネットからDHCPでグローバルIPアドレスを取得
       - PC1、PC2、DNSサーバーがDHCPで適切なIPアドレスを取得できること
@@ -53,14 +54,15 @@ questions:
 
       **解決手順**
       1. ネットワークシミュレータで上記構成を作成
-      2. ルーターのLAN1でDHCPサーバーを有効化
-      3. ルーターのWANでDHCPを有効化（インターネットからIP取得）
-      4. WebサーバーとDNSサーバーでDHCPを有効化（インターネットからグローバルIP取得）
-      5. PC1、PC2、DNSサーバーでDHCPを有効化
-      6. DNSサーバーのDNSテーブルに「Web」レコードを追加
-      7. 通信テストでPing、HTTP通信、DNS名前解決を確認
-      8. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
-      9. 自動判定で正解かどうかを確認
+      2. インターネット機器のプロパティで、ISP1と、Webサーバー・DNSサーバーが接続したISPポートのDHCPサーバーを有効化
+      3. ルーターのLAN1でDHCPサーバーを有効化
+      4. ルーターのWANでDHCPを有効化（インターネットからIP取得）
+      5. WebサーバーとDNSサーバーでDHCPを有効化（インターネットからグローバルIP取得）
+      6. PC1、PC2、DNSサーバーでDHCPを有効化
+      7. DNSサーバーのDNSテーブルに「Web」レコードを追加
+      8. 通信テストでPing、HTTP通信、DNS名前解決を確認
+      9. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
+      10. 自動判定で正解かどうかを確認
 
       **評価ポイント**
       - 正しいトポロジ（接続関係）の構築
@@ -72,6 +74,11 @@ questions:
     # ファイル操作課題の特別な設定
     downloadFile: "/network-simulator/exercises/network-construction-5-problem.json"
     expectedChanges:
+      - deviceName: "インターネット-1"
+        property: "config.isp1.dhcpEnabled"
+        expectedPattern: "true"
+        explanation: "インターネット機器のISP1でDHCPサーバーを有効化してルーターにグローバルIPを配布する必要があります"
+        excludeValues: []
       - deviceName: "ルーター-1"
         property: "config.lan1.dhcpEnabled"
         expectedPattern: "true"

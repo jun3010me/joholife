@@ -1465,7 +1465,7 @@ class NetworkSimulator {
 
             // ISP1-6のDHCPサーバー設定（全て同一セグメント）
             isp1: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP1',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1', // ISP1のゲートウェイIP
@@ -1476,7 +1476,7 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             },
             isp2: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP2',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1', // 同じセグメント
@@ -1487,7 +1487,7 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             },
             isp3: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP3',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1',
@@ -1498,7 +1498,7 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             },
             isp4: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP4',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1',
@@ -1509,7 +1509,7 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             },
             isp5: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP5',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1',
@@ -1520,7 +1520,7 @@ class NetworkSimulator {
                 gateway: '203.0.113.1'
             },
             isp6: {
-                dhcpEnabled: true,
+                dhcpEnabled: false,
                 name: 'ISP6',
                 network: '203.0.113.0',
                 ipAddress: '203.0.113.1',
