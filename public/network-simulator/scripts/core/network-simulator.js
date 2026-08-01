@@ -8473,7 +8473,27 @@ class NetworkSimulator {
                     dhcpAllocatedIPs: device.config.lan3.dhcpAllocatedIPs ?
                         Array.from(device.config.lan3.dhcpAllocatedIPs.entries()) : []
                 } : undefined,
-                
+
+                // ISP1-6設定（インターネット機器用）
+                ...['isp1', 'isp2', 'isp3', 'isp4', 'isp5', 'isp6'].reduce((isps, ispId) => {
+                    const isp = device.config[ispId];
+                    if (isp) {
+                        isps[ispId] = {
+                            dhcpEnabled: isp.dhcpEnabled,
+                            name: isp.name,
+                            network: isp.network,
+                            ipAddress: isp.ipAddress,
+                            subnetMask: isp.subnetMask,
+                            dhcpPoolStart: isp.dhcpPoolStart,
+                            dhcpPoolEnd: isp.dhcpPoolEnd,
+                            dhcpAllocatedIPs: isp.dhcpAllocatedIPs ?
+                                Array.from(isp.dhcpAllocatedIPs.entries()) : [],
+                            gateway: isp.gateway
+                        };
+                    }
+                    return isps;
+                }, {}),
+
                 // DHCP共通設定
                 dhcpLeaseTime: device.config.dhcpLeaseTime,
                 dhcpServerEnabled: device.config.dhcpServerEnabled,
