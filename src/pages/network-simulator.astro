@@ -1,14 +1,19 @@
 ---
 // network-simulator.astro
 import Layout from '../layouts/Layout.astro';
+
+// public/network-simulator配下のJS/CSSはビルドパイプラインを通らず
+// キャッシュ無効化の仕組みが無いため、ブラウザやCDNに古い版がキャッシュされて
+// 修正が反映されないことがある。ファイルを更新した際はこの値を手動で上げること。
+const ASSET_VERSION = '20260801-1';
 ---
 
 <Layout title="ネットワーク構築シミュレータ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover, shrink-to-fit=no">
-    
-    <link rel="stylesheet" href="/network-simulator/styles/main.css">
-    <link rel="stylesheet" href="/network-simulator/styles/mobile.css">
-    <link rel="stylesheet" href="/network-simulator/styles/dialogs.css">
+
+    <link rel="stylesheet" href={`/network-simulator/styles/main.css?v=${ASSET_VERSION}`}>
+    <link rel="stylesheet" href={`/network-simulator/styles/mobile.css?v=${ASSET_VERSION}`}>
+    <link rel="stylesheet" href={`/network-simulator/styles/dialogs.css?v=${ASSET_VERSION}`}>
 
     <div class="app-container">
         <!-- 機器パレット（外部コンポーネントから読み込み） -->
@@ -37,11 +42,11 @@ import Layout from '../layouts/Layout.astro';
     <input type="file" id="file-input" accept=".json" style="display: none;">
 
     <!-- コンポーネントローダー -->
-    <script is:inline>
+    <script define:vars={{ ASSET_VERSION }} is:inline>
         // HTMLコンポーネントを読み込む関数
         async function loadComponent(containerSelector, componentPath) {
             try {
-                const response = await fetch(componentPath);
+                const response = await fetch(`${componentPath}?v=${ASSET_VERSION}`);
                 const html = await response.text();
                 const container = document.querySelector(containerSelector);
                 if (container) {
@@ -51,34 +56,34 @@ import Layout from '../layouts/Layout.astro';
                 console.error('コンポーネント読み込みエラー:', componentPath, error);
             }
         }
-        
+
         // コンポーネント読み込み完了フラグ
         window.componentsLoaded = false;
-        
+
         // DOMContentLoadedイベントでコンポーネントを読み込み
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('コンポーネント読み込み開始...');
-            
+
             await loadComponent('#device-palette-container', '/network-simulator/components/device-palette.html');
             await loadComponent('#status-panels-container', '/network-simulator/components/status-panels.html');
             await loadComponent('#control-panel-container', '/network-simulator/components/control-panel.html');
             await loadComponent('#device-config-dialog-container', '/network-simulator/components/device-config-dialog.html');
             await loadComponent('#destination-dialog-container', '/network-simulator/components/destination-dialog.html');
-            
+
             console.log('コンポーネント読み込み完了');
             window.componentsLoaded = true;
-            
+
             // コンポーネント読み込み完了イベントを発火
             window.dispatchEvent(new Event('componentsLoaded'));
         });
     </script>
-    
+
     <!-- ネットワークシミュレータスクリプト -->
-    <script src="/network-simulator/scripts/utils/ip-input-helper.js" is:inline></script>
-    <script src="/network-simulator/scripts/network/tcp-simulator.js" is:inline></script>
-    <script src="/network-simulator/scripts/network/http-simulator.js" is:inline></script>
-    <script src="/network-simulator/scripts/network/route-calculator.js" is:inline></script>
-    <script src="/network-simulator/scripts/utils/animation-helper.js" is:inline></script>
-    <script src="/network-simulator/scripts/utils/tcp-integration.js" is:inline></script>
-    <script src="/network-simulator/scripts/core/network-simulator.js" is:inline></script>
+    <script src={`/network-simulator/scripts/utils/ip-input-helper.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/network/tcp-simulator.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/network/http-simulator.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/network/route-calculator.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/utils/animation-helper.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/utils/tcp-integration.js?v=${ASSET_VERSION}`} is:inline></script>
+    <script src={`/network-simulator/scripts/core/network-simulator.js?v=${ASSET_VERSION}`} is:inline></script>
 </Layout>
