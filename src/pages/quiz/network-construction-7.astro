@@ -1411,7 +1411,9 @@ async function downloadTemplateJSON() {
   console.log('Download template button clicked');
   try {
     // Fetch the JSON file
-    const response = await fetch('/network-simulator/exercises/network-construction-7-problem.json');
+    // 配布用JSONはCDN/ブラウザにキャッシュされ得るため、更新のたびに確実に
+    // 最新版が取得されるようキャッシュバスティング用のクエリを付与する
+    const response = await fetch(`/network-simulator/exercises/network-construction-7-problem.json?v=${Date.now()}`);
     if (!response.ok) {
       throw new Error('Failed to fetch template file');
     }

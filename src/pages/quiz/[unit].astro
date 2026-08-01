@@ -44,7 +44,9 @@ const { unit } = Astro.params;
 <script define:vars={{ unit }}>
 async function loadQuestionSet(setId) {
   try {
-    const response = await fetch(`/questions/${setId}/questions.yaml`);
+    // questions.yamlはCDN/ブラウザにキャッシュされ得るため、更新のたびに確実に
+    // 最新版が取得されるようキャッシュバスティング用のクエリを付与する
+    const response = await fetch(`/questions/${setId}/questions.yaml?v=${Date.now()}`);
     if (!response.ok) {
       throw new Error(`Failed to load question set: ${response.status}`);
     }
@@ -2118,7 +2120,10 @@ class QuizSession {
         const fileUrl = downloadBtn.getAttribute('data-file-url');
         if (fileUrl) {
           const link = document.createElement('a');
-          link.href = fileUrl;
+          // 配布用JSONはCDN/ブラウザにキャッシュされ得るため、更新のたびに
+          // 確実に最新版がダウンロードされるようキャッシュバスティング用のクエリを付与する
+          const separator = fileUrl.includes('?') ? '&' : '?';
+          link.href = `${fileUrl}${separator}v=${Date.now()}`;
           link.download = 'network-troubleshooting-problem.json';
           document.body.appendChild(link);
           link.click();
