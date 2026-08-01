@@ -3211,10 +3211,16 @@ class NetworkSimulator {
         console.log(`🔍 ISP別IP割り当て開始: ${device.name} <- ${internet.name}`);
         console.log(`🔍 利用可能なISP:`, isps.map(id => `${id}(${config[id]?.dhcpEnabled ? 'ON' : 'OFF'})`).join(', '));
 
-        // 優先ISPが指定されている場合はそのISPから先に試す
-        let searchOrder = isps.slice();
+        // ISPポートは物理的な回線（ONUの接続先）に相当するため、
+        // 接続先のISPが判明している場合はそのISPのみを対象とする。
+        // 無関係な他のISPがDHCP有効というだけでIPを配布してしまうと、
+        // 実際にはケーブルが繋がっていないISPからIPが漏れ出すことになるため、
+        // ここではフォールバック（他ISPへの取得試行）を行わない。
+        let searchOrder;
         if (preferredISP && isps.includes(preferredISP)) {
-            searchOrder = [preferredISP, ...isps.filter(isp => isp !== preferredISP)];
+            searchOrder = [preferredISP];
+        } else {
+            searchOrder = isps.slice();
         }
 
         // ISP別にIP割り当てを試行
