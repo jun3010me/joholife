@@ -5399,23 +5399,72 @@ class NetworkSimulator {
         }
         
         // インターネット接続中のルーターのDHCP状態変更処理
-        if (router.wanConfig.isConnected && !wasUsingWANDHCP && wanDhcpEnabled) {
-            // 固定IP → DHCP: 利用可能なグローバルIPを自動取得
-            const availableGlobalIP = router.wanConfig.availableGlobalIP;
-            if (availableGlobalIP) {
-                router.wanConfig.ipAddress = availableGlobalIP.ip;
-                router.wanConfig.subnetMask = '255.255.255.0';
-                router.wanConfig.defaultGateway = availableGlobalIP.gateway;
-                router.wanConfig.dnsServers = ['8.8.8.8', '8.8.4.4'];
-                
-                this.updateStatus(`🌐 ${router.name} のWANでDHCPが有効になり、グローバルIP ${availableGlobalIP.ip} を取得しました`);
+        if (wanDhcpEnabled && !router.wanConfig.ipAddress) {
+            // 固定IP → DHCP、またはDHCP有効のままグローバルIPを未取得の場合：
+            // キャッシュされた値には頼らず、現在のケーブル接続とISP設定に基づいて改めて取得を試みる
+            // （ケーブル接続時にISPのDHCPが無効だった場合や、接続後にISP設定を変更した場合に対応）
+            this.refreshRouterWANConnection(router);
+            if (router.wanConfig.ipAddress) {
+                this.updateStatus(`🌐 ${router.name} のWANでDHCPが有効になり、グローバルIP ${router.wanConfig.ipAddress} を取得しました`);
+            } else {
+                this.updateStatus(`🌐 ${router.name} のWAN: 有効なISPが見つからないため、グローバルIPを取得できませんでした`);
             }
         } else if (router.wanConfig.isConnected && wasUsingWANDHCP && !wanDhcpEnabled) {
             // DHCP → 固定IP: 手動設定に変更
             this.updateStatus(`🌐 ${router.name} のWANが固定IP設定に変更されました`);
         }
-        
+
         console.log('WAN設定保存完了:', router.name, 'DHCP:', wanDhcpEnabled, 'IP:', router.wanConfig.ipAddress);
+    }
+
+    // ルーターのWANポートに接続されたONUを検索
+    findWANConnectedONU(router) {
+        for (const connection of this.connections) {
+            if (connection.from.device === router && connection.from.port?.id === 'wan' && connection.to.device.type === 'onu') {
+                return connection.to.device;
+            }
+            if (connection.to.device === router && connection.to.port?.id === 'wan' && connection.from.device.type === 'onu') {
+                return connection.from.device;
+            }
+        }
+        return null;
+    }
+
+    // ルーターのWANポートに直接接続されたインターネット機器を検索（ONUを介さない場合）
+    findWANDirectInternet(router) {
+        for (const connection of this.connections) {
+            if (connection.from.device === router && connection.from.port?.id === 'wan' && connection.to.device.type === 'internet') {
+                return { internetDevice: connection.to.device, ispPort: connection.to.port?.id };
+            }
+            if (connection.to.device === router && connection.to.port?.id === 'wan' && connection.from.device.type === 'internet') {
+                return { internetDevice: connection.from.device, ispPort: connection.from.port?.id };
+            }
+        }
+        return null;
+    }
+
+    // ルーターのWAN接続を、現在の物理接続とISP設定に基づいて改めて評価しグローバルIPを取得
+    refreshRouterWANConnection(router) {
+        const onu = this.findWANConnectedONU(router);
+        if (onu) {
+            // ONU経由接続: ONUにぶら下がる全デバイス（ルーター含む）を現在の設定で再評価
+            this.checkExistingONUConnections(onu);
+            return;
+        }
+
+        const direct = this.findWANDirectInternet(router);
+        if (direct) {
+            const globalIP = this.assignGlobalIP(router, direct.internetDevice, direct.ispPort);
+            if (globalIP) {
+                router.wanConfig.ipAddress = globalIP.ip;
+                router.wanConfig.subnetMask = '255.255.255.0';
+                router.wanConfig.defaultGateway = globalIP.gateway;
+                router.wanConfig.dnsServers = ['8.8.8.8', '8.8.4.4'];
+                router.wanConfig.isConnected = true;
+                router.wanConfig.internetDevice = direct.internetDevice;
+                router.wanConfig.availableGlobalIP = globalIP;
+            }
+        }
     }
 
     // DNSテーブルを読み込む
