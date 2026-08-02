@@ -3246,8 +3246,9 @@ class NetworkSimulator {
                 const candidateIP = `${networkBase}.${i}`;
                 if (!isp.dhcpAllocatedIPs.has(candidateIP)) {
                     isp.dhcpAllocatedIPs.set(candidateIP, {
-                        device: device,
-                        assignedAt: new Date(),
+                        deviceId: device.id,
+                        deviceName: device.name,
+                        assignedAt: new Date().toISOString(),
                         leaseTime: config.dhcpLeaseTime
                     });
 
