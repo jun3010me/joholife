@@ -5929,14 +5929,18 @@ class NetworkSimulator {
         const resolvedIpValue = document.getElementById('resolved-ip-value');
         
         if (selectedHostname) {
-            // DNS解決を試行
-            const resolvedIp = this.resolveDNS(selectedHostname);
+            // DNS解決を試行（送信元デバイスからDNSサーバーへの到達可能性も確認する）
+            const resolvedIp = this.resolveDNS(selectedHostname, this.destinationSourceDevice);
             if (resolvedIp) {
                 resolvedIpValue.textContent = resolvedIp;
                 resolvedIpDiv.style.display = 'block';
             } else {
                 resolvedIpDiv.style.display = 'none';
-                this.showDNSResolutionError(selectedHostname);
+                const recordServer = this.findDNSServerWithRecord(selectedHostname);
+                const reason = recordServer
+                    ? `DNSサーバー(${recordServer.name})への経路がありません`
+                    : null;
+                this.showDNSResolutionError(selectedHostname, reason);
             }
         } else {
             resolvedIpDiv.style.display = 'none';
@@ -6010,14 +6014,15 @@ class NetworkSimulator {
     }
 
     // DNS解決エラー表示
-    showDNSResolutionError(hostname) {
+    showDNSResolutionError(hostname, reason = null) {
         const statusDiv = document.getElementById('dns-resolution-status');
         const statusText = document.getElementById('dns-status-text');
-        
+
         statusDiv.style.display = 'block';
         statusDiv.style.background = '#fee';
         statusDiv.style.border = '1px solid #fcc';
-        statusText.textContent = `⚠️ "${hostname}" の名前解決に失敗しました（DNSサーバーが必要です）`;
+        const reasonText = reason || 'DNSサーバーが必要です';
+        statusText.textContent = `⚠️ "${hostname}" の名前解決に失敗しました（${reasonText}）`;
         statusText.style.color = '#c33';
     }
 
@@ -6040,30 +6045,50 @@ class NetworkSimulator {
         this.destinationCommunicationType = null;
     }
 
-    // DNS解決
-    resolveDNS(hostname) {
+    // レコードを保持しているDNSサーバーを検索（到達可能性は問わない。エラー表示・アニメーション用）
+    findDNSServerWithRecord(hostname) {
+        const dnsServers = Array.from(this.devices.values()).filter(device => device.type === 'dns');
+        return dnsServers.find(server => (server.dnsTable || {})[hostname]) || null;
+    }
+
+    // DNS解決（sourceDeviceを指定した場合、DNSサーバーへの到達可能性を確認してから解決する）
+    resolveDNS(hostname, sourceDevice = null) {
         // DNSサーバーを探す
         const dnsServers = Array.from(this.devices.values()).filter(device => device.type === 'dns');
-        
+
         if (dnsServers.length === 0) {
             return null; // DNSサーバーが見つからない
         }
-        
-        // 最初のDNSサーバーから解決を試行
+
+        // レコードを持つDNSサーバーの中から、到達可能なものだけを使って解決を試行
         for (const dnsServer of dnsServers) {
             const dnsTable = dnsServer.dnsTable || {};
-            if (dnsTable[hostname]) {
-                return dnsTable[hostname];
+            if (!dnsTable[hostname]) continue;
+
+            if (sourceDevice) {
+                const path = this.findPath(sourceDevice, dnsServer);
+                if (!path || path.length === 0) {
+                    continue; // ネットワークに繋がっていないDNSサーバーは無視
+                }
             }
+
+            return dnsTable[hostname];
         }
-        
+
         // デバイス名での直接マッチングも試行（後方互換性のため）
         for (const [, device] of this.devices.entries()) {
-            if (device.name === hostname) {
-                return device.config.ipAddress;
+            if (device.name !== hostname) continue;
+
+            if (sourceDevice) {
+                const path = this.findPath(sourceDevice, device);
+                if (!path || path.length === 0) {
+                    continue;
+                }
             }
+
+            return device.config.ipAddress;
         }
-        
+
         return null; // 解決失敗
     }
 
@@ -6180,10 +6205,11 @@ class NetworkSimulator {
                 return;
             }
             
-            targetIp = this.resolveDNS(hostname);
+            const dnsQuerySourceDevice = sourceDevice || this.destinationSourceDevice;
+            targetIp = this.resolveDNS(hostname, dnsQuerySourceDevice);
             if (!targetIp) {
                 // DNS解決失敗のアニメーションを実行（値を保存してから）
-                const fallbackSourceDevice = sourceDevice || this.destinationSourceDevice;
+                const fallbackSourceDevice = dnsQuerySourceDevice;
                 this.hideDestinationDialog();
                 await this.executeDNSResolutionWithAnimation(fallbackSourceDevice, hostname, false);
                 return;
@@ -6298,7 +6324,9 @@ class NetworkSimulator {
             return;
         }
         
-        const dnsServer = dnsServers[0]; // 最初のDNSサーバーを使用
+        // レコードを保持しているDNSサーバーをアニメーション対象として優先的に選択
+        // （到達不能な場合に正しいサーバー名で経路なしメッセージを表示するため）
+        const dnsServer = this.findDNSServerWithRecord(hostname) || dnsServers[0];
         
         if (isSuccess) {
             // DNS解決成功の場合
