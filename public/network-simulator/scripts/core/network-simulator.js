@@ -3386,7 +3386,9 @@ class NetworkSimulator {
             this.selectedDevice = null; // 選択をリセット
             this.updateStatus('🎯 Ping送信元のデバイスをクリックしてください');
             this.updateControlButtons();
-            this.scheduleRender();
+            // rAFのスロットルを待たず即座に再描画し、直前の設定変更が
+            // 確実に画面へ反映された状態でPingモードに入るようにする
+            this.render();
         } else {
             // Pingモード終了
             this.exitPingMode();
@@ -3400,7 +3402,8 @@ class NetworkSimulator {
         this.pingTargetDevice = null;
         this.updateStatus('Pingモードを終了しました');
         this.updateControlButtons();
-        this.scheduleRender();
+        // rAFのスロットルを待たず即座に再描画する
+        this.render();
     }
     
     // Pingを実行
