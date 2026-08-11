@@ -3386,7 +3386,9 @@ class NetworkSimulator {
             this.selectedDevice = null; // 選択をリセット
             this.updateStatus('🎯 Ping送信元のデバイスをクリックしてください');
             this.updateControlButtons();
-            this.scheduleRender();
+            // rAFのスロットルを待たず即座に再描画し、直前の設定変更が
+            // 確実に画面へ反映された状態でPingモードに入るようにする
+            this.render();
         } else {
             // Pingモード終了
             this.exitPingMode();
@@ -3400,7 +3402,8 @@ class NetworkSimulator {
         this.pingTargetDevice = null;
         this.updateStatus('Pingモードを終了しました');
         this.updateControlButtons();
-        this.scheduleRender();
+        // rAFのスロットルを待たず即座に再描画する
+        this.render();
     }
     
     // Pingを実行
@@ -10121,7 +10124,7 @@ function toggleTCPDetailPanels(show) {
 // IPアドレス重複検出機能を NetworkSimulator クラスに追加
 NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, excludeDevice) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
-    for (const device of this.devices) {
+    for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
@@ -10161,7 +10164,7 @@ NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, exclu
 // ルーター用のIPアドレス重複検出
 NetworkSimulator.prototype.checkIPAddressDuplicationForRouter = function(ipAddress, excludeDevice, lanInterface) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
-    for (const device of this.devices) {
+    for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
