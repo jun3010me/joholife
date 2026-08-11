@@ -10121,7 +10121,7 @@ function toggleTCPDetailPanels(show) {
 // IPアドレス重複検出機能を NetworkSimulator クラスに追加
 NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, excludeDevice) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
-    for (const device of this.devices) {
+    for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
@@ -10161,7 +10161,7 @@ NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, exclu
 // ルーター用のIPアドレス重複検出
 NetworkSimulator.prototype.checkIPAddressDuplicationForRouter = function(ipAddress, excludeDevice, lanInterface) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
-    for (const device of this.devices) {
+    for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
