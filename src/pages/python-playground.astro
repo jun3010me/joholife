@@ -19,6 +19,9 @@ import Layout from '../layouts/Layout.astro';
                     <input type="checkbox" id="trace-visibility-toggle" checked>
                     <span>🔍 変数トレースを表示</span>
                 </label>
+                <button type="button" id="column-ratio-toggle" class="code-visibility-toggle ratio-toggle" title="コードエディタと右側の幅の比率を切り替え">
+                    <span>↔️ 幅の比率 <span id="column-ratio-label">1:1</span></span>
+                </button>
             </div>
         </div>
 
@@ -167,6 +170,10 @@ import Layout from '../layouts/Layout.astro';
         let lastHighlightedLine = null;
         let autosaveTimer = null;
 
+        // コードエディタ（左）と実行結果・変数トレース（右）の幅の比率
+        const COLUMN_RATIOS = ['1:1', '1:2', '2:1'];
+        let columnRatio = '1:1';
+
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
             try {
@@ -230,6 +237,7 @@ import Layout from '../layouts/Layout.astro';
                     setTimeout(() => {
                         codeEditor.refresh();
                         growCodeEditorToFitContent();
+                        applyColumnRatio();
                     }, 100);
                 });
 
@@ -1419,6 +1427,41 @@ def __tracer__(frame, event, arg):
             // 余った縦幅を埋めるようCSS側で処理する（.output-section, .trace-section,
             // #output-area, .trace-table-container 参照）。表示パネルが1つだけの時も
             // 2つとも表示している時も、同じ仕組みでコードエディタの高さに追従する。
+
+            applyColumnRatio();
+        }
+
+        // コードエディタ（左）と実行結果・変数トレース（右）の幅の比率を適用する。
+        // 片側の列自体が消えている（code-hidden/right-hidden）時や、画面が狭く
+        // 上下に積み重なるレイアウト（@media (max-width: 768px)）になっている時は
+        // 単一カラムになるため、比率の指定はしない（CSS側の
+        // grid-template-columns: 1fr に任せる。ここでinline style指定を残すと、
+        // 詳細度の関係でモバイル用の1カラム表示を上書きしてしまう）。
+        function applyColumnRatio() {
+            const playgroundContent = document.querySelector('.playground-content');
+            if (!playgroundContent) return;
+
+            const isSingleColumn = playgroundContent.classList.contains('code-hidden') ||
+                playgroundContent.classList.contains('right-hidden') ||
+                window.matchMedia('(max-width: 768px)').matches;
+            if (isSingleColumn) {
+                playgroundContent.style.gridTemplateColumns = '';
+                return;
+            }
+
+            const ratioMap = { '1:1': [1, 1], '1:2': [1, 2], '2:1': [2, 1] };
+            const [leftFr, rightFr] = ratioMap[columnRatio] || ratioMap['1:1'];
+            playgroundContent.style.gridTemplateColumns = `minmax(0, ${leftFr}fr) minmax(0, ${rightFr}fr)`;
+        }
+
+        // 幅の比率を「1:1 → 1:2 → 2:1 → 1:1 ...」の順で切り替える。
+        function cycleColumnRatio() {
+            const currentIndex = COLUMN_RATIOS.indexOf(columnRatio);
+            columnRatio = COLUMN_RATIOS[(currentIndex + 1) % COLUMN_RATIOS.length];
+            const label = document.getElementById('column-ratio-label');
+            if (label) label.textContent = columnRatio;
+            applyColumnRatio();
+            try { localStorage.setItem('pythonPlaygroundColumnRatio', columnRatio); } catch (err) {}
         }
 
         // コードエリアの表示・非表示を切り替える。
@@ -1478,6 +1521,13 @@ def __tracer__(frame, event, arg):
                     traceOrientation = 'stepsAsRows';
                     const toggle = document.getElementById('orientation-toggle');
                     if (toggle) toggle.checked = true;
+                }
+
+                const savedColumnRatio = localStorage.getItem('pythonPlaygroundColumnRatio');
+                if (savedColumnRatio && COLUMN_RATIOS.includes(savedColumnRatio)) {
+                    columnRatio = savedColumnRatio;
+                    const ratioLabel = document.getElementById('column-ratio-label');
+                    if (ratioLabel) ratioLabel.textContent = columnRatio;
                 }
 
                 const codeVisible = localStorage.getItem('pythonPlaygroundCodeVisible');
@@ -1567,6 +1617,14 @@ def __tracer__(frame, event, arg):
                 outputArea.innerHTML = `<div class="error">Pythonエンジンの読み込みに失敗しました。<br>ネットワーク接続を確認してページを再読み込みしてください。<br>詳細: ${error.message}</div>`;
             });
 
+            // 幅の比率は、CodeMirrorの読み込みに失敗した場合（フォールバックの
+            // textareaになった場合）でも、画面幅が変わった時に単一カラム表示と
+            // 正しく切り替わってほしいため、CodeMirror初期化の成否に関係なく
+            // 常にリサイズを監視する。
+            window.addEventListener('resize', () => {
+                setTimeout(() => applyColumnRatio(), 100);
+            });
+
             // ボタンイベント
             document.getElementById('run-btn').addEventListener('click', runCode);
             document.getElementById('clear-btn').addEventListener('click', clearCode);
@@ -1601,6 +1659,11 @@ def __tracer__(frame, event, arg):
             document.getElementById('trace-visibility-toggle').addEventListener('change', (e) => {
                 applyTraceVisibility(e.target.checked);
                 try { localStorage.setItem('pythonPlaygroundTraceVisible', String(e.target.checked)); } catch (err) {}
+            });
+
+            // コードエディタと右側の幅の比率を切り替え
+            document.getElementById('column-ratio-toggle').addEventListener('click', () => {
+                cycleColumnRatio();
             });
 
             // 変数トレース：向き切替
@@ -1719,6 +1782,13 @@ def __tracer__(frame, event, arg):
         .code-visibility-toggle:hover {
             border-color: #2563eb;
             color: #2563eb;
+        }
+
+        /* 幅の比率切り替えボタンは <button> なので、チェックボックス版の
+           見た目（丸型ピル）に合わせつつ、ブラウザ既定のボタン装飾を消す。 */
+        .ratio-toggle {
+            font-family: inherit;
+            background: #f8fafc;
         }
 
         .playground-content {
