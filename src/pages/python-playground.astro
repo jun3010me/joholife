@@ -8,10 +8,20 @@ import Layout from '../layouts/Layout.astro';
         <div class="playground-header">
             <h1>🐍 Python プレイグラウンド</h1>
             <p>ブラウザ上でPythonコードを実行してみよう！</p>
-            <label class="code-visibility-toggle">
-                <input type="checkbox" id="code-visibility-toggle" checked>
-                <span>📝 コードを表示</span>
-            </label>
+            <div class="visibility-toggles">
+                <label class="code-visibility-toggle">
+                    <input type="checkbox" id="code-visibility-toggle" checked>
+                    <span>📝 コードを表示</span>
+                </label>
+                <label class="code-visibility-toggle">
+                    <input type="checkbox" id="output-visibility-toggle" checked>
+                    <span>📤 実行結果を表示</span>
+                </label>
+                <label class="code-visibility-toggle">
+                    <input type="checkbox" id="trace-visibility-toggle" checked>
+                    <span>🔍 変数トレースを表示</span>
+                </label>
+            </div>
         </div>
 
         <div class="playground-content">
@@ -39,7 +49,7 @@ import Layout from '../layouts/Layout.astro';
                 </div>
                 <div class="font-size-control">
                     <label for="code-font-size">🔤 コードの文字サイズ</label>
-                    <input type="range" id="code-font-size" min="12" max="32" step="1" value="16">
+                    <input type="range" id="code-font-size" min="12" max="90" step="1" value="16">
                     <span id="code-font-size-value" class="font-size-value">16px</span>
                 </div>
                 <div id="code-editor-container">
@@ -61,7 +71,7 @@ import Layout from '../layouts/Layout.astro';
                     </div>
                     <div class="font-size-control">
                         <label for="output-font-size">🔤 実行結果の文字サイズ</label>
-                        <input type="range" id="output-font-size" min="10" max="28" step="1" value="14">
+                        <input type="range" id="output-font-size" min="10" max="90" step="1" value="14">
                         <span id="output-font-size-value" class="font-size-value">14px</span>
                     </div>
                     <div id="output-area">
@@ -81,7 +91,7 @@ import Layout from '../layouts/Layout.astro';
                     </div>
                     <div class="font-size-control">
                         <label for="trace-font-size">🔤 トレースの文字サイズ</label>
-                        <input type="range" id="trace-font-size" min="10" max="28" step="1" value="14">
+                        <input type="range" id="trace-font-size" min="10" max="90" step="1" value="14">
                         <span id="trace-font-size-value" class="font-size-value">14px</span>
                     </div>
                     <div class="playback-controls">
@@ -1393,20 +1403,51 @@ def __tracer__(frame, event, arg):
             if (label) label.textContent = `${size}px`;
         }
 
-        // コードエリアの表示・非表示を切り替える。非表示にすると、コードエディタの
-        // 列ごと消えて、右側（実行結果・変数トレース）が画面いっぱいに広がる。
+        // コード／実行結果／変数トレースの各パネルを表示・非表示にした結果を踏まえて、
+        // 全体のグリッドレイアウトを整える。片側が空になったら、もう片側を
+        // 画面いっぱいに広げる（投影授業でコード（または結果）だけを見せたい場面を想定）。
+        function updatePlaygroundGridLayout() {
+            const codeSection = document.querySelector('.code-section');
+            const outputSection = document.querySelector('.output-section');
+            const traceSection = document.querySelector('.trace-section');
+            const rightColumn = document.querySelector('.right-column');
+            const playgroundContent = document.querySelector('.playground-content');
+            if (!codeSection || !outputSection || !traceSection || !rightColumn || !playgroundContent) return;
+
+            const codeVisible = !codeSection.classList.contains('panel-hidden');
+            const rightHasContent = !outputSection.classList.contains('panel-hidden') || !traceSection.classList.contains('panel-hidden');
+
+            rightColumn.classList.toggle('panel-hidden', !rightHasContent);
+            playgroundContent.classList.toggle('code-hidden', !codeVisible && rightHasContent);
+            playgroundContent.classList.toggle('right-hidden', codeVisible && !rightHasContent);
+        }
+
+        // コードエリアの表示・非表示を切り替える。
         // 投影授業で「コードは隠して変数の動きだけ見せたい」場面を想定している。
         function applyCodeVisibility(visible) {
             const codeSection = document.querySelector('.code-section');
-            const playgroundContent = document.querySelector('.playground-content');
-            if (codeSection) codeSection.hidden = !visible;
-            if (playgroundContent) playgroundContent.classList.toggle('code-hidden', !visible);
+            if (codeSection) codeSection.classList.toggle('panel-hidden', !visible);
+            updatePlaygroundGridLayout();
 
             if (visible && codeEditor) {
                 // 非表示の間はCodeMirrorがサイズを正しく計算できないため、
                 // 再表示時にレイアウトを計算し直す。
                 setTimeout(() => codeEditor.refresh(), 0);
             }
+        }
+
+        // 実行結果エリアの表示・非表示を切り替える。
+        function applyOutputVisibility(visible) {
+            const outputSection = document.querySelector('.output-section');
+            if (outputSection) outputSection.classList.toggle('panel-hidden', !visible);
+            updatePlaygroundGridLayout();
+        }
+
+        // 変数トレースエリアの表示・非表示を切り替える。
+        function applyTraceVisibility(visible) {
+            const traceSection = document.querySelector('.trace-section');
+            if (traceSection) traceSection.classList.toggle('panel-hidden', !visible);
+            updatePlaygroundGridLayout();
         }
 
         // 表示設定（フォントサイズ・向き・コード表示/非表示）の復元
@@ -1442,9 +1483,21 @@ def __tracer__(frame, event, arg):
 
                 const codeVisible = localStorage.getItem('pythonPlaygroundCodeVisible');
                 const codeVisibilityToggle = document.getElementById('code-visibility-toggle');
-                const isVisible = codeVisible !== 'false'; // 既定は表示（true）
-                if (codeVisibilityToggle) codeVisibilityToggle.checked = isVisible;
-                applyCodeVisibility(isVisible);
+                const isCodeVisible = codeVisible !== 'false'; // 既定は表示（true）
+                if (codeVisibilityToggle) codeVisibilityToggle.checked = isCodeVisible;
+                applyCodeVisibility(isCodeVisible);
+
+                const outputVisible = localStorage.getItem('pythonPlaygroundOutputVisible');
+                const outputVisibilityToggle = document.getElementById('output-visibility-toggle');
+                const isOutputVisible = outputVisible !== 'false'; // 既定は表示（true）
+                if (outputVisibilityToggle) outputVisibilityToggle.checked = isOutputVisible;
+                applyOutputVisibility(isOutputVisible);
+
+                const traceVisible = localStorage.getItem('pythonPlaygroundTraceVisible');
+                const traceVisibilityToggle = document.getElementById('trace-visibility-toggle');
+                const isTraceVisible = traceVisible !== 'false'; // 既定は表示（true）
+                if (traceVisibilityToggle) traceVisibilityToggle.checked = isTraceVisible;
+                applyTraceVisibility(isTraceVisible);
             } catch (e) {
                 console.error('設定の復元に失敗しました:', e);
             }
@@ -1537,10 +1590,18 @@ def __tracer__(frame, event, arg):
                 try { localStorage.setItem('pythonPlaygroundOutputFontSize', e.target.value); } catch (err) {}
             });
 
-            // コードエリアの表示・非表示
+            // コード／実行結果／変数トレース各パネルの表示・非表示
             document.getElementById('code-visibility-toggle').addEventListener('change', (e) => {
                 applyCodeVisibility(e.target.checked);
                 try { localStorage.setItem('pythonPlaygroundCodeVisible', String(e.target.checked)); } catch (err) {}
+            });
+            document.getElementById('output-visibility-toggle').addEventListener('change', (e) => {
+                applyOutputVisibility(e.target.checked);
+                try { localStorage.setItem('pythonPlaygroundOutputVisible', String(e.target.checked)); } catch (err) {}
+            });
+            document.getElementById('trace-visibility-toggle').addEventListener('change', (e) => {
+                applyTraceVisibility(e.target.checked);
+                try { localStorage.setItem('pythonPlaygroundTraceVisible', String(e.target.checked)); } catch (err) {}
             });
 
             // 変数トレース：向き切替
@@ -1628,11 +1689,18 @@ def __tracer__(frame, event, arg):
             font-size: clamp(1.75rem, 5vw, 2.25rem);
         }
 
+        .visibility-toggles {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         .code-visibility-toggle {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-top: 10px;
             padding: 6px 14px;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -1671,6 +1739,20 @@ def __tracer__(frame, event, arg):
            右側（実行結果・変数トレース）を画面いっぱいに広げる。 */
         .playground-content.code-hidden {
             grid-template-columns: 1fr;
+        }
+
+        /* 逆に「実行結果」「変数トレース」を両方とも非表示にした時：
+           右側の列ごと消して、コードエディタを画面いっぱいに広げる。 */
+        .playground-content.right-hidden {
+            grid-template-columns: 1fr;
+        }
+
+        /* 表示/非表示チェックボックスで各パネルを隠すための共通クラス。
+           .code-section 等に display:flex を指定しているため、HTMLの
+           hidden属性（UA既定スタイルはauthor CSSに優先度で負ける）だけでは
+           確実に隠せない。!importantで明示的に上書きする。 */
+        .panel-hidden {
+            display: none !important;
         }
 
         .code-section {
