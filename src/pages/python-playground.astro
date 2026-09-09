@@ -1694,19 +1694,18 @@ def __tracer__(frame, event, arg):
 
     <style is:global>
         /* このページはプロジェクター投影での全画面表示を想定しているため、
-           サイト共通レイアウト（Layout.astro の .main-content）の左右余白を
+           サイト共通レイアウト（Layout.astro の .main-content）の余白を
            このページだけ狭める。この <style is:global> の効果は、Astroの
            ビルド単位（このページの出力）にのみ及び、他のページには影響しない。 */
         .main-content {
             max-width: none;
-            padding-left: 10px;
-            padding-right: 10px;
+            padding: 12px 10px;
         }
 
         .python-playground {
             max-width: none;
             margin: 0;
-            padding: 8px 10px 20px;
+            padding: 0 10px 20px;
             --pp-code-font-size: 16px;
             --pp-trace-font-size: 14px;
             --pp-output-font-size: 14px;
@@ -1714,7 +1713,7 @@ def __tracer__(frame, event, arg):
 
         .playground-header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .visibility-toggles {
