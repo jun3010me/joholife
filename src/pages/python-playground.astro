@@ -437,7 +437,7 @@ builtins.input = custom_input
 
             if (traceOrientation === 'varsAsRows') {
                 // 行 = 変数、列 = ステップ
-                html += '<thead><tr><th class="trace-corner">変数 ＼ ステップ</th>';
+                html += '<thead><tr><th class="trace-corner"></th>';
                 traceMatrix.forEach((step, i) => {
                     html += `<th class="trace-step-header" data-step-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
                 });
@@ -453,7 +453,7 @@ builtins.input = custom_input
                 html += '</tbody>';
             } else {
                 // 行 = ステップ、列 = 変数
-                html += '<thead><tr><th class="trace-corner">ステップ ＼ 変数</th>';
+                html += '<thead><tr><th class="trace-corner"></th>';
                 for (const name of traceVarNames) {
                     html += `<th class="trace-var-header">${escapeHtml(name)}</th>`;
                 }
