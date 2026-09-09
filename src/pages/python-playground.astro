@@ -207,20 +207,16 @@ import Layout from '../layouts/Layout.astro';
                     scheduleAutosave();
                 });
 
-                // エディタのサイズを強制的に調整
+                // エディタの高さは #code-editor-container の高さ（右側の実行結果＋
+                // 変数トレースと同じ高さになるよう、CSSのflex/gridで揃えている）に
+                // 追従させる。幅・高さともに明示指定はせず、リフローの都度refresh()で
+                // 内部のレイアウト計算をやり直す。
                 setTimeout(() => {
-                    const isMobile = window.innerWidth <= 768;
-                    const height = isMobile ? 350 : 400;
-                    codeEditor.setSize(null, height);
                     codeEditor.refresh();
                 }, 100);
 
-                // ウィンドウリサイズ時に高さを再調整
                 window.addEventListener('resize', () => {
                     setTimeout(() => {
-                        const isMobile = window.innerWidth <= 768;
-                        const height = isMobile ? 350 : 400;
-                        codeEditor.setSize(null, height);
                         codeEditor.refresh();
                     }, 100);
                 });
@@ -1666,7 +1662,9 @@ def __tracer__(frame, event, arg):
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 20px;
             margin-bottom: 30px;
-            align-items: start;
+            /* stretch（既定値）にすることで、右側（実行結果＋変数トレース）の高さに
+               コードエディタ側の高さを揃える。 */
+            align-items: stretch;
         }
 
         /* 「コードを表示」チェックを外した時：コードエディタの列ごと消して、
@@ -1677,6 +1675,8 @@ def __tracer__(frame, event, arg):
 
         .code-section {
             min-width: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .right-column {
@@ -1776,7 +1776,11 @@ def __tracer__(frame, event, arg):
 
         #code-editor-container {
             width: 100%;
-            height: 400px;
+            /* 固定の高さではなく、code-section内の残り空間いっぱいに広がるようにする
+               （.playground-content の align-items: stretch と組み合わせて、右側の
+               実行結果＋変数トレースと同じ高さになる）。 */
+            flex: 1;
+            min-height: 300px;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             overflow: hidden;
@@ -1791,7 +1795,7 @@ def __tracer__(frame, event, arg):
 
         /* CodeMirrorエディタのスタイル調整 */
         .CodeMirror {
-            height: 400px !important;
+            height: 100% !important;
             font-family: 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
             font-size: var(--pp-code-font-size, 16px) !important;
             line-height: 1.5;
@@ -1801,7 +1805,7 @@ def __tracer__(frame, event, arg):
         }
 
         .CodeMirror-scroll {
-            min-height: 400px !important;
+            min-height: 100% !important;
         }
 
         .CodeMirror-lines {
@@ -2434,8 +2438,12 @@ def __tracer__(frame, event, arg):
                 font-size: 0.8rem;
             }
 
+            /* モバイルでは左右が縦積みになる（.playground-content参照）ため、
+               デスクトップ時の「右側と高さを揃える」flex:1をやめて固定高さに戻す。 */
             #code-editor-container {
+                flex: none;
                 height: 350px;
+                min-height: 0;
             }
 
             .CodeMirror {
