@@ -871,7 +871,7 @@ builtins.input = custom_input
                     { pattern: /ModuleNotFoundError: No module named '(.+?)'/i, replacement: 'モジュール未検出エラー: 「$1」というモジュールが見つかりません（このブラウザ環境では使えないモジュールです）' },
 
                     // その他のメッセージ
-                    { pattern: /File "<exec>", line (\d+)/i, replacement: '📍 $1行目でエラーが発生しました' },
+                    { pattern: /File "<user_code>", line (\d+)/i, replacement: '📍 $1行目でエラーが発生しました' },
                     { pattern: /Traceback \(most recent call last\):/i, replacement: '🔍 エラーの詳細:' },
                     { pattern: /\^+/i, replacement: '  ↑ この部分に問題があります' },
                 ];
@@ -1005,7 +1005,7 @@ __trace_truncated__ = False
 __MAX_TRACE_STEPS__ = ${MAX_TRACE_STEPS}
 __recursion_data__ = {}  # 再帰情報を追跡
 __call_stack__ = {}  # 関数呼び出しスタック
-__user_code_file__ = '<exec>'
+__user_code_file__ = '<user_code>'
 __tracing_enabled__ = False
 __user_code_lines__ = []
 __loop_stack__ = []  # ループのネストを追跡
@@ -1024,7 +1024,13 @@ def __tracer__(frame, event, arg):
     global __loop_counts__, __loop_iterations__, __trace_steps__, __trace_truncated__, __recursion_data__, __call_stack__
     global __tracing_enabled__, __loop_stack__, __in_loop__
 
-    # ユーザーコードのみを追跡（<exec>ファイル名でフィルタ）
+    # ユーザーコードのみを追跡（専用のファイル名でフィルタ）。
+    # pyodide.runPython/runPythonAsyncはfilenameを指定しない限り既定で
+    # すべて '<exec>' になるため、標準出力ラッパー(UnbufferedTextIO.write)
+    # など内部コードのフレームまで「ユーザーコード」と誤認してしまう
+    # 事故があった。それを避けるため、ユーザーコードの実行だけ
+    # '<user_code>' という専用のファイル名を明示的に指定している
+    # （下のpyodide.runPythonAsync(code, { filename: __user_code_file__ }) 参照）。
     filename = frame.f_code.co_filename
     if filename != __user_code_file__:
         return __tracer__
@@ -1158,7 +1164,9 @@ def __tracer__(frame, event, arg):
                 await pyodide.runPythonAsync('__tracing_enabled__ = True');
 
                 // ユーザーコードを実行
-                const result = await pyodide.runPythonAsync(code);
+                // filenameを明示的に '<user_code>' に指定する（既定値の '<exec>' のままだと、
+                // 標準出力ラッパーなど他の内部コードのフレームと区別が付かなくなる）。
+                const result = await pyodide.runPythonAsync(code, { filename: '<user_code>' });
 
                 // トレーサーを無効化
                 await pyodide.runPythonAsync('__tracing_enabled__ = False');
