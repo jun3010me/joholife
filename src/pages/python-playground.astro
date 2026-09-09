@@ -8,6 +8,10 @@ import Layout from '../layouts/Layout.astro';
         <div class="playground-header">
             <h1>🐍 Python プレイグラウンド</h1>
             <p>ブラウザ上でPythonコードを実行してみよう！</p>
+            <label class="code-visibility-toggle">
+                <input type="checkbox" id="code-visibility-toggle" checked>
+                <span>📝 コードを表示</span>
+            </label>
         </div>
 
         <div class="playground-content">
@@ -1381,7 +1385,23 @@ def __tracer__(frame, event, arg):
             if (label) label.textContent = `${size}px`;
         }
 
-        // 表示設定（フォントサイズ・向き・再生速度）の復元
+        // コードエリアの表示・非表示を切り替える。非表示にすると、コードエディタの
+        // 列ごと消えて、右側（実行結果・変数トレース）が画面いっぱいに広がる。
+        // 投影授業で「コードは隠して変数の動きだけ見せたい」場面を想定している。
+        function applyCodeVisibility(visible) {
+            const codeSection = document.querySelector('.code-section');
+            const playgroundContent = document.querySelector('.playground-content');
+            if (codeSection) codeSection.hidden = !visible;
+            if (playgroundContent) playgroundContent.classList.toggle('code-hidden', !visible);
+
+            if (visible && codeEditor) {
+                // 非表示の間はCodeMirrorがサイズを正しく計算できないため、
+                // 再表示時にレイアウトを計算し直す。
+                setTimeout(() => codeEditor.refresh(), 0);
+            }
+        }
+
+        // 表示設定（フォントサイズ・向き・コード表示/非表示）の復元
         function restoreSettings() {
             try {
                 const codeFontSize = localStorage.getItem('pythonPlaygroundCodeFontSize');
@@ -1404,6 +1424,12 @@ def __tracer__(frame, event, arg):
                     const toggle = document.getElementById('orientation-toggle');
                     if (toggle) toggle.checked = true;
                 }
+
+                const codeVisible = localStorage.getItem('pythonPlaygroundCodeVisible');
+                const codeVisibilityToggle = document.getElementById('code-visibility-toggle');
+                const isVisible = codeVisible !== 'false'; // 既定は表示（true）
+                if (codeVisibilityToggle) codeVisibilityToggle.checked = isVisible;
+                applyCodeVisibility(isVisible);
             } catch (e) {
                 console.error('設定の復元に失敗しました:', e);
             }
@@ -1492,6 +1518,12 @@ def __tracer__(frame, event, arg):
                 try { localStorage.setItem('pythonPlaygroundTraceFontSize', e.target.value); } catch (err) {}
             });
 
+            // コードエリアの表示・非表示
+            document.getElementById('code-visibility-toggle').addEventListener('change', (e) => {
+                applyCodeVisibility(e.target.checked);
+                try { localStorage.setItem('pythonPlaygroundCodeVisible', String(e.target.checked)); } catch (err) {}
+            });
+
             // 変数トレース：向き切替
             document.getElementById('orientation-toggle').addEventListener('change', (e) => {
                 traceOrientation = e.target.checked ? 'stepsAsRows' : 'varsAsRows';
@@ -1576,6 +1608,33 @@ def __tracer__(frame, event, arg):
             font-size: clamp(1.75rem, 5vw, 2.25rem);
         }
 
+        .code-visibility-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 6px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .code-visibility-toggle input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .code-visibility-toggle:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
         .playground-content {
             display: grid;
             /* minmax(0, 1fr) にすることで、中の表やコードがどれだけ幅を必要としても
@@ -1584,6 +1643,12 @@ def __tracer__(frame, event, arg):
             gap: 20px;
             margin-bottom: 30px;
             align-items: start;
+        }
+
+        /* 「コードを表示」チェックを外した時：コードエディタの列ごと消して、
+           右側（実行結果・変数トレース）を画面いっぱいに広げる。 */
+        .playground-content.code-hidden {
+            grid-template-columns: 1fr;
         }
 
         .code-section {
