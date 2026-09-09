@@ -6,8 +6,6 @@ import Layout from '../layouts/Layout.astro';
 <Layout title="Python プレイグラウンド">
     <div class="python-playground">
         <div class="playground-header">
-            <h1>🐍 Python プレイグラウンド</h1>
-            <p>ブラウザ上でPythonコードを実行してみよう！</p>
             <div class="visibility-toggles">
                 <label class="code-visibility-toggle">
                     <input type="checkbox" id="code-visibility-toggle" checked>
@@ -1415,12 +1413,12 @@ def __tracer__(frame, event, arg):
         // 不具合があった。内側の要素の高さを常に明示的な px 値で固定してしまうことで、
         // 内容量に関わらずコードエディタと同じ高さを保ち、その中でスクロールさせる。
         function syncFillHeightSize() {
-            const codeContainer = document.getElementById('code-editor-container');
+            const codeSection = document.querySelector('.code-section');
             const outputSection = document.querySelector('.output-section');
             const traceSection = document.querySelector('.trace-section');
             const outputArea = document.getElementById('output-area');
             const traceContainer = document.getElementById('trace-table-container');
-            if (!codeContainer || !outputSection || !traceSection || !outputArea || !traceContainer) return;
+            if (!codeSection || !outputSection || !traceSection || !outputArea || !traceContainer) return;
 
             const isFillOutput = outputSection.classList.contains('fill-height');
             const isFillTrace = traceSection.classList.contains('fill-height');
@@ -1430,16 +1428,31 @@ def __tracer__(frame, event, arg):
             if (!isFillTrace) traceContainer.style.height = '';
             if (!isFillOutput && !isFillTrace) return;
 
-            const codeHeight = codeContainer.getBoundingClientRect().height;
+            // コードエディタ側（.code-section）は、すでにCSS Gridのalign-items:stretchで
+            // 右側と同じ高さになっている。この「.code-section自体の高さ」を基準にする。
+            const codeHeight = codeSection.getBoundingClientRect().height;
             if (codeHeight <= 0) return;
 
+            // 各セクションの「スクロール領域より上の分」の高さは、スクロール領域自身の高さの
+            // 影響を受けない（何を積んでも、その前にある見出しやコントロール類の高さ・位置は
+            // 変わらないため）。そのため、セクション全体の高さ（すでに .code-section と同じ値に
+            // 引き伸ばされている、循環した値）を使わず、スクロール領域の上端位置から
+            // 「見出し・コントロール類の高さ」を求める。padding-bottom も別途加える。
+            function resolveScrollAreaHeight(section, scrollEl) {
+                const sectionRect = section.getBoundingClientRect();
+                const scrollRect = scrollEl.getBoundingClientRect();
+                const chromeAbove = scrollRect.top - sectionRect.top;
+                const sectionStyle = getComputedStyle(section);
+                const paddingBottom = parseFloat(sectionStyle.paddingBottom) || 0;
+                const borderBottom = parseFloat(sectionStyle.borderBottomWidth) || 0;
+                return Math.max(0, codeHeight - chromeAbove - paddingBottom - borderBottom);
+            }
+
             if (isFillOutput) {
-                const chromeHeight = outputSection.getBoundingClientRect().height - outputArea.getBoundingClientRect().height;
-                outputArea.style.height = `${Math.max(0, codeHeight - chromeHeight)}px`;
+                outputArea.style.height = `${resolveScrollAreaHeight(outputSection, outputArea)}px`;
             }
             if (isFillTrace) {
-                const chromeHeight = traceSection.getBoundingClientRect().height - traceContainer.getBoundingClientRect().height;
-                traceContainer.style.height = `${Math.max(0, codeHeight - chromeHeight)}px`;
+                traceContainer.style.height = `${resolveScrollAreaHeight(traceSection, traceContainer)}px`;
             }
         }
 
@@ -1693,7 +1706,7 @@ def __tracer__(frame, event, arg):
         .python-playground {
             max-width: none;
             margin: 0;
-            padding: 20px 10px;
+            padding: 8px 10px 20px;
             --pp-code-font-size: 16px;
             --pp-trace-font-size: 14px;
             --pp-output-font-size: 14px;
@@ -1701,13 +1714,7 @@ def __tracer__(frame, event, arg):
 
         .playground-header {
             text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .playground-header h1 {
-            color: #2563eb;
-            margin-bottom: 10px;
-            font-size: clamp(1.75rem, 5vw, 2.25rem);
+            margin-bottom: 12px;
         }
 
         .visibility-toggles {
@@ -1715,7 +1722,6 @@ def __tracer__(frame, event, arg):
             justify-content: center;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 10px;
         }
 
         .code-visibility-toggle {
