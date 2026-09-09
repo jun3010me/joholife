@@ -33,40 +33,71 @@ import Layout from '../layouts/Layout.astro';
                         <input type="file" id="file-input" accept=".py" style="display: none;">
                     </div>
                 </div>
+                <div class="font-size-control">
+                    <label for="code-font-size">🔤 コードの文字サイズ</label>
+                    <input type="range" id="code-font-size" min="12" max="32" step="1" value="16">
+                    <span id="code-font-size-value" class="font-size-value">16px</span>
+                </div>
                 <div id="code-editor-container">
                     <div id="code-editor"></div>
                 </div>
             </div>
 
-            <div class="output-section">
-                <div class="section-header">
-                    <h3>📤 実行結果</h3>
-                    <div class="status">
-                        <label class="error-lang-toggle">
-                            <input type="checkbox" id="japanese-error-toggle" checked>
-                            <span>エラーを日本語化する</span>
-                        </label>
-                        <span id="python-status">Pythonエンジンを読み込み中...</span>
+            <div class="right-column">
+                <div class="output-section">
+                    <div class="section-header">
+                        <h3>📤 実行結果</h3>
+                        <div class="status">
+                            <label class="error-lang-toggle">
+                                <input type="checkbox" id="japanese-error-toggle" checked>
+                                <span>エラーを日本語化する</span>
+                            </label>
+                            <span id="python-status">Pythonエンジンを読み込み中...</span>
+                        </div>
+                    </div>
+                    <div id="output-area">
+                        <div class="loading">
+                            🔄 Pyodideを読み込んでいます...しばらくお待ちください
+                        </div>
                     </div>
                 </div>
-                <div id="output-area">
-                    <div class="loading">
-                        🔄 Pyodideを読み込んでいます...しばらくお待ちください
+
+                <div class="trace-section">
+                    <div class="section-header">
+                        <h3>🔍 変数トレース</h3>
+                        <label class="orientation-toggle">
+                            <input type="checkbox" id="orientation-toggle">
+                            <span>行と列を入れ替える</span>
+                        </label>
+                    </div>
+                    <div class="font-size-control">
+                        <label for="trace-font-size">🔤 トレースの文字サイズ</label>
+                        <input type="range" id="trace-font-size" min="10" max="28" step="1" value="14">
+                        <span id="trace-font-size-value" class="font-size-value">14px</span>
+                    </div>
+                    <div class="playback-controls">
+                        <button id="trace-first-btn" class="btn-play" title="最初から再生">⏮</button>
+                        <button id="trace-prev-btn" class="btn-play" title="前のステップへ">⏪</button>
+                        <button id="trace-playpause-btn" class="btn-play" title="再生 / 一時停止">▶️</button>
+                        <button id="trace-next-btn" class="btn-play" title="次のステップへ">⏩</button>
+                        <select id="trace-speed" title="再生速度">
+                            <option value="1200">遅い</option>
+                            <option value="600" selected>ふつう</option>
+                            <option value="250">はやい</option>
+                        </select>
+                        <span id="trace-step-indicator">ステップ 0 / 0</span>
+                    </div>
+                    <div id="trace-truncation-warning" class="trace-warning" hidden>
+                        ⚠️ 記録できるステップ数の上限（500ステップ）に達したため、これ以降のステップは記録していません（プログラムの実行自体は最後まで行われています）。
+                    </div>
+                    <div id="trace-table-container" class="trace-table-container">
+                        <div class="debug-empty">変数はまだありません</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="debug-panels">
-            <div class="debug-panel">
-                <div class="debug-header">
-                    <h3>🔍 変数トラッカー</h3>
-                </div>
-                <div id="variable-tracker" class="debug-content">
-                    <div class="debug-empty">変数はまだありません</div>
-                </div>
-            </div>
-
             <div class="debug-panel">
                 <div class="debug-header">
                     <h3>🔄 ループ実行カウンター</h3>
@@ -94,6 +125,7 @@ import Layout from '../layouts/Layout.astro';
                 <li><strong>変数</strong>: name = "値" で変数を定義できます</li>
                 <li><strong>計算</strong>: +, -, *, / などの演算子が使えます</li>
                 <li><strong>繰り返し</strong>: for文やwhile文が使えます</li>
+                <li><strong>変数トレース</strong>: 実行後、右側の表でステップをクリックすると、そのときの変数の値と対応するコード行がハイライトされます</li>
             </ul>
         </div>
     </div>
@@ -101,18 +133,30 @@ import Layout from '../layouts/Layout.astro';
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material-darker.min.css">
-    
+
     <script>
         let pyodide = null;
         let inputQueue = [];
         let isWaitingForInput = false;
         let inputResolver = null;
         let codeEditor = null;
-        let variableState = {};
         let loopCounts = {};
         let recursionData = {};
         let outputLineCount = 0;
         const MAX_OUTPUT_LINES = 10000; // 最大出力行数
+
+        // 変数トレース関連の状態
+        let traceSteps = [];        // [{ line, vars: {name: value} }, ...]
+        let traceVarNames = [];     // 初出順の変数名一覧
+        let traceMatrix = [];       // 各ステップの表示用セル情報
+        let activeStepIndex = -1;   // 現在アクティブなステップ（0始まり）
+        let traceOrientation = 'varsAsRows'; // 'varsAsRows' | 'stepsAsRows'
+        let isPlaying = false;
+        let playIntervalId = null;
+        let playSpeedMs = 600;
+        const MAX_TRACE_STEPS = 500;
+        let lastHighlightedLine = null;
+        let autosaveTimer = null;
 
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
@@ -123,7 +167,7 @@ import Layout from '../layouts/Layout.astro';
                 await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js');
                 await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js');
                 await loadScript('https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js');
-                
+
                 // CodeMirrorエディタを初期化
                 const editorElement = document.getElementById('code-editor');
                 codeEditor = CodeMirror(editorElement, {
@@ -156,7 +200,12 @@ import Layout from '../layouts/Layout.astro';
                         }
                     }
                 });
-                
+
+                // コード変更時に自動保存をスケジュール
+                codeEditor.on('changes', () => {
+                    scheduleAutosave();
+                });
+
                 // エディタのサイズを強制的に調整
                 setTimeout(() => {
                     const isMobile = window.innerWidth <= 768;
@@ -164,7 +213,7 @@ import Layout from '../layouts/Layout.astro';
                     codeEditor.setSize(null, height);
                     codeEditor.refresh();
                 }, 100);
-                
+
                 // ウィンドウリサイズ時に高さを再調整
                 window.addEventListener('resize', () => {
                     setTimeout(() => {
@@ -174,9 +223,9 @@ import Layout from '../layouts/Layout.astro';
                         codeEditor.refresh();
                     }, 100);
                 });
-                
+
                 console.log('CodeMirror editor initialized');
-                
+
             } catch (error) {
                 console.error('Failed to initialize CodeMirror:', error);
                 // フォールバック: 通常のtextareaを使用
@@ -200,9 +249,9 @@ import Layout from '../layouts/Layout.astro';
             try {
                 const statusElement = document.getElementById('python-status');
                 const outputArea = document.getElementById('output-area');
-                
+
                 statusElement.textContent = 'Pythonエンジンを初期化中...';
-                
+
                 // PyodideをCDNから読み込み
                 if (!window.loadPyodide) {
                     await loadScript('https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js');
@@ -262,10 +311,10 @@ builtins.input = custom_input
 
                 statusElement.textContent = '✅ Python準備完了';
                 outputArea.innerHTML = '<div class="ready">Python環境が準備できました！コードを実行してみましょう。</div>';
-                
+
                 // 実行ボタンを有効化
                 document.getElementById('run-btn').disabled = false;
-                
+
             } catch (error) {
                 console.error('Pyodide読み込みエラー:', error);
                 const statusElement = document.getElementById('python-status');
@@ -315,31 +364,268 @@ builtins.input = custom_input
             }
         }
 
-        // 変数トラッカーの更新
-        function updateVariableTracker(variables) {
-            const tracker = document.getElementById('variable-tracker');
-            if (Object.keys(variables).length === 0) {
-                tracker.innerHTML = '<div class="debug-empty">変数はまだありません</div>';
+        // HTMLエスケープ用ヘルパー関数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        // 変数トレース表示
+        // ============================================================
+
+        // 収集したステップ列から、変数名一覧と表示用マトリクスを構築
+        function buildTraceMatrix() {
+            traceVarNames = [];
+            const seen = new Set();
+            for (const step of traceSteps) {
+                for (const name of Object.keys(step.vars || {})) {
+                    if (!seen.has(name)) {
+                        seen.add(name);
+                        traceVarNames.push(name);
+                    }
+                }
+            }
+
+            const lastValues = {};
+            traceMatrix = traceSteps.map((step) => {
+                const cells = {};
+                for (const name of traceVarNames) {
+                    if (Object.prototype.hasOwnProperty.call(step.vars, name)) {
+                        const valueStr = JSON.stringify(step.vars[name]);
+                        cells[name] = {
+                            value: valueStr,
+                            defined: true,
+                            changed: lastValues[name] !== valueStr
+                        };
+                        lastValues[name] = valueStr;
+                    } else if (Object.prototype.hasOwnProperty.call(lastValues, name)) {
+                        cells[name] = {
+                            value: lastValues[name],
+                            defined: true,
+                            changed: false
+                        };
+                    } else {
+                        cells[name] = {
+                            value: '',
+                            defined: false,
+                            changed: false
+                        };
+                    }
+                }
+                return { line: step.line, cells };
+            });
+        }
+
+        // 1セル分のHTMLを生成
+        function renderTraceCell(cell, stepIndex) {
+            if (!cell.defined) {
+                return `<td class="trace-cell trace-cell-empty" data-step-index="${stepIndex}">—</td>`;
+            }
+            const cls = cell.changed ? 'trace-cell-changed' : 'trace-cell-unchanged';
+            return `<td class="trace-cell ${cls}" data-step-index="${stepIndex}">${escapeHtml(cell.value)}</td>`;
+        }
+
+        // トレース表の描画（向きに応じて転置）
+        function renderTraceTable() {
+            const container = document.getElementById('trace-table-container');
+            if (!container) return;
+
+            if (traceSteps.length === 0) {
+                container.innerHTML = '<div class="debug-empty">変数はまだありません</div>';
                 return;
             }
 
-            let html = '<div class="variable-list">';
-            for (const [name, value] of Object.entries(variables)) {
-                const valueStr = JSON.stringify(value);
-                const typeStr = typeof value;
-                html += `
-                    <div class="variable-item">
-                        <span class="var-name">${name}</span>
-                        <span class="var-type">${typeStr}</span>
-                        <span class="var-value">${valueStr}</span>
-                    </div>
-                `;
+            let html = '<table class="trace-table">';
+
+            if (traceOrientation === 'varsAsRows') {
+                // 行 = 変数、列 = ステップ
+                html += '<thead><tr><th class="trace-corner">変数 ＼ ステップ</th>';
+                traceMatrix.forEach((step, i) => {
+                    html += `<th class="trace-step-header" data-step-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
+                });
+                html += '</tr></thead><tbody>';
+
+                for (const name of traceVarNames) {
+                    html += `<tr><th class="trace-var-name">${escapeHtml(name)}</th>`;
+                    traceMatrix.forEach((step, i) => {
+                        html += renderTraceCell(step.cells[name], i);
+                    });
+                    html += '</tr>';
+                }
+                html += '</tbody>';
+            } else {
+                // 行 = ステップ、列 = 変数
+                html += '<thead><tr><th class="trace-corner">ステップ ＼ 変数</th>';
+                for (const name of traceVarNames) {
+                    html += `<th class="trace-var-header">${escapeHtml(name)}</th>`;
+                }
+                html += '</tr></thead><tbody>';
+
+                traceMatrix.forEach((step, i) => {
+                    html += `<tr data-step-index="${i}"><th class="trace-step-row-header" data-step-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
+                    for (const name of traceVarNames) {
+                        html += renderTraceCell(step.cells[name], i);
+                    }
+                    html += '</tr>';
+                });
+                html += '</tbody>';
             }
-            html += '</div>';
-            tracker.innerHTML = html;
+
+            html += '</table>';
+            container.innerHTML = html;
+
+            applyActiveStepClass();
+
+            // ステップの見出しやセルをクリックしたら、そのステップへジャンプ
+            container.querySelectorAll('[data-step-index]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.getAttribute('data-step-index'), 10);
+                    if (!isNaN(idx)) {
+                        stopPlayback();
+                        goToStep(idx);
+                    }
+                });
+            });
         }
 
-        // ループカウンターの更新
+        // アクティブなステップの列（または行）にハイライトクラスを付け直す
+        function applyActiveStepClass() {
+            const container = document.getElementById('trace-table-container');
+            if (!container) return;
+
+            container.querySelectorAll('.active-step').forEach((el) => el.classList.remove('active-step'));
+
+            if (activeStepIndex < 0) return;
+
+            if (traceOrientation === 'varsAsRows') {
+                container.querySelectorAll(`[data-step-index="${activeStepIndex}"]`).forEach((el) => {
+                    el.classList.add('active-step');
+                });
+            } else {
+                const row = container.querySelector(`tr[data-step-index="${activeStepIndex}"]`);
+                if (row) {
+                    row.classList.add('active-step');
+                    row.querySelectorAll('td, th').forEach((el) => el.classList.add('active-step'));
+                }
+            }
+        }
+
+        // ステップ位置の表示を更新
+        function updateStepIndicator() {
+            const indicator = document.getElementById('trace-step-indicator');
+            if (!indicator) return;
+            if (traceSteps.length === 0) {
+                indicator.textContent = 'ステップ 0 / 0';
+            } else {
+                indicator.textContent = `ステップ ${activeStepIndex + 1} / ${traceSteps.length}`;
+            }
+        }
+
+        // 左のコードエディタで、現在アクティブな行をハイライト
+        function highlightActiveLine() {
+            if (!codeEditor) return;
+
+            if (lastHighlightedLine !== null) {
+                codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'active-trace-line');
+                lastHighlightedLine = null;
+            }
+
+            if (activeStepIndex < 0 || activeStepIndex >= traceSteps.length) return;
+
+            const line = traceSteps[activeStepIndex].line;
+            if (line >= 1) {
+                codeEditor.addLineClass(line - 1, 'background', 'active-trace-line');
+                codeEditor.scrollIntoView({ line: line - 1, ch: 0 }, 80);
+                lastHighlightedLine = line;
+            }
+        }
+
+        // アクティブなステップの列(行)が、窓の固定端に来るようスクロール位置を合わせる
+        function scrollActiveStepIntoView() {
+            const container = document.getElementById('trace-table-container');
+            if (!container || activeStepIndex < 0) return;
+
+            if (traceOrientation === 'varsAsRows') {
+                const activeCell = container.querySelector(`.trace-step-header[data-step-index="${activeStepIndex}"]`);
+                if (!activeCell) return;
+                const target = activeCell.offsetLeft + activeCell.offsetWidth - container.clientWidth;
+                container.scrollLeft = Math.max(0, target);
+            } else {
+                const activeRow = container.querySelector(`tr[data-step-index="${activeStepIndex}"]`);
+                if (!activeRow) return;
+                const target = activeRow.offsetTop + activeRow.offsetHeight - container.clientHeight;
+                container.scrollTop = Math.max(0, target);
+            }
+        }
+
+        // 指定したステップへ移動し、左右の表示を同期
+        function goToStep(index) {
+            if (traceSteps.length === 0) return;
+            if (index < 0) index = 0;
+            if (index > traceSteps.length - 1) index = traceSteps.length - 1;
+
+            activeStepIndex = index;
+            applyActiveStepClass();
+            updateStepIndicator();
+            highlightActiveLine();
+            scrollActiveStepIntoView();
+        }
+
+        // 再生ボタンの見た目を更新
+        function updatePlayButton() {
+            const btn = document.getElementById('trace-playpause-btn');
+            if (btn) btn.textContent = isPlaying ? '⏸' : '▶️';
+        }
+
+        function startPlayback() {
+            if (traceSteps.length === 0) return;
+            if (activeStepIndex >= traceSteps.length - 1) {
+                activeStepIndex = -1; // 最後まで来ていたら最初から
+            }
+            isPlaying = true;
+            updatePlayButton();
+            playIntervalId = setInterval(() => {
+                if (activeStepIndex >= traceSteps.length - 1) {
+                    stopPlayback();
+                    return;
+                }
+                goToStep(activeStepIndex + 1);
+            }, playSpeedMs);
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            updatePlayButton();
+            if (playIntervalId) {
+                clearInterval(playIntervalId);
+                playIntervalId = null;
+            }
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function restartPlayback() {
+            stopPlayback();
+            activeStepIndex = -1;
+            startPlayback();
+        }
+
+        function showTraceTruncationWarning(show) {
+            const el = document.getElementById('trace-truncation-warning');
+            if (el) el.hidden = !show;
+        }
+
+        // ============================================================
+        // ループ実行カウンター（既存機能・変更なし）
+        // ============================================================
         function updateLoopTracker(counts, codeLines, loopIterations) {
             const tracker = document.getElementById('loop-tracker');
             if (Object.keys(counts).length === 0) {
@@ -426,13 +712,6 @@ builtins.input = custom_input
 
             html += '</div>';
             tracker.innerHTML = html;
-        }
-
-        // HTMLエスケープ用ヘルパー関数
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
 
         // Pythonエラーを日本語に翻訳
@@ -547,7 +826,7 @@ builtins.input = custom_input
             return result.join('\n');
         }
 
-        // 再帰トラッカーの更新
+        // 再帰トラッカーの更新（既存機能・変更なし）
         function updateRecursionTracker(data) {
             const tracker = document.getElementById('recursion-tracker');
             if (Object.keys(data).length === 0) {
@@ -586,11 +865,24 @@ builtins.input = custom_input
 
         // デバッグ情報のクリア
         function clearDebugInfo() {
-            variableState = {};
             loopCounts = {};
             recursionData = {};
             outputLineCount = 0;
-            updateVariableTracker({});
+
+            stopPlayback();
+            traceSteps = [];
+            traceVarNames = [];
+            traceMatrix = [];
+            activeStepIndex = -1;
+
+            if (codeEditor && lastHighlightedLine !== null) {
+                codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'active-trace-line');
+                lastHighlightedLine = null;
+            }
+
+            renderTraceTable();
+            updateStepIndicator();
+            showTraceTruncationWarning(false);
             updateLoopTracker({});
             updateRecursionTracker({});
         }
@@ -641,8 +933,9 @@ import re
 
 __loop_counts__ = {}
 __loop_iterations__ = {}  # ループごとの反復回数を記録
-__variables__ = {}
-__all_variables__ = {}  # すべての変数を収集
+__trace_steps__ = []  # 各実行ステップ（行）ごとの変数スナップショット
+__trace_truncated__ = False
+__MAX_TRACE_STEPS__ = ${MAX_TRACE_STEPS}
 __recursion_data__ = {}  # 再帰情報を追跡
 __call_stack__ = {}  # 関数呼び出しスタック
 __user_code_file__ = '<exec>'
@@ -661,7 +954,7 @@ def __get_indent__(line_text):
     return len(line_text) - len(line_text.lstrip())
 
 def __tracer__(frame, event, arg):
-    global __loop_counts__, __loop_iterations__, __variables__, __all_variables__, __recursion_data__, __call_stack__
+    global __loop_counts__, __loop_iterations__, __trace_steps__, __trace_truncated__, __recursion_data__, __call_stack__
     global __tracing_enabled__, __loop_stack__, __in_loop__
 
     # ユーザーコードのみを追跡（<exec>ファイル名でフィルタ）
@@ -705,7 +998,7 @@ def __tracer__(frame, event, arg):
         if func_name in __call_stack__ and __call_stack__[func_name] > 0:
             __call_stack__[func_name] -= 1
 
-    # ループのカウント（行番号ベース）
+    # ループのカウント（行番号ベース）＋ 変数トレースのステップ記録
     if event == 'line' and __tracing_enabled__:
         lineno = frame.f_lineno
 
@@ -751,35 +1044,37 @@ def __tracer__(frame, event, arg):
                     if not __loop_stack__:
                         __in_loop__ = False
 
-    # すべての変数を収集（グローバル + ローカル）
-    if event in ['line', 'call', 'return'] and __tracing_enabled__:
-        # ローカル変数のみを取得（関数内の変数）
-        locals_dict = frame.f_locals.copy()
+            # 変数トレース: このステップ（行）における全変数のスナップショットを記録
+            if len(__trace_steps__) < __MAX_TRACE_STEPS__:
+                locals_dict = frame.f_locals.copy()
+                globals_dict = frame.f_globals.copy()
 
-        # グローバル変数を取得（ユーザー定義のみ）
-        globals_dict = frame.f_globals.copy()
+                # 除外するキー
+                excluded_keys = {
+                    'sys', 'json', 're', 'io', 'builtins', 'prompt',
+                    'UnbufferedTextIO', 'self', 's', 'custom_input'
+                }
 
-        # 除外するキー
-        excluded_keys = {
-            'sys', 'json', 're', 'io', 'builtins', 'prompt',
-            'UnbufferedTextIO', 'self', 's', 'custom_input'
-        }
+                snapshot = {}
+                # 組み合わせて、内部変数やモジュールを除外
+                for k, v in {**globals_dict, **locals_dict}.items():
+                    if (not k.startswith('_') and
+                        k not in excluded_keys and
+                        not callable(v) and
+                        'TextIO' not in str(type(v)) and
+                        '<_io.' not in str(v) and
+                        str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>']):
+                        try:
+                            # シリアライズ可能な値のみ保存
+                            json.dumps(v)
+                            snapshot[k] = v
+                        except:
+                            # シリアライズできない値はスキップ
+                            pass
 
-        # 組み合わせて、内部変数やモジュールを除外
-        for k, v in {**globals_dict, **locals_dict}.items():
-            if (not k.startswith('_') and
-                k not in excluded_keys and
-                not callable(v) and
-                'TextIO' not in str(type(v)) and
-                '<_io.' not in str(v) and
-                str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>']):
-                try:
-                    # シリアライズ可能な値のみ保存
-                    json.dumps(v)
-                    __all_variables__[k] = v
-                except:
-                    # シリアライズできない値はスキップ
-                    pass
+                __trace_steps__.append({'line': lineno, 'vars': snapshot})
+            else:
+                __trace_truncated__ = True
 
     return __tracer__
 `;
@@ -806,16 +1101,23 @@ def __tracer__(frame, event, arg):
                 const outputArea = document.getElementById('output-area');
                 outputArea.scrollTop = outputArea.scrollHeight;
 
-                // 変数、ループカウント、再帰データを取得
-                const variables = pyodide.globals.get('__all_variables__');
+                // 変数トレース、ループカウント、再帰データを取得
+                const traceStepsRaw = pyodide.globals.get('__trace_steps__');
+                const traceTruncatedRaw = pyodide.globals.get('__trace_truncated__');
                 const loopCountsRaw = pyodide.globals.get('__loop_counts__');
                 const recursionDataRaw = pyodide.globals.get('__recursion_data__');
 
-                // JavaScriptオブジェクトに変換
-                if (variables) {
-                    variableState = variables.toJs({dict_converter: Object.fromEntries});
-                    updateVariableTracker(variableState);
-                }
+                // JavaScriptオブジェクトに変換して変数トレース表を描画
+                traceSteps = traceStepsRaw
+                    ? traceStepsRaw.toJs({ dict_converter: Object.fromEntries })
+                    : [];
+                buildTraceMatrix();
+                activeStepIndex = traceSteps.length - 1; // 実行直後は最終ステップを表示
+                renderTraceTable();
+                updateStepIndicator();
+                highlightActiveLine();
+                scrollActiveStepIntoView();
+                showTraceTruncationWarning(!!traceTruncatedRaw);
 
                 if (loopCountsRaw) {
                     const loopCountsObj = loopCountsRaw.toJs({dict_converter: Object.fromEntries});
@@ -893,7 +1195,7 @@ def __tracer__(frame, event, arg):
 
             const randomSample = samples[Math.floor(Math.random() * samples.length)];
             const formattedCode = randomSample.replace(/\\n/g, '\n');
-            
+
             if (codeEditor) {
                 codeEditor.setValue(formattedCode);
             } else {
@@ -918,7 +1220,7 @@ def __tracer__(frame, event, arg):
             clearDebugInfo();
         }
 
-        // 保存機能
+        // 保存機能（.pyファイルとしてダウンロード）
         function saveCode() {
             if (!codeEditor) {
                 alert('エディタが初期化されていません');
@@ -942,7 +1244,7 @@ def __tracer__(frame, event, arg):
             URL.revokeObjectURL(url);
         }
 
-        // 読込機能
+        // 読込機能（.pyファイルを選択して読み込み）
         function loadCode() {
             const fileInput = document.getElementById('file-input');
             fileInput.click();
@@ -967,6 +1269,89 @@ def __tracer__(frame, event, arg):
 
             // ファイル入力をリセット（同じファイルを再度読み込めるようにする）
             event.target.value = '';
+        }
+
+        // ============================================================
+        // コードの自動保存・復元（localStorage）
+        // markdown-editor.astro の editorContent と同じ流儀
+        // ============================================================
+        function scheduleAutosave() {
+            if (autosaveTimer) {
+                clearTimeout(autosaveTimer);
+            }
+            autosaveTimer = setTimeout(() => {
+                if (!codeEditor) return;
+                try {
+                    localStorage.setItem('pythonPlaygroundCode', codeEditor.getValue());
+                } catch (e) {
+                    console.error('コードの自動保存に失敗しました:', e);
+                }
+            }, 500);
+        }
+
+        function restoreAutosavedCode() {
+            if (!codeEditor) return;
+            try {
+                const saved = localStorage.getItem('pythonPlaygroundCode');
+                if (saved) {
+                    codeEditor.setValue(saved);
+                }
+            } catch (e) {
+                console.error('コードの復元に失敗しました:', e);
+            }
+        }
+
+        // ============================================================
+        // フォントサイズの適用・保存
+        // ============================================================
+        function applyCodeFontSize(size) {
+            const root = document.querySelector('.python-playground');
+            if (root) root.style.setProperty('--pp-code-font-size', `${size}px`);
+            const label = document.getElementById('code-font-size-value');
+            if (label) label.textContent = `${size}px`;
+            if (codeEditor) codeEditor.refresh();
+        }
+
+        function applyTraceFontSize(size) {
+            const root = document.querySelector('.python-playground');
+            if (root) root.style.setProperty('--pp-trace-font-size', `${size}px`);
+            const label = document.getElementById('trace-font-size-value');
+            if (label) label.textContent = `${size}px`;
+        }
+
+        // 表示設定（フォントサイズ・向き・再生速度）の復元
+        function restoreSettings() {
+            try {
+                const codeFontSize = localStorage.getItem('pythonPlaygroundCodeFontSize');
+                const codeFontSizeInput = document.getElementById('code-font-size');
+                if (codeFontSize && codeFontSizeInput) {
+                    codeFontSizeInput.value = codeFontSize;
+                }
+                applyCodeFontSize(codeFontSizeInput ? codeFontSizeInput.value : 16);
+
+                const traceFontSize = localStorage.getItem('pythonPlaygroundTraceFontSize');
+                const traceFontSizeInput = document.getElementById('trace-font-size');
+                if (traceFontSize && traceFontSizeInput) {
+                    traceFontSizeInput.value = traceFontSize;
+                }
+                applyTraceFontSize(traceFontSizeInput ? traceFontSizeInput.value : 14);
+
+                const orientation = localStorage.getItem('pythonPlaygroundTraceOrientation');
+                if (orientation === 'stepsAsRows') {
+                    traceOrientation = 'stepsAsRows';
+                    const toggle = document.getElementById('orientation-toggle');
+                    if (toggle) toggle.checked = true;
+                }
+
+                const speed = localStorage.getItem('pythonPlaygroundPlaySpeed');
+                const speedSelect = document.getElementById('trace-speed');
+                if (speed) {
+                    playSpeedMs = parseInt(speed, 10);
+                    if (speedSelect) speedSelect.value = speed;
+                }
+            } catch (e) {
+                console.error('設定の復元に失敗しました:', e);
+            }
         }
 
         // ドラッグ&ドロップ機能
@@ -1015,10 +1400,16 @@ def __tracer__(frame, event, arg):
         // イベントリスナーの設定
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM loaded, starting CodeMirror and Pyodide initialization...');
-            
+
             // CodeMirrorエディタを初期化
             await initCodeEditor();
-            
+
+            // 表示設定・自動保存されたコードを復元
+            restoreSettings();
+            restoreAutosavedCode();
+            renderTraceTable();
+            updateStepIndicator();
+
             // Pyodideを読み込み
             loadPyodide().catch(error => {
                 console.error('Failed to load Pyodide:', error);
@@ -1036,16 +1427,60 @@ def __tracer__(frame, event, arg):
             document.getElementById('load-btn').addEventListener('click', loadCode);
             document.getElementById('file-input').addEventListener('change', handleFileSelect);
 
+            // フォントサイズ
+            document.getElementById('code-font-size').addEventListener('input', (e) => {
+                applyCodeFontSize(e.target.value);
+                try { localStorage.setItem('pythonPlaygroundCodeFontSize', e.target.value); } catch (err) {}
+            });
+            document.getElementById('trace-font-size').addEventListener('input', (e) => {
+                applyTraceFontSize(e.target.value);
+                try { localStorage.setItem('pythonPlaygroundTraceFontSize', e.target.value); } catch (err) {}
+            });
+
+            // 変数トレース：向き切替
+            document.getElementById('orientation-toggle').addEventListener('change', (e) => {
+                traceOrientation = e.target.checked ? 'stepsAsRows' : 'varsAsRows';
+                try { localStorage.setItem('pythonPlaygroundTraceOrientation', traceOrientation); } catch (err) {}
+                renderTraceTable();
+                scrollActiveStepIntoView();
+            });
+
+            // 変数トレース：再生コントロール
+            document.getElementById('trace-first-btn').addEventListener('click', () => {
+                restartPlayback();
+            });
+            document.getElementById('trace-prev-btn').addEventListener('click', () => {
+                stopPlayback();
+                goToStep(activeStepIndex - 1);
+            });
+            document.getElementById('trace-playpause-btn').addEventListener('click', () => {
+                togglePlayback();
+            });
+            document.getElementById('trace-next-btn').addEventListener('click', () => {
+                stopPlayback();
+                goToStep(activeStepIndex + 1);
+            });
+            document.getElementById('trace-speed').addEventListener('change', (e) => {
+                playSpeedMs = parseInt(e.target.value, 10);
+                try { localStorage.setItem('pythonPlaygroundPlaySpeed', String(playSpeedMs)); } catch (err) {}
+                if (isPlaying) {
+                    stopPlayback();
+                    startPlayback();
+                }
+            });
+
             // ドラッグ&ドロップ機能を有効化
             setupDragAndDrop();
         });
     </script>
 
-    <style>
+    <style is:global>
         .python-playground {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            --pp-code-font-size: 16px;
+            --pp-trace-font-size: 14px;
         }
 
         .playground-header {
@@ -1064,6 +1499,13 @@ def __tracer__(frame, event, arg):
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
+            align-items: start;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .section-header {
@@ -1126,6 +1568,34 @@ def __tracer__(frame, event, arg):
             color: #1e293b;
         }
 
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .font-size-control label {
+            white-space: nowrap;
+        }
+
+        .font-size-control input[type="range"] {
+            flex: 1;
+            min-width: 100px;
+            max-width: 220px;
+            cursor: pointer;
+        }
+
+        .font-size-value {
+            min-width: 42px;
+            text-align: right;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
         #code-editor-container {
             width: 100%;
             height: 400px;
@@ -1145,7 +1615,7 @@ def __tracer__(frame, event, arg):
         .CodeMirror {
             height: 400px !important;
             font-family: 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-            font-size: 16px; /* モバイルでズームを防ぐため16px以上に */
+            font-size: var(--pp-code-font-size, 16px) !important;
             line-height: 1.5;
             border-radius: 6px;
             flex: 1;
@@ -1162,6 +1632,12 @@ def __tracer__(frame, event, arg):
 
         .CodeMirror-focused .CodeMirror-cursor {
             border-left: 2px solid #2563eb;
+        }
+
+        /* 変数トレースでアクティブな実行行のハイライト */
+        .CodeMirror .active-trace-line {
+            background: rgba(37, 99, 235, 0.18) !important;
+            box-shadow: inset 3px 0 0 #2563eb;
         }
 
         /* 選択範囲の色を調整（より見やすく、透明度を下げる） */
@@ -1207,13 +1683,13 @@ def __tracer__(frame, event, arg):
         }
 
         #output-area {
-            height: 400px;
+            height: 220px;
             padding: 15px;
             background: #1e293b;
             color: #e2e8f0;
             border-radius: 8px;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-            font-size: 14px;
+            font-size: var(--pp-trace-font-size, 14px);
             line-height: 1.5;
             overflow-y: auto;
             white-space: pre-wrap;
@@ -1333,7 +1809,7 @@ def __tracer__(frame, event, arg):
             border-bottom: none;
         }
 
-        /* デバッグパネル */
+        /* デバッグパネル（ループ実行カウンター・再帰トラッカー） */
         .debug-panels {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1375,40 +1851,10 @@ def __tracer__(frame, event, arg):
             font-style: italic;
         }
 
-        .variable-list, .loop-list {
+        .loop-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
-        }
-
-        .variable-item {
-            background: #f8fafc;
-            padding: 10px 12px;
-            border-radius: 6px;
-            border-left: 3px solid #3b82f6;
-            display: grid;
-            grid-template-columns: auto auto 1fr;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .var-name {
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .var-type {
-            font-size: 11px;
-            color: #64748b;
-            background: #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-
-        .var-value {
-            color: #059669;
-            font-weight: 500;
-            text-align: right;
         }
 
         .loop-group {
@@ -1592,6 +2038,173 @@ def __tracer__(frame, event, arg):
             font-size: 14px;
         }
 
+        /* 変数トレース表示 */
+        .trace-section {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .orientation-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #475569;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .orientation-toggle input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn-play {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            transition: background 0.2s;
+        }
+
+        .btn-play:hover {
+            background: #1d4ed8;
+        }
+
+        #trace-speed {
+            padding: 5px 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 13px;
+            color: #334155;
+            background: white;
+        }
+
+        #trace-step-indicator {
+            font-size: 13px;
+            color: #475569;
+            margin-left: auto;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .trace-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .trace-table-container {
+            overflow: auto;
+            max-height: 360px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .trace-table {
+            border-collapse: collapse;
+            width: max-content;
+            min-width: 100%;
+            font-size: var(--pp-trace-font-size, 14px);
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+
+        .trace-table th,
+        .trace-table td {
+            border: 1px solid #e2e8f0;
+            padding: 6px 10px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .trace-table thead th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        .trace-corner {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 3;
+            background: #f1f5f9 !important;
+            text-align: left;
+        }
+
+        .trace-var-name,
+        .trace-step-row-header {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 1;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: left;
+        }
+
+        .trace-step-row-header {
+            cursor: pointer;
+        }
+
+        .trace-step-header,
+        .trace-var-header {
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .trace-line-no {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .trace-cell {
+            cursor: pointer;
+            color: #1e293b;
+        }
+
+        .trace-cell-empty {
+            color: #cbd5e1;
+        }
+
+        .trace-cell-unchanged {
+            color: #94a3b8;
+        }
+
+        .trace-cell-changed {
+            background: rgba(37, 99, 235, 0.12);
+            color: #1e3a8a;
+            font-weight: 700;
+        }
+
+        .active-step {
+            background: rgba(37, 99, 235, 0.22) !important;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+
         /* レスポンシブ対応 */
         @media (max-width: 768px) {
             .playground-content {
@@ -1637,20 +2250,19 @@ def __tracer__(frame, event, arg):
             }
 
             #output-area {
-                height: 350px;
+                height: 200px;
             }
 
             .debug-content {
                 max-height: 300px;
             }
 
-            .variable-item {
-                grid-template-columns: 1fr;
-                gap: 5px;
+            #trace-step-indicator {
+                margin-left: 0;
             }
 
-            .var-value {
-                text-align: left;
+            .trace-table-container {
+                max-height: 280px;
             }
         }
 
@@ -1658,7 +2270,7 @@ def __tracer__(frame, event, arg):
             .controls {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .btn {
                 padding: 12px 6px;
                 font-size: 0.75rem;
