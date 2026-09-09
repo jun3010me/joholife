@@ -2343,6 +2343,7 @@ def __tracer__(frame, event, arg):
 
         .trace-section.fill-height .trace-table-container {
             flex: 1;
+            height: auto;
             max-height: none;
             min-height: 0;
         }
@@ -2412,7 +2413,11 @@ def __tracer__(frame, event, arg):
 
         .trace-table-container {
             overflow: auto;
-            max-height: 360px;
+            /* max-height ではなく height で固定する。max-height だとステップ数や
+               表の向きによって内容が短い時にコンテナ自体が縮んでしまい、行と列を
+               入れ替えるたびにこのエリアの縦幅（≒ページ全体の高さ）が変わって
+               しまう。常に同じ縦幅を保ち、その中でスクロールさせる。 */
+            height: 360px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
         }
@@ -2562,7 +2567,7 @@ def __tracer__(frame, event, arg):
             }
 
             .trace-table-container {
-                max-height: 280px;
+                height: 280px;
             }
         }
 
