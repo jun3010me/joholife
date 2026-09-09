@@ -527,12 +527,15 @@ builtins.input = custom_input
             }
         }
 
-        // 左のコードエディタで、現在アクティブな行をハイライト
+        // 左のコードエディタで、現在アクティブな行をハイライト。
+        // ループ内で2行だけを行ったり来たりする場合でも「今1ステップ進んだ」ことが
+        // はっきり分かるよう、ハイライトのたびに一瞬光らせる（trace-line-flash）。
         function highlightActiveLine() {
             if (!codeEditor) return;
 
             if (lastHighlightedLine !== null) {
                 codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'active-trace-line');
+                codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'trace-line-flash');
                 lastHighlightedLine = null;
             }
 
@@ -540,7 +543,10 @@ builtins.input = custom_input
 
             const line = traceSteps[activeStepIndex].line;
             if (line >= 1) {
+                // アニメーションを毎回確実に再生させるため、一度リフローを挟んでからクラスを付与する
+                codeEditor.getWrapperElement().offsetHeight;
                 codeEditor.addLineClass(line - 1, 'background', 'active-trace-line');
+                codeEditor.addLineClass(line - 1, 'background', 'trace-line-flash');
                 codeEditor.scrollIntoView({ line: line - 1, ch: 0 }, 80);
                 lastHighlightedLine = line;
             }
@@ -937,6 +943,7 @@ builtins.input = custom_input
 
             if (codeEditor && lastHighlightedLine !== null) {
                 codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'active-trace-line');
+                codeEditor.removeLineClass(lastHighlightedLine - 1, 'background', 'trace-line-flash');
                 lastHighlightedLine = null;
             }
 
@@ -1246,7 +1253,7 @@ def __tracer__(frame, event, arg):
 
                 '# 変数と文字列\\nprint("=== 変数の例 ===")\\nname = "太郎"\\nage = 16\\nprint(f"名前: {name}")\\nprint(f"年齢: {age}歳")\\nprint(f"{name}さんは{age}歳です")',
 
-                '# 繰り返し処理\\nprint("=== 繰り返しの例 ===")\\nfor i in range(5):\\n    print(f"カウント: {i}")\\n\\nprint("\\n偶数の表示:")\\nfor i in range(10):\\n    if i % 2 == 0:\\n        print(f"{i}は偶数")',
+                '# 繰り返し処理\\nprint("=== 繰り返しの例 ===")\\nfor i in range(5):\\n    print(f"カウント: {i}")\\n\\nprint("偶数の表示:")\\nfor i in range(10):\\n    if i % 2 == 0:\\n        print(f"{i}は偶数")',
 
                 '# リストの操作\\nprint("=== リストの例 ===")\\nfruits = ["りんご", "バナナ", "オレンジ"]\\nprint("果物リスト:", fruits)\\n\\nfruits.append("ぶどう")\\nprint("追加後:", fruits)\\n\\nfor fruit in fruits:\\n    print(f"- {fruit}")',
 
@@ -1703,8 +1710,19 @@ def __tracer__(frame, event, arg):
 
         /* 変数トレースでアクティブな実行行のハイライト */
         .CodeMirror .active-trace-line {
-            background: rgba(37, 99, 235, 0.18) !important;
-            box-shadow: inset 3px 0 0 #2563eb;
+            background: rgba(37, 99, 235, 0.32) !important;
+            box-shadow: inset 4px 0 0 #2563eb;
+        }
+
+        /* ステップを進めるたびに一瞬光らせて、たとえ同じ2行を往復していても
+           「今、確かに1ステップ進んだ」ことが分かるようにする */
+        @keyframes trace-step-pulse {
+            0% { filter: brightness(2.2); }
+            100% { filter: brightness(1); }
+        }
+
+        .CodeMirror .active-trace-line.trace-line-flash {
+            animation: trace-step-pulse 0.5s ease-out;
         }
 
         /* 選択範囲の色を調整（より見やすく、透明度を下げる） */
@@ -2171,11 +2189,15 @@ def __tracer__(frame, event, arg):
         }
 
         #trace-step-indicator {
-            font-size: 13px;
-            color: #475569;
+            font-size: 14px;
+            color: white;
+            background: #2563eb;
+            padding: 4px 12px;
+            border-radius: 999px;
             margin-left: auto;
             white-space: nowrap;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
 
         .trace-warning {
