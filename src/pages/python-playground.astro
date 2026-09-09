@@ -1415,11 +1415,18 @@ def __tracer__(frame, event, arg):
             if (!codeSection || !outputSection || !traceSection || !rightColumn || !playgroundContent) return;
 
             const codeVisible = !codeSection.classList.contains('panel-hidden');
-            const rightHasContent = !outputSection.classList.contains('panel-hidden') || !traceSection.classList.contains('panel-hidden');
+            const outputVisible = !outputSection.classList.contains('panel-hidden');
+            const traceVisible = !traceSection.classList.contains('panel-hidden');
+            const rightHasContent = outputVisible || traceVisible;
 
             rightColumn.classList.toggle('panel-hidden', !rightHasContent);
             playgroundContent.classList.toggle('code-hidden', !codeVisible && rightHasContent);
             playgroundContent.classList.toggle('right-hidden', codeVisible && !rightHasContent);
+
+            // 「実行結果」「変数トレース」のどちらか一方だけが表示されている時は、
+            // そのパネル1つだけでコードエディタと同じ高さまで広げる。
+            outputSection.classList.toggle('fill-height', outputVisible && !traceVisible);
+            traceSection.classList.toggle('fill-height', traceVisible && !outputVisible);
         }
 
         // コードエリアの表示・非表示を切り替える。
@@ -2337,6 +2344,33 @@ def __tracer__(frame, event, arg):
             border-radius: 8px;
             padding: 15px;
             min-width: 0;
+            min-height: 0;
+        }
+
+        /* 「実行結果」「変数トレース」のどちらか一方だけを表示している時、
+           そのパネル1つだけでコードエディタと同じ高さまで広がるようにする
+           （JS側で updatePlaygroundGridLayout() が付け外しする）。 */
+        .output-section.fill-height {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .output-section.fill-height #output-area {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+        }
+
+        .trace-section.fill-height {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .trace-section.fill-height .trace-table-container {
+            flex: 1;
+            max-height: none;
             min-height: 0;
         }
 
