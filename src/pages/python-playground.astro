@@ -2500,6 +2500,7 @@ def __tracer__(frame, event, arg):
             z-index: 3;
             background: #f1f5f9 !important;
             text-align: left;
+            width: 1%;
         }
 
         .trace-var-name,
@@ -2511,6 +2512,11 @@ def __tracer__(frame, event, arg):
             font-weight: 600;
             color: #1e293b;
             text-align: left;
+            /* min-width:100% で表全体を広げる際、列数が少ないと（特にstepsAsRowsの
+               変数が1つだけの場合など）この見出し列にも余った幅が配分されて
+               不必要に広くなってしまう。1% を指定することで、実質「内容に必要な
+               分だけ」に縮めつつ、余った幅は隣のデータ列側に配分させる。 */
+            width: 1%;
         }
 
         .trace-step-row-header {
@@ -2524,7 +2530,7 @@ def __tracer__(frame, event, arg):
         }
 
         .trace-line-no {
-            font-size: 11px;
+            font-size: 1em;
             color: #94a3b8;
             font-weight: 400;
         }
