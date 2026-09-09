@@ -481,11 +481,7 @@ builtins.input = custom_input
             }
 
             html += '</table>';
-            // アクティブなステップを常に窓の中央に固定するため、表の前後に伸縮する
-            // 余白（マージン）を持たせるラッパーで包む。padding ではなく margin を
-            // 使っているのは、末尾側の padding がスクロール可能領域に反映されない
-            // ブラウザの挙動を避けるため。
-            container.innerHTML = `<div class="trace-table-spacer">${html}</div>`;
+            container.innerHTML = html;
 
             applyActiveStepClass();
 
@@ -558,42 +554,19 @@ builtins.input = custom_input
             }
         }
 
-        // 表を包む .trace-table-spacer の前後に、コンテナの表示領域と同じ大きさの
-        // 余白を確保する。これにより、記録されたステップ数がどれだけ少なくても
-        // （最初や最後のステップでも）アクティブなステップを常に窓の中央まで
-        // 送り込むことができる。
-        //
-        // 余白は padding ではなく margin で確保している。padding-right / padding-bottom
-        // のような「末尾側のpadding」はスクロール可能領域（scrollWidth/scrollHeight）に
-        // 反映されないブラウザの挙動があり、centerに届かず途中でスクロールが
-        // 頭打ちになる問題があったため。
-        function ensureTraceScrollSpacer() {
-            const container = document.getElementById('trace-table-container');
-            if (!container) return;
-            const spacer = container.querySelector('.trace-table-spacer');
-            if (!spacer) return;
-
-            if (traceOrientation === 'varsAsRows') {
-                spacer.style.display = 'inline-block';
-                spacer.style.marginTop = '';
-                spacer.style.marginBottom = '';
-                spacer.style.marginLeft = `${container.clientWidth}px`;
-                spacer.style.marginRight = `${container.clientWidth}px`;
-            } else {
-                spacer.style.display = 'block';
-                spacer.style.marginLeft = '';
-                spacer.style.marginRight = '';
-                spacer.style.marginTop = `${container.clientHeight}px`;
-                spacer.style.marginBottom = `${container.clientHeight}px`;
-            }
-        }
-
-        // アクティブなステップの列(行)を、変数トレースエリアの「常に中央」に固定する
+        // アクティブなステップの列(行)を、変数トレースエリアの中央に近づける
         // （ダイヤル錠で選択中の数字が中央に来るのと同じイメージ）。左端の変数名
         // （または上端のステップ番号）列はsticky指定で固定表示されたままなので、
         // 中央の基準はその分を除いた実表示領域の中央で計算している。
         // 表示領域そのものの大きさは変えず、trace-table-container の中だけで
         // スクロールが起こる（オブジェクト内スクロール）。
+        //
+        // 先頭・末尾に近いステップでは「完全に中央」まで送ろうとすると、表の外側に
+        // 何もない余白ができてしまう（実際に表の前後に余白を確保する方式で試したところ、
+        // 先頭ステップをアクティブにした直後に大きな空白が表示される不具合になった）。
+        // そのため、スクロール量は必ず実際にスクロール可能な範囲
+        // （0 〜 scrollWidth/scrollHeight - clientWidth/clientHeight）に収め、
+        // 端に近いステップは「行けるところまで」で止める。
         //
         // 表の中はテーブル要素（sticky指定のth等）が入り組んでいるため、offsetLeft/offsetTop
         // はoffsetParentの解決が不安定になりやすい。そのため、現在のスクロール位置での
@@ -602,8 +575,6 @@ builtins.input = custom_input
         function scrollActiveStepIntoView() {
             const container = document.getElementById('trace-table-container');
             if (!container || activeStepIndex < 0) return;
-
-            ensureTraceScrollSpacer();
 
             // 左端（上端）に固定表示されている見出し列(行)の大きさ。
             // varsAsRows・stepsAsRowsどちらでも、表の左上隅セルは常に .trace-corner。
@@ -618,7 +589,8 @@ builtins.input = custom_input
                 const availableWidth = containerRect.width - stickyWidth;
                 const desiredCenterX = containerRect.left + stickyWidth + availableWidth / 2;
                 const cellCenterX = cellRect.left + cellRect.width / 2;
-                container.scrollLeft += (cellCenterX - desiredCenterX);
+                const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+                container.scrollLeft = Math.max(0, Math.min(maxScrollLeft, container.scrollLeft + (cellCenterX - desiredCenterX)));
             } else {
                 const activeRow = container.querySelector(`tr[data-step-index="${activeStepIndex}"]`);
                 if (!activeRow || !cornerCell) return;
@@ -628,7 +600,8 @@ builtins.input = custom_input
                 const availableHeight = containerRect.height - stickyHeight;
                 const desiredCenterY = containerRect.top + stickyHeight + availableHeight / 2;
                 const rowCenterY = rowRect.top + rowRect.height / 2;
-                container.scrollTop += (rowCenterY - desiredCenterY);
+                const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+                container.scrollTop = Math.max(0, Math.min(maxScrollTop, container.scrollTop + (rowCenterY - desiredCenterY)));
             }
         }
 
@@ -2442,12 +2415,6 @@ def __tracer__(frame, event, arg):
             max-height: 360px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-        }
-
-        /* アクティブなステップを中央に固定するための余白（margin）を
-           JS側から動的に付与するラッパー。向きに応じて display も切り替わる。 */
-        .trace-table-spacer {
-            display: block;
         }
 
         .trace-table {
