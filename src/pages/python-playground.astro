@@ -1132,7 +1132,7 @@ def __tracer__(frame, event, arg):
                     ? traceStepsRaw.toJs({ dict_converter: Object.fromEntries })
                     : [];
                 buildTraceMatrix();
-                activeStepIndex = traceSteps.length - 1; // 実行直後は最終ステップを表示
+                activeStepIndex = traceSteps.length > 0 ? 0 : -1; // 実行直後は最初のステップを表示
                 renderTraceTable();
                 updateStepIndicator();
                 highlightActiveLine();
