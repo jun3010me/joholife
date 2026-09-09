@@ -1550,10 +1550,20 @@ def __tracer__(frame, event, arg):
     </script>
 
     <style is:global>
+        /* このページはプロジェクター投影での全画面表示を想定しているため、
+           サイト共通レイアウト（Layout.astro の .main-content）の左右余白を
+           このページだけ狭める。この <style is:global> の効果は、Astroの
+           ビルド単位（このページの出力）にのみ及び、他のページには影響しない。 */
+        .main-content {
+            max-width: none;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
         .python-playground {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            max-width: none;
+            margin: 0;
+            padding: 20px 10px;
             --pp-code-font-size: 16px;
             --pp-trace-font-size: 14px;
         }
