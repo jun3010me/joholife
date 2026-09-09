@@ -1660,27 +1660,34 @@ def __tracer__(frame, event, arg):
                 goToStep(traceSteps.length - 1);
             });
 
-            // キーボードの左右キーでも1ステップずつ移動できるようにする。
+            // キーボードの上下左右キーでも1ステップずつ移動できるようにする。
+            // 行と列を入れ替えて縦方向にスクロールする表示のときは、上下キーが
+            // 表のスクロールに奪われてしまうため、左右キーと同じ「前・次のステップへ
+            // 移動」の動きを上下キーにも割り当て、既定のスクロール動作は止める。
             // ただし、コードエディタや他の入力欄にフォーカスがある間は
             // 通常のカーソル移動を優先し、ステップ操作は行わない。
             document.addEventListener('keydown', (e) => {
-                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                const isPrevKey = e.key === 'ArrowLeft' || e.key === 'ArrowUp';
+                const isNextKey = e.key === 'ArrowRight' || e.key === 'ArrowDown';
+                if (!isPrevKey && !isNextKey) return;
                 if (traceSteps.length === 0) return;
 
                 const active = document.activeElement;
+                // チェックボックス（表示/非表示の切り替えや向き切り替え）は矢印キーで
+                // 何も操作しないため、フォーカスが残っていてもステップ移動を優先する。
                 const isTypingContext = (
                     (codeEditor && codeEditor.hasFocus()) ||
                     (active && (
-                        active.tagName === 'INPUT' ||
                         active.tagName === 'TEXTAREA' ||
                         active.tagName === 'SELECT' ||
-                        active.isContentEditable
+                        active.isContentEditable ||
+                        (active.tagName === 'INPUT' && active.type !== 'checkbox')
                     ))
                 );
                 if (isTypingContext) return;
 
                 e.preventDefault();
-                if (e.key === 'ArrowLeft') {
+                if (isPrevKey) {
                     goToStep(activeStepIndex - 1);
                 } else {
                     goToStep(activeStepIndex + 1);
