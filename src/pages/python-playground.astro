@@ -945,7 +945,7 @@ import re
 
 __loop_counts__ = {}
 __loop_iterations__ = {}  # ループごとの反復回数を記録
-__trace_steps__ = []  # 各実行ステップ（行）ごとの変数スナップショット
+__trace_steps__ = []  # 各実行ステップ（行）ごとの変数スナップショット（「その行を実行した後」の状態）
 __trace_truncated__ = False
 __MAX_TRACE_STEPS__ = ${MAX_TRACE_STEPS}
 __recursion_data__ = {}  # 再帰情報を追跡
@@ -955,6 +955,36 @@ __tracing_enabled__ = False
 __user_code_lines__ = []
 __loop_stack__ = []  # ループのネストを追跡
 __in_loop__ = False
+__last_step_index_by_frame__ = {}  # id(frame) -> そのフレームで直近に記録したステップの添字
+
+def __collect_vars__(frame):
+    """指定フレームの時点での、表示対象の変数一覧をスナップショットする"""
+    locals_dict = frame.f_locals.copy()
+    globals_dict = frame.f_globals.copy()
+
+    # 除外するキー
+    excluded_keys = {
+        'sys', 'json', 're', 'io', 'builtins', 'prompt',
+        'UnbufferedTextIO', 'self', 's', 'custom_input'
+    }
+
+    snapshot = {}
+    # 組み合わせて、内部変数やモジュールを除外
+    for k, v in {**globals_dict, **locals_dict}.items():
+        if (not k.startswith('_') and
+            k not in excluded_keys and
+            not callable(v) and
+            'TextIO' not in str(type(v)) and
+            '<_io.' not in str(v) and
+            str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>']):
+            try:
+                # シリアライズ可能な値のみ保存
+                json.dumps(v)
+                snapshot[k] = v
+            except:
+                # シリアライズできない値はスキップ
+                pass
+    return snapshot
 
 def __is_loop_start__(line_text):
     """行がforまたはwhileで始まるかチェック"""
@@ -967,7 +997,7 @@ def __get_indent__(line_text):
 
 def __tracer__(frame, event, arg):
     global __loop_counts__, __loop_iterations__, __trace_steps__, __trace_truncated__, __recursion_data__, __call_stack__
-    global __tracing_enabled__, __loop_stack__, __in_loop__
+    global __tracing_enabled__, __loop_stack__, __in_loop__, __last_step_index_by_frame__
 
     # ユーザーコードのみを追跡（専用のファイル名でフィルタ）。
     # pyodide.runPython/runPythonAsyncはfilenameを指定しない限り既定で
@@ -1016,9 +1046,32 @@ def __tracer__(frame, event, arg):
         if func_name in __call_stack__ and __call_stack__[func_name] > 0:
             __call_stack__[func_name] -= 1
 
+        # このフレームで最後に記録したステップは、これで完全に実行し終えたことになる。
+        # 「実行後の状態」として確定させる（このフレームの続きの行が二度と来ないため）。
+        __fid__ = id(frame)
+        if __fid__ in __last_step_index_by_frame__:
+            __idx__ = __last_step_index_by_frame__[__fid__]
+            if __idx__ < len(__trace_steps__):
+                __trace_steps__[__idx__]['vars'] = __collect_vars__(frame)
+            del __last_step_index_by_frame__[__fid__]
+
     # ループのカウント（行番号ベース）＋ 変数トレースのステップ記録
     if event == 'line' and __tracing_enabled__:
         lineno = frame.f_lineno
+
+        # Pyodideの実装（トップレベルawaitに対応するための特殊なラッピング）に
+        # 起因すると見られる現象として、関数呼び出しから呼び出し元（モジュール
+        # フレーム）へ戻った直後や実行完了直後に、実際には無関係な「1行目」への
+        # 'line'イベントが余分に発生することがある。1行目が本当にループの先頭で
+        # ない限り、これは実行の一部ではないので無視する。
+        __is_spurious_line1__ = (
+            frame.f_code.co_name == '<module>' and
+            lineno == 1 and
+            len(__trace_steps__) > 0 and
+            not (__user_code_lines__ and __is_loop_start__(__user_code_lines__[0]))
+        )
+        if __is_spurious_line1__:
+            return __tracer__
 
         if lineno <= len(__user_code_lines__):
             line_text = __user_code_lines__[lineno - 1]
@@ -1062,35 +1115,24 @@ def __tracer__(frame, event, arg):
                     if not __loop_stack__:
                         __in_loop__ = False
 
-            # 変数トレース: このステップ（行）における全変数のスナップショットを記録
+            # 変数トレース: 「この行を実行した後」の状態が分かるように記録する。
+            #
+            # sys.settraceの'line'イベントは、その行が実行される直前に発火する。
+            # そのため、ここで取得できる現在のスナップショットは、実は
+            # 「同じフレームで直前に記録したステップの行が実行し終えた後の状態」
+            # そのものである。まずそちらを確定させてから、今回の行のステップを
+            # （まだ実行前の暫定値として）新しく積む。
+            __fid__ = id(frame)
+            __snapshot__ = __collect_vars__(frame)
+
+            if __fid__ in __last_step_index_by_frame__:
+                __prev_idx__ = __last_step_index_by_frame__[__fid__]
+                if __prev_idx__ < len(__trace_steps__):
+                    __trace_steps__[__prev_idx__]['vars'] = __snapshot__
+
             if len(__trace_steps__) < __MAX_TRACE_STEPS__:
-                locals_dict = frame.f_locals.copy()
-                globals_dict = frame.f_globals.copy()
-
-                # 除外するキー
-                excluded_keys = {
-                    'sys', 'json', 're', 'io', 'builtins', 'prompt',
-                    'UnbufferedTextIO', 'self', 's', 'custom_input'
-                }
-
-                snapshot = {}
-                # 組み合わせて、内部変数やモジュールを除外
-                for k, v in {**globals_dict, **locals_dict}.items():
-                    if (not k.startswith('_') and
-                        k not in excluded_keys and
-                        not callable(v) and
-                        'TextIO' not in str(type(v)) and
-                        '<_io.' not in str(v) and
-                        str(type(v)) not in ['<class \\'module\\'>', '<class \\'type\\'>']):
-                        try:
-                            # シリアライズ可能な値のみ保存
-                            json.dumps(v)
-                            snapshot[k] = v
-                        except:
-                            # シリアライズできない値はスキップ
-                            pass
-
-                __trace_steps__.append({'line': lineno, 'vars': snapshot})
+                __trace_steps__.append({'line': lineno, 'vars': __snapshot__})
+                __last_step_index_by_frame__[__fid__] = len(__trace_steps__) - 1
             else:
                 __trace_truncated__ = True
 
