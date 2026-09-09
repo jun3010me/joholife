@@ -228,6 +228,7 @@ import Layout from '../layouts/Layout.astro';
                 window.addEventListener('resize', () => {
                     setTimeout(() => {
                         codeEditor.refresh();
+                        syncFillHeightSize();
                     }, 100);
                 });
 
@@ -1400,6 +1401,46 @@ def __tracer__(frame, event, arg):
             // そのパネル1つだけでコードエディタと同じ高さまで広げる。
             outputSection.classList.toggle('fill-height', outputVisible && !traceVisible);
             traceSection.classList.toggle('fill-height', traceVisible && !outputVisible);
+
+            syncFillHeightSize();
+        }
+
+        // fill-height（実行結果・変数トレースのどちらか一方だけを表示している）状態の時、
+        // その内側のスクロール領域（#output-area / .trace-table-container）の高さを、
+        // コードエディタの高さに合わせて明示的な px 値で設定する。
+        //
+        // CSSのflex:1だけに任せると、実行結果の行数や変数トレースのステップ数が多い場合に
+        // Grid/Flexの入れ子のサイズ計算が「利用可能な範囲まで広がる」ではなく「内容そのものの
+        // 大きさ」に引っ張られてしまい、ページ全体が内容量に比例して縦に無制限に伸びてしまう
+        // 不具合があった。内側の要素の高さを常に明示的な px 値で固定してしまうことで、
+        // 内容量に関わらずコードエディタと同じ高さを保ち、その中でスクロールさせる。
+        function syncFillHeightSize() {
+            const codeContainer = document.getElementById('code-editor-container');
+            const outputSection = document.querySelector('.output-section');
+            const traceSection = document.querySelector('.trace-section');
+            const outputArea = document.getElementById('output-area');
+            const traceContainer = document.getElementById('trace-table-container');
+            if (!codeContainer || !outputSection || !traceSection || !outputArea || !traceContainer) return;
+
+            const isFillOutput = outputSection.classList.contains('fill-height');
+            const isFillTrace = traceSection.classList.contains('fill-height');
+
+            // fill-height でなくなった側は、明示的な高さ指定を解除して既定値（220px/360px）に戻す。
+            if (!isFillOutput) outputArea.style.height = '';
+            if (!isFillTrace) traceContainer.style.height = '';
+            if (!isFillOutput && !isFillTrace) return;
+
+            const codeHeight = codeContainer.getBoundingClientRect().height;
+            if (codeHeight <= 0) return;
+
+            if (isFillOutput) {
+                const chromeHeight = outputSection.getBoundingClientRect().height - outputArea.getBoundingClientRect().height;
+                outputArea.style.height = `${Math.max(0, codeHeight - chromeHeight)}px`;
+            }
+            if (isFillTrace) {
+                const chromeHeight = traceSection.getBoundingClientRect().height - traceContainer.getBoundingClientRect().height;
+                traceContainer.style.height = `${Math.max(0, codeHeight - chromeHeight)}px`;
+            }
         }
 
         // コードエリアの表示・非表示を切り替える。
@@ -2321,31 +2362,25 @@ def __tracer__(frame, event, arg):
         }
 
         /* 「実行結果」「変数トレース」のどちらか一方だけを表示している時、
-           そのパネル1つだけでコードエディタと同じ高さまで広がるようにする
-           （JS側で updatePlaygroundGridLayout() が付け外しする）。 */
+           そのパネル1つだけでコードエディタと同じ高さまで広げる
+           （どちらを表示するかは JS側の updatePlaygroundGridLayout() が付け外しする）。
+           #output-area / .trace-table-container の実際の高さは、
+           flex:1 ではなく JS側の syncFillHeightSize() が明示的な px 指定で
+           設定する。flex:1 + height:auto に任せると、内容量（実行結果の行数や
+           トレースのステップ数）に応じてGrid/Flexの入れ子のサイズ計算が
+           「利用可能な範囲まで広がる」ではなく「内容そのものの大きさ」に
+           引っ張られてしまい、ページ全体が内容量に比例して縦に無制限に
+           伸びてしまう不具合があったため。 */
         .output-section.fill-height {
             display: flex;
             flex-direction: column;
             flex: 1;
         }
 
-        .output-section.fill-height #output-area {
-            flex: 1;
-            height: auto;
-            min-height: 0;
-        }
-
         .trace-section.fill-height {
             display: flex;
             flex-direction: column;
             flex: 1;
-        }
-
-        .trace-section.fill-height .trace-table-container {
-            flex: 1;
-            height: auto;
-            max-height: none;
-            min-height: 0;
         }
 
         .orientation-toggle {
