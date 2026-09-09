@@ -210,9 +210,11 @@ import Layout from '../layouts/Layout.astro';
                     }
                 });
 
-                // コード変更時に自動保存をスケジュール
+                // コード変更時に自動保存をスケジュールし、コードの行数（折り返しによる
+                // 増加も含む）に応じてエディタの高さを合わせ直す。
                 codeEditor.on('changes', () => {
                     scheduleAutosave();
+                    growCodeEditorToFitContent();
                 });
 
                 // エディタの高さは #code-editor-container の高さ（右側の実行結果＋
@@ -221,12 +223,13 @@ import Layout from '../layouts/Layout.astro';
                 // 内部のレイアウト計算をやり直す。
                 setTimeout(() => {
                     codeEditor.refresh();
+                    growCodeEditorToFitContent();
                 }, 100);
 
                 window.addEventListener('resize', () => {
                     setTimeout(() => {
                         codeEditor.refresh();
-                        syncFillHeightSize();
+                        growCodeEditorToFitContent();
                     }, 100);
                 });
 
@@ -1358,7 +1361,24 @@ def __tracer__(frame, event, arg):
             if (root) root.style.setProperty('--pp-code-font-size', `${size}px`);
             const label = document.getElementById('code-font-size-value');
             if (label) label.textContent = `${size}px`;
-            if (codeEditor) codeEditor.refresh();
+            if (codeEditor) {
+                codeEditor.refresh();
+                growCodeEditorToFitContent();
+            }
+        }
+
+        // コードの内容（改行・折り返しによる行数）に応じて、エディタの高さを
+        // 実際に必要な分だけ広げる。プロジェクター投影時に「コードを増やして
+        // わざと縦幅を伸ばし、画面下の余計な部分を隠す」という使い方を想定して
+        // いるため、最大値は設けず、必要な分だけどこまでも伸ばす。
+        // #code-editor-container の高さが伸びると、CSS Grid の align-items:stretch
+        // により右側（実行結果・変数トレース）も自動的に同じ高さまで伸びる。
+        function growCodeEditorToFitContent() {
+            if (!codeEditor) return;
+            const container = document.getElementById('code-editor-container');
+            if (!container) return;
+            const contentHeight = codeEditor.getScrollInfo().height;
+            container.style.minHeight = `${Math.max(300, Math.ceil(contentHeight))}px`;
         }
 
         function applyTraceFontSize(size) {
@@ -1395,65 +1415,10 @@ def __tracer__(frame, event, arg):
             playgroundContent.classList.toggle('code-hidden', !codeVisible && rightHasContent);
             playgroundContent.classList.toggle('right-hidden', codeVisible && !rightHasContent);
 
-            // 「実行結果」「変数トレース」のどちらか一方だけが表示されている時は、
-            // そのパネル1つだけでコードエディタと同じ高さまで広げる。
-            outputSection.classList.toggle('fill-height', outputVisible && !traceVisible);
-            traceSection.classList.toggle('fill-height', traceVisible && !outputVisible);
-
-            syncFillHeightSize();
-        }
-
-        // fill-height（実行結果・変数トレースのどちらか一方だけを表示している）状態の時、
-        // その内側のスクロール領域（#output-area / .trace-table-container）の高さを、
-        // コードエディタの高さに合わせて明示的な px 値で設定する。
-        //
-        // CSSのflex:1だけに任せると、実行結果の行数や変数トレースのステップ数が多い場合に
-        // Grid/Flexの入れ子のサイズ計算が「利用可能な範囲まで広がる」ではなく「内容そのものの
-        // 大きさ」に引っ張られてしまい、ページ全体が内容量に比例して縦に無制限に伸びてしまう
-        // 不具合があった。内側の要素の高さを常に明示的な px 値で固定してしまうことで、
-        // 内容量に関わらずコードエディタと同じ高さを保ち、その中でスクロールさせる。
-        function syncFillHeightSize() {
-            const codeSection = document.querySelector('.code-section');
-            const outputSection = document.querySelector('.output-section');
-            const traceSection = document.querySelector('.trace-section');
-            const outputArea = document.getElementById('output-area');
-            const traceContainer = document.getElementById('trace-table-container');
-            if (!codeSection || !outputSection || !traceSection || !outputArea || !traceContainer) return;
-
-            const isFillOutput = outputSection.classList.contains('fill-height');
-            const isFillTrace = traceSection.classList.contains('fill-height');
-
-            // fill-height でなくなった側は、明示的な高さ指定を解除して既定値（220px/360px）に戻す。
-            if (!isFillOutput) outputArea.style.height = '';
-            if (!isFillTrace) traceContainer.style.height = '';
-            if (!isFillOutput && !isFillTrace) return;
-
-            // コードエディタ側（.code-section）は、すでにCSS Gridのalign-items:stretchで
-            // 右側と同じ高さになっている。この「.code-section自体の高さ」を基準にする。
-            const codeHeight = codeSection.getBoundingClientRect().height;
-            if (codeHeight <= 0) return;
-
-            // 各セクションの「スクロール領域より上の分」の高さは、スクロール領域自身の高さの
-            // 影響を受けない（何を積んでも、その前にある見出しやコントロール類の高さ・位置は
-            // 変わらないため）。そのため、セクション全体の高さ（すでに .code-section と同じ値に
-            // 引き伸ばされている、循環した値）を使わず、スクロール領域の上端位置から
-            // 「見出し・コントロール類の高さ」を求める。padding-bottom も別途加える。
-            function resolveScrollAreaHeight(section, scrollEl) {
-                const sectionRect = section.getBoundingClientRect();
-                const scrollRect = scrollEl.getBoundingClientRect();
-                const chromeAbove = scrollRect.top - sectionRect.top;
-                const sectionStyle = getComputedStyle(section);
-                const paddingBottom = parseFloat(sectionStyle.paddingBottom) || 0;
-                const borderBottom = parseFloat(sectionStyle.borderBottomWidth) || 0;
-                return Math.max(0, codeHeight - chromeAbove - paddingBottom - borderBottom);
-            }
-
-            if (isFillOutput) {
-                outputArea.style.height = `${resolveScrollAreaHeight(outputSection, outputArea)}px`;
-            }
-            if (isFillTrace) {
-                traceContainer.style.height = `${resolveScrollAreaHeight(traceSection, traceContainer)}px`;
-            }
+            // 実行結果・変数トレースの各エリアは、常に flex-grow で自分のセクション内の
+            // 余った縦幅を埋めるようCSS側で処理する（.output-section, .trace-section,
+            // #output-area, .trace-table-container 参照）。表示パネルが1つだけの時も
+            // 2つとも表示している時も、同じ仕組みでコードエディタの高さに追従する。
         }
 
         // コードエリアの表示・非表示を切り替える。
@@ -2004,6 +1969,8 @@ def __tracer__(frame, event, arg):
 
         #output-area {
             height: 220px;
+            flex-grow: 1;
+            min-height: 0;
             padding: 15px;
             background: #1e293b;
             color: #e2e8f0;
@@ -2358,7 +2325,22 @@ def __tracer__(frame, event, arg):
             font-size: 14px;
         }
 
+        /* .output-section / .trace-section は常に縦方向のflexコンテナにしておき、
+           .right-column（同じく縦方向のflex）の中で flex-grow:1 により余った縦幅を
+           分け合う。コードエディタ側の内容（改行や折り返し）が増えて .code-section が
+           縦に伸びると、CSS Gridの align-items:stretch で .right-column もそれに追従して
+           伸びるため、この仕組みだけで「コードが伸びたら実行結果・変数トレースも伸びる」
+           を実現できる（表示パネルが1つだけの時は、そのパネルが余った幅を全部受け取る）。
+           #output-area / .trace-table-container 側は height（220px/360px）を
+           flex-basisとして使いつつ flex-grow:1 を持たせ、それ以上の余白があれば
+           埋める形にしている。height を明示指定したまま flex-grow するだけなので、
+           内容量（実行結果の行数やトレースのステップ数）がどれだけ多くても、
+           Grid/Flexの外側のサイズ計算に影響しない（内容に引っ張られて無制限に
+           伸びる心配がない）。 */
         .output-section {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
             min-width: 0;
             min-height: 0;
         }
@@ -2369,30 +2351,11 @@ def __tracer__(frame, event, arg):
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
             min-width: 0;
             min-height: 0;
-        }
-
-        /* 「実行結果」「変数トレース」のどちらか一方だけを表示している時、
-           そのパネル1つだけでコードエディタと同じ高さまで広げる
-           （どちらを表示するかは JS側の updatePlaygroundGridLayout() が付け外しする）。
-           #output-area / .trace-table-container の実際の高さは、
-           flex:1 ではなく JS側の syncFillHeightSize() が明示的な px 指定で
-           設定する。flex:1 + height:auto に任せると、内容量（実行結果の行数や
-           トレースのステップ数）に応じてGrid/Flexの入れ子のサイズ計算が
-           「利用可能な範囲まで広がる」ではなく「内容そのものの大きさ」に
-           引っ張られてしまい、ページ全体が内容量に比例して縦に無制限に
-           伸びてしまう不具合があったため。 */
-        .output-section.fill-height {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
-
-        .trace-section.fill-height {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
         }
 
         .orientation-toggle {
@@ -2463,8 +2426,12 @@ def __tracer__(frame, event, arg):
             /* max-height ではなく height で固定する。max-height だとステップ数や
                表の向きによって内容が短い時にコンテナ自体が縮んでしまい、行と列を
                入れ替えるたびにこのエリアの縦幅（≒ページ全体の高さ）が変わって
-               しまう。常に同じ縦幅を保ち、その中でスクロールさせる。 */
+               しまう。常に同じ縦幅を保ち、その中でスクロールさせる。
+               この height は flex-basis として使われ、.trace-section 内に
+               余った縦幅があれば flex-grow:1 でそこまで広がる。 */
             height: 360px;
+            flex-grow: 1;
+            min-height: 0;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
         }
