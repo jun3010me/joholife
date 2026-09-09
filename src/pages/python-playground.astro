@@ -1789,6 +1789,18 @@ def __tracer__(frame, event, arg):
             flex-direction: column;
         }
 
+        /* CodeMirrorのマウント先。#code-editor-container(flexコンテナ)の
+           直接の子として、残り空間いっぱいに広がる必要がある。これが無いと
+           中の .CodeMirror に height:100% を指定しても、高さの基準となる
+           親が定まらず反映されない（%指定の高さは、祖先を遡って定まった
+           高さを持つ要素が必要なため）。 */
+        #code-editor {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
         #code-editor-container:focus-within {
             border-color: #2563eb;
         }
