@@ -76,15 +76,10 @@ import Layout from '../layouts/Layout.astro';
                         <span id="trace-font-size-value" class="font-size-value">14px</span>
                     </div>
                     <div class="playback-controls">
-                        <button id="trace-first-btn" class="btn-play" title="最初から再生">⏮</button>
-                        <button id="trace-prev-btn" class="btn-play" title="前のステップへ">⏪</button>
-                        <button id="trace-playpause-btn" class="btn-play" title="再生 / 一時停止">▶️</button>
-                        <button id="trace-next-btn" class="btn-play" title="次のステップへ">⏩</button>
-                        <select id="trace-speed" title="再生速度">
-                            <option value="1200">遅い</option>
-                            <option value="600" selected>ふつう</option>
-                            <option value="250">はやい</option>
-                        </select>
+                        <button id="trace-first-btn" class="btn-play" title="最初のステップへ">⏮</button>
+                        <button id="trace-prev-btn" class="btn-play" title="前のステップへ（←キーでも操作できます）">⏪</button>
+                        <button id="trace-next-btn" class="btn-play" title="次のステップへ（→キーでも操作できます）">⏩</button>
+                        <button id="trace-last-btn" class="btn-play" title="最後のステップへ">⏭</button>
                         <span id="trace-step-indicator">ステップ 0 / 0</span>
                     </div>
                     <div id="trace-truncation-warning" class="trace-warning" hidden>
@@ -151,9 +146,6 @@ import Layout from '../layouts/Layout.astro';
         let traceMatrix = [];       // 各ステップの表示用セル情報
         let activeStepIndex = -1;   // 現在アクティブなステップ（0始まり）
         let traceOrientation = 'varsAsRows'; // 'varsAsRows' | 'stepsAsRows'
-        let isPlaying = false;
-        let playIntervalId = null;
-        let playSpeedMs = 600;
         const MAX_TRACE_STEPS = 500;
         let lastHighlightedLine = null;
         let autosaveTimer = null;
@@ -487,7 +479,6 @@ builtins.input = custom_input
                 el.addEventListener('click', () => {
                     const idx = parseInt(el.getAttribute('data-step-index'), 10);
                     if (!isNaN(idx)) {
-                        stopPlayback();
                         goToStep(idx);
                     }
                 });
@@ -637,51 +628,6 @@ builtins.input = custom_input
             updateStepIndicator();
             highlightActiveLine();
             scrollActiveStepIntoView();
-        }
-
-        // 再生ボタンの見た目を更新
-        function updatePlayButton() {
-            const btn = document.getElementById('trace-playpause-btn');
-            if (btn) btn.textContent = isPlaying ? '⏸' : '▶️';
-        }
-
-        function startPlayback() {
-            if (traceSteps.length === 0) return;
-            if (activeStepIndex >= traceSteps.length - 1) {
-                activeStepIndex = -1; // 最後まで来ていたら最初から
-            }
-            isPlaying = true;
-            updatePlayButton();
-            playIntervalId = setInterval(() => {
-                if (activeStepIndex >= traceSteps.length - 1) {
-                    stopPlayback();
-                    return;
-                }
-                goToStep(activeStepIndex + 1);
-            }, playSpeedMs);
-        }
-
-        function stopPlayback() {
-            isPlaying = false;
-            updatePlayButton();
-            if (playIntervalId) {
-                clearInterval(playIntervalId);
-                playIntervalId = null;
-            }
-        }
-
-        function togglePlayback() {
-            if (isPlaying) {
-                stopPlayback();
-            } else {
-                startPlayback();
-            }
-        }
-
-        function restartPlayback() {
-            stopPlayback();
-            activeStepIndex = -1;
-            startPlayback();
         }
 
         function showTraceTruncationWarning(show) {
@@ -935,7 +881,6 @@ builtins.input = custom_input
             recursionData = {};
             outputLineCount = 0;
 
-            stopPlayback();
             traceSteps = [];
             traceVarNames = [];
             traceMatrix = [];
@@ -1417,13 +1362,6 @@ def __tracer__(frame, event, arg):
                     const toggle = document.getElementById('orientation-toggle');
                     if (toggle) toggle.checked = true;
                 }
-
-                const speed = localStorage.getItem('pythonPlaygroundPlaySpeed');
-                const speedSelect = document.getElementById('trace-speed');
-                if (speed) {
-                    playSpeedMs = parseInt(speed, 10);
-                    if (speedSelect) speedSelect.value = speed;
-                }
             } catch (e) {
                 console.error('設定の復元に失敗しました:', e);
             }
@@ -1520,27 +1458,44 @@ def __tracer__(frame, event, arg):
                 scrollActiveStepIntoView();
             });
 
-            // 変数トレース：再生コントロール
+            // 変数トレース：ステップ移動コントロール
             document.getElementById('trace-first-btn').addEventListener('click', () => {
-                restartPlayback();
+                goToStep(0);
             });
             document.getElementById('trace-prev-btn').addEventListener('click', () => {
-                stopPlayback();
                 goToStep(activeStepIndex - 1);
             });
-            document.getElementById('trace-playpause-btn').addEventListener('click', () => {
-                togglePlayback();
-            });
             document.getElementById('trace-next-btn').addEventListener('click', () => {
-                stopPlayback();
                 goToStep(activeStepIndex + 1);
             });
-            document.getElementById('trace-speed').addEventListener('change', (e) => {
-                playSpeedMs = parseInt(e.target.value, 10);
-                try { localStorage.setItem('pythonPlaygroundPlaySpeed', String(playSpeedMs)); } catch (err) {}
-                if (isPlaying) {
-                    stopPlayback();
-                    startPlayback();
+            document.getElementById('trace-last-btn').addEventListener('click', () => {
+                goToStep(traceSteps.length - 1);
+            });
+
+            // キーボードの左右キーでも1ステップずつ移動できるようにする。
+            // ただし、コードエディタや他の入力欄にフォーカスがある間は
+            // 通常のカーソル移動を優先し、ステップ操作は行わない。
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                if (traceSteps.length === 0) return;
+
+                const active = document.activeElement;
+                const isTypingContext = (
+                    (codeEditor && codeEditor.hasFocus()) ||
+                    (active && (
+                        active.tagName === 'INPUT' ||
+                        active.tagName === 'TEXTAREA' ||
+                        active.tagName === 'SELECT' ||
+                        active.isContentEditable
+                    ))
+                );
+                if (isTypingContext) return;
+
+                e.preventDefault();
+                if (e.key === 'ArrowLeft') {
+                    goToStep(activeStepIndex - 1);
+                } else {
+                    goToStep(activeStepIndex + 1);
                 }
             });
 
@@ -2195,15 +2150,6 @@ def __tracer__(frame, event, arg):
 
         .btn-play:hover {
             background: #1d4ed8;
-        }
-
-        #trace-speed {
-            padding: 5px 8px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 13px;
-            color: #334155;
-            background: white;
         }
 
         #trace-step-indicator {
