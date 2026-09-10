@@ -1372,6 +1372,29 @@ def __tracer__(frame, event, arg):
             }
         }
 
+        // CodeMirrorが実際に必要としている「コンテンツ本来の高さ」を取得する。
+        //
+        // codeEditor.getScrollInfo().height は .CodeMirror-scroll 要素の
+        // scrollHeight を返すが、このサイトでは .CodeMirror-scroll に
+        // min-height: 100% !important を指定している（コード量が少ない時に
+        // エディタの箱いっぱいに黒背景を広げるための指定）。そのため、
+        // 先に #code-editor-container の高さを大きくしてしまっていると、
+        // その「今の箱の高さ」が min-height 経由で scrollHeight にも
+        // そのまま反映されてしまい、「測った高さでまた同じ高さに戻す」という
+        // 循環参照になって、一度大きくなった高さが二度と縮まらなくなる不具合が
+        // あった（実際に発生：中身が1行だけなのに巨大な高さのまま固定される）。
+        //
+        // .CodeMirror-sizer はCodeMirrorが内部で実際の行の高さの合計に基づいて
+        // 自分でサイズを設定している要素で、.CodeMirror-scroll のCSS指定
+        // （min-height:100%等）の影響を受けない。こちらを使うことで、
+        // 常に「本当にコード本文が必要としている高さ」だけを取得できる。
+        function getCodeMirrorContentHeight() {
+            if (!codeEditor) return 0;
+            const sizer = codeEditor.getWrapperElement().querySelector('.CodeMirror-sizer');
+            if (sizer) return sizer.getBoundingClientRect().height;
+            return codeEditor.getScrollInfo().height;
+        }
+
         // コードの内容（改行・折り返しによる行数）に応じて、#code-editor-container の
         // 高さを実際に必要な分だけ広げる。ウィンドウ幅が変わって折り返しの行数が
         // 変わった場合の再計算にも使うため、リサイズ時にも安全に呼べる
@@ -1380,7 +1403,7 @@ def __tracer__(frame, event, arg):
             if (!codeEditor) return 0;
             const container = document.getElementById('code-editor-container');
             if (!container) return 0;
-            const contentHeight = codeEditor.getScrollInfo().height;
+            const contentHeight = getCodeMirrorContentHeight();
             const neededContainerHeight = Math.max(CODE_EDITOR_MIN_HEIGHT, Math.ceil(contentHeight));
             container.style.minHeight = `${neededContainerHeight}px`;
             return neededContainerHeight;
@@ -1467,7 +1490,7 @@ def __tracer__(frame, event, arg):
 
             // コードの内容がこの高さより多く必要な場合は内容量を優先する
             // （改行で増やした分を初回調整で勝手に縮めたりはしない）。
-            const codeContentHeight = codeEditor ? codeEditor.getScrollInfo().height : 0;
+            const codeContentHeight = getCodeMirrorContentHeight();
             const codeFloor = Math.max(CODE_EDITOR_MIN_HEIGHT, codeContentHeight);
             // codeSection全体からcodeContainerの高さを引くのではなく、上端の位置の
             // 差分（ツールバー・フォントサイズスライダーの高さ）を使う。すでに何らかの
