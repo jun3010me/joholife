@@ -240,8 +240,9 @@ import Layout from '../layouts/Layout.astro';
                         // growCodeEditorToFitContent() は伸びる方向にしか動かないため、
                         // ここで呼ぶとブラウザの表示倍率を変えるたびに高さが伸びっぱなしに
                         // なってしまう（実際に発生した不具合）。
+                        // 幅の比率・ビューポートへの高さ合わせは、CodeMirrorの読み込みに
+                        // 関係なく動く別のresizeリスナー（DOMContentLoaded内）でまとめて行う。
                         updateCodeContainerMinHeight();
-                        applyColumnRatio();
                     }, 100);
                 });
 
@@ -1433,15 +1434,20 @@ def __tracer__(frame, event, arg):
             }
         }
 
-        // ページを開いた直後・リロード直後の1回だけ、コード・実行結果・変数トレースの
-        // 下端がブラウザの表示領域（ビューポート）の下端にちょうど合うように高さを
-        // 調整する。デバイスの表示倍率をショートカットキーで変えられない環境（iPadなど）
-        // でも、開いた瞬間から画面いっぱいに使えるようにするための調整。
+        // コード・実行結果・変数トレースの下端が、ブラウザの表示領域（ビューポート）の
+        // 下端にちょうど合うように高さを調整する。ページを開いた直後・リロード直後は
+        // もちろん、ブラウザの表示倍率やウィンドウサイズが変わった時にも呼び出す
+        // （resize イベント経由）。デバイスの表示倍率をショートカットキーで変えられない
+        // 環境（iPadなど）でも、常に画面いっぱいに使えるようにするための調整。
         //
-        // コードの内容がこの高さより多く必要な場合は内容量を優先する（growCodeEditor
-        // ToFitContent()による「改行で増やした分だけ縦に伸びる」動きはそのまま）。
-        // また、モバイル幅（画面が上下積みレイアウトになる）ではコードエディタと
-        // 右側の高さが連動しないため、この調整は行わない。
+        // 伸びる方向にも縮む方向にも動く点が growCodeEditorToFitContent()（伸びる方向にしか
+        // 動かない、コードの内容が増えた時専用の処理）との大きな違い。resize のたびに
+        // こちらを呼んでも、内容が必要とする高さ（codeFloor）を下回ることはない
+        // （Math.max(availableHeight, codeFloor + codeChrome) で計算しているため）ので、
+        // 「伸びっぱなしで縮まない」不具合には繋がらない。
+        //
+        // モバイル幅（画面が上下積みレイアウトになる）ではコードエディタと右側の高さが
+        // 連動しないため、この調整は行わない。
         function fitCodeEditorToViewportOnce() {
             if (window.matchMedia('(max-width: 768px)').matches) return;
 
@@ -1705,27 +1711,15 @@ def __tracer__(frame, event, arg):
             renderTraceTable();
             updateStepIndicator();
 
-            // 初回表示時だけ、コード・実行結果・変数トレースの下端をブラウザの
-            // 表示領域の下端に合わせる（レイアウトが落ち着いてから計測するため
-            // 少し遅らせて実行）。以降はコード内容量に応じた自動伸縮のみになる。
-            //
-            // タブレット端末のブラウザ（Edge on Surfaceなど）では、ページ読み込み
-            // 直後にアドレスバーの表示状態などが変化して、表示領域の高さが
-            // 少し遅れて変わることがある。そのため読み込み後数秒だけは resize を
-            // 監視して調整し直し、その後は監視をやめる
-            // （＝以降は「初回だけ」の趣旨どおり、内容量に応じた自動伸縮のみになる）。
+            // 表示直後に、コード・実行結果・変数トレースの下端をブラウザの表示領域の
+            // 下端に合わせる（レイアウトが落ち着いてから計測するため少し遅らせて実行）。
+            // ブラウザの表示倍率変更やウィンドウサイズ変更でも表示領域の大きさは
+            // 変わるため、この調整自体は resize のたびに実行し続ける（下記の
+            // window.addEventListener('resize', ...) 参照）。「初回だけ」なのは
+            // コードの内容量に応じた自動伸長（growCodeEditorToFitContent）の方で、
+            // そちらは内容が実際に変わった時だけ伸びる方向にのみ動く。
             setTimeout(() => {
                 fitCodeEditorToViewportOnce();
-
-                const settleUntil = Date.now() + 3000;
-                const settleResizeHandler = () => {
-                    fitCodeEditorToViewportOnce();
-                    if (Date.now() >= settleUntil) {
-                        window.removeEventListener('resize', settleResizeHandler);
-                    }
-                };
-                window.addEventListener('resize', settleResizeHandler);
-                setTimeout(() => window.removeEventListener('resize', settleResizeHandler), 3000);
             }, 150);
 
             // Pyodideを読み込み
@@ -1737,12 +1731,15 @@ def __tracer__(frame, event, arg):
                 outputArea.innerHTML = `<div class="error">Pythonエンジンの読み込みに失敗しました。<br>ネットワーク接続を確認してページを再読み込みしてください。<br>詳細: ${error.message}</div>`;
             });
 
-            // 幅の比率は、CodeMirrorの読み込みに失敗した場合（フォールバックの
-            // textareaになった場合）でも、画面幅が変わった時に単一カラム表示と
-            // 正しく切り替わってほしいため、CodeMirror初期化の成否に関係なく
+            // 幅の比率・ビューポートへの高さ合わせは、CodeMirrorの読み込みに失敗した
+            // 場合（フォールバックのtextareaになった場合）でも、画面幅・表示倍率が
+            // 変わった時に正しく機能してほしいため、CodeMirror初期化の成否に関係なく
             // 常にリサイズを監視する。
             window.addEventListener('resize', () => {
-                setTimeout(() => applyColumnRatio(), 100);
+                setTimeout(() => {
+                    applyColumnRatio();
+                    fitCodeEditorToViewportOnce();
+                }, 100);
             });
 
             // ボタンイベント
