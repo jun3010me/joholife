@@ -238,19 +238,6 @@ import Layout from '../layouts/Layout.astro';
                     growCodeEditorToFitContent();
                 }, 100);
 
-                window.addEventListener('resize', () => {
-                    setTimeout(() => {
-                        codeEditor.refresh();
-                        // リサイズ時は折り返し行数の再計算（縮む場合もある）だけ行う。
-                        // growCodeEditorToFitContent() は伸びる方向にしか動かないため、
-                        // ここで呼ぶとブラウザの表示倍率を変えるたびに高さが伸びっぱなしに
-                        // なってしまう（実際に発生した不具合）。
-                        // 幅の比率・ビューポートへの高さ合わせは、CodeMirrorの読み込みに
-                        // 関係なく動く別のresizeリスナー（DOMContentLoaded内）でまとめて行う。
-                        updateCodeContainerMinHeight();
-                    }, 100);
-                });
-
                 console.log('CodeMirror editor initialized');
 
             } catch (error) {
@@ -1740,10 +1727,28 @@ def __tracer__(frame, event, arg):
             // 場合（フォールバックのtextareaになった場合）でも、画面幅・表示倍率が
             // 変わった時に正しく機能してほしいため、CodeMirror初期化の成否に関係なく
             // 常にリサイズを監視する。
+            //
+            // ウィンドウサイズを一気に大きく変えた時（ゆっくりドラッグではなく、
+            // スナップ機能や最大化ボタンなどで瞬時に変わった時）に追従しなくなる
+            // 不具合があったため、以下の2点を修正している。
+            // 1. 直前のタイマーを確実に破棄してから予約し直す（デバウンス）。
+            //    デバウンスせずに resize のたびに setTimeout を積み重ねると、
+            //    短時間に複数のタイマーが重なって実行され、その実行順序によっては
+            //    「CodeMirrorのrefresh()より先にfitCodeEditorToViewportOnce()が
+            //    走ってしまい、幅変更前の折り返し行数のまま高さを計算してしまう」
+            //    といった競合が起こり得る。
+            // 2. 各処理を必ず決まった順番（refresh → 高さ再計算 → ビューポートへの
+            //    高さ合わせ → 幅の比率）で呼ぶことで、その競合を根本的になくす。
+            let resizeDebounceTimer = null;
             window.addEventListener('resize', () => {
-                setTimeout(() => {
-                    applyColumnRatio();
+                clearTimeout(resizeDebounceTimer);
+                resizeDebounceTimer = setTimeout(() => {
+                    if (codeEditor) {
+                        codeEditor.refresh();
+                    }
+                    updateCodeContainerMinHeight();
                     fitCodeEditorToViewportOnce();
+                    applyColumnRatio();
                 }, 100);
             });
 
