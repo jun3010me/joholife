@@ -513,7 +513,7 @@ builtins.input = custom_input
         // サイズまで下げる（はみ出し防止のための保険であり、これが通常の挙動には
         // ならない）。
         // 行の高さは特にロックしないため、文字を大きくした分だけ自然に高くなる。
-        const TRACE_CELL_FONT_SCALE = 1.25; // 見出しよりどれくらい大きくするか
+        const TRACE_CELL_FONT_SCALE = 1.5; // 見出しよりどれくらい大きくするか
 
         function maximizeTraceCellFontSize() {
             const container = document.getElementById('trace-table-container');
