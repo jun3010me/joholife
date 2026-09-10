@@ -309,6 +309,11 @@ def custom_input(prompt_text=""):
 builtins.input = custom_input
                 `);
 
+                // 以降、コード実行のたびにこの状態まで巻き戻すためのスナップショット
+                await pyodide.runPython(`
+_initial_globals = set(globals().keys())
+                `);
+
                 statusElement.textContent = '✅ 準備完了';
                 outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
 
@@ -367,6 +372,10 @@ builtins.input = custom_input
 import sys
 import builtins
 from js import prompt
+
+# 前回までのコードで作られた変数・関数・クラスをすべて削除し、まっさらな状態に戻す
+for _name in [_k for _k in globals().keys() if _k not in _initial_globals and not _k.startswith('_')]:
+    del globals()[_name]
 
 # エラー状態をクリア
 if hasattr(sys, 'last_value'):
@@ -428,8 +437,24 @@ sys.stderr = sys._custom_stderr
                 const testCase = window.exerciseTestCases[i];
 
                 try {
-                    // Pythonの実行環境をリセット
-                    await pyodide.runPythonAsync('import sys; sys.stdout = sys._custom_stdout; sys.stderr = sys._custom_stderr');
+                    // Pythonの実行環境をリセット（前回のテストケースやコードで作られた変数もすべて削除）
+                    await pyodide.runPythonAsync(`
+import sys
+import builtins
+from js import prompt
+
+for _name in [_k for _k in globals().keys() if _k not in _initial_globals and not _k.startswith('_')]:
+    del globals()[_name]
+
+def custom_input(prompt_text=""):
+    result = prompt(str(prompt_text))
+    return result if result is not None else ""
+
+builtins.input = custom_input
+
+sys.stdout = sys._custom_stdout
+sys.stderr = sys._custom_stderr
+                    `);
 
                     // 出力をキャプチャするためのセットアップ
                     let output = '';
@@ -437,18 +462,7 @@ sys.stderr = sys._custom_stderr
 import sys
 import io
 
-class CaptureOutput(io.TextIOWrapper):
-    def __init__(self):
-        self.output = []
-
-    def write(self, s):
-        self.output.append(s)
-        return len(s)
-
-    def get_output(self):
-        return ''.join(self.output)
-
-_capture = CaptureOutput()
+_capture = io.StringIO()
 sys.stdout = _capture
                     `);
 
@@ -477,7 +491,7 @@ builtins.input = mock_input
                     await pyodide.runPythonAsync(code);
 
                     // 出力を取得
-                    output = await pyodide.runPythonAsync('_capture.get_output()');
+                    output = await pyodide.runPythonAsync('_capture.getvalue()');
 
                     // 出力を正規化（末尾の改行を削除）
                     const normalizedOutput = output.trim();

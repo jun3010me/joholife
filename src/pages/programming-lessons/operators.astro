@@ -243,6 +243,11 @@ def custom_input(prompt_text=""):
 builtins.input = custom_input
                 `);
 
+                // 以降、コード実行のたびにこの状態まで巻き戻すためのスナップショット
+                await pyodide.runPython(`
+_initial_globals = set(globals().keys())
+                `);
+
                 statusElement.textContent = '✅ 準備完了';
                 outputArea.innerHTML = '<div class="ready">準備完了！コードを入力して実行してみましょう</div>';
 
@@ -300,6 +305,10 @@ builtins.input = custom_input
 import sys
 import builtins
 from js import prompt
+
+# 前回までのコードで作られた変数・関数・クラスをすべて削除し、まっさらな状態に戻す
+for _name in [_k for _k in globals().keys() if _k not in _initial_globals and not _k.startswith('_')]:
+    del globals()[_name]
 
 # エラー状態をクリア
 if hasattr(sys, 'last_value'):
