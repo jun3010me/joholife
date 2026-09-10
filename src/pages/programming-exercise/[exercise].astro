@@ -30,6 +30,11 @@ const description = exerciseData.description;
             <a href="/quiz" class="back-link">← 問題演習一覧に戻る</a>
             <h1>{exerciseData.icon} {exerciseData.title}</h1>
             <p>{exerciseData.description}</p>
+            <div class="layout-controls">
+                <button type="button" id="column-ratio-toggle" class="ratio-toggle-btn" title="問題文とエディタの幅の比率を切り替え">
+                    ↔️ 幅の比率 <span id="column-ratio-label">1:1</span>
+                </button>
+            </div>
         </header>
 
         <div class="exercise-content">
@@ -191,6 +196,10 @@ const description = exerciseData.description;
         let submittedCode = '';
         let editorVisibleLines = 0;
 
+        // 問題文とエディタの幅の比率
+        const COLUMN_RATIOS = ['1:1', '1:2', '2:1'];
+        let columnRatio = '1:1';
+
         // テストケースをグローバルスコープに保存
         window.exerciseTestCases = testCases;
         window.exerciseTitle = exerciseTitle;
@@ -247,6 +256,33 @@ const description = exerciseData.description;
 
             const lineHeight = codeEditor.defaultTextHeight();
             codeEditor.setSize(null, editorVisibleLines * lineHeight);
+        }
+
+        // 問題文（左）とエディタ（右）の幅の比率を適用する。
+        // 画面が狭く上下に積み重なるレイアウト（@media (max-width: 1024px)）の時は
+        // 単一カラムになるため、比率の指定はしない。
+        function applyColumnRatio() {
+            const exerciseContent = document.querySelector('.exercise-content');
+            if (!exerciseContent) return;
+
+            if (window.matchMedia('(max-width: 1024px)').matches) {
+                exerciseContent.style.gridTemplateColumns = '';
+                return;
+            }
+
+            const ratioMap = { '1:1': [1, 1], '1:2': [1, 2], '2:1': [2, 1] };
+            const [leftFr, rightFr] = ratioMap[columnRatio] || ratioMap['1:1'];
+            exerciseContent.style.gridTemplateColumns = `minmax(0, ${leftFr}fr) minmax(0, ${rightFr}fr)`;
+        }
+
+        // 幅の比率を「1:1 → 1:2 → 2:1 → 1:1 ...」の順で切り替える。
+        function cycleColumnRatio() {
+            const currentIndex = COLUMN_RATIOS.indexOf(columnRatio);
+            columnRatio = COLUMN_RATIOS[(currentIndex + 1) % COLUMN_RATIOS.length];
+            const label = document.getElementById('column-ratio-label');
+            if (label) label.textContent = columnRatio;
+            applyColumnRatio();
+            try { localStorage.setItem('programmingEditorColumnRatio', columnRatio); } catch (err) {}
         }
 
         function loadScript(src) {
@@ -887,7 +923,10 @@ sys.stderr = sys._custom_stderr
             }
 
             adjustEditorSectionHeight();
-            window.addEventListener('resize', adjustEditorSectionHeight);
+            window.addEventListener('resize', () => {
+                adjustEditorSectionHeight();
+                applyColumnRatio();
+            });
         }
 
         // 初期化
@@ -929,16 +968,36 @@ sys.stderr = sys._custom_stderr
             const fontSizeSlider = document.getElementById('font-size-slider');
             const fontSizeValue = document.getElementById('font-size-value');
             if (fontSizeSlider && codeEditor) {
-                const currentFontSize = parseInt(getComputedStyle(codeEditor.getWrapperElement()).fontSize, 10);
-                fontSizeSlider.value = currentFontSize;
-                fontSizeValue.textContent = `${currentFontSize}px`;
+                let initialFontSize = parseInt(getComputedStyle(codeEditor.getWrapperElement()).fontSize, 10);
+                try {
+                    const savedFontSize = localStorage.getItem('programmingEditorFontSize');
+                    if (savedFontSize) initialFontSize = parseInt(savedFontSize, 10);
+                } catch (err) {}
+
+                fontSizeSlider.value = initialFontSize;
+                fontSizeValue.textContent = `${initialFontSize}px`;
+                setEditorFontSize(initialFontSize);
 
                 fontSizeSlider.addEventListener('input', () => {
                     const size = parseInt(fontSizeSlider.value, 10);
                     fontSizeValue.textContent = `${size}px`;
                     setEditorFontSize(size);
+                    try { localStorage.setItem('programmingEditorFontSize', String(size)); } catch (err) {}
                 });
             }
+
+            // 幅の比率（前回の設定をlocalStorageから復元）
+            try {
+                const savedRatio = localStorage.getItem('programmingEditorColumnRatio');
+                if (savedRatio && COLUMN_RATIOS.includes(savedRatio)) {
+                    columnRatio = savedRatio;
+                    const label = document.getElementById('column-ratio-label');
+                    if (label) label.textContent = columnRatio;
+                }
+            } catch (err) {}
+            applyColumnRatio();
+            const ratioToggle = document.getElementById('column-ratio-toggle');
+            if (ratioToggle) ratioToggle.addEventListener('click', cycleColumnRatio);
 
             document.getElementById('run-btn').addEventListener('click', runCode);
             document.getElementById('clear-btn').addEventListener('click', clearCode);
@@ -1030,9 +1089,28 @@ sys.stderr = sys._custom_stderr
             color: #64748b;
         }
 
+        .layout-controls {
+            margin-top: 1rem;
+        }
+
+        .ratio-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+
         .exercise-content {
             display: grid;
-            grid-template-columns: 1fr 550px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 2rem;
             align-items: flex-start;
             position: relative;
@@ -1181,6 +1259,7 @@ sys.stderr = sys._custom_stderr
 
         .editor-controls {
             display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
             margin-bottom: 1rem;
         }
@@ -1542,7 +1621,7 @@ sys.stderr = sys._custom_stderr
         @media (min-width: 1025px) {
             .exercise-content {
                 display: grid;
-                grid-template-columns: 1fr 550px;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             }
 
             .editor-sticky {
