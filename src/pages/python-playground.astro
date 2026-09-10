@@ -236,7 +236,11 @@ import Layout from '../layouts/Layout.astro';
                 window.addEventListener('resize', () => {
                     setTimeout(() => {
                         codeEditor.refresh();
-                        growCodeEditorToFitContent();
+                        // リサイズ時は折り返し行数の再計算（縮む場合もある）だけ行う。
+                        // growCodeEditorToFitContent() は伸びる方向にしか動かないため、
+                        // ここで呼ぶとブラウザの表示倍率を変えるたびに高さが伸びっぱなしに
+                        // なってしまう（実際に発生した不具合）。
+                        updateCodeContainerMinHeight();
                         applyColumnRatio();
                     }, 100);
                 });
@@ -1375,39 +1379,57 @@ def __tracer__(frame, event, arg):
             }
         }
 
-        // コードの内容（改行・折り返しによる行数）に応じて、エディタの高さを
-        // 実際に必要な分だけ広げる。プロジェクター投影時に「コードを増やして
-        // わざと縦幅を伸ばし、画面下の余計な部分を隠す」という使い方を想定して
-        // いるため、最大値は設けず、必要な分だけどこまでも伸ばす。
-        // #code-editor-container の高さが伸びると、CSS Grid の align-items:stretch
-        // により右側（実行結果・変数トレース）も自動的に同じ高さまで伸びる。
-        function growCodeEditorToFitContent() {
-            if (!codeEditor) return;
+        // コードの内容（改行・折り返しによる行数）に応じて、#code-editor-container の
+        // 高さを実際に必要な分だけ広げる。ウィンドウ幅が変わって折り返しの行数が
+        // 変わった場合の再計算にも使うため、リサイズ時にも安全に呼べる
+        // （.playground-content 自体の高さには一切手を出さない）。
+        function updateCodeContainerMinHeight() {
+            if (!codeEditor) return 0;
             const container = document.getElementById('code-editor-container');
-            if (!container) return;
+            if (!container) return 0;
             const contentHeight = codeEditor.getScrollInfo().height;
             const neededContainerHeight = Math.max(300, Math.ceil(contentHeight));
             container.style.minHeight = `${neededContainerHeight}px`;
+            return neededContainerHeight;
+        }
 
-            // 初回表示時の調整（fitCodeEditorToViewportOnce）で .playground-content に
-            // 明示的な高さを与えている場合、コードの内容がそれより多くの高さを必要と
-            // するようになったら、その高さも合わせて広げる（縮めることはしない）。
-            //
+        // コードの内容が増えて #code-editor-container の高さが伸びる時、初回表示時の
+        // 調整（fitCodeEditorToViewportOnce）で .playground-content に明示的な高さを
+        // 与えている場合は、その高さも合わせて広げる（縮めることはしない）。
+        //
+        // プロジェクター投影時に「コードを増やしてわざと縦幅を伸ばし、画面下の
+        // 余計な部分を隠す」という使い方を想定しているため、最大値は設けず、
+        // 必要な分だけどこまでも伸ばす。#code-editor-container の高さが伸びると、
+        // CSS Grid の align-items:stretch により右側（実行結果・変数トレース）も
+        // 自動的に同じ高さまで伸びる。
+        //
+        // 重要: これはコードの内容が実際に変わった時（入力・貼り付け・フォント
+        // サイズ変更）にだけ呼び出すこと。ウィンドウのリサイズやブラウザの拡大率
+        // 変更のたびに呼ぶと、「伸びるだけで縮まない」処理のため、リサイズの
+        // たびに高さが伸びっぱなしになってしまう不具合になる
+        // （実際に発生した不具合: ブラウザの表示倍率を変えるたびに高さが伸び、
+        // 元の倍率に戻しても縮まなくなった）。リサイズ時は
+        // updateCodeContainerMinHeight() だけを呼ぶこと。
+        function growCodeEditorToFitContent() {
+            const neededContainerHeight = updateCodeContainerMinHeight();
+            if (!codeEditor || !neededContainerHeight) return;
+
+            const container = document.getElementById('code-editor-container');
+            const playgroundContent = document.querySelector('.playground-content');
+            const codeSection = document.querySelector('.code-section');
+            if (!container || !playgroundContent || !codeSection || !playgroundContent.style.height) return;
+
             // ツールバー・フォントサイズスライダーの高さ（chrome）は、
             // #code-editor-container.top から .code-section.top までの距離として
             // 求める。.code-section 自体がまだ .playground-content の明示的な高さで
             // 縮められている状態だと、container側のrectもその制約内に収まって
             // しまうため、両者の高さの差ではなく上端位置の差を使うことで、
             // 現在の制約に左右されない正しいchrome高さを得る。
-            const playgroundContent = document.querySelector('.playground-content');
-            const codeSection = document.querySelector('.code-section');
-            if (playgroundContent && codeSection && playgroundContent.style.height) {
-                const currentHeight = parseFloat(playgroundContent.style.height) || 0;
-                const codeChrome = container.getBoundingClientRect().top - codeSection.getBoundingClientRect().top;
-                const neededHeight = Math.ceil(neededContainerHeight + codeChrome);
-                if (neededHeight > currentHeight) {
-                    playgroundContent.style.height = `${neededHeight}px`;
-                }
+            const currentHeight = parseFloat(playgroundContent.style.height) || 0;
+            const codeChrome = container.getBoundingClientRect().top - codeSection.getBoundingClientRect().top;
+            const neededHeight = Math.ceil(neededContainerHeight + codeChrome);
+            if (neededHeight > currentHeight) {
+                playgroundContent.style.height = `${neededHeight}px`;
             }
         }
 
