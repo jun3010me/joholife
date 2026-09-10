@@ -1539,16 +1539,30 @@ def __tracer__(frame, event, arg):
             const playgroundContent = document.querySelector('.playground-content');
             if (!playgroundContent) return;
 
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
             const isSingleColumn = playgroundContent.classList.contains('code-hidden') ||
                 playgroundContent.classList.contains('right-hidden') ||
-                window.matchMedia('(max-width: 768px)').matches;
-            if (isSingleColumn) {
-                playgroundContent.style.gridTemplateColumns = '';
-                // 初回表示時の調整（fitCodeEditorToViewportOnce）で付与した明示的な高さも
-                // 単一カラム表示時は解除する。残したままだと、特にモバイル幅で
-                // レイアウトが崩れる（コード側の高さが0になる等）ことがあったため。
+                isMobile;
+
+            // モバイル幅（画面が上下積みレイアウトになる）の時だけ、
+            // fitCodeEditorToViewportOnce() が付与した明示的な高さも解除する。
+            // モバイルでは1カラムの意味がデスクトップと異なり（横並びではなく
+            // 縦積み）、高さの指定を残すとレイアウトが崩れる（コード側の高さが
+            // 0になる等）ことがあったため。
+            //
+            // 一方、デスクトップ幅での code-hidden／right-hidden（表示パネルを
+            // チェックボックスで減らして1カラムになっている場合）は、単に横に
+            // 並ぶ列が1つになるだけで縦の積み方は変わらないため、高さの指定を
+            // 消す必要はない。ここで一緒に消してしまうと、「実行結果」「変数
+            // トレース」を両方非表示にした直後にビューポートへの高さ合わせが
+            // 効かなくなる不具合になる（実際に発生した不具合）。
+            if (isMobile) {
                 playgroundContent.style.height = '';
                 playgroundContent.style.gridTemplateRows = '';
+            }
+
+            if (isSingleColumn) {
+                playgroundContent.style.gridTemplateColumns = '';
                 return;
             }
 
