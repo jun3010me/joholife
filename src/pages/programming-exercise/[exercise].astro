@@ -90,7 +90,6 @@ const description = exerciseData.description;
 
             <div class="editor-section">
                 <div class="editor-sticky">
-                    <h2>🐍 Pythonエディタ</h2>
                     <p class="editor-hint">問題を解くプログラムを入力してください</p>
 
                     <div class="editor-controls">
@@ -103,6 +102,12 @@ const description = exerciseData.description;
                         <button id="judge-btn" class="btn btn-success" disabled>
                             ✅ 判定
                         </button>
+                    </div>
+
+                    <div class="font-size-control">
+                        <label for="font-size-slider">🔤 文字サイズ</label>
+                        <input type="range" id="font-size-slider" min="10" max="24" step="1" value="14">
+                        <span id="font-size-value">14px</span>
                     </div>
 
                     <div id="code-editor-container">
@@ -184,6 +189,7 @@ const description = exerciseData.description;
         let userName = '';
         let passedAllTests = false;
         let submittedCode = '';
+        let editorVisibleLines = 0;
 
         // テストケースをグローバルスコープに保存
         window.exerciseTestCases = testCases;
@@ -219,10 +225,28 @@ const description = exerciseData.description;
                     }
                 });
 
-                codeEditor.setSize(null, 250);
+                // タブレット端末でも縦幅を圧迫しないよう、元の表示行数から4行分減らす
+                const baseHeightPx = 250;
+                const linesToReduce = 4;
+                const lineHeight = codeEditor.defaultTextHeight();
+                const editorHeight = baseHeightPx - (lineHeight * linesToReduce);
+                editorVisibleLines = editorHeight / lineHeight;
+                codeEditor.setSize(null, editorHeight);
             } catch (error) {
                 console.error('Failed to initialize CodeMirror:', error);
             }
+        }
+
+        // エディタの表示行数を保ったまま文字サイズを変更する
+        function setEditorFontSize(px) {
+            if (!codeEditor) return;
+
+            const wrapper = codeEditor.getWrapperElement();
+            wrapper.style.fontSize = `${px}px`;
+            codeEditor.refresh();
+
+            const lineHeight = codeEditor.defaultTextHeight();
+            codeEditor.setSize(null, editorVisibleLines * lineHeight);
         }
 
         function loadScript(src) {
@@ -888,6 +912,20 @@ sys.stderr = sys._custom_stderr
             loadPyodide();
             setupScrollBehavior();
 
+            const fontSizeSlider = document.getElementById('font-size-slider');
+            const fontSizeValue = document.getElementById('font-size-value');
+            if (fontSizeSlider && codeEditor) {
+                const currentFontSize = parseInt(getComputedStyle(codeEditor.getWrapperElement()).fontSize, 10);
+                fontSizeSlider.value = currentFontSize;
+                fontSizeValue.textContent = `${currentFontSize}px`;
+
+                fontSizeSlider.addEventListener('input', () => {
+                    const size = parseInt(fontSizeSlider.value, 10);
+                    fontSizeValue.textContent = `${size}px`;
+                    setEditorFontSize(size);
+                });
+            }
+
             document.getElementById('run-btn').addEventListener('click', runCode);
             document.getElementById('clear-btn').addEventListener('click', clearCode);
             document.getElementById('judge-btn').addEventListener('click', judgeCode);
@@ -1121,12 +1159,6 @@ sys.stderr = sys._custom_stderr
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
-        .editor-section h2 {
-            font-size: 1.5rem;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
-
         .editor-hint {
             color: #64748b;
             font-size: 0.875rem;
@@ -1137,6 +1169,30 @@ sys.stderr = sys._custom_stderr
             display: flex;
             gap: 0.5rem;
             margin-bottom: 1rem;
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+
+        .font-size-control label {
+            white-space: nowrap;
+        }
+
+        .font-size-control input[type="range"] {
+            flex: 1;
+            accent-color: #3b82f6;
+        }
+
+        .font-size-control #font-size-value {
+            min-width: 3.5rem;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
 
         .btn {
@@ -1189,7 +1245,7 @@ sys.stderr = sys._custom_stderr
         }
 
         .CodeMirror {
-            height: 250px !important;
+            height: 170px;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 14px;
         }
@@ -1500,7 +1556,7 @@ sys.stderr = sys._custom_stderr
             }
 
             .CodeMirror {
-                height: 250px !important;
+                height: 170px;
                 font-size: 13px;
             }
 
