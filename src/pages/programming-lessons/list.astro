@@ -81,6 +81,11 @@ const steps = [
             <a href="/programming-lessons" class="back-link">← レッスン一覧に戻る</a>
             <h1>📋 配列(リスト)</h1>
             <p>複数のデータをまとめて扱う配列(リスト)の使い方を学びましょう</p>
+            <div class="layout-controls">
+                <button type="button" id="column-ratio-toggle" class="ratio-toggle-btn" title="学習ステップとエディタの幅の比率を切り替え">
+                    ↔️ 幅の比率 <span id="column-ratio-label">1:1</span>
+                </button>
+            </div>
         </header>
 
         <div class="lesson-content">
@@ -130,6 +135,12 @@ const steps = [
                         <input type="file" id="file-input" accept=".py" style="display: none;">
                     </div>
 
+                    <div class="font-size-control">
+                        <label for="font-size-slider">🔤 文字サイズ</label>
+                        <input type="range" id="font-size-slider" min="10" max="24" step="1" value="14">
+                        <span id="font-size-value">14px</span>
+                    </div>
+
                     <div id="code-editor-container">
                         <div id="code-editor"></div>
                     </div>
@@ -155,6 +166,11 @@ const steps = [
     <script>
         let pyodide = null;
         let codeEditor = null;
+        let editorVisibleLines = 0;
+
+        // ステップとエディタの幅の比率
+        const COLUMN_RATIOS = ['1:1', '1:2', '2:1'];
+        let columnRatio = '1:1';
 
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
@@ -186,9 +202,49 @@ const steps = [
                 });
 
                 codeEditor.setSize(null, 300);
+                editorVisibleLines = 300 / codeEditor.defaultTextHeight();
             } catch (error) {
                 console.error('Failed to initialize CodeMirror:', error);
             }
+        }
+
+        // エディタの表示行数を保ったまま文字サイズを変更する
+        function setEditorFontSize(px) {
+            if (!codeEditor) return;
+
+            const wrapper = codeEditor.getWrapperElement();
+            wrapper.style.fontSize = `${px}px`;
+            codeEditor.refresh();
+
+            const lineHeight = codeEditor.defaultTextHeight();
+            codeEditor.setSize(null, editorVisibleLines * lineHeight);
+        }
+
+        // 学習ステップ（左）とエディタ（右）の幅の比率を適用する。
+        // 画面が狭く上下に積み重なるレイアウト（@media (max-width: 1024px)）の時は
+        // 単一カラムになるため、比率の指定はしない。
+        function applyColumnRatio() {
+            const lessonContent = document.querySelector('.lesson-content');
+            if (!lessonContent) return;
+
+            if (window.matchMedia('(max-width: 1024px)').matches) {
+                lessonContent.style.gridTemplateColumns = '';
+                return;
+            }
+
+            const ratioMap = { '1:1': [1, 1], '1:2': [1, 2], '2:1': [2, 1] };
+            const [leftFr, rightFr] = ratioMap[columnRatio] || ratioMap['1:1'];
+            lessonContent.style.gridTemplateColumns = `minmax(0, ${leftFr}fr) minmax(0, ${rightFr}fr)`;
+        }
+
+        // 幅の比率を「1:1 → 1:2 → 2:1 → 1:1 ...」の順で切り替える。
+        function cycleColumnRatio() {
+            const currentIndex = COLUMN_RATIOS.indexOf(columnRatio);
+            columnRatio = COLUMN_RATIOS[(currentIndex + 1) % COLUMN_RATIOS.length];
+            const label = document.getElementById('column-ratio-label');
+            if (label) label.textContent = columnRatio;
+            applyColumnRatio();
+            try { localStorage.setItem('programmingEditorColumnRatio', columnRatio); } catch (err) {}
         }
 
         function loadScript(src) {
@@ -244,6 +300,11 @@ def custom_input(prompt_text=""):
 
 # 組み込みのinput関数を置き換え
 builtins.input = custom_input
+                `);
+
+                // 以降、コード実行のたびにこの状態まで巻き戻すためのスナップショット
+                await pyodide.runPython(`
+_initial_globals = set(globals().keys())
                 `);
 
                 statusElement.textContent = '✅ 準備完了';
@@ -303,6 +364,10 @@ builtins.input = custom_input
 import sys
 import builtins
 from js import prompt
+
+# 前回までのコードで作られた変数・関数・クラスをすべて削除し、まっさらな状態に戻す
+for _name in [_k for _k in globals().keys() if _k not in _initial_globals and not _k.startswith('_')]:
+    del globals()[_name]
 
 # エラー状態をクリア
 if hasattr(sys, 'last_value'):
@@ -452,7 +517,10 @@ builtins.input = custom_input
             adjustEditorSectionHeight();
 
             // ウィンドウリサイズ時にも調整
-            window.addEventListener('resize', adjustEditorSectionHeight);
+            window.addEventListener('resize', () => {
+                adjustEditorSectionHeight();
+                applyColumnRatio();
+            });
 
             // デバッグ情報を出力
             console.log('Editor sticky element:', editorSticky);
@@ -506,6 +574,41 @@ builtins.input = custom_input
             document.getElementById('save-btn').addEventListener('click', saveCode);
             document.getElementById('load-btn').addEventListener('click', loadCode);
             document.getElementById('file-input').addEventListener('change', handleFileSelect);
+
+            // 文字サイズ（前回の設定をlocalStorageから復元）
+            const fontSizeSlider = document.getElementById('font-size-slider');
+            const fontSizeValue = document.getElementById('font-size-value');
+            if (fontSizeSlider && codeEditor) {
+                let initialFontSize = parseInt(getComputedStyle(codeEditor.getWrapperElement()).fontSize, 10);
+                try {
+                    const savedFontSize = localStorage.getItem('programmingEditorFontSize');
+                    if (savedFontSize) initialFontSize = parseInt(savedFontSize, 10);
+                } catch (err) {}
+
+                fontSizeSlider.value = initialFontSize;
+                fontSizeValue.textContent = `${initialFontSize}px`;
+                setEditorFontSize(initialFontSize);
+
+                fontSizeSlider.addEventListener('input', () => {
+                    const size = parseInt(fontSizeSlider.value, 10);
+                    fontSizeValue.textContent = `${size}px`;
+                    setEditorFontSize(size);
+                    try { localStorage.setItem('programmingEditorFontSize', String(size)); } catch (err) {}
+                });
+            }
+
+            // 幅の比率（前回の設定をlocalStorageから復元）
+            try {
+                const savedRatio = localStorage.getItem('programmingEditorColumnRatio');
+                if (savedRatio && COLUMN_RATIOS.includes(savedRatio)) {
+                    columnRatio = savedRatio;
+                    const label = document.getElementById('column-ratio-label');
+                    if (label) label.textContent = columnRatio;
+                }
+            } catch (err) {}
+            applyColumnRatio();
+            const ratioToggle = document.getElementById('column-ratio-toggle');
+            if (ratioToggle) ratioToggle.addEventListener('click', cycleColumnRatio);
         });
     </script>
 
@@ -556,9 +659,28 @@ builtins.input = custom_input
             color: #64748b;
         }
 
+        .layout-controls {
+            margin-top: 1rem;
+        }
+
+        .ratio-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+        }
+
         .lesson-content {
             display: grid;
-            grid-template-columns: 1fr 500px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 2rem;
             align-items: flex-start;
             position: relative;
@@ -733,8 +855,33 @@ builtins.input = custom_input
 
         .editor-controls {
             display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
             margin-bottom: 1rem;
+        }
+
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+
+        .font-size-control label {
+            white-space: nowrap;
+        }
+
+        .font-size-control input[type="range"] {
+            flex: 1;
+            accent-color: #3b82f6;
+        }
+
+        .font-size-control #font-size-value {
+            min-width: 3.5rem;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
 
         .btn {
@@ -797,7 +944,7 @@ builtins.input = custom_input
         }
 
         .CodeMirror {
-            height: 300px !important;
+            height: 300px;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 14px;
         }
@@ -890,7 +1037,7 @@ builtins.input = custom_input
         @media (min-width: 1025px) {
             .lesson-content {
                 display: grid;
-                grid-template-columns: 1fr 500px;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             }
 
             .editor-sticky {
@@ -919,7 +1066,7 @@ builtins.input = custom_input
             }
 
             .CodeMirror {
-                height: 250px !important;
+                height: 250px;
                 font-size: 13px;
             }
 
