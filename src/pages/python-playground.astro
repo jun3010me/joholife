@@ -433,12 +433,12 @@ builtins.input = custom_input
         }
 
         // 1セル分のHTMLを生成
-        function renderTraceCell(cell, stepIndex) {
+        function renderTraceCell(cell, stepIndex, colIndex) {
             if (!cell.defined) {
-                return `<td class="trace-cell trace-cell-empty" data-step-index="${stepIndex}">—</td>`;
+                return `<td class="trace-cell trace-cell-empty" data-step-index="${stepIndex}" data-col-index="${colIndex}">—</td>`;
             }
             const cls = cell.changed ? 'trace-cell-changed' : 'trace-cell-unchanged';
-            return `<td class="trace-cell ${cls}" data-step-index="${stepIndex}">${escapeHtml(cell.value)}</td>`;
+            return `<td class="trace-cell ${cls}" data-step-index="${stepIndex}" data-col-index="${colIndex}">${escapeHtml(cell.value)}</td>`;
         }
 
         // トレース表の描画（向きに応じて転置）
@@ -457,14 +457,14 @@ builtins.input = custom_input
                 // 行 = 変数、列 = ステップ
                 html += '<thead><tr><th class="trace-corner"></th>';
                 traceMatrix.forEach((step, i) => {
-                    html += `<th class="trace-step-header" data-step-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
+                    html += `<th class="trace-step-header" data-step-index="${i}" data-col-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
                 });
                 html += '</tr></thead><tbody>';
 
                 for (const name of traceVarNames) {
                     html += `<tr><th class="trace-var-name">${escapeHtml(name)}</th>`;
                     traceMatrix.forEach((step, i) => {
-                        html += renderTraceCell(step.cells[name], i);
+                        html += renderTraceCell(step.cells[name], i, i);
                     });
                     html += '</tr>';
                 }
@@ -472,16 +472,16 @@ builtins.input = custom_input
             } else {
                 // 行 = ステップ、列 = 変数
                 html += '<thead><tr><th class="trace-corner"></th>';
-                for (const name of traceVarNames) {
-                    html += `<th class="trace-var-header">${escapeHtml(name)}</th>`;
-                }
+                traceVarNames.forEach((name, varIndex) => {
+                    html += `<th class="trace-var-header" data-col-index="${varIndex}">${escapeHtml(name)}</th>`;
+                });
                 html += '</tr></thead><tbody>';
 
                 traceMatrix.forEach((step, i) => {
                     html += `<tr data-step-index="${i}"><th class="trace-step-row-header" data-step-index="${i}">#${i + 1}<br><span class="trace-line-no">行${step.line}</span></th>`;
-                    for (const name of traceVarNames) {
-                        html += renderTraceCell(step.cells[name], i);
-                    }
+                    traceVarNames.forEach((name, varIndex) => {
+                        html += renderTraceCell(step.cells[name], i, varIndex);
+                    });
                     html += '</tr>';
                 });
                 html += '</tbody>';
@@ -491,6 +491,7 @@ builtins.input = custom_input
             container.innerHTML = html;
 
             applyActiveStepClass();
+            maximizeTraceCellFontSize();
 
             // ステップの見出しやセルをクリックしたら、そのステップへジャンプ
             container.querySelectorAll('[data-step-index]').forEach((el) => {
@@ -500,6 +501,73 @@ builtins.input = custom_input
                         goToStep(idx);
                     }
                 });
+            });
+        }
+
+        // トレース表の値セルの文字サイズを、列の枠(幅)を変えないまま限界まで拡大する。
+        // 列幅は見出しセル（変数名 or ステップ番号）の文字数で決まるため、その幅を測って
+        // table-layout:fixed で固定した上で、各列内で最も幅を取る値の文字列がちょうど
+        // 収まる文字サイズを計算して .trace-cell に個別適用する。
+        // 行の高さは特にロックしないため、文字を大きくした分だけ自然に高くなる
+        // （= 列の横幅だけは変えず、使える範囲で数字を目一杯大きく見せるという狙い通りの挙動）。
+        function maximizeTraceCellFontSize() {
+            const container = document.getElementById('trace-table-container');
+            if (!container) return;
+            const table = container.querySelector('.trace-table');
+            if (!table) return;
+
+            const headerCells = table.querySelectorAll('thead [data-col-index]');
+            if (headerCells.length === 0) return;
+
+            // まずは全ての固定サイズ指定をリセットし、table-layout:auto の自然な幅で
+            // 列幅を測り直す（前回の拡大結果を引きずらないようにするため）。
+            table.querySelectorAll('.trace-cell').forEach((cell) => { cell.style.fontSize = ''; });
+            headerCells.forEach((th) => { th.style.width = ''; });
+            table.style.tableLayout = 'auto';
+            void table.getBoundingClientRect(); // 強制リフロー
+
+            const colWidths = new Map();
+            headerCells.forEach((th) => {
+                colWidths.set(th.getAttribute('data-col-index'), th.getBoundingClientRect().width);
+            });
+
+            // 測った自然な幅で列幅を固定する
+            table.style.tableLayout = 'fixed';
+            headerCells.forEach((th) => {
+                th.style.width = `${colWidths.get(th.getAttribute('data-col-index'))}px`;
+            });
+
+            const sampleCell = table.querySelector('.trace-cell');
+            if (!sampleCell) return;
+            const cellStyle = getComputedStyle(sampleCell);
+            const fontFamily = cellStyle.fontFamily;
+            const horizontalChrome =
+                parseFloat(cellStyle.paddingLeft) + parseFloat(cellStyle.paddingRight) +
+                parseFloat(cellStyle.borderLeftWidth) + parseFloat(cellStyle.borderRightWidth);
+            const baseFontSize = parseFloat(getComputedStyle(table).fontSize) || 14;
+            const MAX_TRACE_CELL_FONT_SIZE = 200;
+
+            const canvas = maximizeTraceCellFontSize._canvas || (maximizeTraceCellFontSize._canvas = document.createElement('canvas'));
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${baseFontSize}px ${fontFamily}`;
+
+            colWidths.forEach((width, colIndex) => {
+                const cells = table.querySelectorAll(`.trace-cell[data-col-index="${colIndex}"]`);
+                if (cells.length === 0) return;
+
+                const availableWidth = width - horizontalChrome;
+                if (availableWidth <= 0) return;
+
+                let maxTextWidth = 0;
+                cells.forEach((cell) => {
+                    const textWidth = ctx.measureText(cell.textContent).width;
+                    if (textWidth > maxTextWidth) maxTextWidth = textWidth;
+                });
+                if (maxTextWidth <= 0) return;
+
+                const scale = availableWidth / maxTextWidth;
+                const fontSize = Math.max(baseFontSize, Math.min(MAX_TRACE_CELL_FONT_SIZE, Math.floor(baseFontSize * scale)));
+                cells.forEach((cell) => { cell.style.fontSize = `${fontSize}px`; });
             });
         }
 
@@ -1794,6 +1862,9 @@ def __tracer__(frame, event, arg):
                     updateCodeContainerMinHeight();
                     fitCodeEditorToViewportOnce();
                     applyColumnRatio();
+                    if (traceSteps.length > 0) {
+                        maximizeTraceCellFontSize();
+                    }
                 }, 100);
             });
 
@@ -1813,6 +1884,7 @@ def __tracer__(frame, event, arg):
             document.getElementById('trace-font-size').addEventListener('input', (e) => {
                 applyTraceFontSize(e.target.value);
                 try { localStorage.setItem('pythonPlaygroundTraceFontSize', e.target.value); } catch (err) {}
+                maximizeTraceCellFontSize();
             });
             document.getElementById('output-font-size').addEventListener('input', (e) => {
                 applyOutputFontSize(e.target.value);
