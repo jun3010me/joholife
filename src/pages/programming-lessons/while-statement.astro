@@ -169,7 +169,6 @@ const steps = [
     <script>
         let pyodide = null;
         let codeEditor = null;
-        let editorVisibleLines = 0;
 
         // ステップとエディタの幅の比率
         const COLUMN_RATIOS = ['1:1', '1:2', '2:1'];
@@ -201,26 +200,43 @@ const steps = [
                                 cm.replaceSelection("    ");
                             }
                         }
-                    }
+                    },
+                    viewportMargin: Infinity
                 });
 
-                codeEditor.setSize(null, 300);
-                editorVisibleLines = 300 / codeEditor.defaultTextHeight();
+                // コードの行数に応じてエリア内スクロールなしで高さを自動調整する
+                // （change直後はまだ新しい行がDOMに反映されていないことがあるため、
+                //   次のタイミングまで待ってから高さを測り直す）
+                codeEditor.on('change', () => setTimeout(updateEditorHeight, 0));
+                updateEditorHeight();
             } catch (error) {
                 console.error('Failed to initialize CodeMirror:', error);
             }
         }
 
-        // エディタの表示行数を保ったまま文字サイズを変更する
+        // 最初に表示しておく行数（これより短いコードでもこの高さは確保する）
+        const MIN_VISIBLE_LINES = 4;
+
+        // コードの行数が増減したら、エリア内スクロールが発生しないようエディタの高さを合わせて増減させる
+        function updateEditorHeight() {
+            if (!codeEditor) return;
+            const lineHeight = codeEditor.defaultTextHeight();
+            const minHeight = MIN_VISIBLE_LINES * lineHeight;
+            // .CodeMirror-sizerは全行を描画した実際のコンテンツ高さを持つ内部要素
+            // （viewportMargin: Infinity により常に全行がDOMに描画されている）
+            const sizer = codeEditor.getWrapperElement().querySelector('.CodeMirror-sizer');
+            const contentHeight = sizer ? sizer.offsetHeight : minHeight;
+            codeEditor.setSize(null, Math.max(minHeight, contentHeight));
+        }
+
+        // 文字サイズを変更する（高さは現在の行数に合わせて自動調整される）
         function setEditorFontSize(px) {
             if (!codeEditor) return;
 
             const wrapper = codeEditor.getWrapperElement();
             wrapper.style.fontSize = `${px}px`;
             codeEditor.refresh();
-
-            const lineHeight = codeEditor.defaultTextHeight();
-            codeEditor.setSize(null, editorVisibleLines * lineHeight);
+            updateEditorHeight();
         }
 
         // 学習ステップ（左）とエディタ（右）の幅の比率を適用する。
@@ -915,7 +931,8 @@ builtins.input = custom_input
         }
 
         .CodeMirror {
-            height: 300px;
+            /* 高さはJSがコードの行数に応じて自動調整する。この値は読み込み中の一瞬だけ使われる仮の高さ（4行分程度） */
+            height: 90px;
             font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 14px;
         }
@@ -1037,7 +1054,7 @@ builtins.input = custom_input
             }
 
             .CodeMirror {
-                height: 250px;
+                height: 90px;
                 font-size: 13px;
             }
 
