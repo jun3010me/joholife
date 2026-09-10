@@ -1454,7 +1454,15 @@ def __tracer__(frame, event, arg):
             // 表示状態によって window.innerHeight が変動しやすく、clientHeight の
             // 方が実際にレイアウトへ反映される表示領域として安定している。
             const viewportHeight = document.documentElement.clientHeight;
-            const availableHeight = viewportHeight - rect.top - 8;
+            // rect.top はビューポート基準（現在のスクロール位置に依存）の値。
+            // ページがスクロールされた状態でこの関数が呼ばれると、rect.top が
+            // 大きくマイナスになり、availableHeight が実際よりずっと大きく計算
+            // されてしまう（ブラウザがリロード時にスクロール位置を復元する場合、
+            // 一度おかしな高さになるとリロードのたびに悪化していくことがあった）。
+            // window.scrollY を足して「ページ先頭から見た時の位置」に変換することで、
+            // 現在のスクロール位置に左右されない計算にする。
+            const topFromPageStart = rect.top + window.scrollY;
+            const availableHeight = viewportHeight - topFromPageStart - 8;
             if (availableHeight <= 0) return;
 
             // コードの内容がこの高さより多く必要な場合は内容量を優先する
