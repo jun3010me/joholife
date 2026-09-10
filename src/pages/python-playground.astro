@@ -1386,7 +1386,68 @@ def __tracer__(frame, event, arg):
             const container = document.getElementById('code-editor-container');
             if (!container) return;
             const contentHeight = codeEditor.getScrollInfo().height;
-            container.style.minHeight = `${Math.max(300, Math.ceil(contentHeight))}px`;
+            const neededContainerHeight = Math.max(300, Math.ceil(contentHeight));
+            container.style.minHeight = `${neededContainerHeight}px`;
+
+            // 初回表示時の調整（fitCodeEditorToViewportOnce）で .playground-content に
+            // 明示的な高さを与えている場合、コードの内容がそれより多くの高さを必要と
+            // するようになったら、その高さも合わせて広げる（縮めることはしない）。
+            //
+            // ツールバー・フォントサイズスライダーの高さ（chrome）は、
+            // #code-editor-container.top から .code-section.top までの距離として
+            // 求める。.code-section 自体がまだ .playground-content の明示的な高さで
+            // 縮められている状態だと、container側のrectもその制約内に収まって
+            // しまうため、両者の高さの差ではなく上端位置の差を使うことで、
+            // 現在の制約に左右されない正しいchrome高さを得る。
+            const playgroundContent = document.querySelector('.playground-content');
+            const codeSection = document.querySelector('.code-section');
+            if (playgroundContent && codeSection && playgroundContent.style.height) {
+                const currentHeight = parseFloat(playgroundContent.style.height) || 0;
+                const codeChrome = container.getBoundingClientRect().top - codeSection.getBoundingClientRect().top;
+                const neededHeight = Math.ceil(neededContainerHeight + codeChrome);
+                if (neededHeight > currentHeight) {
+                    playgroundContent.style.height = `${neededHeight}px`;
+                }
+            }
+        }
+
+        // ページを開いた直後・リロード直後の1回だけ、コード・実行結果・変数トレースの
+        // 下端がブラウザの表示領域（ビューポート）の下端にちょうど合うように高さを
+        // 調整する。デバイスの表示倍率をショートカットキーで変えられない環境（iPadなど）
+        // でも、開いた瞬間から画面いっぱいに使えるようにするための調整。
+        //
+        // コードの内容がこの高さより多く必要な場合は内容量を優先する（growCodeEditor
+        // ToFitContent()による「改行で増やした分だけ縦に伸びる」動きはそのまま）。
+        // また、モバイル幅（画面が上下積みレイアウトになる）ではコードエディタと
+        // 右側の高さが連動しないため、この調整は行わない。
+        function fitCodeEditorToViewportOnce() {
+            if (window.matchMedia('(max-width: 768px)').matches) return;
+
+            const playgroundContent = document.querySelector('.playground-content');
+            const codeSection = document.querySelector('.code-section');
+            const codeContainer = document.getElementById('code-editor-container');
+            if (!playgroundContent || !codeSection || !codeContainer) return;
+
+            const rect = playgroundContent.getBoundingClientRect();
+            const availableHeight = window.innerHeight - rect.top - 2;
+            if (availableHeight <= 0) return;
+
+            // コードの内容がこの高さより多く必要な場合は内容量を優先する
+            // （改行で増やした分を初回調整で勝手に縮めたりはしない）。
+            const codeContentHeight = codeEditor ? codeEditor.getScrollInfo().height : 0;
+            const codeFloor = Math.max(300, codeContentHeight);
+            const codeChrome = codeSection.getBoundingClientRect().height - codeContainer.getBoundingClientRect().height;
+
+            const targetHeight = Math.max(availableHeight, codeFloor + codeChrome);
+
+            // .playground-content 自体に明示的な高さを与えることで、CSS Gridの
+            // 1行ぶんの高さをその値に固定する。align-items:stretch と、
+            // .code-section／.right-column 以下の各要素にすでに指定している
+            // flex-grow・flex-shrink・min-height:0 の組み合わせにより、
+            // コード側・実行結果・変数トレースの全てが、伸ばす方向にも
+            // 縮める方向にも、この高さに合わせて追従する。
+            playgroundContent.style.height = `${Math.floor(targetHeight)}px`;
+            playgroundContent.style.gridTemplateRows = '1fr';
         }
 
         function applyTraceFontSize(size) {
@@ -1446,6 +1507,11 @@ def __tracer__(frame, event, arg):
                 window.matchMedia('(max-width: 768px)').matches;
             if (isSingleColumn) {
                 playgroundContent.style.gridTemplateColumns = '';
+                // 初回表示時の調整（fitCodeEditorToViewportOnce）で付与した明示的な高さも
+                // 単一カラム表示時は解除する。残したままだと、特にモバイル幅で
+                // レイアウトが崩れる（コード側の高さが0になる等）ことがあったため。
+                playgroundContent.style.height = '';
+                playgroundContent.style.gridTemplateRows = '';
                 return;
             }
 
@@ -1607,6 +1673,13 @@ def __tracer__(frame, event, arg):
             restoreAutosavedCode();
             renderTraceTable();
             updateStepIndicator();
+
+            // 初回表示時だけ、コード・実行結果・変数トレースの下端をブラウザの
+            // 表示領域の下端に合わせる（レイアウトが落ち着いてから計測するため
+            // 少し遅らせて実行）。以降はコード内容量に応じた自動伸縮のみになる。
+            setTimeout(() => {
+                fitCodeEditorToViewportOnce();
+            }, 150);
 
             // Pyodideを読み込み
             loadPyodide().catch(error => {
@@ -1825,6 +1898,7 @@ def __tracer__(frame, event, arg):
 
         .code-section {
             min-width: 0;
+            min-height: 0;
             display: flex;
             flex-direction: column;
         }
@@ -1834,6 +1908,7 @@ def __tracer__(frame, event, arg):
             flex-direction: column;
             gap: 20px;
             min-width: 0;
+            min-height: 0;
         }
 
         .section-header {
