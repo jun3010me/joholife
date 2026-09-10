@@ -504,12 +504,17 @@ builtins.input = custom_input
             });
         }
 
-        // トレース表の値セルの文字サイズを、列の枠(幅)を変えないまま限界まで拡大する。
+        // トレース表の値セルの文字サイズを、列の枠(幅)を変えないまま、見出し
+        // （#1・行1など）よりも少しだけ大きくする。「目一杯まで拡大」はしない
+        // （狭い列で極端に巨大化して見づらくなるため）。
         // 列幅は見出しセル（変数名 or ステップ番号）の文字数で決まるため、その幅を測って
-        // table-layout:fixed で固定した上で、各列内で最も幅を取る値の文字列がちょうど
-        // 収まる文字サイズを計算して .trace-cell に個別適用する。
-        // 行の高さは特にロックしないため、文字を大きくした分だけ自然に高くなる
-        // （= 列の横幅だけは変えず、使える範囲で数字を目一杯大きく見せるという狙い通りの挙動）。
+        // table-layout:fixed で固定した上で、少し拡大した文字サイズを .trace-cell に
+        // 適用する。ただし、その拡大サイズだと列に収まりきらない場合だけ、収まる
+        // サイズまで下げる（はみ出し防止のための保険であり、これが通常の挙動には
+        // ならない）。
+        // 行の高さは特にロックしないため、文字を大きくした分だけ自然に高くなる。
+        const TRACE_CELL_FONT_SCALE = 1.25; // 見出しよりどれくらい大きくするか
+
         function maximizeTraceCellFontSize() {
             const container = document.getElementById('trace-table-container');
             if (!container) return;
@@ -545,7 +550,7 @@ builtins.input = custom_input
                 parseFloat(cellStyle.paddingLeft) + parseFloat(cellStyle.paddingRight) +
                 parseFloat(cellStyle.borderLeftWidth) + parseFloat(cellStyle.borderRightWidth);
             const baseFontSize = parseFloat(getComputedStyle(table).fontSize) || 14;
-            const MAX_TRACE_CELL_FONT_SIZE = 200;
+            const desiredFontSize = baseFontSize * TRACE_CELL_FONT_SCALE;
 
             const canvas = maximizeTraceCellFontSize._canvas || (maximizeTraceCellFontSize._canvas = document.createElement('canvas'));
             const ctx = canvas.getContext('2d');
@@ -565,8 +570,9 @@ builtins.input = custom_input
                 });
                 if (maxTextWidth <= 0) return;
 
-                const scale = availableWidth / maxTextWidth;
-                const fontSize = Math.max(baseFontSize, Math.min(MAX_TRACE_CELL_FONT_SIZE, Math.floor(baseFontSize * scale)));
+                // 収まる上限サイズ（この列にその文字列がちょうど収まる文字サイズ）
+                const maxFitFontSize = baseFontSize * (availableWidth / maxTextWidth);
+                const fontSize = Math.max(baseFontSize, Math.floor(Math.min(desiredFontSize, maxFitFontSize)));
                 cells.forEach((cell) => { cell.style.fontSize = `${fontSize}px`; });
             });
         }
