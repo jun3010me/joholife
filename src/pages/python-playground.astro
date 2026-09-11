@@ -22,6 +22,9 @@ import Layout from '../layouts/Layout.astro';
                 <button type="button" id="column-ratio-toggle" class="code-visibility-toggle ratio-toggle" title="コードエディタと右側の幅の比率を切り替え">
                     <span>↔️ 幅の比率 <span id="column-ratio-label">1:1</span></span>
                 </button>
+                <button type="button" id="row-ratio-toggle" class="code-visibility-toggle ratio-toggle" title="実行結果と変数トレースの高さの比率を切り替え">
+                    <span>↕️ 高さの比率 <span id="row-ratio-label">1:1</span></span>
+                </button>
             </div>
         </div>
 
@@ -173,6 +176,10 @@ import Layout from '../layouts/Layout.astro';
         // コードエディタ（左）と実行結果・変数トレース（右）の幅の比率
         const COLUMN_RATIOS = ['1:1', '1:2', '2:1'];
         let columnRatio = '1:1';
+
+        // 実行結果（上）と変数トレース（下）の高さの比率
+        const ROW_RATIOS = ['1:1', '1:2', '2:1'];
+        let rowRatio = '1:1';
 
         // #code-editor-container の絶対的な最小高さ。ブラウザの高さを狭くしていった
         // 時、実行結果・変数トレースはこの下限に縛られず追従できるよう、
@@ -1624,6 +1631,7 @@ def __tracer__(frame, event, arg):
             // 2つとも表示している時も、同じ仕組みでコードエディタの高さに追従する。
 
             applyColumnRatio();
+            applyRowRatio();
         }
 
         // コードエディタ（左）と実行結果・変数トレース（右）の幅の比率を適用する。
@@ -1676,6 +1684,41 @@ def __tracer__(frame, event, arg):
             if (label) label.textContent = columnRatio;
             applyColumnRatio();
             try { localStorage.setItem('pythonPlaygroundColumnRatio', columnRatio); } catch (err) {}
+        }
+
+        // 実行結果（上）と変数トレース（下）の高さの比率を適用する。
+        // .right-column はCSS Gridで2行（実行結果／変数トレース）を持ち、
+        // grid-template-rowsのfr比率で縦幅を分け合う（左右の幅の比率と同じ仕組み）。
+        // ただし、どちらか一方だけ表示している時に2行分の比率を指定したままだと、
+        // 表示していない側の行の分だけ空白ができてしまうため、その場合は
+        // 1行（1fr）だけにして、表示中のパネルが縦幅を全部使えるようにする。
+        function applyRowRatio() {
+            const rightColumn = document.querySelector('.right-column');
+            const outputSection = document.querySelector('.output-section');
+            const traceSection = document.querySelector('.trace-section');
+            if (!rightColumn || !outputSection || !traceSection) return;
+
+            const outputVisible = !outputSection.classList.contains('panel-hidden');
+            const traceVisible = !traceSection.classList.contains('panel-hidden');
+
+            if (!(outputVisible && traceVisible)) {
+                rightColumn.style.gridTemplateRows = '1fr';
+                return;
+            }
+
+            const ratioMap = { '1:1': [1, 1], '1:2': [1, 2], '2:1': [2, 1] };
+            const [outputFr, traceFr] = ratioMap[rowRatio] || ratioMap['1:1'];
+            rightColumn.style.gridTemplateRows = `minmax(0, ${outputFr}fr) minmax(0, ${traceFr}fr)`;
+        }
+
+        // 高さの比率を「1:1 → 1:2 → 2:1 → 1:1 ...」の順で切り替える。
+        function cycleRowRatio() {
+            const currentIndex = ROW_RATIOS.indexOf(rowRatio);
+            rowRatio = ROW_RATIOS[(currentIndex + 1) % ROW_RATIOS.length];
+            const label = document.getElementById('row-ratio-label');
+            if (label) label.textContent = rowRatio;
+            applyRowRatio();
+            try { localStorage.setItem('pythonPlaygroundRowRatio', rowRatio); } catch (err) {}
         }
 
         // コードエリアの表示・非表示を切り替える。
@@ -1742,6 +1785,13 @@ def __tracer__(frame, event, arg):
                     columnRatio = savedColumnRatio;
                     const ratioLabel = document.getElementById('column-ratio-label');
                     if (ratioLabel) ratioLabel.textContent = columnRatio;
+                }
+
+                const savedRowRatio = localStorage.getItem('pythonPlaygroundRowRatio');
+                if (savedRowRatio && ROW_RATIOS.includes(savedRowRatio)) {
+                    rowRatio = savedRowRatio;
+                    const rowRatioLabel = document.getElementById('row-ratio-label');
+                    if (rowRatioLabel) rowRatioLabel.textContent = rowRatio;
                 }
 
                 const codeVisible = localStorage.getItem('pythonPlaygroundCodeVisible');
@@ -1916,6 +1966,11 @@ def __tracer__(frame, event, arg):
                 cycleColumnRatio();
             });
 
+            // 実行結果と変数トレースの高さの比率を切り替え
+            document.getElementById('row-ratio-toggle').addEventListener('click', () => {
+                cycleRowRatio();
+            });
+
             // 変数トレース：向き切替
             document.getElementById('orientation-toggle').addEventListener('change', (e) => {
                 traceOrientation = e.target.checked ? 'stepsAsRows' : 'varsAsRows';
@@ -2080,9 +2135,13 @@ def __tracer__(frame, event, arg):
             flex-direction: column;
         }
 
+        /* 実行結果（上）と変数トレース（下）は、コードエディタ／右側の幅比率と
+           同じ考え方でCSS Gridの行として配置し、grid-template-rowsのfr比率で
+           高さを分け合う（比率はJS側のapplyRowRatio()が切り替える。既定は1:1）。 */
         .right-column {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            align-items: stretch;
             gap: 20px;
             min-width: 0;
             min-height: 0;
@@ -2649,12 +2708,15 @@ def __tracer__(frame, event, arg):
             font-size: 14px;
         }
 
-        /* .output-section / .trace-section は常に縦方向のflexコンテナにしておき、
-           .right-column（同じく縦方向のflex）の中で flex-grow:1 により余った縦幅を
-           分け合う。コードエディタ側の内容（改行や折り返し）が増えて .code-section が
-           縦に伸びると、CSS Gridの align-items:stretch で .right-column もそれに追従して
-           伸びるため、この仕組みだけで「コードが伸びたら実行結果・変数トレースも伸びる」
-           を実現できる（表示パネルが1つだけの時は、そのパネルが余った幅を全部受け取る）。
+        /* .output-section / .trace-section は、.right-column（CSS Grid、2行）の
+           行としてgrid-template-rowsのfr比率で縦幅を分け合う（JS側のapplyRowRatio()
+           参照）。自身は縦方向のflexコンテナとして中身（見出し・フォントサイズ調整・
+           #output-area等）を並べる。コードエディタ側の内容（改行や折り返し）が増えて
+           .code-section が縦に伸びると、CSS Gridの align-items:stretch で .right-column
+           もそれに追従して伸びるため、この仕組みだけで「コードが伸びたら実行結果・
+           変数トレースも伸びる」を実現できる（表示パネルが1つだけの時は、そのパネルが
+           縦幅を全部受け取る。.right-column の grid-template-rows を1行にする
+           applyRowRatio() 側の処理を参照）。
            #output-area / .trace-table-container 側は height（220px/360px）を
            flex-basisとして使いつつ flex-grow:1 を持たせ、それ以上の余白があれば
            埋める形にしている。height を明示指定したまま flex-grow するだけなので、
