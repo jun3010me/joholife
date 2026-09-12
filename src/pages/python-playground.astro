@@ -2049,6 +2049,9 @@ def __tracer__(frame, event, arg):
             --pp-code-font-size: 16px;
             --pp-trace-font-size: 14px;
             --pp-output-font-size: 14px;
+            /* iPhone/iPadでボタンやコード編集領域をダブルタップした際に
+               Safariが拡大表示してしまうのを防ぐ（ピンチズームは無効化しない）。 */
+            touch-action: manipulation;
         }
 
         .playground-header {
