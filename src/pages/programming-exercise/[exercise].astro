@@ -902,15 +902,59 @@ sys.stderr = sys._custom_stderr
             return hashHex.substring(0, 12).toUpperCase();
         }
 
+        function dataURLToBlob(dataUrl) {
+            const [header, base64] = dataUrl.split(',');
+            const mimeMatch = header.match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+            const binary = atob(base64);
+            const array = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                array[i] = binary.charCodeAt(i);
+            }
+            return new Blob([array], { type: mime });
+        }
+
         async function downloadCertificate() {
             const canvas = document.getElementById('certificate-canvas');
             if (!canvas) return;
 
+            const fileName = `修了証_${exerciseTitle}_${userName}_${new Date().toISOString().split('T')[0]}.png`;
+
             try {
+                const dataUrl = canvas.toDataURL('image/png');
+
+                // iOS Safariは<a download>によるプログラム的なダウンロードに対応していないため、
+                // Web Share API経由で共有シートから「写真」アプリ等に保存してもらう
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+                if (isIOS && navigator.share) {
+                    const blob = dataURLToBlob(dataUrl);
+                    const file = new File([blob], fileName, { type: 'image/png' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({ files: [file], title: fileName });
+                            return;
+                        } catch (shareError) {
+                            if (shareError.name === 'AbortError') return; // ユーザーがキャンセル
+                            // 共有に失敗した場合は下のフォールバックに進む
+                        }
+                    }
+
+                    // Web Share APIが使えない場合は画像を新しいタブで開き、長押し保存してもらう
+                    const blobUrl = URL.createObjectURL(blob);
+                    window.open(blobUrl, '_blank');
+                    alert('画像が新しいタブで開きます。画像を長押しして「写真に保存」を選択してください。');
+                    return;
+                }
+
                 const link = document.createElement('a');
-                link.download = `修了証_${exerciseTitle}_${userName}_${new Date().toISOString().split('T')[0]}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.download = fileName;
+                link.href = dataUrl;
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
             } catch (error) {
                 console.error('Failed to download certificate:', error);
                 alert('修了証のダウンロードに失敗しました。');
