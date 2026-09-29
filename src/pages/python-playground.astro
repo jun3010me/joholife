@@ -284,7 +284,12 @@ import Layout from '../layouts/Layout.astro';
                 pyodide = await window.loadPyodide({
                     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
                     stdout: (text) => {
-                        // テキストを改行で分割して1行ずつ追加
+                        // Pyodideは1行ずつ改行なしで渡すため、print()の空行("")もそのまま追加する
+                        if (!text.includes('\n')) {
+                            appendOutput(text, 'stdout');
+                            return;
+                        }
+                        // 改行を含む場合は分割して1行ずつ追加
                         const lines = text.split('\n');
                         for (let i = 0; i < lines.length; i++) {
                             if (i === lines.length - 1 && lines[i] === '') continue;
@@ -292,6 +297,10 @@ import Layout from '../layouts/Layout.astro';
                         }
                     },
                     stderr: (text) => {
+                        if (!text.includes('\n')) {
+                            appendOutput(text, 'stderr');
+                            return;
+                        }
                         const lines = text.split('\n');
                         for (let i = 0; i < lines.length; i++) {
                             if (i === lines.length - 1 && lines[i] === '') continue;
@@ -2370,6 +2379,7 @@ def __tracer__(frame, event, arg):
 
         .output-line {
             margin-bottom: 4px;
+            min-height: 1.4em; /* 空行(print())も高さを保つ */
         }
 
         .output-line.stderr {
