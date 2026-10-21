@@ -314,14 +314,31 @@ import Layout from '../layouts/Layout.astro';
 import sys
 import io
 
-class UnbufferedTextIO(io.TextIOWrapper):
+from js import pgWriteOutput
+
+# Pyodide標準のstdoutは「改行が来るまで」出力をためてしまう。
+# print(..., end="") のように改行なしで出力した内容も画面に出すため、
+# 書き込みのたびにJS側へ直接渡す。
+class StreamingWriter(io.TextIOBase):
+    def __init__(self, kind):
+        self._kind = kind
+
+    def writable(self):
+        return True
+
+    def isatty(self):
+        return False
+
     def write(self, s):
-        super().write(s)
-        self.flush()
+        if s:
+            pgWriteOutput(s, self._kind)
         return len(s)
 
-sys.stdout = UnbufferedTextIO(sys.stdout.buffer, encoding='utf-8', line_buffering=False)
-sys.stderr = UnbufferedTextIO(sys.stderr.buffer, encoding='utf-8', line_buffering=False)
+    def flush(self):
+        pass
+
+sys.stdout = StreamingWriter('stdout')
+sys.stderr = StreamingWriter('stderr')
                 `);
 
                 console.log('Pyodide loaded successfully');
@@ -393,6 +410,39 @@ builtins.input = custom_input
                 outputArea.scrollTop = outputArea.scrollHeight;
             }
         }
+
+        // 改行を待たずに出力を追記する（end="" のprintなど、書き込み途中の行も表示する）
+        let openOutputLine = null;
+        let openOutputType = null;
+
+        window.pgWriteOutput = function (text, type = 'stdout') {
+            const parts = String(text).split('\n');
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                const isLast = i === parts.length - 1;
+
+                if (part !== '') {
+                    if (openOutputLine && openOutputType === type && openOutputLine.isConnected) {
+                        openOutputLine.textContent += part;
+                    } else {
+                        const before = outputLineCount;
+                        appendOutput(part, type);
+                        const outputArea = document.getElementById('output-area');
+                        openOutputLine = outputLineCount > before ? outputArea.lastElementChild : null;
+                        openOutputType = type;
+                    }
+                } else if (!isLast && !openOutputLine) {
+                    // 空行（print()）
+                    appendOutput('', type);
+                }
+
+                // 改行が来たら、その行を確定させる
+                if (!isLast) {
+                    openOutputLine = null;
+                    openOutputType = null;
+                }
+            }
+        };
 
         // HTMLエスケープ用ヘルパー関数
         function escapeHtml(text) {
@@ -1015,6 +1065,8 @@ builtins.input = custom_input
             // 出力エリアを完全にクリア（以前のエラーや出力を確実に削除）
             outputArea.innerHTML = '';
             outputLineCount = 0;
+            openOutputLine = null;
+            openOutputType = null;
 
             // 実行中メッセージを表示
             outputArea.innerHTML = '<div class="running-msg">🔄 実行中...<br><small style="color: #94a3b8;">※大量の出力は実行完了後に表示されます</small></div>';
