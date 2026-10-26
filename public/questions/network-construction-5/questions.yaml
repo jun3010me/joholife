@@ -45,9 +45,9 @@ questions:
 
       **設定要件**
       - インターネット機器で、使用するISPポート（ISP1、Webサーバーが接続したISPポート、DNSサーバーが接続したISPポート）のDHCPサーバーを有効化
-      - ルーターでDHCPサーバーを有効化し、PC1、PC2、DNSサーバーにIPアドレスを自動割り当て
+      - ルーターでDHCPサーバーを有効化し、PC1、PC2にIPアドレスを自動割り当て
       - ルーターとWebサーバー、DNSサーバーはインターネットからDHCPでグローバルIPアドレスを取得
-      - PC1、PC2、DNSサーバーがDHCPで適切なIPアドレスを取得できること
+      - PC1、PC2がルーターのDHCPで、WebサーバーとDNSサーバーがインターネットのDHCPで、それぞれ適切なIPアドレスを取得できること
       - DNSサーバーのDNSテーブルに「Web」という名前でWebサーバーのIPアドレスを登録
       - PC1とPC2からWebサーバーへのPing疎通とHTTP通信ができること
       - PC1とPC2からDNSサーバーを通じてホスト名「Web」でWebサーバーにアクセスできること
@@ -57,8 +57,8 @@ questions:
       2. インターネット機器のプロパティで、ISP1と、Webサーバー・DNSサーバーが接続したISPポートのDHCPサーバーを有効化
       3. ルーターのLAN1でDHCPサーバーを有効化
       4. ルーターのWANでDHCPを有効化（インターネットからIP取得）
-      5. WebサーバーとDNSサーバーでDHCPを有効化（インターネットからグローバルIP取得）
-      6. PC1、PC2、DNSサーバーでDHCPを有効化
+      5. WebサーバーとDNSサーバーでDHCPを有効化（インターネットからグローバルIP取得。ISP側のDHCPサーバーを先に有効化しておくこと）
+      6. PC1、PC2でDHCPを有効化
       7. DNSサーバーのDNSテーブルに「Web」レコードを追加
       8. 通信テストでPing、HTTP通信、DNS名前解決を確認
       9. 構成ファイルを保存し、「解答ファイルをアップロード」からアップロード
@@ -82,7 +82,7 @@ questions:
       - deviceName: "ルーター-1"
         property: "config.lan1.dhcpEnabled"
         expectedPattern: "true"
-        explanation: "ルーターのLAN1でDHCPを有効化してPC1、PC2、DNSサーバーにIPアドレスを配布する必要があります"
+        explanation: "ルーターのLAN1でDHCPを有効化してPC1、PC2にIPアドレスを配布する必要があります"
         excludeValues: []
       - deviceName: "ルーター-1"
         property: "config.dhcpServerEnabled"
@@ -112,7 +112,7 @@ questions:
       - deviceName: "DNSサーバー-1"
         property: "config.dhcpEnabled"
         expectedPattern: "true"
-        explanation: "DNSサーバーでDHCPを有効化してルーターからIPアドレスを自動取得する必要があります"
+        explanation: "DNSサーバーでDHCPを有効化してインターネットからグローバルIPを自動取得する必要があります"
         excludeValues: []
       - deviceName: "PC-1"
         property: "config.ipAddress"
@@ -126,8 +126,8 @@ questions:
         excludeValues: []
       - deviceName: "DNSサーバー-1"
         property: "config.ipAddress"
-        expectedPattern: "^192\\.168\\.1\\.[0-9]+$"
-        explanation: "DNSサーバーはルーターのDHCPから192.168.1.xネットワークのIPアドレスを取得する必要があります"
+        expectedPattern: "^203\\.0\\.113\\.[0-9]+$"
+        explanation: "DNSサーバーはインターネットのDHCPから203.0.113.xのグローバルIPアドレスを取得する必要があります"
         excludeValues: []
       - deviceName: "Webサーバー-1"
         property: "config.isInternetConnected"

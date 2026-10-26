@@ -8010,7 +8010,11 @@ class NetworkSimulator {
             // 隣接デバイスをキューに追加
             for (const connection of this.connections) {
                 let nextDevice = null;
-                
+
+                // WAN側（インターネット・ONUのWAN・ルーターのWAN）を越えた先は別ネットワークなので、
+                // ローカルDHCPの探索対象にしない（ISPをまたいだルーターからLAN側IPを取得しないため）
+                if (this.isWANSideConnection(connection)) continue;
+
                 if (connection.from.device.id === currentId && !visited.has(connection.to.device.id)) {
                     nextDevice = connection.to.device;
                 } else if (connection.to.device.id === currentId && !visited.has(connection.from.device.id)) {
@@ -8025,6 +8029,15 @@ class NetworkSimulator {
         }
         
         return null;
+    }
+
+    // WAN側の接続かどうか（インターネット機器、ONUのWANポート、ルーターのWANポートのいずれかを含む接続）
+    isWANSideConnection(connection) {
+        const ends = [connection.from, connection.to];
+        return ends.some(end =>
+            end.device.type === 'internet' ||
+            ((end.device.type === 'onu' || end.device.type === 'router') && end.port?.id === 'wan')
+        );
     }
 
     // クライアントが接続されているLANを判定（スイッチ経由対応）

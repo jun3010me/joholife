@@ -54,9 +54,9 @@ async function loadNetworkQuestions() {
 8. ONU-3のWANポートをインターネットの別のISPポート（ISP2～ISP6のいずれか）に接続
 
 **設定要件**
-- ルーターでDHCPサーバーを有効化し、PC1、PC2、DNSサーバーにIPアドレスを自動割り当て
+- ルーターでDHCPサーバーを有効化し、PC1、PC2にIPアドレスを自動割り当て
 - ルーターとWebサーバー、DNSサーバーはインターネットからDHCPでグローバルIPアドレスを取得
-- PC1、PC2、DNSサーバーがDHCPで適切なIPアドレスを取得できること
+- PC1、PC2がルーターのDHCPで、WebサーバーとDNSサーバーがインターネットのDHCPで、それぞれ適切なIPアドレスを取得できること
 - DNSサーバーのDNSテーブルに「Web」という名前でWebサーバーのIPアドレスを登録
 - PC1とPC2からWebサーバーへのPing疎通とHTTP通信ができること
 - PC1とPC2からDNSサーバーを通じてホスト名「Web」でWebサーバーにアクセスできること`,
@@ -123,7 +123,7 @@ async function loadNetworkQuestions() {
 
         // DNS server DHCP validation
         if (!dnsServer.config.dhcpEnabled) {
-          return { valid: false, message: 'DNSサーバーでDHCPを有効化してルーターからIPアドレスを自動取得してください' };
+          return { valid: false, message: 'DNSサーバーでDHCPを有効化してインターネットからグローバルIPを取得してください' };
         }
 
         // Web server DHCP validation
