@@ -1397,6 +1397,9 @@ class NetworkSimulator {
     createDevice(deviceType, x, y) {
         const id = `${deviceType}-${Date.now()}`;
         const deviceCount = Array.from(this.devices.values()).filter(d => d.type === deviceType).length + 1;
+        // スイッチ・Webサーバー・DNSサーバーは配置時にIPアドレスを設定しない（「このIPは何？」を防ぐ）
+        // PC・ルーターは、手早く接続できるよう従来どおり既定のIPを設定する
+        const hasInitialIP = !['onu', 'switch', 'server', 'dns'].includes(deviceType);
 
         return {
             id,
@@ -1407,13 +1410,13 @@ class NetworkSimulator {
             width: 80,
             height: deviceType === 'router' ? 75 : 70, // ルーターのみ5px高く
             config: deviceType === 'internet' ? this.createInternetConfig(deviceCount) : {
-                ipAddress: deviceType === 'onu' ? '' : this.getDefaultIP(deviceType, deviceCount), // ONUはIPアドレスなし
+                ipAddress: hasInitialIP ? this.getDefaultIP(deviceType, deviceCount) : '', // ONU・スイッチ・サーバー類はIPアドレス未設定
                 subnetMask: deviceType === 'onu' ? '' : '255.255.255.0', // ONUはサブネットマスクなし
                 defaultGateway: deviceType === 'onu' ? '' : '192.168.1.1', // ONUはゲートウェイなし
                 dhcpEnabled: deviceType === 'onu' ? false : (deviceType === 'pc' || deviceType === 'server' || deviceType === 'dns'), // ONUはDHCP無効
                 // 複数LAN対応のDHCP設定
                 lan1: {
-                    ipAddress: this.getDefaultIP(deviceType, deviceCount),
+                    ipAddress: hasInitialIP || deviceType === 'onu' ? this.getDefaultIP(deviceType, deviceCount) : '', // config.ipAddressと同期させる
                     subnetMask: '255.255.255.0',
                     defaultGateway: this.getDefaultIP(deviceType, deviceCount),
                     dhcpEnabled: deviceType === 'router',
@@ -3477,7 +3480,7 @@ class NetworkSimulator {
         }
         
         // 同じIPアドレス間のPingチェック
-        if (this.pingSourceDevice.config.ipAddress === this.pingTargetDevice.config.ipAddress) {
+        if (this.pingSourceDevice.config.ipAddress && this.pingSourceDevice.config.ipAddress === this.pingTargetDevice.config.ipAddress) {
             await this.showPingError(`同じIPアドレス (${this.pingSourceDevice.config.ipAddress}) を持つデバイス間でのPingは実行できません。\nIPアドレスの重複を解決してください。`, this.pingSourceDevice, this.pingTargetDevice);
             return;
         }
@@ -6783,7 +6786,7 @@ class NetworkSimulator {
         }
         
         // 同じIPアドレス間のHTTP通信チェック
-        if (sourceDevice.config.ipAddress === targetDevice.config.ipAddress) {
+        if (sourceDevice.config.ipAddress && sourceDevice.config.ipAddress === targetDevice.config.ipAddress) {
             alert(`同じIPアドレス (${sourceDevice.config.ipAddress}) を持つデバイス間でのHTTP通信は実行できません。\nIPアドレスの重複を解決してください。`);
             return;
         }
@@ -6859,8 +6862,10 @@ class NetworkSimulator {
             const dhcpEnabled = document.getElementById('dhcp-enabled').checked;
 
             // DHCP無効時のみIP設定を検証
+            // スイッチはIPアドレスが未設定（空欄）のままでも保存できる
+            const allowBlankIP = this.currentDeviceConfig.type === 'switch' && ipAddress.trim() === '';
             if (!dhcpEnabled) {
-                if (!this.isValidIP(ipAddress)) {
+                if (!allowBlankIP && !this.isValidIP(ipAddress)) {
                     alert('有効なIPアドレスを入力してください');
                     return;
                 }
@@ -6871,7 +6876,7 @@ class NetworkSimulator {
                 }
 
                 // IPアドレス重複チェック
-                if (this.checkIPAddressDuplication(ipAddress, this.currentDeviceConfig)) {
+                if (!allowBlankIP && this.checkIPAddressDuplication(ipAddress, this.currentDeviceConfig)) {
                     alert(`IPアドレス ${ipAddress} は他のデバイスで既に使用されています。\n別のIPアドレスを選択してください。`);
                     return;
                 }
@@ -7884,8 +7889,10 @@ class NetworkSimulator {
             this.ctx.font = '9px Arial';
             this.ctx.fillStyle = '#666';
             const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
+            // IPアドレスが未設定の場合は「IP未設定」と表示
+            const ipLabel = device.config.ipAddress ? `${device.config.ipAddress}/${cidr}` : 'IP未設定';
             this.ctx.fillText(
-                `${device.config.ipAddress}/${cidr}`,
+                ipLabel,
                 device.x + device.width / 2,
                 device.y + device.height - 6
             );
@@ -9990,7 +9997,7 @@ function extendDevicesWithTCP(simulator) {
         }
         
         // 同じIPアドレス間のHTTP通信チェック
-        if (client.config.ipAddress === server.config.ipAddress) {
+        if (client.config.ipAddress && client.config.ipAddress === server.config.ipAddress) {
             this.updateStatus(`❌ HTTP通信失敗: 同じIPアドレス (${client.config.ipAddress}) を持つデバイス間でのHTTP通信は実行できません。IPアドレスの重複を解決してください。`);
             return;
         }
