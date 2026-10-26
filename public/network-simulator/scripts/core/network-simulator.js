@@ -7015,12 +7015,13 @@ class NetworkSimulator {
 
                 if (!success) {
                     console.log(`DHCP要求失敗: ${this.currentDeviceConfig.name}`);
-                    // DHCPが失敗した場合、前の静的IPに戻すか、適切なデフォルトIPを設定
+                    // DHCPが失敗した場合、前の静的IPに戻す。
+                    // 前のIPがない場合は、既定のプライベートIPを付けず「未取得」(0.0.0.0)のままにする
+                    // （ISPのDHCPが未有効なのに192.168.x.xが表示されてしまうのを防ぐ）
                     if (previousStaticIP && previousStaticIP !== '0.0.0.0') {
                         this.currentDeviceConfig.config.ipAddress = previousStaticIP;
                     } else {
-                        // デフォルトIPを再設定
-                        this.currentDeviceConfig.config.ipAddress = this.getDefaultIP(this.currentDeviceConfig.type, 1);
+                        this.currentDeviceConfig.config.ipAddress = '0.0.0.0';
                     }
                 }
             } else if (wasUsingDHCP && !nowUsingDHCP) {
