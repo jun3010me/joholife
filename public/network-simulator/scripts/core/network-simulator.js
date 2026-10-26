@@ -16,6 +16,8 @@ class NetworkSimulator {
         this.panX = 0;
         this.panY = 0;
         this.connectionStart = null;
+        this.snapTarget = null; // ケーブルドラッグ中に吸着している接続先ポート
+        this.snapStartTime = 0; // 吸着し始めた時刻（演出用）
         this.currentMousePos = { x: 0, y: 0 };
         this.isPanning = false;
         this.lastPanPoint = null;
@@ -1289,7 +1291,12 @@ class NetworkSimulator {
         const pos = this.isDragging && this.selectedDevice ?
                    this.getDragPointerPos(event) : this.getPointerPos(event);
         this.currentMousePos = { x: pos.x, y: pos.y };
-        
+
+        // ケーブルドラッグ中は吸着先ポートを更新
+        if (this.connectionStart) {
+            this.updateSnapTarget();
+        }
+
         // ドラッグ準備状態からの移行判定
         if (this.dragPrepared && this.selectedDevice && !this.isDragging) {
             // ドラッグ開始位置からの移動距離を計算
@@ -1915,8 +1922,12 @@ class NetworkSimulator {
         
         // 接続中の場合
         if (this.connectionStart) {
-            let port = this.getPortAt(pos.x, pos.y);
-            
+            // 離した位置で吸着先を再評価し、吸着中のポートを最優先で接続する
+            this.currentMousePos = { x: pos.x, y: pos.y };
+            this.updateSnapTarget();
+            let port = this.snapTarget || this.getPortAt(pos.x, pos.y);
+            this.snapTarget = null;
+
             // 直接端子が見つからない場合、スマート接続を試行
             if (!port) {
                 const device = this.getDeviceAt(pos.x, pos.y);
@@ -2213,12 +2224,7 @@ class NetworkSimulator {
         // 未使用のNICポートのみを探す（1対1制限）
         for (const port of ports.nics) {
             // 既に使用されているかチェック
-            const isUsed = this.connections.some(conn =>
-                (conn.fromDevice === device.id && conn.fromPort === port.id) ||
-                (conn.toDevice === device.id && conn.toPort === port.id)
-            );
-            
-            if (!isUsed) {
+            if (!port.connected) {
                 return { device, port, type: 'nic' };
             }
         }
@@ -2326,6 +2332,7 @@ class NetworkSimulator {
         }
         
         this.connectionStart = port;
+        this.snapTarget = null;
         this.updateStatus(`${port.device.name}の${port.port.label}ポートから接続を開始しました`);
         console.log('接続開始:', port.type, 'on', port.device.type);
     }
@@ -3302,6 +3309,54 @@ class NetworkSimulator {
         
         // 画面更新
         this.scheduleRender();
+    }
+
+    // ケーブルドラッグ中の吸着先ポートを探す（画面上のpx基準で、ズームしても吸着距離が変わらない）
+    findSnapTarget(x, y) {
+        if (!this.connectionStart) return null;
+
+        const screenRadius = this.isTouchDevice() ? 44 : 30; // 指は端子が隠れるので広めにする
+        const worldRadius = screenRadius / this.scale;
+        const start = this.connectionStart;
+
+        let best = null;
+        let bestDistance = worldRadius;
+
+        for (const device of this.devices.values()) {
+            // 開始した機器自身の別ポートには吸着しない
+            if (device === start.device) continue;
+            if (!device.ports || !device.ports.nics) continue;
+
+            for (const port of device.ports.nics) {
+                // 既に接続されているポートには吸着しない（1対1制限）
+                if (port.connected) continue;
+
+                const portX = device.x + port.x * device.width;
+                const portY = device.y + port.y * device.height;
+                const distance = Math.sqrt((x - portX) ** 2 + (y - portY) ** 2);
+
+                // 距離が同じ場合は最前面の機器を優先
+                if (distance < bestDistance ||
+                    (best && distance === bestDistance && (device.zIndex || 0) > (best.device.zIndex || 0))) {
+                    best = { device, port, type: 'nic' };
+                    bestDistance = distance;
+                }
+            }
+        }
+
+        return best;
+    }
+
+    // 吸着先を更新（ドラッグ中のポインタ移動ごとに呼ぶ）
+    updateSnapTarget() {
+        const next = this.connectionStart ?
+            this.findSnapTarget(this.currentMousePos.x, this.currentMousePos.y) : null;
+
+        const changed = (next ? next.port : null) !== (this.snapTarget ? this.snapTarget.port : null);
+        if (changed) {
+            this.snapStartTime = performance.now();
+        }
+        this.snapTarget = next;
     }
 
     // 指定座標のNICポートを取得
@@ -7605,20 +7660,61 @@ class NetworkSimulator {
         const startY = device.y + port.y * device.height;
         
         // currentMousePosは既にワールド座標系なのでそのまま使用
-        const endX = this.currentMousePos.x;
-        const endY = this.currentMousePos.y;
-        
-        this.ctx.strokeStyle = '#ff9800';
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([5, 5]);
-        
+        // 吸着先ポートがある場合は、線の終点をそのポートに吸い付ける
+        let endX = this.currentMousePos.x;
+        let endY = this.currentMousePos.y;
+        const snap = this.snapTarget;
+        if (snap) {
+            endX = snap.device.x + snap.port.x * snap.device.width;
+            endY = snap.device.y + snap.port.y * snap.device.height;
+        }
+
+        this.ctx.strokeStyle = snap ? '#4caf50' : '#ff9800';
+        this.ctx.lineWidth = snap ? 3 : 2;
+        this.ctx.setLineDash(snap ? [] : [5, 5]);
+
         this.ctx.beginPath();
         this.ctx.moveTo(startX, startY);
         this.ctx.lineTo(endX, endY);
         this.ctx.stroke();
-        
+
         this.ctx.setLineDash([]);
-        
+
+        // 吸着先ポートのハイライト（パッと広がって落ち着く演出）
+        if (snap) {
+            const elapsed = performance.now() - this.snapStartTime;
+            const t = Math.min(elapsed / 220, 1);
+            const overshoot = 1 + 0.6 * (1 - t) * Math.cos(t * Math.PI * 1.5); // 少し行き過ぎて戻る
+            const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 180);
+
+            // 外側のグロー
+            this.ctx.fillStyle = `rgba(76, 175, 80, ${0.18 + 0.12 * pulse})`;
+            this.ctx.beginPath();
+            this.ctx.arc(endX, endY, 14 * overshoot, 0, 2 * Math.PI);
+            this.ctx.fill();
+
+            // ハイライトの輪
+            this.ctx.strokeStyle = '#2e7d32';
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(endX, endY, 8 * overshoot, 0, 2 * Math.PI);
+            this.ctx.stroke();
+
+            this.ctx.fillStyle = '#4caf50';
+            this.ctx.beginPath();
+            this.ctx.arc(endX, endY, 5, 0, 2 * Math.PI);
+            this.ctx.fill();
+
+            // 演出のため、吸着中は次のフレームも描画する（render内からの再帰を避けてrAFで予約）
+            if (!this.snapAnimScheduled) {
+                this.snapAnimScheduled = true;
+                requestAnimationFrame(() => {
+                    this.snapAnimScheduled = false;
+                    if (this.snapTarget) this.scheduleRender();
+                });
+            }
+        }
+
         // 開始ポートをハイライト
         this.ctx.strokeStyle = '#ff9800';
         this.ctx.lineWidth = 3;
@@ -7822,11 +7918,8 @@ class NetworkSimulator {
         }
         
         // 接続状態をチェック
-        const isConnected = this.connections.some(conn =>
-            (conn.fromDevice === device.id && conn.fromPort === port.id) ||
-            (conn.toDevice === device.id && conn.toPort === port.id)
-        );
-        
+        const isConnected = !!port.connected;
+
         // NICポートの背景色（統一デザイン）
         if (isHovered) {
             this.ctx.fillStyle = '#ff9800'; // ホバー時はオレンジ
