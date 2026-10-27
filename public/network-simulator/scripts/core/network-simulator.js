@@ -10238,14 +10238,61 @@ function toggleTCPDetailPanels(show) {
 }
 
 // IPアドレス重複検出機能を NetworkSimulator クラスに追加
+// プライベートIPアドレス（RFC1918）かどうか
+NetworkSimulator.prototype.isPrivateIP = function(ipAddress) {
+    const m = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(ipAddress || '');
+    if (!m) return false;
+    const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+    return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
+};
+
+// WAN側（インターネット・ONUのWAN・ルーターのWAN）を越えずにつながる範囲の機器を返す。
+// どこにも接続されていない機器の場合はnull（＝範囲を限定できない）を返す。
+NetworkSimulator.prototype.getLocalNetworkScope = function(device) {
+    if (!device) return null;
+    const isConnected = (d) => this.connections.some(c => c.from.device === d || c.to.device === d);
+    if (!isConnected(device)) return null;
+
+    const scope = new Set([device]);
+    const queue = [device];
+    while (queue.length > 0) {
+        const current = queue.shift();
+        for (const c of this.connections) {
+            if (this.isWANSideConnection(c)) continue;
+            let next = null;
+            if (c.from.device === current) next = c.to.device;
+            else if (c.to.device === current) next = c.from.device;
+            if (next && !scope.has(next)) {
+                scope.add(next);
+                queue.push(next);
+            }
+        }
+    }
+    return scope;
+};
+
+// IPアドレスの重複を比較する対象の機器かどうか。
+// プライベートIPは、インターネットを挟んだ別のネットワークの機器と重複していても問題ないため、同じLAN内の機器だけを比較する。
+// グローバルIPや、どこにも接続されていない機器は、従来どおり全体で比較する。
+NetworkSimulator.prototype.sharesIPScope = function(ipAddress, scope, device) {
+    if (!scope || !this.isPrivateIP(ipAddress)) return true;
+    if (scope.has(device)) return true;
+    const deviceIsolated = !this.connections.some(c => c.from.device === device || c.to.device === device);
+    return deviceIsolated;
+};
+
 NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, excludeDevice) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
+    const scope = this.getLocalNetworkScope(excludeDevice);
     for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
         // デバイス設定が存在しない場合はスキップ
         if (!device.config) continue;
+
+        // プライベートIPは、別のネットワーク（インターネットの向こう側など）の機器とは比較しない
+        if (!this.sharesIPScope(ipAddress, scope, device)) continue;
         
         // メインIPアドレスをチェック
         if (device.config.ipAddress && device.config.ipAddress === ipAddress) {
@@ -10280,12 +10327,16 @@ NetworkSimulator.prototype.checkIPAddressDuplication = function(ipAddress, exclu
 // ルーター用のIPアドレス重複検出
 NetworkSimulator.prototype.checkIPAddressDuplicationForRouter = function(ipAddress, excludeDevice, lanInterface) {
     // 同じIPアドレスを使用しているデバイスがないかチェック
+    const scope = this.getLocalNetworkScope(excludeDevice);
     for (const device of this.devices.values()) {
         // 自分自身は除外
         if (device === excludeDevice) continue;
         
         // デバイス設定が存在しない場合はスキップ
         if (!device.config) continue;
+
+        // プライベートIPは、別のネットワーク（インターネットの向こう側など）の機器とは比較しない
+        if (!this.sharesIPScope(ipAddress, scope, device)) continue;
         
         // メインIPアドレスをチェック
         if (device.config.ipAddress && device.config.ipAddress === ipAddress) {
