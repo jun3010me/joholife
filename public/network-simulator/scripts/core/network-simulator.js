@@ -2141,7 +2141,7 @@ class NetworkSimulator {
             if (!fromPort || !toPort) continue;
             
             // ベジェ曲線に対する当たり判定
-            const distance = this.pointToBezierDistance(x, y, fromDevice, toDevice, fromPortId, toPortId);
+            const distance = this.pointToBezierDistance(x, y, fromDevice, toDevice, fromPortId, toPortId, connection);
             
             if (distance <= tolerance) {
                 return connection;
@@ -2152,9 +2152,9 @@ class NetworkSimulator {
     }
 
     // 点とベジェ曲線の距離を計算
-    pointToBezierDistance(px, py, fromDevice, toDevice, fromPortId, toPortId) {
-        // 接続パスを取得
-        const connectionPath = this.getConnectionPath(fromDevice, toDevice);
+    pointToBezierDistance(px, py, fromDevice, toDevice, fromPortId, toPortId, connection = null) {
+        // 接続パスを取得（接続を指定して、同じ2台間に複数ある場合も線ごとに判定する）
+        const connectionPath = this.getConnectionPath(fromDevice, toDevice, connection);
         
         if (!connectionPath.isBezier) {
             // 直線の場合は従来の計算
@@ -4887,10 +4887,12 @@ class NetworkSimulator {
     }
 
     // 2つのデバイス間の接続線のパスを取得（drawConnection関数と同じロジック）
-    getConnectionPath(fromDevice, toDevice) {
+    // targetConnectionを指定すると、その接続自身の経路を返す
+    // （同じ2台の間に複数本つないでいる場合に、線ごとに正しい経路を扱うため）
+    getConnectionPath(fromDevice, toDevice, targetConnection = null) {
         
         // デバイス間の接続を検索（新旧両方の形式をサポート）
-        const connection = this.connections.find(conn => {
+        const connection = targetConnection || this.connections.find(conn => {
             
             if (conn.from && conn.to) {
                 // 新しい形式
