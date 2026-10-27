@@ -7884,8 +7884,8 @@ class NetworkSimulator {
                     ipStartY + (index * 9) // 行間を9pxに縮める
                 );
             });
-        } else if (device.type !== 'onu') {
-            // ルーター以外のデバイス（ONUを除く）は従来通り
+        } else if (device.type !== 'onu' && device.type !== 'internet') {
+            // ルーター以外のデバイス（ONU・インターネットを除く）は従来通り
             this.ctx.font = '9px Arial';
             this.ctx.fillStyle = '#666';
             const cidr = this.subnetMaskToCIDR(device.config.subnetMask);
@@ -7897,7 +7897,7 @@ class NetworkSimulator {
                 device.y + device.height - 6
             );
         }
-        // ONUはIPアドレスを表示しない（パススルーデバイス）
+        // ONU・インターネットはIPアドレスを表示しない（ONUはパススルーデバイス、インターネットにはIPアドレスの概念がない）
     }
 
     // デバイスのNICポートを描画
