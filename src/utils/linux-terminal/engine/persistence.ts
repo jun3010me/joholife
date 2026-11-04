@@ -4,7 +4,15 @@
  */
 import type { DirNode, Environment, FsNode, ShellSnapshot } from './types.ts';
 import { MAX_HISTORY, Shell } from './shell.ts';
-import { findChild, isDir, isValidName, lookup } from './fs.ts';
+import {
+  MAX_DEPTH,
+  MAX_FILE_CONTENT,
+  MAX_NODES,
+  findChild,
+  isDir,
+  isValidName,
+  lookup,
+} from './fs.ts';
 import { normalizePath } from './path.ts';
 
 export interface StorageLike {
@@ -16,10 +24,6 @@ export interface StorageLike {
 export const STORAGE_KEY_PREFIX = 'joholife:linux-terminal:v1:';
 /** 環境（章）ごとに別々に保存する */
 export const storageKey = (envId: string): string => STORAGE_KEY_PREFIX + envId;
-
-const MAX_NODES = 5000;
-const MAX_DEPTH = 40;
-const MAX_CONTENT = 100_000;
 
 function validMode(m: unknown): m is number {
   return typeof m === 'number' && Number.isInteger(m) && m >= 0 && m <= 0o777;
@@ -36,7 +40,7 @@ function validateFs(raw: unknown): DirNode | null {
     if (typeof o.owner !== 'string' || o.owner === '' || o.owner.length > 32) return null;
     if (!validMode(o.mode)) return null;
     if (o.type === 'file') {
-      if (typeof o.content !== 'string' || o.content.length > MAX_CONTENT) return null;
+      if (typeof o.content !== 'string' || o.content.length > MAX_FILE_CONTENT) return null;
       return { type: 'file', name: o.name, owner: o.owner, mode: o.mode, content: o.content };
     }
     if (o.type === 'dir') {

@@ -178,7 +178,7 @@ test('clear: clear フラグを返す', () => {
 test('help: 一覧と個別説明', () => {
   const sh = newShell();
   const all = texts(run(sh, 'help')).join('\n');
-  for (const c of ['pwd', 'ls', 'cd', 'mkdir', 'cat', 'clear', 'help']) assert.ok(all.includes(c));
+  for (const c of ['pwd', 'ls', 'cd', 'mkdir', 'cat', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'clear', 'help']) assert.ok(all.includes(c));
   assert.ok(texts(run(sh, 'help ls')).join('\n').includes('-a'));
   assert.deepEqual(errorsOf(run(sh, 'help foo')), ["bash: help: no help topics match 'foo'."]);
 });
@@ -225,7 +225,7 @@ test('空入力・空白のみ: 何も実行せず、履歴にも状態にも影
 // ---- 初心者向けヒント
 test('Windows コマンドのヒント', () => {
   const sh = newShell();
-  for (const [win, linux] of [['dir', 'ls'], ['cls', 'clear'], ['type', 'cat'], ['md', 'mkdir']]) {
+  for (const [win, linux] of [['dir', 'ls'], ['cls', 'clear'], ['type', 'cat'], ['md', 'mkdir'], ['copy', 'cp'], ['del', 'rm'], ['move', 'mv'], ['ren', 'mv'], ['rd', 'rmdir'], ['notepad', 'nano']]) {
     const r = run(sh, `${win} x`);
     assert.deepEqual(errorsOf(r), [`bash: ${win}: command not found`]);
     assert.ok(hintsOf(r)[0]?.includes(linux as string), `${win} -> ${linux}`);
@@ -233,8 +233,9 @@ test('Windows コマンドのヒント', () => {
   assert.ok(hintsOf(run(sh, 'cd..'))[0]?.includes('cd ..'));
 });
 test('未実装コマンドは実装済みに見せない', () => {
-  const r = run(newShell(), 'rm a.txt');
-  assert.deepEqual(errorsOf(r), ['bash: rm: command not available in this simulator']);
+  const r = run(newShell(), 'grep a a.txt');
+  assert.deepEqual(errorsOf(r), ['bash: grep: command not available in this simulator']);
+  assert.ok(hintsOf(run(newShell(), 'vim a.txt'))[0]?.includes('nano'));
 });
 test('command not found と打ち間違いの提案', () => {
   const sh = newShell();

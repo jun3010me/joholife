@@ -55,9 +55,23 @@ export interface OutputLine {
   spans?: OutputSpan[];
 }
 
+/** エディタ（nano）を開く依頼。画面側がエディタを表示し、保存時に shell.saveFile を呼ぶ */
+export interface EditRequest {
+  /** 絶対パス */
+  path: string;
+  /** 入力されたままのファイル名（表示用） */
+  displayName: string;
+  content: string;
+  /** まだ存在しないファイルを新規作成するか */
+  isNew: boolean;
+  /** 書き込み権限がない（保存できない） */
+  readOnly: boolean;
+}
+
 export interface CommandOutput {
   lines: OutputLine[];
   clear?: boolean;
+  edit?: EditRequest;
 }
 
 export interface ExecResult {
@@ -68,6 +82,8 @@ export interface ExecResult {
   recorded: boolean;
   /** 実行前に空入力と判定されたか */
   empty: boolean;
+  /** エディタを開く場合の依頼 */
+  edit?: EditRequest;
 }
 
 export interface CompletionResult {

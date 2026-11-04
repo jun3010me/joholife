@@ -1,6 +1,7 @@
 import type {
   CompletionResult,
   DirNode,
+  EditRequest,
   Environment,
   ExecResult,
   OutputLine,
@@ -12,6 +13,7 @@ import { completeLine } from './complete.ts';
 import { cloneNode, isDir, lookup } from './fs.ts';
 import { expandTilde } from './path.ts';
 import { error, hint } from './output.ts';
+import { ERR_TEXT, saveFileContent } from './fsops.ts';
 import { FULLWIDTH_HINT, hasFullwidth, unknownCommandOutput } from './hints.ts';
 import { tokenize } from './tokenizer.ts';
 import type { Problem } from './tokenizer.ts';
@@ -118,6 +120,7 @@ export class Shell {
 
     const lines: OutputLine[] = [];
     let clear = false;
+    let edit: EditRequest | undefined;
     const tok = tokenize(line);
     if (!tok.ok) {
       lines.push(...problemOutput(tok.problem));
@@ -135,6 +138,7 @@ export class Shell {
         const out = def.run(this.state, args);
         lines.push(...out.lines);
         clear = out.clear === true;
+        edit = out.edit;
       } else {
         lines.push(
           ...unknownCommandOutput(
@@ -153,7 +157,28 @@ export class Shell {
         lines.push(hint('Linux ではパスの区切りに / を使います。Windows の \\ ではありません。'));
       }
     }
-    return { lines, clear, recorded: true, empty: false };
+    return edit
+      ? { lines, clear, recorded: true, empty: false, edit }
+      : { lines, clear, recorded: true, empty: false };
+  }
+
+  /**
+   * エディタ（nano）の保存。権限や容量を確認して書き込む。
+   * 失敗したときは、画面に表示するメッセージを返す。
+   */
+  saveFile(
+    path: string,
+    content: string,
+  ): { ok: true; created: boolean } | { ok: false; message: string } {
+    const r = saveFileContent(this.state.root, this.state.user, path, content);
+    if (r.ok) return r;
+    const base = `Error writing ${path}: ${ERR_TEXT[r.code]}`;
+    const extra: Partial<Record<typeof r.code, string>> = {
+      EACCES: '（このファイル・ディレクトリへの書き込み権限がありません）',
+      ENOSPC: '（ファイルが大きすぎるか、ファイルの数が多すぎます）',
+      ENOENT: '（保存先のディレクトリがありません）',
+    };
+    return { ok: false, message: base + (extra[r.code] ?? '') };
   }
 
   /** Tab補完 */
