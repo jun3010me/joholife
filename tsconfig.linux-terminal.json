@@ -1,0 +1,10 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["node", "react", "react-dom"],
+    "skipLibCheck": true
+  },
+  "include": ["src/utils/linux-terminal/**/*", "src/components/linux-terminal/**/*"]
+}
