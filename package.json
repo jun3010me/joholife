@@ -6,7 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node --test \"src/utils/linux-terminal/__tests__/*.test.ts\"",
+    "lint": "tsc -p tsconfig.linux-terminal.json"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",

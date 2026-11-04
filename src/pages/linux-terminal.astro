@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LinuxTerminalApp from '../components/linux-terminal/LinuxTerminalApp.tsx';
+import '../styles/linux-terminal.css';
+---
+
+<Layout
+  title="Linuxターミナル - じょうほうらいふ"
+  description="ブラウザの中だけで動くLinuxターミナルの練習用シミュレーター。pwd・ls・cd・mkdir・cat などの基本コマンドを安全に試せます。"
+>
+  <div class="lt-page">
+    <h1 class="lt-page-title">🐧 Linuxターミナル</h1>
+    <p class="lt-page-lead">
+      Linuxのコマンド操作を、パソコンに影響を与えずに練習できるシミュレーターです。
+      まずは <code>help</code> と入力してみましょう。
+    </p>
+
+    <LinuxTerminalApp client:only="react" />
+
+    <section class="lt-howto" aria-label="使い方">
+      <h2>使い方のヒント</h2>
+      <ul>
+        <li><kbd>Tab</kbd> でコマンドやファイル名を補完できます（候補が複数あるときは、もう一度押すと一覧が出ます）。</li>
+        <li><kbd>↑</kbd> <kbd>↓</kbd> で、前に入力したコマンドを呼び出せます。</li>
+        <li><kbd>Ctrl</kbd>+<kbd>C</kbd> で入力中の行を取り消し、<kbd>Ctrl</kbd>+<kbd>L</kbd> で画面をクリアします。</li>
+        <li>ファイル名やディレクトリ名は、大文字と小文字が区別されます。</li>
+        <li>コマンドは半角で入力します。全角のスペースや文字が混ざるとエラーになります。</li>
+        <li>操作の続きはこの端末のブラウザに自動で保存されます。</li>
+      </ul>
+    </section>
+  </div>
+</Layout>

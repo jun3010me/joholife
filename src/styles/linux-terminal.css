@@ -1,0 +1,305 @@
+/* Linuxターミナルシミュレーター（クラス名は lt- で始める） */
+
+.lt-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.lt-page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.lt-page-lead {
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.lt-app {
+  min-width: 0;
+}
+
+/* ---- ツールバー ---- */
+.lt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.lt-toolbar-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.lt-btn {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.lt-btn:hover {
+  background: var(--surface-2);
+}
+.lt-btn:focus-visible,
+.lt-tree-row:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.lt-btn-small {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+.lt-btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+.lt-btn-danger:hover {
+  background: #b91c1c;
+}
+
+.lt-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #7f1d1d;
+  border-radius: var(--radius-md);
+}
+
+.lt-warning {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #78350f;
+  border-radius: var(--radius-md);
+}
+
+/* ---- レイアウト（狭い画面ではツリーをターミナルの下に置く） ---- */
+.lt-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .lt-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+}
+
+/* ---- ターミナル（常に黒系の配色） ---- */
+.lt-terminal {
+  min-width: 0;
+  background: #0b0f14;
+  color: #e5e7eb;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, 'BIZ UDGothic', 'MS Gothic',
+    'Noto Sans Mono CJK JP', monospace;
+  font-size: 15px;
+  line-height: 1.55;
+  cursor: text;
+}
+
+.lt-screen {
+  height: clamp(340px, 62vh, 680px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.9rem 1rem;
+  user-select: text;
+}
+
+.lt-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-height: 1.55em;
+}
+.lt-error {
+  color: #fca5a5;
+}
+.lt-hint {
+  color: #fcd34d;
+}
+.lt-info {
+  color: #9ca3af;
+}
+.lt-dir {
+  color: #60a5fa;
+  font-weight: 700;
+}
+.lt-prompt {
+  white-space: pre;
+}
+.lt-prompt-user {
+  color: #4ade80;
+  font-weight: 700;
+}
+.lt-prompt-path {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.lt-input-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5ch;
+  min-width: 0;
+}
+.lt-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  caret-color: #e5e7eb;
+}
+.lt-terminal:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ---- ディレクトリツリー ---- */
+.lt-tree {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 0.75rem 0.9rem;
+}
+.lt-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.lt-tree-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+.lt-tree-body {
+  margin-top: 0.5rem;
+  max-height: 60vh;
+  overflow: auto;
+}
+.lt-tree-cwd {
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+.lt-tree-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+}
+.lt-tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lt-tree-list .lt-tree-list {
+  margin-left: 0.9rem;
+  padding-left: 0.5rem;
+  border-left: 1px dotted var(--border);
+}
+.lt-tree-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-family: Consolas, 'Cascadia Mono', 'BIZ UDGothic', 'MS Gothic', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 0.05rem 0.35rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+button.lt-tree-row {
+  cursor: pointer;
+}
+button.lt-tree-row:hover {
+  background: var(--surface-2);
+}
+.lt-tree-current {
+  background: #dbeafe;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+button.lt-tree-current:hover {
+  background: #bfdbfe;
+}
+.lt-tree-here {
+  margin-left: 0.5rem;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.lt-tree-badge {
+  margin-left: 0.4rem;
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--background);
+}
+
+/* 使い方の説明 */
+.lt-howto {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+.lt-howto h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+.lt-howto ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.lt-howto li {
+  margin: 0.2rem 0;
+}
+.lt-howto kbd {
+  font-family: inherit;
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--background);
+}
+
+@media (max-width: 640px) {
+  .lt-terminal {
+    font-size: 14px;
+  }
+  .lt-screen {
+    padding: 0.7rem 0.75rem;
+  }
+}
