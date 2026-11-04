@@ -1,34 +1,21 @@
 import type { CommandDef, CommandOutput, DirNode, FsNode, OutputLine, ShellState } from './types.ts';
 import { error, hint, stdout } from './output.ts';
 import { PERMISSION_HINT } from './hints.ts';
-import { canAccess, compareNames, findChild, isDir, isValidName, lookup } from './fs.ts';
+import { NO_SUCH_HINT, caseMismatchHint, unsupportedOption } from './common.ts';
+import { FILE_COMMANDS } from './fileops.ts';
+import {
+  MAX_PATH_DEPTH,
+  canAccess,
+  compareNames,
+  findChild,
+  hasRoom,
+  isDir,
+  isValidName,
+  lookup,
+} from './fs.ts';
 import { parentPath, resolvePath, segmentsOf } from './path.ts';
 
 // ---------------------------------------------------------------- 共通の補助
-
-/** 未対応オプションの表示 */
-function unsupportedOption(cmd: string, opt: string, advice: string): CommandOutput {
-  return {
-    lines: [error(`${cmd}: option '${opt}' is not supported in this simulator`), hint(advice)],
-  };
-}
-
-/** 大文字小文字だけが違う名前が隣にあれば、その名前を返す */
-function caseMismatchHint(
-  res: { missing?: string; parent?: DirNode },
-): OutputLine | null {
-  if (!res.missing || !res.parent) return null;
-  const lower = res.missing.toLowerCase();
-  const similar = res.parent.children.find((c) => c.name.toLowerCase() === lower);
-  if (!similar) return null;
-  return hint(
-    `ファイル名・ディレクトリ名は大文字と小文字を区別します。「${similar.name}」のことではありませんか？`,
-  );
-}
-
-const NO_SUCH_HINT = hint(
-  'ls で今いる場所にあるものを確認しましょう。綴りや大文字・小文字も確認してください。',
-);
 
 /** ls が名前を表示するときの引用（スペースなどを含むとき） */
 function quoteName(name: string): string {
@@ -285,9 +272,13 @@ function makeDirectory(state: ShellState, arg: string, parents: boolean): Output
   if (segs.length === 0) {
     return parents ? [] : [error(`${q}: File exists`)];
   }
-  if (segs.some((s) => !isValidName(s))) {
+  if (segs.length > MAX_PATH_DEPTH || segs.some((s) => !isValidName(s))) {
     return [error(`${q}: File name too long`)];
   }
+  const noSpace = [
+    error(`${q}: No space left on device`),
+    hint('ファイルやディレクトリが多すぎます。rm で不要なものを削除してから、もう一度試しましょう。'),
+  ];
 
   if (!parents) {
     const exists = lookup(state.root, state.user, abs);
@@ -311,6 +302,7 @@ function makeDirectory(state: ShellState, arg: string, parents: boolean): Output
     if (!canAccess(parent.node, state.user, 'w') || !canAccess(parent.node, state.user, 'x')) {
       return [error(`${q}: Permission denied`), PERMISSION_HINT];
     }
+    if (!hasRoom(state.root, 1)) return noSpace;
     parent.node.children.push(newDir(segs[segs.length - 1] as string, state.user));
     return [];
   }
@@ -329,6 +321,7 @@ function makeDirectory(state: ShellState, arg: string, parents: boolean): Output
       continue;
     }
     if (!canAccess(cur, state.user, 'w')) return [error(`${q}: Permission denied`), PERMISSION_HINT];
+    if (!hasRoom(state.root, 1)) return noSpace;
     const created = newDir(seg, state.user);
     cur.children.push(created);
     cur = created;
@@ -417,7 +410,7 @@ function help(_state: ShellState, args: string[]): CommandOutput {
 
 // ---------------------------------------------------------------- 一覧
 
-export const COMMANDS: CommandDef[] = [
+const BASE_COMMANDS: CommandDef[] = [
   {
     name: 'pwd',
     summary: '今いる場所（カレントディレクトリ）を表示します',
@@ -475,5 +468,11 @@ export const COMMANDS: CommandDef[] = [
     run: help,
   },
 ];
+
+/** 表示順: 見る → 作る・編集する → 消す → 画面・ヘルプ */
+const ORDER = ['pwd', 'ls', 'cd', 'cat', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'clear', 'help'];
+export const COMMANDS: CommandDef[] = [...BASE_COMMANDS, ...FILE_COMMANDS].sort(
+  (a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name),
+);
 
 export const COMMAND_MAP: Map<string, CommandDef> = new Map(COMMANDS.map((c) => [c.name, c]));

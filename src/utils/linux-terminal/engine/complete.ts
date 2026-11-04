@@ -80,7 +80,7 @@ export function completeLine(
     if (!res.ok || !isDir(res.node)) return none;
     if (!canAccess(res.node, state.user, 'r')) return none;
 
-    const onlyDirs = /^\s*cd(\s|$)/.test(head);
+    const onlyDirs = /^\s*(cd|rmdir)(\s|$)/.test(head);
     const showHidden = typedPrefix.startsWith('.');
     candidates = res.node.children
       .filter((c) => c.name.startsWith(typedPrefix))

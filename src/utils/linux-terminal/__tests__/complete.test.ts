@@ -7,9 +7,10 @@ test('コマンド名の補完: 1つに決まる / 共通部分 / 候補一覧',
   assert.deepEqual(sh.complete('pw'), { line: 'pwd ', candidates: [] });
   assert.deepEqual(sh.complete('mk'), { line: 'mkdir ', candidates: [] });
   const c = sh.complete('c');
-  assert.equal(c.line, 'c'); // cat / cd / clear の共通部分は c のまま
-  assert.deepEqual(c.candidates, ['cat', 'cd', 'clear']);
+  assert.equal(c.line, 'c'); // cat / cd / clear / cp の共通部分は c のまま
+  assert.deepEqual(c.candidates, ['cat', 'cd', 'clear', 'cp']);
   assert.deepEqual(sh.complete('xyz'), { line: 'xyz', candidates: [] });
+  assert.deepEqual(sh.complete('na'), { line: 'nano ', candidates: [] });
 });
 
 test('パスの補完: ディレクトリは / が付き、ファイルは空白が付く', () => {
@@ -64,4 +65,11 @@ test('スペースを含む名前はエスケープして補完する', () => {
   const sh = newShell();
   run(sh, 'mkdir "my dir"');
   assert.deepEqual(sh.complete('cd my'), { line: 'cd my\\ dir/', candidates: [] });
+});
+
+test('rmdir の補完はディレクトリだけ', () => {
+  const sh = newShell();
+  assert.deepEqual(sh.complete('rmdir R'), { line: 'rmdir R', candidates: [] });
+  assert.deepEqual(sh.complete('rmdir pra'), { line: 'rmdir practice/', candidates: [] });
+  assert.deepEqual(sh.complete('rm R'), { line: 'rm README.txt ', candidates: [] });
 });

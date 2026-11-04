@@ -15,19 +15,21 @@ const WINDOWS_TO_LINUX: Record<string, { linux: string; implemented: boolean }> 
   cls: { linux: 'clear', implemented: true },
   type: { linux: 'cat', implemented: true },
   md: { linux: 'mkdir', implemented: true },
-  copy: { linux: 'cp', implemented: false },
-  del: { linux: 'rm', implemented: false },
-  erase: { linux: 'rm', implemented: false },
-  move: { linux: 'mv', implemented: false },
-  ren: { linux: 'mv', implemented: false },
-  rd: { linux: 'rmdir', implemented: false },
-  rmdir: { linux: 'rmdir', implemented: false },
+  copy: { linux: 'cp', implemented: true },
+  del: { linux: 'rm', implemented: true },
+  erase: { linux: 'rm', implemented: true },
+  move: { linux: 'mv', implemented: true },
+  ren: { linux: 'mv', implemented: true },
+  rename: { linux: 'mv', implemented: true },
+  rd: { linux: 'rmdir', implemented: true },
+  notepad: { linux: 'nano', implemented: true },
+  edit: { linux: 'nano', implemented: true },
 };
 
 /** 本物の Linux にはあるが、このシミュレーターにはまだないコマンド */
 const NOT_IMPLEMENTED = new Set([
-  'rm', 'rmdir', 'cp', 'mv', 'touch', 'echo', 'grep', 'find', 'head', 'tail', 'wc', 'sort',
-  'man', 'nano', 'vi', 'vim', 'chmod', 'chown', 'sudo', 'whoami', 'date', 'history', 'exit',
+  'echo', 'grep', 'find', 'head', 'tail', 'wc', 'sort',
+  'man', 'vi', 'vim', 'emacs', 'chmod', 'chown', 'sudo', 'whoami', 'date', 'history', 'exit',
   'less', 'more', 'tree', 'ln', 'ps', 'top', 'kill', 'uname', 'id', 'which', 'file', 'diff',
 ]);
 
@@ -82,6 +84,12 @@ export function unknownCommandOutput(name: string, commandNames: string[]): Outp
       hint(
         `Windows の ${name} にあたる Linux のコマンドは ${win.linux} ですが、このシミュレーターではまだ使えません。`,
       ),
+    ];
+  }
+  if (name === 'vi' || name === 'vim' || name === 'emacs') {
+    return [
+      error(`bash: ${name}: command not available in this simulator`),
+      hint(`${name} は本物の Linux にありますが、このシミュレーターのエディタは nano です。nano ファイル名 で編集できます。`),
     ];
   }
   if (NOT_IMPLEMENTED.has(name)) {

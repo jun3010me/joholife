@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent, ReactNode } from 'react';
-import type { OutputLine, Shell } from '../../utils/linux-terminal/engine/index.ts';
+import type { EditRequest, OutputLine, Shell } from '../../utils/linux-terminal/engine/index.ts';
+import Editor from './Editor.tsx';
 
 type Entry =
   | { id: number; type: 'prompt'; user: string; host: string; path: string; text: string }
@@ -45,6 +46,7 @@ export default function Terminal({ shell, intro, onExecuted }: Props) {
 
   const [entries, setEntries] = useState<Entry[]>(makeEntries);
   const [value, setValue] = useState('');
+  const [editing, setEditing] = useState<EditRequest | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const screenRef = useRef<HTMLDivElement>(null);
   // 履歴の位置（history.length のときは新しい入力）と、移動前に入力していた内容
@@ -70,7 +72,7 @@ export default function Terminal({ shell, intro, onExecuted }: Props) {
   useLayoutEffect(() => {
     const el = screenRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [entries]);
+  }, [entries, editing]);
 
   useEffect(() => {
     inputRef.current?.focus({ preventScroll: true });
@@ -96,6 +98,13 @@ export default function Terminal({ shell, intro, onExecuted }: Props) {
     lastTab.current = null;
     resetPointer();
     if (!result.empty) onExecuted();
+    if (result.edit) setEditing(result.edit);
+  };
+
+  const closeEditor = () => {
+    setEditing(null);
+    // エディタが閉じたら、入力欄に戻る
+    setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
   };
 
   const cancelLine = () => {
@@ -198,12 +207,16 @@ export default function Terminal({ shell, intro, onExecuted }: Props) {
     <div
       className="lt-terminal"
       onClick={() => {
-        // 文字を選択している最中（コピー操作）は、フォーカスを奪わない
-        if (!hasTextSelection()) inputRef.current?.focus({ preventScroll: true });
+        // エディタ表示中と、文字を選択している最中（コピー操作）は、フォーカスを奪わない
+        if (!editing && !hasTextSelection()) inputRef.current?.focus({ preventScroll: true });
       }}
     >
+      {editing && (
+        <Editor request={editing} shell={shell} onSaved={onExecuted} onClose={closeEditor} />
+      )}
       <div
         className="lt-screen"
+        hidden={editing !== null}
         ref={screenRef}
         role="log"
         aria-label="ターミナルの出力"

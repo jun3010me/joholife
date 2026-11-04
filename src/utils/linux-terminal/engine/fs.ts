@@ -65,3 +65,48 @@ export function isValidName(name: string): boolean {
     !name.includes('\0')
   );
 }
+
+// ---- 容量の上限（保存データの検証と同じ値。超えると保存データを読み込めなくなるため）
+
+export const MAX_NODES = 5000;
+export const MAX_DEPTH = 40;
+export const MAX_FILE_CONTENT = 100_000;
+export const MAX_TOTAL_CONTENT = 1_000_000;
+/** 新しく作るものの深さの上限（保存データの検証より少し余裕を持たせる） */
+export const MAX_PATH_DEPTH = 30;
+
+export function usage(root: DirNode): { nodes: number; chars: number } {
+  let nodes = 0;
+  let chars = 0;
+  const walk = (n: FsNode) => {
+    nodes++;
+    if (n.type === 'file') chars += n.content.length;
+    else n.children.forEach(walk);
+  };
+  walk(root);
+  return { nodes, chars };
+}
+
+/** ノードを addNodes 個、文字を addChars 文字ぶん増やせるか */
+export function hasRoom(root: DirNode, addNodes: number, addChars = 0): boolean {
+  const u = usage(root);
+  return u.nodes + addNodes <= MAX_NODES - 100 && u.chars + addChars <= MAX_TOTAL_CONTENT;
+}
+
+/** そのノードの下の深さ（自分だけなら 0） */
+export function heightOf(node: FsNode): number {
+  return node.type === 'file' ? 0 : 1 + Math.max(-1, ...node.children.map(heightOf));
+}
+
+export function countNodes(node: FsNode): number {
+  return node.type === 'file' ? 1 : 1 + node.children.reduce((a, c) => a + countNodes(c), 0);
+}
+
+export function countChars(node: FsNode): number {
+  return node.type === 'file' ? node.content.length : node.children.reduce((a, c) => a + countChars(c), 0);
+}
+
+/** abs が dir と同じか、dir より下にあるか */
+export function isSameOrInside(abs: string, dir: string): boolean {
+  return abs === dir || dir === '/' || abs.startsWith(dir + '/');
+}
