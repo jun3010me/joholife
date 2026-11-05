@@ -178,7 +178,7 @@ test('clear: clear フラグを返す', () => {
 test('help: 一覧と個別説明', () => {
   const sh = newShell();
   const all = texts(run(sh, 'help')).join('\n');
-  for (const c of ['pwd', 'ls', 'cd', 'mkdir', 'cat', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'clear', 'help']) assert.ok(all.includes(c));
+  for (const c of ['pwd', 'ls', 'cd', 'mkdir', 'cat', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help']) assert.ok(all.includes(c));
   assert.ok(texts(run(sh, 'help ls')).join('\n').includes('-a'));
   assert.deepEqual(errorsOf(run(sh, 'help foo')), ["bash: help: no help topics match 'foo'."]);
 });

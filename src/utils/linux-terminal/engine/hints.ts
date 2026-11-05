@@ -29,7 +29,7 @@ const WINDOWS_TO_LINUX: Record<string, { linux: string; implemented: boolean }> 
 /** 本物の Linux にはあるが、このシミュレーターにはまだないコマンド */
 const NOT_IMPLEMENTED = new Set([
   'echo', 'grep', 'find', 'head', 'tail', 'wc', 'sort',
-  'man', 'vi', 'vim', 'emacs', 'chmod', 'chown', 'sudo', 'whoami', 'date', 'history', 'exit',
+  'man', 'vi', 'vim', 'emacs', 'chmod', 'chown', 'sudo', 'whoami', 'date', 'exit',
   'less', 'more', 'tree', 'ln', 'ps', 'top', 'kill', 'uname', 'id', 'which', 'file', 'diff',
 ]);
 

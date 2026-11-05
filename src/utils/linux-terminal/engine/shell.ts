@@ -83,14 +83,16 @@ export class Shell {
       home: env.home,
       welcome: [...env.welcome],
     };
+    this._history = restored ? [...restored.history] : [];
     this.state = {
       user: env.user,
       hostname: env.hostname,
       home: env.home,
       cwd: restored ? restored.cwd : env.cwd,
       root: cloneNode(restored ? restored.root : env.root),
+      // history コマンドが読めるよう、同じ配列を共有する（配列は作り直さず、中身だけ変更する）
+      history: this._history,
     };
-    this._history = restored ? [...restored.history] : [];
   }
 
   get history(): readonly string[] {

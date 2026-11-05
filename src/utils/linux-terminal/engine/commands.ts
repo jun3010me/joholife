@@ -408,6 +408,47 @@ function help(_state: ShellState, args: string[]): CommandOutput {
   };
 }
 
+// ---------------------------------------------------------------- history
+
+function history(state: ShellState, args: string[]): CommandOutput {
+  if (args.length > 1) {
+    return {
+      lines: [
+        error('bash: history: too many arguments'),
+        hint('history は引数なし、または history 5 のように表示する件数を1つだけ指定します。'),
+      ],
+    };
+  }
+  const arg = args[0];
+  let list = state.history;
+  let first = 1;
+  if (arg !== undefined) {
+    if (arg.startsWith('-') && arg.length > 1 && !/^-\d+$/.test(arg)) {
+      return {
+        lines: [
+          error(`bash: history: option '${arg}' is not supported in this simulator`),
+          hint('履歴を消す -c などは使えません。history だけで履歴を一覧表示、history 5 で最近の5件を表示します。'),
+        ],
+      };
+    }
+    if (!/^\d+$/.test(arg)) {
+      return {
+        lines: [
+          error(`bash: history: ${arg}: numeric argument required`),
+          hint('表示する件数は半角の数字で指定します。例：history 5'),
+        ],
+      };
+    }
+    const n = Number(arg);
+    first = Math.max(list.length - n, 0) + 1;
+    list = n === 0 ? [] : list.slice(-n);
+  }
+  // 本物の bash と同じ表示（番号を右寄せ5桁、2つ空白、コマンド）
+  return {
+    lines: list.map((cmd, i) => stdout(`${String(first + i).padStart(5, ' ')}  ${cmd}`)),
+  };
+}
+
 // ---------------------------------------------------------------- 一覧
 
 const BASE_COMMANDS: CommandDef[] = [
@@ -454,6 +495,17 @@ const BASE_COMMANDS: CommandDef[] = [
     run: cat,
   },
   {
+    name: 'history',
+    summary: 'これまでに入力したコマンドの履歴を表示します',
+    usage: 'history [件数]',
+    details: [
+      '番号つきで、入力した順に表示します（history 自身も含まれます）。',
+      '件数を指定すると、最近のその件数だけを表示します。例：history 5',
+      '↑ キーでも、前に入力したコマンドを呼び出せます。',
+    ],
+    run: history,
+  },
+  {
     name: 'clear',
     summary: '画面をきれいにします',
     usage: 'clear',
@@ -470,7 +522,7 @@ const BASE_COMMANDS: CommandDef[] = [
 ];
 
 /** 表示順: 見る → 作る・編集する → 消す → 画面・ヘルプ */
-const ORDER = ['pwd', 'ls', 'cd', 'cat', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'clear', 'help'];
+const ORDER = ['pwd', 'ls', 'cd', 'cat', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help'];
 export const COMMANDS: CommandDef[] = [...BASE_COMMANDS, ...FILE_COMMANDS].sort(
   (a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name),
 );
