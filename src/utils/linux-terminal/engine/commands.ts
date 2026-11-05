@@ -419,9 +419,72 @@ function help(_state: ShellState, args: string[]): CommandOutput {
       stdout('Tab キーで補完、↑ ↓ キーで過去のコマンドを呼び出せます。'),
       stdout('Ctrl+C で入力を取り消し、Ctrl+L で画面をクリアします。'),
       stdout('コマンドの出力をファイルに保存：コマンド > ファイル名（上書き）、コマンド >> ファイル名（追記）'),
-      stdout('例：history > rireki.txt'),
+      stdout('例：history > rireki.txt　　echo こんにちは > memo.txt'),
     ],
   };
+}
+
+// ---------------------------------------------------------------- echo
+
+/** -e で使えるエスケープ */
+const ECHO_ESCAPES: Record<string, string> = {
+  n: '\n',
+  t: '\t',
+  r: '\r',
+  a: '\x07',
+  b: '\b',
+  e: '\x1b',
+  f: '\f',
+  v: '\v',
+  '\\': '\\',
+};
+
+/** echo -e の \n や \t を変換する。\c が出てきたら、そこで出力を打ち切る。 */
+function interpretEscapes(text: string): { text: string; stop: boolean } {
+  let out = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] as string;
+    if (ch !== '\\') {
+      out += ch;
+      continue;
+    }
+    const next = text[i + 1];
+    if (next === 'c') return { text: out, stop: true };
+    if (next !== undefined && Object.hasOwn(ECHO_ESCAPES, next)) {
+      out += ECHO_ESCAPES[next];
+      i++;
+    } else {
+      out += ch; // 未対応のエスケープは、そのまま表示する（本物と同じ）
+    }
+  }
+  return { text: out, stop: false };
+}
+
+function echo(_state: ShellState, args: string[]): CommandOutput {
+  // 本物の echo と同じく、先頭の -n / -e / -E（組み合わせも可）だけがオプション。
+  // それ以外の -x などは、ただの文字として表示する。
+  let newline = true;
+  let escapes = false;
+  let i = 0;
+  while (i < args.length && /^-[neE]+$/.test(args[i] as string)) {
+    for (const f of (args[i] as string).slice(1)) {
+      if (f === 'n') newline = false;
+      else if (f === 'e') escapes = true;
+      else escapes = false;
+    }
+    i++;
+  }
+  let body = args.slice(i).join(' ');
+  if (escapes) {
+    const r = interpretEscapes(body);
+    body = r.text;
+    if (r.stop) newline = false;
+  }
+  const parts = (body + (newline ? '\n' : '')).split('\n');
+  const rest = parts.pop() as string; // 最後の改行より後ろ（改行で終わるなら空）
+  const lines: OutputLine[] = parts.map((p) => stdout(p));
+  if (rest !== '') lines.push({ ...stdout(rest), noNewline: true });
+  return { lines };
 }
 
 // ---------------------------------------------------------------- history
@@ -497,6 +560,19 @@ const BASE_COMMANDS: CommandDef[] = [
     run: cd,
   },
   {
+    name: 'echo',
+    summary: '文字を表示します（> でファイルに書き込めます）',
+    usage: 'echo [-n] [-e] 文字列...',
+    details: [
+      '例：echo Hello　→　Hello と表示します。',
+      '例：echo "こんにちは" > memo.txt　→　memo.txt に書き込みます（>> なら追記）。',
+      '-n  最後に改行を付けません。',
+      '-e  \\n（改行）や \\t（タブ）を、特別な文字として扱います。例：echo -e "1行目\\n2行目"',
+      '変数（$HOME など）は、まだ使えません。',
+    ],
+    run: echo,
+  },
+  {
     name: 'mkdir',
     summary: '新しいディレクトリを作ります',
     usage: 'mkdir [-p] ディレクトリ名...',
@@ -538,7 +614,7 @@ const BASE_COMMANDS: CommandDef[] = [
 ];
 
 /** 表示順: 見る → 作る・編集する → 消す → 画面・ヘルプ */
-const ORDER = ['pwd', 'ls', 'cd', 'cat', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help'];
+const ORDER = ['pwd', 'ls', 'cd', 'cat', 'echo', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help'];
 export const COMMANDS: CommandDef[] = [...BASE_COMMANDS, ...FILE_COMMANDS].sort(
   (a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name),
 );
