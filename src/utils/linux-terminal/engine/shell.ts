@@ -11,14 +11,32 @@ import type {
 import { COMMAND_MAP, COMMANDS } from './commands.ts';
 import { completeLine } from './complete.ts';
 import { canAccess, cloneNode, isDir, lookup } from './fs.ts';
-import { expandTilde } from './path.ts';
+import { expandTilde, resolvePath } from './path.ts';
 import { error, hint } from './output.ts';
-import { ERR_TEXT, saveFileContent } from './fsops.ts';
-import { FULLWIDTH_HINT, hasFullwidth, unknownCommandOutput } from './hints.ts';
+import { ERR_TEXT, openRedirectTarget, saveFileContent, writeRedirectOutput } from './fsops.ts';
+import { FULLWIDTH_HINT, PERMISSION_HINT, hasFullwidth, unknownCommandOutput } from './hints.ts';
 import { tokenize } from './tokenizer.ts';
 import type { Problem } from './tokenizer.ts';
 
 export const MAX_HISTORY = 1000;
+
+/** 出力を捨てる特別な書き込み先（ファイルシステム上には存在しない） */
+const DEV_NULL = '/dev/null';
+
+function redirectHint(code: string): OutputLine[] {
+  switch (code) {
+    case 'EACCES':
+      return [PERMISSION_HINT];
+    case 'ENOENT':
+      return [hint('書き込み先のディレクトリがありません。ls で確認しましょう。')];
+    case 'EISDIR':
+      return [hint('ディレクトリには書き込めません。> の後ろには、ファイル名を指定します。')];
+    case 'ENOSPC':
+      return [hint('ファイルが大きすぎるか、ファイルの数が多すぎます。rm で不要なものを削除しましょう。')];
+    default:
+      return [];
+  }
+}
 
 export interface RestoredState {
   cwd: string;
@@ -28,9 +46,11 @@ export interface RestoredState {
 
 const PROBLEM_HINTS: Record<string, string> = {
   '|': 'パイプ（|）は、このシミュレーターではまだ使えません。コマンドは1つずつ実行しましょう。',
-  '>': 'リダイレクト（>）は、このシミュレーターではまだ使えません。',
-  '>>': 'リダイレクト（>>）は、このシミュレーターではまだ使えません。',
-  '<': 'リダイレクト（<）は、このシミュレーターではまだ使えません。',
+  '<': '入力のリダイレクト（<）は、このシミュレーターではまだ使えません。出力をファイルに保存する > と >> は使えます。',
+  '<<': '入力のリダイレクト（<<）は、このシミュレーターではまだ使えません。',
+  '&>': 'まとめてのリダイレクト（&>）は、このシミュレーターではまだ使えません。> は使えます。',
+  '>&': 'リダイレクト（>&）は、このシミュレーターではまだ使えません。> は使えます。',
+  '>|': 'リダイレクト（>|）は、このシミュレーターではまだ使えません。> は使えます。',
   '&&': '1行に複数のコマンドをつなぐ書き方は、このシミュレーターではまだ使えません。1行に1つずつ実行しましょう。',
   '||': '1行に複数のコマンドをつなぐ書き方は、このシミュレーターではまだ使えません。1行に1つずつ実行しましょう。',
   ';': '1行に複数のコマンドをつなぐ書き方は、このシミュレーターではまだ使えません。1行に1つずつ実行しましょう。',
@@ -45,6 +65,15 @@ function problemOutput(p: Problem): OutputLine[] {
         hint(
           PROBLEM_HINTS[p.token] ??
             `この記号（${p.token}）を使った書き方は、このシミュレーターではまだ使えません。`,
+        ),
+      ];
+    case 'syntax':
+      return [
+        error(`bash: syntax error near unexpected token \`${p.token}'`),
+        hint(
+          p.token === 'newline'
+            ? '> の後ろには、出力を書き込むファイル名が必要です。例：history > rireki.txt'
+            : '> の直後に別の記号があります。> の後ろには、出力を書き込むファイル名だけを書きます。',
         ),
       ];
     case 'glob':
@@ -92,6 +121,7 @@ export class Shell {
       root: cloneNode(restored ? restored.root : env.root),
       // history コマンドが読めるよう、同じ配列を共有する（配列は作り直さず、中身だけ変更する）
       history: this._history,
+      stdoutFile: null,
     };
   }
 
@@ -126,28 +156,80 @@ export class Shell {
     const tok = tokenize(line);
     if (!tok.ok) {
       lines.push(...problemOutput(tok.problem));
-    } else if (tok.words.length > 0) {
+    } else {
       const userExists = (name: string) => {
         const r = lookup(this.state.root, this.state.user, `/home/${name}`);
         return r.ok && isDir(r.node);
       };
-      const words = tok.words.map((w) =>
-        w.tilde ? expandTilde(w.text, this.state.home, userExists) : w.text,
-      );
-      const [name, ...args] = words as [string, ...string[]];
-      const def = COMMAND_MAP.get(name);
-      if (def) {
-        const out = def.run(this.state, args);
-        lines.push(...out.lines);
-        clear = out.clear === true;
-        edit = out.edit;
-      } else {
-        lines.push(
-          ...unknownCommandOutput(
-            name,
-            COMMANDS.map((c) => c.name),
-          ),
-        );
+      const expand = (text: string, tilde: boolean) =>
+        tilde ? expandTilde(text, this.state.home, userExists) : text;
+      const words = tok.words.map((w) => expand(w.text, w.tilde));
+
+      // 1. 書き込み先（> と >>）を開く。bash と同じく、コマンドの前に行う。
+      //    開けなければコマンドは実行しない。
+      const targets: { abs: string; op: '>' | '>>'; shown: string }[] = [];
+      let aborted = false;
+      for (const r of tok.redirects) {
+        const shown = expand(r.target, r.tilde);
+        const abs = resolvePath(this.state.cwd, shown);
+        if (abs !== DEV_NULL) {
+          const opened = openRedirectTarget(this.state.root, this.state.user, abs, r.op);
+          if (!opened.ok) {
+            lines.push(error(`bash: ${shown}: ${ERR_TEXT[opened.code]}`), ...redirectHint(opened.code));
+            aborted = true;
+            break;
+          }
+        }
+        targets.push({ abs, op: r.op, shown });
+      }
+
+      if (!aborted) {
+        const last = targets[targets.length - 1];
+        const [name, ...args] = words;
+        const cmdLines: OutputLine[] = [];
+        const def = name === undefined ? undefined : COMMAND_MAP.get(name);
+        if (name === undefined) {
+          // コマンドがなく、リダイレクトだけ（例：> memo.txt）。ファイルを作る／空にするだけ。
+        } else if (def?.name === 'nano' && last) {
+          cmdLines.push(
+            error('nano: cannot be used with output redirection'),
+            hint('nano は画面で編集するエディタです。> や >> は付けずに、nano ファイル名 だけで使います。'),
+          );
+        } else if (def) {
+          this.state.stdoutFile = last && last.abs !== DEV_NULL ? last.abs : null;
+          try {
+            const out = def.run(this.state, args);
+            cmdLines.push(...out.lines);
+            // 出力をファイルに書くときは、画面をクリアしない
+            clear = out.clear === true && !last;
+            edit = out.edit;
+          } finally {
+            this.state.stdoutFile = null;
+          }
+        } else {
+          cmdLines.push(
+            ...unknownCommandOutput(
+              name as string,
+              COMMANDS.map((c) => c.name),
+            ),
+          );
+        }
+
+        // 2. 通常の出力（stdout）はファイルへ。エラーとヒント（stderr）は画面に残す。
+        if (last) {
+          const text = cmdLines
+            .filter((l) => l.kind === 'stdout')
+            .map((l) => l.text + '\n')
+            .join('');
+          cmdLines.splice(0, cmdLines.length, ...cmdLines.filter((l) => l.kind !== 'stdout'));
+          if (last.abs !== DEV_NULL) {
+            const w = writeRedirectOutput(this.state.root, this.state.user, last.abs, last.op, text);
+            if (!w.ok) {
+              cmdLines.push(error(`bash: ${last.shown}: ${ERR_TEXT[w.code]}`), ...redirectHint(w.code));
+            }
+          }
+        }
+        lines.push(...cmdLines);
       }
     }
 

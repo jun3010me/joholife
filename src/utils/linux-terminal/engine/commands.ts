@@ -134,6 +134,11 @@ function entriesLine(entries: LsEntry[]): OutputLine {
   return stdout(spans.map((s) => s.text).join(''), spans);
 }
 
+/** 画面では横に並べ、ファイルに書くときは本物の ls と同じく1行に1つ（引用符もなし）にする */
+function entryLines(entries: LsEntry[], toFile: boolean): OutputLine[] {
+  return toFile ? entries.map((e) => stdout(e.name)) : [entriesLine(entries)];
+}
+
 function ls(state: ShellState, args: string[]): CommandOutput {
   let all = false;
   const operands: string[] = [];
@@ -188,14 +193,15 @@ function ls(state: ShellState, args: string[]): CommandOutput {
     }
   }
 
+  const toFile = state.stdoutFile !== null;
   const lines: OutputLine[] = [...errors];
-  if (files.length > 0) lines.push(entriesLine(files));
+  if (files.length > 0) lines.push(...entryLines(files, toFile));
   const showHeaders = operands.length > 1;
   dirs.forEach((d, i) => {
     if (files.length > 0 || i > 0) lines.push(stdout(''));
     if (showHeaders) lines.push(stdout(`${d.arg}:`));
     const entries = entriesOf(d.node, all);
-    if (entries.length > 0) lines.push(entriesLine(entries));
+    if (entries.length > 0) lines.push(...entryLines(entries, toFile));
   });
   return { lines };
 }
@@ -230,7 +236,15 @@ function cat(state: ShellState, args: string[]): CommandOutput {
   }
   const lines: OutputLine[] = [];
   for (const arg of operands) {
-    const res = lookup(state.root, state.user, resolvePath(state.cwd, arg));
+    const abs = resolvePath(state.cwd, arg);
+    if (state.stdoutFile !== null && abs === state.stdoutFile) {
+      lines.push(
+        error(`cat: ${arg}: input file is output file`),
+        hint('読み込むファイルと、書き込み先のファイルが同じです。書き込み先は別の名前にしましょう。'),
+      );
+      continue;
+    }
+    const res = lookup(state.root, state.user, abs);
     if (!res.ok) {
       if (res.code === 'EACCES') lines.push(error(`cat: ${arg}: Permission denied`), PERMISSION_HINT);
       else if (res.code === 'ENOTDIR') lines.push(error(`cat: ${arg}: Not a directory`));
@@ -404,6 +418,8 @@ function help(_state: ShellState, args: string[]): CommandOutput {
       stdout('help コマンド名 で、そのコマンドの使い方を表示します。例：help ls'),
       stdout('Tab キーで補完、↑ ↓ キーで過去のコマンドを呼び出せます。'),
       stdout('Ctrl+C で入力を取り消し、Ctrl+L で画面をクリアします。'),
+      stdout('コマンドの出力をファイルに保存：コマンド > ファイル名（上書き）、コマンド >> ファイル名（追記）'),
+      stdout('例：history > rireki.txt'),
     ],
   };
 }

@@ -96,3 +96,44 @@ export function saveFileContent(
   node.content = content;
   return { ok: true, created: false };
 }
+
+/**
+ * リダイレクト先を開く。bash と同じく、コマンドを実行する前に行う。
+ * ファイルがなければ作り、`>` なら空にする（`>>` は残す）。
+ */
+export function openRedirectTarget(
+  root: DirNode,
+  user: string,
+  abs: string,
+  op: '>' | '>>',
+): { ok: true } | { ok: false; code: FsErr } {
+  const res = lookup(root, user, abs);
+  if (!res.ok) {
+    if (res.code !== 'ENOENT') return { ok: false, code: res.code };
+    const created = createFile(root, user, abs, '');
+    return created.ok ? { ok: true } : { ok: false, code: created.code === 'EISDIR' ? 'EACCES' : created.code };
+  }
+  if (res.node.type === 'dir') return { ok: false, code: 'EISDIR' };
+  if (!canAccess(res.node, user, 'w')) return { ok: false, code: 'EACCES' };
+  if (op === '>') res.node.content = '';
+  return { ok: true };
+}
+
+/** コマンドの出力をリダイレクト先に書き込む（`>>` は末尾に追記）。 */
+export function writeRedirectOutput(
+  root: DirNode,
+  user: string,
+  abs: string,
+  op: '>' | '>>',
+  text: string,
+): { ok: true } | { ok: false; code: FsErr } {
+  const res = lookup(root, user, abs);
+  // コマンド自身が書き込み先を削除した場合は、何も書かない（bash では見えなくなるだけ）
+  if (!res.ok || res.node.type !== 'file') return { ok: true };
+  const next = op === '>>' ? res.node.content + text : text;
+  if (next.length > MAX_FILE_CONTENT || !hasRoom(root, 0, next.length - res.node.content.length)) {
+    return { ok: false, code: 'ENOSPC' };
+  }
+  res.node.content = next;
+  return { ok: true };
+}

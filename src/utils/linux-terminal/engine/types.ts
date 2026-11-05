@@ -111,6 +111,8 @@ export interface ShellState {
   root: DirNode;
   /** コマンド履歴（Shell と同じ配列。実行中のコマンド自身も含む）。コマンドからは読み取り専用で使う */
   history: readonly string[];
+  /** 出力のリダイレクト先（絶対パス）。画面に出力するときは null */
+  stdoutFile: string | null;
 }
 
 export interface CommandDef {
