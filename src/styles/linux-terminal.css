@@ -405,3 +405,36 @@ button.lt-tree-current:hover {
 .lt-screen[hidden] {
   display: none;
 }
+
+/* ツリーのファイル（クリックでダウンロード） */
+button.lt-tree-file {
+  cursor: pointer;
+}
+button.lt-tree-file:hover {
+  background: #ecfdf5;
+  color: #065f46;
+}
+.lt-tree-dl {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+button.lt-tree-file:hover .lt-tree-dl,
+button.lt-tree-file:focus-visible .lt-tree-dl {
+  color: #059669;
+}
+.lt-tree-notice {
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  border: 1px solid #6ee7b7;
+  background: #ecfdf5;
+  color: #064e3b;
+  border-radius: var(--radius-md);
+}
+.lt-tree-notice-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #7f1d1d;
+}

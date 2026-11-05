@@ -302,3 +302,34 @@ test('編集・削除・移動した結果が保存→復元で保たれる', as
   assert.deepEqual(texts(run(r.shell, 'cat Documents/note.txt')), ['hello']);
   assert.ok(!ls(r.shell).includes('practice'));
 });
+
+// ---- ダウンロード用の読み出し
+test('readFile: 作った・編集したファイルの内容をそのまま取り出せる', () => {
+  const sh = newShell();
+  assert.deepEqual(sh.readFile('/home/student/practice/hello.txt'), {
+    ok: true,
+    name: 'hello.txt',
+    content: 'Hello, Linux!\n',
+  });
+  sh.saveFile('/home/student/report.txt', '提出用\n2行目\n');
+  assert.deepEqual(sh.readFile('/home/student/report.txt'), {
+    ok: true,
+    name: 'report.txt',
+    content: '提出用\n2行目\n',
+  });
+  run(sh, 'mv report.txt Documents');
+  assert.equal(sh.readFile('/home/student/report.txt').ok, false);
+  assert.equal(sh.readFile('/home/student/Documents/report.txt').ok, true);
+});
+test('readFile: 読めないもの・ないもの・ディレクトリはエラー', () => {
+  const sh = newShell();
+  const msg = (p: string) => {
+    const r = sh.readFile(p);
+    return r.ok ? '' : r.message;
+  };
+  assert.ok(msg('/etc/shadow').includes('Permission denied'));
+  assert.ok(msg('/home/teacher/grades.txt').includes('Permission denied'));
+  assert.ok(msg('/home/student/nothing.txt').includes('No such file or directory'));
+  assert.ok(msg('/home/student/Documents').includes('Is a directory'));
+  assert.deepEqual([...sh.history], [], '読み出しは履歴に残らない');
+});
