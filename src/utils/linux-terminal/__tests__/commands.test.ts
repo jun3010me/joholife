@@ -268,7 +268,8 @@ test('パイプ・リダイレクト・ワイルドカード・変数は未対�
   const before = JSON.stringify(sh.snapshot().fs);
   const cases: Array<[string, string]> = [
     ['ls | cat', "bash: syntax '|' is not supported in this simulator"],
-    ['ls > out.txt', "bash: syntax '>' is not supported in this simulator"],
+    ['ls < in.txt', "bash: syntax '<' is not supported in this simulator"],
+    ['ls 2> err.txt', "bash: syntax '2>' is not supported in this simulator"],
     ['ls && pwd', "bash: syntax '&&' is not supported in this simulator"],
     ['ls ; pwd', "bash: syntax ';' is not supported in this simulator"],
     ['ls *.txt', "bash: wildcard '*' is not supported in this simulator"],
