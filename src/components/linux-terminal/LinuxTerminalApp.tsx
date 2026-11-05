@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Shell,
   buildTree,
@@ -13,6 +13,8 @@ import {
 } from '../../utils/linux-terminal/environments/index.ts';
 import Terminal from './Terminal.tsx';
 import DirectoryTree from './DirectoryTree.tsx';
+import type { TreeNotice } from './DirectoryTree.tsx';
+import { downloadTextFile } from './download.ts';
 
 interface Props {
   /** 章ごとの初期環境。省略すると自由練習用の環境 */
@@ -54,6 +56,7 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
   const [tick, setTick] = useState(0);
   const [saveFailed, setSaveFailed] = useState(storage === null);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [notice, setNotice] = useState<TreeNotice | null>(null);
 
   const { shell } = session;
 
@@ -61,6 +64,34 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
     setSaveFailed(!saveShell(storage, shell));
     setTick((t) => t + 1);
   }, [storage, shell]);
+
+  /** ツリーのファイル名がクリックされたら、そのファイルをダウンロードする */
+  const onDownload = useCallback(
+    (path: string) => {
+      const r = shell.readFile(path);
+      if (!r.ok) {
+        setNotice({ kind: 'error', text: `ダウンロードできませんでした：${r.message}` });
+        return;
+      }
+      try {
+        downloadTextFile(r.name, r.content);
+        setNotice({
+          kind: 'info',
+          text: `「${r.name}」をダウンロードしました。ブラウザの「ダウンロード」フォルダを確認してください。`,
+        });
+      } catch {
+        setNotice({ kind: 'error', text: 'ダウンロードできませんでした。ブラウザの設定を確認してください。' });
+      }
+    },
+    [shell],
+  );
+
+  // お知らせは数秒で消す
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 8000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   const doReset = () => {
     clearSaved(storage, shell.env.id);
@@ -70,6 +101,7 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
       generation: s.generation + 1,
     }));
     setConfirmingReset(false);
+    setNotice(null);
     setTick((t) => t + 1);
   };
 
@@ -123,7 +155,13 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
 
       <div className="lt-layout">
         <Terminal key={session.generation} shell={shell} intro={intro} onExecuted={onExecuted} />
-        <DirectoryTree tree={tree} cwd={shell.cwd} home={shell.env.home} />
+        <DirectoryTree
+          tree={tree}
+          cwd={shell.cwd}
+          home={shell.env.home}
+          onDownload={onDownload}
+          notice={notice}
+        />
       </div>
     </div>
   );

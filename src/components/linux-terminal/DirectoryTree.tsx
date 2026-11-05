@@ -1,10 +1,19 @@
 import { useEffect, useState } from 'react';
 import type { TreeNode } from '../../utils/linux-terminal/engine/index.ts';
 
+export interface TreeNotice {
+  kind: 'info' | 'error';
+  text: string;
+}
+
 interface Props {
   tree: TreeNode;
   cwd: string;
   home: string;
+  /** ファイル名がクリックされたとき（ダウンロード） */
+  onDownload: (path: string) => void;
+  /** ダウンロードの結果など */
+  notice: TreeNotice | null;
 }
 
 /** "/a/b" → ["/", "/a", "/a/b"] */
@@ -18,7 +27,7 @@ function ancestorsOf(path: string): string[] {
   return out;
 }
 
-export default function DirectoryTree({ tree, cwd, home }: Props) {
+export default function DirectoryTree({ tree, cwd, home, onDownload, notice }: Props) {
   const [open, setOpen] = useState<Set<string>>(() => new Set(ancestorsOf(cwd)));
   const [hidden, setHidden] = useState(false);
 
@@ -71,6 +80,19 @@ export default function DirectoryTree({ tree, cwd, home }: Props) {
           >
             {label}
           </button>
+        ) : !isDir ? (
+          <button
+            type="button"
+            className="lt-tree-row lt-tree-file"
+            onClick={() => onDownload(node.path)}
+            title="クリックでダウンロード"
+            aria-label={`${node.name} をダウンロード`}
+          >
+            {label}
+            <span className="lt-tree-dl" aria-hidden="true">
+              ⬇
+            </span>
+          </button>
         ) : (
           <div className={`lt-tree-row ${isCwd ? 'lt-tree-current' : ''}`}>{label}</div>
         )}
@@ -102,10 +124,19 @@ export default function DirectoryTree({ tree, cwd, home }: Props) {
           <p className="lt-tree-cwd">
             現在地：<code>{cwd}</code>
           </p>
+          <div role="status" aria-live="polite">
+            {notice && (
+              <p className={`lt-tree-notice ${notice.kind === 'error' ? 'lt-tree-notice-error' : ''}`}>
+                {notice.text}
+              </p>
+            )}
+          </div>
           <ul role="tree" className="lt-tree-list lt-tree-root">
             {renderNode(tree)}
           </ul>
-          <p className="lt-tree-note">隠しファイル（. で始まるもの）は表示していません。</p>
+          <p className="lt-tree-note">
+            📄 ファイル名をクリックすると、そのファイルをダウンロードできます。隠しファイル（. で始まるもの）は表示していません。
+          </p>
         </div>
       )}
     </section>

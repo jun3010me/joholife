@@ -10,7 +10,7 @@ import type {
 } from './types.ts';
 import { COMMAND_MAP, COMMANDS } from './commands.ts';
 import { completeLine } from './complete.ts';
-import { cloneNode, isDir, lookup } from './fs.ts';
+import { canAccess, cloneNode, isDir, lookup } from './fs.ts';
 import { expandTilde } from './path.ts';
 import { error, hint } from './output.ts';
 import { ERR_TEXT, saveFileContent } from './fsops.ts';
@@ -179,6 +179,20 @@ export class Shell {
       ENOENT: '（保存先のディレクトリがありません）',
     };
     return { ok: false, message: base + (extra[r.code] ?? '') };
+  }
+
+  /**
+   * ファイルの内容を取り出す（ダウンロード用）。ターミナルの cat と同じく、読み取り権限を確認する。
+   * 履歴には残らない（コマンドではないため）。
+   */
+  readFile(path: string): { ok: true; name: string; content: string } | { ok: false; message: string } {
+    const r = lookup(this.state.root, this.state.user, path);
+    if (!r.ok) return { ok: false, message: `${path}: ${ERR_TEXT[r.code]}` };
+    if (isDir(r.node)) return { ok: false, message: `${path}: ${ERR_TEXT.EISDIR}` };
+    if (!canAccess(r.node, this.state.user, 'r')) {
+      return { ok: false, message: `${path}: ${ERR_TEXT.EACCES}` };
+    }
+    return { ok: true, name: r.node.name, content: r.node.content };
   }
 
   /** Tab補完 */
