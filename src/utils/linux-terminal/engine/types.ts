@@ -53,6 +53,8 @@ export interface OutputLine {
   text: string;
   /** 色分けが必要な行だけ使う（text と同じ文字列になる） */
   spans?: OutputSpan[];
+  /** 行末の改行がない出力（echo -n）。ファイルに書くときだけ区別する */
+  noNewline?: boolean;
 }
 
 /** エディタ（nano）を開く依頼。画面側がエディタを表示し、保存時に shell.saveFile を呼ぶ */

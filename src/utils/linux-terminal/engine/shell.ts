@@ -219,7 +219,7 @@ export class Shell {
         if (last) {
           const text = cmdLines
             .filter((l) => l.kind === 'stdout')
-            .map((l) => l.text + '\n')
+            .map((l) => l.text + (l.noNewline ? '' : '\n'))
             .join('');
           cmdLines.splice(0, cmdLines.length, ...cmdLines.filter((l) => l.kind !== 'stdout'));
           if (last.abs !== DEV_NULL) {
