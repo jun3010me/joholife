@@ -26,6 +26,9 @@ import '../styles/linux-terminal.css';
         <li><code>nano ファイル名</code> でエディタが開きます。<kbd>Ctrl</kbd>+<kbd>O</kbd>（または <kbd>Ctrl</kbd>+<kbd>S</kbd>）で保存、<kbd>Ctrl</kbd>+<kbd>X</kbd> で終了します。</li>
         <li><code>touch</code>（作成）・<code>cp</code>（コピー）・<code>mv</code>（移動・名前変更）・<code>rm</code>（削除）でファイルを操作できます。ここでの操作は、あなたのパソコンのファイルには影響しません。</li>
         <li><code>コマンド &gt; ファイル名</code> で、コマンドの出力を画面ではなくファイルに保存できます（<code>&gt;&gt;</code> なら追記）。例：<code>history &gt; rireki.txt</code>、<code>cat a.txt &gt; b.txt</code>、<code>echo こんにちは &gt; memo.txt</code></li>
+        <li><code>コマンド1 | コマンド2</code> で、前のコマンドの出力を次のコマンドへ渡せます（何段でもつなげられます）。<code>grep</code>・<code>wc</code>・<code>sort</code>・<code>uniq</code>・<code>head</code>・<code>tail</code>・<code>cut</code> と組み合わせると、ログの調査ができます。例：<code>grep -c " 404 " access.log</code>、<code>ls | wc -l</code></li>
+        <li>ワイルドカード <code>*</code>（任意の文字）・<code>?</code>（任意の1文字）・<code>[abc]</code>（どれか1文字）で、ファイルをまとめて指定できます。例：<code>ls *.jpg</code>、<code>mv *.png photos/</code>。<code>"*.jpg"</code> のようにクォートで囲むと、展開されず文字のままになります。</li>
+        <li>右のディレクトリツリーの <strong>⬆ ボタン</strong>で、パソコンのファイルやフォルダをそのディレクトリへアップロードできます（UTF-8 のテキストファイルだけ。ブラウザの外には送信されません）。</li>
         <li>右のディレクトリツリーで<strong>ファイル名をクリックすると、そのファイルをダウンロード</strong>できます（文字コードは UTF-8）。作ったファイルを提出するときに使えます。</li>
         <li>間違えたり、消してしまったりしても、「最初からやり直す」ボタンでいつでも初期状態に戻せます。</li>
         <li>ファイル名やディレクトリ名は、大文字と小文字が区別されます。</li>

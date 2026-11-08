@@ -438,3 +438,77 @@ button.lt-tree-file:focus-visible .lt-tree-dl {
   background: #fef2f2;
   color: #7f1d1d;
 }
+
+/* ---- アップロード（ツリーの ⬆ ボタンと、選択パネル） ---- */
+.lt-tree-line {
+  display: flex;
+  align-items: stretch;
+  gap: 0.15rem;
+}
+.lt-tree-line > .lt-tree-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.lt-tree-up {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0 0.4rem;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.lt-tree-up:hover,
+.lt-tree-up-active {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+.lt-tree-up:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+.lt-tree-up:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.lt-upload {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #6ee7b7;
+  background: #f0fdf4;
+  color: #064e3b;
+  border-radius: var(--radius-md);
+}
+.lt-upload-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.lt-upload-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.lt-upload-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.lt-confirm-upload {
+  margin: 0 0 0.75rem;
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #78350f;
+}
+@media (pointer: coarse) {
+  .lt-tree-up {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}

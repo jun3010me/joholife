@@ -37,17 +37,27 @@ export function completeLine(
 ): CompletionResult {
   const none: CompletionResult = { line, candidates: [] };
 
-  // 末尾の単語の開始位置（エスケープされていない空白の直後）
+  // 末尾の単語の開始位置（クォートの外の、エスケープされていない空白か | の直後）と、
+  // 最後のコマンドの開始位置（| の直後）
   let wordStart = 0;
+  let commandStart = 0;
+  let quote: '"' | "'" | null = null;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i] as string;
-    if (ch === '\\') i++;
+    if (quote) {
+      if (ch === quote) quote = null;
+    } else if (ch === '\\') i++;
+    else if (ch === '"' || ch === "'") quote = ch;
     else if (ch === ' ' || ch === '\t') wordStart = i + 1;
+    else if (ch === '|') {
+      wordStart = i + 1;
+      commandStart = i + 1;
+    }
   }
   const head = line.slice(0, wordStart);
   const word = line.slice(wordStart);
   if (/['"]/.test(word)) return none; // クォート中の補完は未対応
-  const isCommandPosition = head.trim() === '';
+  const isCommandPosition = line.slice(commandStart, wordStart).trim() === '';
 
   let candidates: Candidate[];
   let prefixText: string; // 入力された単語のうち、補完しない前半（ディレクトリ部分）
@@ -80,7 +90,7 @@ export function completeLine(
     if (!res.ok || !isDir(res.node)) return none;
     if (!canAccess(res.node, state.user, 'r')) return none;
 
-    const onlyDirs = /^\s*(cd|rmdir)(\s|$)/.test(head);
+    const onlyDirs = /^\s*(cd|rmdir)(\s|$)/.test(line.slice(commandStart, wordStart));
     const showHidden = typedPrefix.startsWith('.');
     candidates = res.node.children
       .filter((c) => c.name.startsWith(typedPrefix))

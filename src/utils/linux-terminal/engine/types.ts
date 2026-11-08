@@ -113,8 +113,10 @@ export interface ShellState {
   root: DirNode;
   /** コマンド履歴（Shell と同じ配列。実行中のコマンド自身も含む）。コマンドからは読み取り専用で使う */
   history: readonly string[];
-  /** 出力のリダイレクト先（絶対パス）。画面に出力するときは null */
+  /** 出力のリダイレクト先（絶対パス）。画面やパイプに出力するときは null */
   stdoutFile: string | null;
+  /** 出力先が画面ではない（パイプ・ファイルへのリダイレクト）。ls が1行に1つずつ出すかどうかの判定に使う */
+  stdoutRedirected: boolean;
 }
 
 export interface CommandDef {
@@ -122,5 +124,9 @@ export interface CommandDef {
   summary: string;
   usage: string;
   details: string[];
-  run: (state: ShellState, args: string[]) => CommandOutput;
+  /**
+   * @param stdin パイプで前のコマンドから渡された入力。パイプの先頭や単独のときは undefined
+   *   （空の出力が渡されたときは空文字列なので、undefined と区別する）
+   */
+  run: (state: ShellState, args: string[], stdin?: string) => CommandOutput;
 }

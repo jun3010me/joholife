@@ -5,8 +5,15 @@ import {
   clearSaved,
   loadShell,
   saveShell,
+  uploadSummary,
 } from '../../utils/linux-terminal/engine/index.ts';
-import type { LoadStatus, StorageLike } from '../../utils/linux-terminal/engine/index.ts';
+import type {
+  LoadStatus,
+  OutputLine,
+  StorageLike,
+  UploadFile,
+  UploadRejected,
+} from '../../utils/linux-terminal/engine/index.ts';
 import {
   DEFAULT_ENVIRONMENT_ID,
   getEnvironment,
@@ -15,6 +22,7 @@ import Terminal from './Terminal.tsx';
 import DirectoryTree from './DirectoryTree.tsx';
 import type { TreeNotice } from './DirectoryTree.tsx';
 import { downloadTextFile } from './download.ts';
+import { readUploadFiles } from './upload.ts';
 
 interface Props {
   /** 章ごとの初期環境。省略すると自由練習用の環境 */
@@ -32,6 +40,14 @@ function getStorage(): StorageLike | null {
   } catch {
     return null;
   }
+}
+
+/** 同じ名前のファイルがあって、上書きの確認を待っているアップロード */
+interface PendingUpload {
+  dirPath: string;
+  items: UploadFile[];
+  rejected: UploadRejected[];
+  conflicts: string[];
 }
 
 interface Session {
@@ -57,6 +73,9 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
   const [saveFailed, setSaveFailed] = useState(storage === null);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [notice, setNotice] = useState<TreeNotice | null>(null);
+  const [announce, setAnnounce] = useState<{ id: number; lines: OutputLine[] } | null>(null);
+  const [pending, setPending] = useState<PendingUpload | null>(null);
+  const [reading, setReading] = useState(false);
 
   const { shell } = session;
 
@@ -86,6 +105,66 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
     [shell],
   );
 
+  const say = useCallback((lines: OutputLine[]) => {
+    setAnnounce((a) => ({ id: (a?.id ?? 0) + 1, lines }));
+  }, []);
+
+  /** 確認が済んだアップロードを実行して、結果をターミナルに表示する */
+  const finishUpload = useCallback(
+    (dirPath: string, items: UploadFile[], rejected: UploadRejected[], overwrite: boolean) => {
+      const result = shell.uploadFiles(dirPath, items, { overwrite });
+      say(uploadSummary(dirPath, result, rejected));
+      if (result.ok) {
+        setSaveFailed(!saveShell(storage, shell));
+        setTick((t) => t + 1);
+      }
+      if (!result.ok) {
+        setNotice({ kind: 'error', text: `アップロードできませんでした：${result.message}` });
+      } else if (result.uploaded === 0) {
+        setNotice({ kind: 'error', text: 'アップロードできたファイルはありませんでした。ターミナルの表示を確認してください。' });
+      } else {
+        const skipped = result.skipped.length + rejected.length;
+        setNotice({
+          kind: skipped > 0 ? 'error' : 'info',
+          text: `${result.uploaded}件のファイルを ${result.dirPath} にアップロードしました${
+            skipped > 0 ? `（${skipped}件は取り込めませんでした）` : ''
+          }`,
+        });
+      }
+    },
+    [shell, storage, say],
+  );
+
+  /** ツリーの「ここへアップロード」で選ばれたファイルを読み込む */
+  const onUpload = useCallback(
+    async (dirPath: string, files: File[]) => {
+      setReading(true);
+      setPending(null);
+      try {
+        const read = await readUploadFiles(files);
+        if (read.fatal) {
+          say([{ kind: 'error', text: `upload: ${read.fatal}` }]);
+          setNotice({ kind: 'error', text: `アップロードできませんでした：${read.fatal}` });
+          return;
+        }
+        const check = shell.checkUpload(dirPath, read.items);
+        if (!check.ok) {
+          say(uploadSummary(dirPath, { ok: false, message: check.message }));
+          setNotice({ kind: 'error', text: `アップロードできませんでした：${check.message}` });
+          return;
+        }
+        if (check.conflicts.length > 0) {
+          setPending({ dirPath: check.dirPath, items: read.items, rejected: read.rejected, conflicts: check.conflicts });
+          return;
+        }
+        finishUpload(check.dirPath, read.items, read.rejected, false);
+      } finally {
+        setReading(false);
+      }
+    },
+    [shell, say, finishUpload],
+  );
+
   // お知らせは数秒で消す
   useEffect(() => {
     if (!notice) return;
@@ -102,6 +181,8 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
     }));
     setConfirmingReset(false);
     setNotice(null);
+    setPending(null);
+    setAnnounce(null);
     setTick((t) => t + 1);
   };
 
@@ -147,6 +228,36 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
         )}
       </div>
 
+      {pending && (
+        <div className="lt-confirm lt-confirm-upload" role="alertdialog" aria-label="上書きの確認">
+          <span>
+            同じ名前のファイルがあります（{pending.conflicts.slice(0, 3).join('、')}
+            {pending.conflicts.length > 3 ? ` など${pending.conflicts.length}件` : ''}）。上書きしますか？
+          </span>
+          <button
+            type="button"
+            className="lt-btn lt-btn-danger"
+            onClick={() => {
+              const p = pending;
+              setPending(null);
+              finishUpload(p.dirPath, p.items, p.rejected, true);
+            }}
+          >
+            上書きする
+          </button>
+          <button
+            type="button"
+            className="lt-btn"
+            onClick={() => {
+              setPending(null);
+              say([{ kind: 'info', text: 'アップロードを中止しました' }]);
+            }}
+          >
+            やめる
+          </button>
+        </div>
+      )}
+
       {saveFailed && (
         <p className="lt-warning" role="status">
           ⚠️ このブラウザでは進み具合を保存できません。ページを再読み込みすると最初の状態に戻ります。
@@ -154,13 +265,21 @@ export default function LinuxTerminalApp({ environmentId = DEFAULT_ENVIRONMENT_I
       )}
 
       <div className="lt-layout">
-        <Terminal key={session.generation} shell={shell} intro={intro} onExecuted={onExecuted} />
+        <Terminal
+          key={session.generation}
+          shell={shell}
+          intro={intro}
+          onExecuted={onExecuted}
+          announce={announce}
+        />
         <DirectoryTree
           tree={tree}
           cwd={shell.cwd}
           home={shell.env.home}
           onDownload={onDownload}
           notice={notice}
+          onUpload={onUpload}
+          busy={reading || pending !== null}
         />
       </div>
     </div>

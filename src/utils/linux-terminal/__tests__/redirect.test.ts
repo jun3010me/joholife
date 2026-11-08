@@ -204,7 +204,6 @@ test('未対応のリダイレクトは未対応と表示する', () => {
     ['ls >| e', '>|'],
     ['cat < README.txt', '<'],
     ['cat << EOF', '<<'],
-    ['ls | cat', '|'],
   ] as const) {
     assert.deepEqual(errorsOf(run(sh, line)), [`bash: syntax '${token}' is not supported in this simulator`], line);
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { TreeNode } from '../../utils/linux-terminal/engine/index.ts';
 
 export interface TreeNotice {
@@ -14,6 +14,10 @@ interface Props {
   onDownload: (path: string) => void;
   /** ダウンロードの結果など */
   notice: TreeNotice | null;
+  /** 選んだファイルをディレクトリにアップロードする */
+  onUpload: (dirPath: string, files: File[]) => void;
+  /** 読み込み中（アップロードの操作を止める） */
+  busy?: boolean;
 }
 
 /** "/a/b" → ["/", "/a", "/a/b"] */
@@ -27,9 +31,22 @@ function ancestorsOf(path: string): string[] {
   return out;
 }
 
-export default function DirectoryTree({ tree, cwd, home, onDownload, notice }: Props) {
+export default function DirectoryTree({ tree, cwd, home, onDownload, notice, onUpload, busy = false }: Props) {
   const [open, setOpen] = useState<Set<string>>(() => new Set(ancestorsOf(cwd)));
   const [hidden, setHidden] = useState(false);
+  /** 「ここへアップロード」を押したディレクトリ */
+  const [uploadDir, setUploadDir] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
+
+  const picked = (input: HTMLInputElement) => {
+    const files = Array.from(input.files ?? []);
+    input.value = ''; // 同じファイルをもう一度選べるようにする
+    if (uploadDir !== null && files.length > 0) {
+      onUpload(uploadDir, files);
+      setUploadDir(null);
+    }
+  };
 
   // 現在地が変わったら、そこまでの道すじを開く
   useEffect(() => {
@@ -73,13 +90,26 @@ export default function DirectoryTree({ tree, cwd, home, onDownload, notice }: P
         aria-selected={isCwd}
       >
         {isDir && !node.locked ? (
-          <button
-            type="button"
-            className={`lt-tree-row ${isCwd ? 'lt-tree-current' : ''}`}
-            onClick={() => toggle(node.path)}
-          >
-            {label}
-          </button>
+          <div className="lt-tree-line">
+            <button
+              type="button"
+              className={`lt-tree-row ${isCwd ? 'lt-tree-current' : ''}`}
+              onClick={() => toggle(node.path)}
+            >
+              {label}
+            </button>
+            <button
+              type="button"
+              className={`lt-tree-up ${uploadDir === node.path ? 'lt-tree-up-active' : ''}`}
+              onClick={() => setUploadDir((d) => (d === node.path ? null : node.path))}
+              title="ここへアップロード"
+              aria-label={`${node.path} へアップロード`}
+              aria-pressed={uploadDir === node.path}
+              disabled={busy}
+            >
+              <span aria-hidden="true">⬆</span>
+            </button>
+          </div>
         ) : !isDir ? (
           <button
             type="button"
@@ -131,14 +161,51 @@ export default function DirectoryTree({ tree, cwd, home, onDownload, notice }: P
               </p>
             )}
           </div>
+          {uploadDir !== null && (
+            <div className="lt-upload" role="group" aria-label="アップロード">
+              <p className="lt-upload-title">
+                <code>{uploadDir}</code> へアップロード
+              </p>
+              <div className="lt-upload-buttons">
+                <button type="button" className="lt-btn lt-btn-small" onClick={() => fileInput.current?.click()} disabled={busy}>
+                  📄 ファイルを選ぶ（複数OK）
+                </button>
+                <button type="button" className="lt-btn lt-btn-small" onClick={() => folderInput.current?.click()} disabled={busy}>
+                  📁 フォルダごと選ぶ
+                </button>
+                <button type="button" className="lt-btn lt-btn-small" onClick={() => setUploadDir(null)}>
+                  閉じる
+                </button>
+              </div>
+              <p className="lt-upload-note">UTF-8 のテキストファイル（.txt .csv .log など）だけアップロードできます。</p>
+            </div>
+          )}
           <ul role="tree" className="lt-tree-list lt-tree-root">
             {renderNode(tree)}
           </ul>
           <p className="lt-tree-note">
-            📄 ファイル名をクリックすると、そのファイルをダウンロードできます。隠しファイル（. で始まるもの）は表示していません。
+            📄 ファイル名をクリックすると、そのファイルをダウンロードできます。⬆ を押すと、そのディレクトリにパソコンのファイルをアップロードできます。隠しファイル（. で始まるもの）は表示していません。
           </p>
         </div>
       )}
+      <input
+        ref={fileInput}
+        type="file"
+        multiple
+        hidden
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => picked(e.currentTarget)}
+      />
+      <input
+        ref={folderInput}
+        type="file"
+        hidden
+        tabIndex={-1}
+        aria-hidden="true"
+        {...({ webkitdirectory: '', directory: '' } as Record<string, string>)}
+        onChange={(e) => picked(e.currentTarget)}
+      />
     </section>
   );
 }

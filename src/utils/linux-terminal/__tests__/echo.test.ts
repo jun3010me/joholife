@@ -91,11 +91,11 @@ test('echo: 書き込み先が使えないときは実行されない / 画面�
   assert.deepEqual(errorsOf(run(sh, 'echo hi > Documents')), ['bash: Documents: Is a directory']);
   assert.deepEqual(run(sh, 'echo hi > /dev/null').lines, []);
 });
-test('echo: 変数やワイルドカード・パイプは未対応と表示する', () => {
+test('echo: 変数は未対応と表示する。ワイルドカードとパイプは使える', () => {
   const sh = newShell();
   assert.deepEqual(errorsOf(run(sh, 'echo $HOME')), ["bash: '$' expansion is not supported in this simulator"]);
-  assert.deepEqual(errorsOf(run(sh, 'echo *.txt')), ["bash: wildcard '*' is not supported in this simulator"]);
-  assert.deepEqual(errorsOf(run(sh, 'echo a | cat')), ["bash: syntax '|' is not supported in this simulator"]);
+  assert.deepEqual(texts(run(sh, 'echo Do*')), ['Documents Downloads']);
+  assert.deepEqual(texts(run(sh, 'echo a | cat')), ['a']);
   assert.ok(hintsOf(run(sh, 'echo $HOME'))[0]?.includes('変数'));
   assert.deepEqual(texts(run(sh, "echo '$HOME'")), ['$HOME']); // シングルクォートの中は文字のまま
 });
