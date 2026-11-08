@@ -233,8 +233,8 @@ test('Windows コマンドのヒント', () => {
   assert.ok(hintsOf(run(sh, 'cd..'))[0]?.includes('cd ..'));
 });
 test('未実装コマンドは実装済みに見せない', () => {
-  const r = run(newShell(), 'grep a a.txt');
-  assert.deepEqual(errorsOf(r), ['bash: grep: command not available in this simulator']);
+  const r = run(newShell(), 'find . -name a.txt');
+  assert.deepEqual(errorsOf(r), ['bash: find: command not available in this simulator']);
   assert.ok(hintsOf(run(newShell(), 'vim a.txt'))[0]?.includes('nano'));
 });
 test('command not found と打ち間違いの提案', () => {
@@ -263,16 +263,14 @@ test('Windows の区切り文字 \\ を使ったとき', () => {
 });
 
 // ---- 未対応構文
-test('パイプ・リダイレクト・ワイルドカード・変数は未対応と表示する', () => {
+test('入力のリダイレクト・&& や ; ・変数は未対応と表示する', () => {
   const sh = newShell();
   const before = JSON.stringify(sh.snapshot().fs);
   const cases: Array<[string, string]> = [
-    ['ls | cat', "bash: syntax '|' is not supported in this simulator"],
     ['ls < in.txt', "bash: syntax '<' is not supported in this simulator"],
     ['ls 2> err.txt', "bash: syntax '2>' is not supported in this simulator"],
     ['ls && pwd', "bash: syntax '&&' is not supported in this simulator"],
     ['ls ; pwd', "bash: syntax ';' is not supported in this simulator"],
-    ['ls *.txt', "bash: wildcard '*' is not supported in this simulator"],
     ['cat $HOME', "bash: '$' expansion is not supported in this simulator"],
   ];
   for (const [line, msg] of cases) {

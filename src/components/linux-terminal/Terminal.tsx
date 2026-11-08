@@ -13,6 +13,8 @@ interface Props {
   intro: string[];
   /** コマンド実行（空入力を除く）や、入力の取り消しのあとに呼ばれる */
   onExecuted: () => void;
+  /** コマンド以外（アップロードなど）の結果を画面に出す。id が変わるたびに1回だけ表示する */
+  announce?: { id: number; lines: OutputLine[] } | null;
 }
 
 const MAX_ENTRIES = 2000;
@@ -35,7 +37,7 @@ function hasTextSelection(): boolean {
   }
 }
 
-export default function Terminal({ shell, intro, onExecuted }: Props) {
+export default function Terminal({ shell, intro, onExecuted, announce = null }: Props) {
   const nextId = useRef(0);
   const makeEntries = (): Entry[] =>
     intro.map((text) => ({
@@ -67,6 +69,15 @@ export default function Terminal({ shell, intro, onExecuted }: Props) {
   };
   const outEntries = (lines: OutputLine[]): Entry[] =>
     lines.map((line) => ({ id: nextId.current++, type: 'out', line }));
+
+  // コマンド以外の結果（アップロードなど）を表示する。履歴には残さない。
+  const lastAnnounce = useRef(-1);
+  useEffect(() => {
+    if (!announce || announce.id === lastAnnounce.current) return;
+    lastAnnounce.current = announce.id;
+    append(outEntries(announce.lines));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [announce]);
 
   // 新しい出力があったら一番下までスクロール
   useLayoutEffect(() => {

@@ -3,6 +3,8 @@ import { error, hint, stdout } from './output.ts';
 import { PERMISSION_HINT } from './hints.ts';
 import { NO_SUCH_HINT, caseMismatchHint, unsupportedOption } from './common.ts';
 import { FILE_COMMANDS } from './fileops.ts';
+import { TEXT_COMMANDS } from './textcmds.ts';
+import { missingInput, readSources, textToLines } from './input.ts';
 import {
   MAX_PATH_DEPTH,
   canAccess,
@@ -193,7 +195,7 @@ function ls(state: ShellState, args: string[]): CommandOutput {
     }
   }
 
-  const toFile = state.stdoutFile !== null;
+  const toFile = state.stdoutRedirected;
   const lines: OutputLine[] = [...errors];
   if (files.length > 0) lines.push(...entryLines(files, toFile));
   const showHeaders = operands.length > 1;
@@ -208,68 +210,49 @@ function ls(state: ShellState, args: string[]): CommandOutput {
 
 // ---------------------------------------------------------------- cat
 
-function cat(state: ShellState, args: string[]): CommandOutput {
+function cat(state: ShellState, args: string[], stdin?: string): CommandOutput {
   const operands: string[] = [];
   let endOfOptions = false;
   for (const a of args) {
     if (!endOfOptions && a === '--') endOfOptions = true;
-    else if (!endOfOptions && a === '-') {
+    else if (!endOfOptions && a === '-' && stdin === undefined) {
       return {
         lines: [
           error("cat: '-' (standard input) is not supported in this simulator"),
           hint('cat の後ろにはファイル名を書きます。'),
         ],
       };
-    } else if (!endOfOptions && a.startsWith('-')) {
+    } else if (!endOfOptions && a !== '-' && a.startsWith('-')) {
       return unsupportedOption('cat', a, 'この cat は、ファイル名を指定して中身を表示する使い方だけに対応しています。');
     } else operands.push(a);
   }
-  if (operands.length === 0) {
-    return {
-      lines: [
-        error('cat: missing file operand'),
-        hint(
-          '本物の cat は引数がないとキーボード入力を待ち続けます。このシミュレーターでは cat ファイル名 の形で使いましょう。',
-        ),
-      ],
-    };
-  }
+  const sameFile = (arg: string): OutputLine[] => [
+    error(`cat: ${arg}: input file is output file`),
+    hint('読み込むファイルと、書き込み先のファイルが同じです。書き込み先は別の名前にしましょう。'),
+  ];
+  if (operands.length === 0 && stdin === undefined) return missingInput('cat', 'ls | cat');
   const lines: OutputLine[] = [];
-  for (const arg of operands) {
-    const abs = resolvePath(state.cwd, arg);
-    if (state.stdoutFile !== null && abs === state.stdoutFile) {
-      lines.push(
-        error(`cat: ${arg}: input file is output file`),
-        hint('読み込むファイルと、書き込み先のファイルが同じです。書き込み先は別の名前にしましょう。'),
-      );
-      continue;
-    }
-    const res = lookup(state.root, state.user, abs);
-    if (!res.ok) {
-      if (res.code === 'EACCES') lines.push(error(`cat: ${arg}: Permission denied`), PERMISSION_HINT);
-      else if (res.code === 'ENOTDIR') lines.push(error(`cat: ${arg}: Not a directory`));
-      else {
-        lines.push(error(`cat: ${arg}: No such file or directory`));
-        lines.push(caseMismatchHint(res) ?? NO_SUCH_HINT);
-      }
-      continue;
-    }
-    if (isDir(res.node)) {
-      lines.push(
-        error(`cat: ${arg}: Is a directory`),
-        hint('cat はファイルの中身を表示するコマンドです。ディレクトリの中身を見るには ls を使います。'),
-      );
-      continue;
-    }
-    if (!canAccess(res.node, state.user, 'r')) {
-      lines.push(error(`cat: ${arg}: Permission denied`), PERMISSION_HINT);
-      continue;
-    }
-    if (res.node.content === '') continue;
-    const text = res.node.content.endsWith('\n') ? res.node.content.slice(0, -1) : res.node.content;
-    for (const l of text.split('\n')) lines.push(stdout(l));
+  // エラーと中身が、指定した順に並ぶよう、1つずつ読む
+  for (const arg of operands.length === 0 ? [] : operands) {
+    const read = readSources(state, 'cat', [arg], stdin, { sameFile });
+    if (read) lines.push(...read.errors, ...catLines(read.sources));
   }
+  if (operands.length === 0) lines.push(...catLines([{ text: stdin as string }]));
   return { lines };
+}
+
+function catLines(sources: Array<{ text: string }>): OutputLine[] {
+  const lines: OutputLine[] = [];
+  for (const src of sources) {
+    const rows = textToLines(src.text);
+    rows.forEach((l, i) => {
+      const line = stdout(l);
+      // 最後の改行がない入力（echo -n など）は、改行なしのまま流す
+      if (i === rows.length - 1 && !src.text.endsWith('\n')) line.noNewline = true;
+      lines.push(line);
+    });
+  }
+  return lines;
 }
 
 // ---------------------------------------------------------------- mkdir
@@ -420,6 +403,10 @@ function help(_state: ShellState, args: string[]): CommandOutput {
       stdout('Ctrl+C で入力を取り消し、Ctrl+L で画面をクリアします。'),
       stdout('コマンドの出力をファイルに保存：コマンド > ファイル名（上書き）、コマンド >> ファイル名（追記）'),
       stdout('例：history > rireki.txt　　echo こんにちは > memo.txt'),
+      stdout('コマンドをつなぐ：コマンド1 | コマンド2（前の出力が、次の入力になります）'),
+      stdout('例：ls | wc -l　　grep error access.log | sort | uniq -c'),
+      stdout('ワイルドカード：* （任意の文字）、? （任意の1文字）、[abc] （どれか1文字）で、複数のファイルをまとめて指定できます。'),
+      stdout('例：ls *.jpg　　rm *.tmp　　mv *.png photos/'),
     ],
   };
 }
@@ -544,6 +531,7 @@ const BASE_COMMANDS: CommandDef[] = [
     usage: 'ls [-a] [場所...]',
     details: [
       '場所を省略すると、今いる場所の中身を表示します。',
+      'パイプ（|）やファイルに出力するときは、1行に1つずつ表示します。例：ls | wc -l',
       '-a  . で始まる隠しファイルも表示します。',
       '（ディレクトリは青色で表示されます）',
     ],
@@ -582,8 +570,12 @@ const BASE_COMMANDS: CommandDef[] = [
   {
     name: 'cat',
     summary: 'ファイルの中身を表示します',
-    usage: 'cat ファイル名...',
-    details: ['複数のファイルを指定すると、順番に続けて表示します。'],
+    usage: 'cat [ファイル名...]',
+    details: [
+      '複数のファイルを指定すると、順番に続けて表示します。',
+      'ファイル名を省略すると、パイプ（|）で渡された出力をそのまま表示します。',
+      '例：cat server/logs/*.log | grep error',
+    ],
     run: cat,
   },
   {
@@ -614,8 +606,8 @@ const BASE_COMMANDS: CommandDef[] = [
 ];
 
 /** 表示順: 見る → 作る・編集する → 消す → 画面・ヘルプ */
-const ORDER = ['pwd', 'ls', 'cd', 'cat', 'echo', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help'];
-export const COMMANDS: CommandDef[] = [...BASE_COMMANDS, ...FILE_COMMANDS].sort(
+const ORDER = ['pwd', 'ls', 'cd', 'cat', 'head', 'tail', 'grep', 'wc', 'sort', 'uniq', 'cut', 'echo', 'mkdir', 'touch', 'nano', 'cp', 'mv', 'rm', 'rmdir', 'history', 'clear', 'help'];
+export const COMMANDS: CommandDef[] = [...BASE_COMMANDS, ...FILE_COMMANDS, ...TEXT_COMMANDS].sort(
   (a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name),
 );
 

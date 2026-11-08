@@ -7,8 +7,8 @@ test('コマンド名の補完: 1つに決まる / 共通部分 / 候補一覧',
   assert.deepEqual(sh.complete('pw'), { line: 'pwd ', candidates: [] });
   assert.deepEqual(sh.complete('mk'), { line: 'mkdir ', candidates: [] });
   const c = sh.complete('c');
-  assert.equal(c.line, 'c'); // cat / cd / clear / cp の共通部分は c のまま
-  assert.deepEqual(c.candidates, ['cat', 'cd', 'clear', 'cp']);
+  assert.equal(c.line, 'c'); // cat / cd / clear / cp / cut の共通部分は c のまま
+  assert.deepEqual(c.candidates, ['cat', 'cd', 'clear', 'cp', 'cut']);
   assert.deepEqual(sh.complete('xyz'), { line: 'xyz', candidates: [] });
   assert.deepEqual(sh.complete('na'), { line: 'nano ', candidates: [] });
 });

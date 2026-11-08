@@ -99,7 +99,7 @@ test('history: help・Tab補完に載る / 履歴は history コマンド実行�
   assert.ok(texts(run(sh, 'help')).join('\n').includes('history'));
   assert.ok(texts(run(sh, 'help history')).join('\n').includes('history [件数]'));
   assert.deepEqual(sh.complete('hist'), { line: 'history ', candidates: [] });
-  assert.deepEqual(sh.complete('h').candidates, ['help', 'history']);
+  assert.deepEqual(sh.complete('h').candidates, ['head', 'help', 'history']);
   const before = [...sh.history];
   run(sh, 'history');
   assert.deepEqual([...sh.history], [...before, 'history']);
