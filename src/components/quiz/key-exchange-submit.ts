@@ -9,6 +9,14 @@ import { taskById, type KeyExchangeTask } from './key-exchange-tasks.ts';
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 const md = (t: string) =>
   esc(t).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>');
+const dataUrlToBlob = (dataUrl: string): Blob => {
+  const [header, base64] = dataUrl.split(',');
+  const mime = /:(.*?);/.exec(header)?.[1] ?? 'image/png';
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+};
 const DIFF: Record<string, string> = { easy: '初級', medium: '中級', hard: '上級' };
 
 export function mountKeyExchangeSubmit(): void {
@@ -168,14 +176,46 @@ class Session {
       </div>`, 860);
     const canvas = document.getElementById('ke-cert') as HTMLCanvasElement;
     this.drawCertificate(canvas);
-    (document.getElementById('ke-dl') as HTMLElement).onclick = () => {
-      const a = document.createElement('a');
-      a.download = `修了証_${this.task.title}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
-      a.href = canvas.toDataURL('image/png');
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    };
+    (document.getElementById('ke-dl') as HTMLElement).onclick = () => this.downloadCertificate(canvas);
     (document.getElementById('ke-retry') as HTMLElement).onclick = () => { this.data = null; this.fileName = ''; this.renderSubmit(); };
     (document.getElementById('ke-back') as HTMLElement).onclick = () => { window.location.href = '/quiz'; };
+  }
+
+  /**
+   * 修了証のダウンロード。プログラミング問題演習と同じ仕組み。
+   * iOS Safari は data URL への <a download> が効かないため、共有シート（Web Share API）で「写真」などに保存してもらう。
+   * 共有できないときは、画像を新しいタブで開いて長押し保存を案内する。
+   */
+  private async downloadCertificate(canvas: HTMLCanvasElement) {
+    const fileName = `修了証_${this.task.title}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS && navigator.share) {
+        const blob = dataUrlToBlob(dataUrl);
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: fileName });
+            return;
+          } catch (e) {
+            if ((e as Error).name === 'AbortError') return; // ユーザーがキャンセル
+            // 共有に失敗したときは、下のフォールバックに進む
+          }
+        }
+        window.open(URL.createObjectURL(blob), '_blank');
+        alert('画像が新しいタブで開きます。画像を長押しして「写真に保存」を選択してください。');
+        return;
+      }
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = dataUrl;
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download certificate:', error);
+      alert('修了証のダウンロードに失敗しました。');
+    }
   }
 
   /** 既存の修了証と同じデザイン（800x600） */
