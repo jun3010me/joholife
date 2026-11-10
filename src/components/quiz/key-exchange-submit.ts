@@ -1,6 +1,8 @@
 // 問題演習「鍵交換シミュレータ」：保存したJSONを提出して判定し、合格したら修了証を発行する。
 // 画面の流れは既存のネットワーク構築課題と同じ（氏名 → 提出 → 判定結果 → 修了証）。
 import { validateSubmission } from '../../utils/key-exchange-simulator/submission.ts';
+import { validateFreeSubmission } from '../../utils/key-exchange-simulator/submission-free.ts';
+import { FREE_TEMPLATES } from '../../utils/key-exchange-simulator/templates.ts';
 import { fetchIpAddress, trackingInfo } from './device-fingerprint.ts';
 import { taskById, type KeyExchangeTask } from './key-exchange-tasks.ts';
 
@@ -74,6 +76,7 @@ class Session {
     this.card(`
       <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1rem;">${esc(t.title)}</h2>
       <div style="color:var(--text-secondary);line-height:1.7;margin-bottom:1.5rem;">${md(t.body)}</div>
+      ${this.freeGuide()}
       <div style="text-align:center;margin-bottom:1.5rem;">
         <a href="/key-exchange-simulator" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-block;text-decoration:none;color:#fff !important;">🔑 鍵交換シミュレータを開く</a>
       </div>
@@ -86,6 +89,8 @@ class Session {
       <div style="text-align:center;margin-top:1.5rem;">
         <button id="ke-submit" class="btn btn-primary" ${this.data ? '' : 'disabled'} style="opacity:${this.data ? 1 : 0.5};">判定を実行</button>
       </div>`);
+    const tplBtn = document.getElementById('ke-template');
+    if (tplBtn) tplBtn.onclick = () => this.downloadTemplate();
     const drop = document.getElementById('ke-drop') as HTMLElement;
     const input = document.getElementById('ke-input') as HTMLInputElement;
     const submit = document.getElementById('ke-submit') as HTMLButtonElement;
@@ -108,10 +113,41 @@ class Session {
     drop.ondrop = (e) => { e.preventDefault(); drop.style.borderColor = 'var(--border)'; take(e.dataTransfer?.files[0]); };
     input.onchange = () => take(input.files?.[0]);
     submit.onclick = () => {
-      const r = validateSubmission(this.data, this.task.scenarioId);
+      const r = this.task.mode === 'free'
+        ? validateFreeSubmission(this.data, this.task.id)
+        : validateSubmission(this.data, this.task.scenarioId ?? '');
       if (r.valid) this.renderCertificate(r.message);
       else this.renderSubmit(r.message);
     };
+  }
+
+  /** 自由モードの課題だけ：テンプレートJSONの入手と、使い方の案内 */
+  private freeGuide(): string {
+    if (this.task.mode !== 'free' || !FREE_TEMPLATES[this.task.id]) return '';
+    return `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;">
+        <p style="font-weight:600;margin-bottom:.5rem;">取り組み方</p>
+        <ol style="margin:0 0 1rem 1.25rem;padding:0;line-height:1.8;color:var(--text-secondary);">
+          <li>下のボタンで、テンプレートJSONをダウンロードする</li>
+          <li>鍵交換シミュレータを開き、「📁 読込」でそのファイルを開く</li>
+          <li>自由モードのまま作業して、完了したら「💾 保存」</li>
+          <li>保存したJSONを、このページに提出する</li>
+        </ol>
+        <div style="text-align:center;"><button type="button" id="ke-template" class="btn btn-secondary" style="color:var(--text-primary);">📥 テンプレートJSONをダウンロード</button></div>
+      </div>`;
+  }
+
+  /** ブラウザ内でBlobを作ってダウンロードする（ネットワーク構築課題と同じ方式） */
+  private downloadTemplate() {
+    const t = FREE_TEMPLATES[this.task.id];
+    if (!t) return;
+    const blob = new Blob([JSON.stringify(t.build(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = t.fileName;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   renderCertificate(message: string) {
@@ -119,7 +155,8 @@ class Session {
       <div style="text-align:center;">
         <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
         <h2 style="font-size:1.75rem;font-weight:700;margin-bottom:.5rem;">合格です！修了証が発行されました</h2>
-        <p style="color:var(--text-secondary);margin-bottom:1.5rem;">${esc(message)}</p>
+        <p style="color:var(--text-secondary);margin-bottom:${this.task.explanation ? '.5rem' : '1.5rem'};">${esc(message)}</p>
+        ${this.task.explanation ? `<p style="color:var(--text-muted);font-size:.9rem;margin-bottom:1.5rem;">${esc(this.task.explanation)}</p>` : ''}
         <canvas id="ke-cert" width="800" height="600" style="max-width:100%;height:auto;border:1px solid #e5e7eb;"></canvas>
         <div style="display:flex;flex-direction:column;gap:1rem;align-items:center;margin-top:1.5rem;">
           <button id="ke-dl" class="btn btn-primary" style="padding:.75rem 2rem;">修了証をダウンロード</button>
