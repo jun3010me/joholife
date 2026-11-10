@@ -55,12 +55,12 @@ test('テンプレート：全員（イブも）がインターネットにつ�
   const w = fresh();
   for (const id of [A, B, C, EVE]) assert.deepEqual(w.route(id, 'internet-001'), [id, 'internet-001'], id);
   assert.equal(w.connections.length, 4);
-  for (const d of w.devices) {
-    assert.ok(d.x >= 0 && d.x + d.width <= 1000 && d.y >= 0 && d.y + d.height <= 520, `${d.id} がキャンバス内`);
-  }
-  // 吹き出し（幅260）を同時に開いても重ならないよう、同じ段の横の間隔は260px以上
-  const top = w.devices.filter((d) => d.y < 100).sort((a, b) => a.x - b.x);
-  for (let i = 1; i < top.length; i++) assert.ok(top[i].x - top[i - 1].x >= 260, `${top[i - 1].id}→${top[i].id}`);
+  // 読み込み時は、1280px画面の左パネル付き（幅約990px）に合わせて位置が詰められる。それでも動かない位置にする
+  for (const d of w.devices) assert.ok(d.x >= 0 && d.x + d.width <= 990 && d.y >= 0 && d.y + d.height <= 520, `${d.id} がキャンバス内`);
+  // 吹き出し（幅260、デバイスの中心に開く）を4つ同時に開いても重ならない
+  const pops = [A, B, C, EVE].map((id) => w.dev(id)!).map((d) => ({ id: d.id, l: d.x + 50 - 130, r: d.x + 50 + 130 })).sort((p, q) => p.l - q.l);
+  assert.ok(pops[0].l >= 6, '左端の吹き出しは、画面の外にはみ出さない（はみ出すと隣と重なる）');
+  for (let i = 1; i < pops.length; i++) assert.ok(pops[i].l >= pops[i - 1].r, `${pops[i - 1].id} と ${pops[i].id} の吹き出しが重なる`);
 });
 
 test('テンプレート：初期の持ち物は、アリスがPと自分の秘密、ボブとキャロルが自分の秘密だけ', () => {
