@@ -691,12 +691,10 @@ function drawStar(ctx, x, y, size) {
 
 function downloadCertificate() {
     const canvas = document.getElementById('certificate-canvas');
-    const link = document.createElement('a');
-    
+
     const today = new Date();
     const dateString = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
-    
-    link.download = `画像デジタル化学習_修了証_${dateString}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+
+    // iOS（iPhone・iPad）は共有シート、PC・Androidは従来どおりダウンロード（共通処理：/scripts/certificate-download.js）
+    window.downloadCertificateImage(canvas, `画像デジタル化学習_修了証_${dateString}.png`);
 }

@@ -21,6 +21,7 @@ const questionData = yaml.load(fs.readFileSync(questionFilePath, 'utf8'));
   </div>
 </Layout>
 
+<script is:inline src="/scripts/certificate-download.js"></script>
 <script define:vars={{ questionData }}>
 const sqlQuestionData = questionData;
 
@@ -893,14 +894,10 @@ class SQLQuizSession {
   downloadCertificate() {
     const canvas = document.getElementById('certificate-canvas');
     if (!canvas) return;
-    // Create download link
-    const link = document.createElement('a');
-    link.download = `修了証_${this.questionSet?.title || 'SQLコマンド課題①SELECT文'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
-    link.href = canvas.toDataURL('image/png');
-    // Trigger download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    // iOS（iPhone・iPad）は共有シート、PC・Androidは従来どおりダウンロード（共通処理：public/scripts/certificate-download.js）
+    const fileName = `修了証_${this.questionSet?.title || 'SQLコマンド課題①SELECT文'}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
+    window.downloadCertificateImage(canvas, fileName);
   }
 
   generateTrackingInfo() {
