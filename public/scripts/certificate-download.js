@@ -3,6 +3,7 @@
 // iPhone・iPad では共有シート（Web Share API）で「写真」などに保存してもらう。
 // 共有できないときは、画像を新しいタブで開いて長押し保存を案内する。PC・Android は従来どおりダウンロードする。
 // 使い方：window.downloadCertificateImage(canvas, 'ファイル名.png')
+// JSONなどのファイルは window.downloadFileShared(blob, 'ファイル名.json')（iOSは共有シートで「ファイルに保存」、それ以外は従来どおり）
 (function () {
   function dataURLToBlob(dataUrl) {
     var parts = dataUrl.split(',');
@@ -48,5 +49,32 @@
       console.error('Failed to download certificate:', error);
       alert('修了証のダウンロードに失敗しました。');
     }
+  };
+
+  // 課題のJSONなど、Blobのファイルをダウンロードする。
+  // iOSでは共有シートに渡す（「ファイルに保存」などを選べる）。共有できない・失敗したときは、従来のリンクでダウンロードする。
+  window.downloadFileShared = async function (blob, fileName) {
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS && navigator.share) {
+      try {
+        var file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: fileName });
+          return;
+        }
+      } catch (shareError) {
+        if (shareError && shareError.name === 'AbortError') return; // ユーザーがキャンセル
+        // 共有に失敗したときは、下のリンクでのダウンロードに進む
+      }
+    }
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
   };
 })();

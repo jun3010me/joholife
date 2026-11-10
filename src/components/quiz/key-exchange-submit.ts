@@ -9,13 +9,10 @@ import { taskById, type KeyExchangeTask } from './key-exchange-tasks.ts';
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 const md = (t: string) =>
   esc(t).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>');
-const dataUrlToBlob = (dataUrl: string): Blob => {
-  const [header, base64] = dataUrl.split(',');
-  const mime = /:(.*?);/.exec(header)?.[1] ?? 'image/png';
-  const bin = atob(base64);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return new Blob([arr], { type: mime });
+/** 共通のダウンロード処理（public/scripts/certificate-download.js を各ページで読み込む） */
+const shared = () => window as unknown as {
+  downloadCertificateImage: (canvas: HTMLCanvasElement, fileName: string) => Promise<void>;
+  downloadFileShared: (blob: Blob, fileName: string) => Promise<void>;
 };
 const DIFF: Record<string, string> = { easy: '初級', medium: '中級', hard: '上級' };
 
@@ -145,17 +142,12 @@ class Session {
       </div>`;
   }
 
-  /** ブラウザ内でBlobを作ってダウンロードする（ネットワーク構築課題と同じ方式） */
+  /** ブラウザ内でBlobを作ってダウンロードする（ネットワーク構築課題と同じ方式。iOSは共有シート） */
   private downloadTemplate() {
     const t = FREE_TEMPLATES[this.task.id];
     if (!t) return;
     const blob = new Blob([JSON.stringify(t.build(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = t.fileName;
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    return shared().downloadFileShared(blob, t.fileName);
   }
 
   renderCertificate(message: string) {
@@ -181,41 +173,10 @@ class Session {
     (document.getElementById('ke-back') as HTMLElement).onclick = () => { window.location.href = '/quiz'; };
   }
 
-  /**
-   * 修了証のダウンロード。プログラミング問題演習と同じ仕組み。
-   * iOS Safari は data URL への <a download> が効かないため、共有シート（Web Share API）で「写真」などに保存してもらう。
-   * 共有できないときは、画像を新しいタブで開いて長押し保存を案内する。
-   */
-  private async downloadCertificate(canvas: HTMLCanvasElement) {
+  /** 修了証のダウンロード（iOSは共有シート、PC・Androidは従来どおり。共通処理） */
+  private downloadCertificate(canvas: HTMLCanvasElement) {
     const fileName = `修了証_${this.task.title}_${this.userName}_${new Date().toISOString().split('T')[0]}.png`;
-    try {
-      const dataUrl = canvas.toDataURL('image/png');
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (isIOS && navigator.share) {
-        const blob = dataUrlToBlob(dataUrl);
-        const file = new File([blob], fileName, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: fileName });
-            return;
-          } catch (e) {
-            if ((e as Error).name === 'AbortError') return; // ユーザーがキャンセル
-            // 共有に失敗したときは、下のフォールバックに進む
-          }
-        }
-        window.open(URL.createObjectURL(blob), '_blank');
-        alert('画像が新しいタブで開きます。画像を長押しして「写真に保存」を選択してください。');
-        return;
-      }
-      const link = document.createElement('a');
-      link.download = fileName;
-      link.href = dataUrl;
-      document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    } catch (error) {
-      console.error('Failed to download certificate:', error);
-      alert('修了証のダウンロードに失敗しました。');
-    }
+    return shared().downloadCertificateImage(canvas, fileName);
   }
 
   /** 既存の修了証と同じデザイン（800x600） */

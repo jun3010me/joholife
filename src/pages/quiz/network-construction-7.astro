@@ -1418,19 +1418,8 @@ async function downloadTemplateJSON() {
     // Get the JSON data
     const blob = await response.blob();
 
-    // Create a download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'network-construction-7-problem.json';
-
-    // Trigger download
-    document.body.appendChild(a);
-    a.click();
-
-    // Cleanup
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // iOS（iPhone・iPad）は共有シート、PC・Androidは従来どおりダウンロード（共通処理：public/scripts/certificate-download.js）
+    await window.downloadFileShared(blob, 'network-construction-7-problem.json');
 
     console.log('Template file downloaded successfully');
   } catch (error) {
