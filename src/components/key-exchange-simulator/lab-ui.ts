@@ -220,6 +220,18 @@ export function mountKeyExchangeLab(): void {
     } else {
       el.style.bottom = H - dy + 8 + 'px'; el.style.top = ''; el.style.maxHeight = Math.max(160, above) + 'px';
     }
+    fitPop(el);
+  }
+  /** 持ち物が増えても、スクロールせずに鍵をつかめるよう、収まるまで持ち物の表示を少しずつ縮める（少ないときは等倍のまま） */
+  function fitPop(el: HTMLElement) {
+    const inv = el.querySelector('.kx-inv') as HTMLElement | null, pb = el.querySelector('.kx-pb') as HTMLElement | null;
+    if (!inv || !pb) return;
+    let z = 1;
+    inv.style.setProperty('--kx-z', '1');
+    while (z > 0.55 && (pb.scrollHeight > pb.clientHeight + 1 || inv.scrollHeight > inv.clientHeight + 1)) {
+      z = Math.round((z - 0.05) * 100) / 100;
+      inv.style.setProperty('--kx-z', String(z));
+    }
   }
   const center = (d: Device) => [d.x + NW / 2, d.y + NH / 2];
   function drawWires() {
