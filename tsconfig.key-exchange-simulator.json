@@ -7,5 +7,5 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src/utils/key-exchange-lab/**/*", "src/components/key-exchange-lab/**/*"]
+  "include": ["src/utils/key-exchange-simulator/**/*", "src/components/key-exchange-simulator/**/*"]
 }

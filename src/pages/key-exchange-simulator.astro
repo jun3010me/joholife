@@ -1,7 +1,7 @@
 ---
-// key-exchange-lab.astro：鍵交換シミュレータ（鍵交換・パスキー・デジタル署名・デジタル証明書を体験するシミュレータ）
+// key-exchange-simulator.astro：鍵交換シミュレータ（鍵交換・パスキー・デジタル署名・デジタル証明書を体験するシミュレータ）
 import Layout from '../layouts/Layout.astro';
-import '../styles/key-exchange-lab.css';
+import '../styles/key-exchange-simulator.css';
 
 // パレット・ボタンバー・案内ボックスは、ネットワークシミュレータの既存CSSをそのまま使う。
 // public配下はキャッシュ無効化の仕組みが無いため、既存CSSを更新したらこの値も上げること。
@@ -49,7 +49,7 @@ const ASSET_VERSION = '20260801-1';
   </div>
 
   <script>
-    import { mountKeyExchangeLab } from '../components/key-exchange-lab/lab-ui.ts';
+    import { mountKeyExchangeLab } from '../components/key-exchange-simulator/lab-ui.ts';
     mountKeyExchangeLab();
   </script>
 </Layout>

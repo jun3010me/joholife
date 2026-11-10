@@ -1,10 +1,10 @@
 // 鍵交換シミュレータ：画面の操作（試作の動きをそのまま移した）。ルールはすべてエンジン側にある。
-import { KeyLab, DEVICE_TYPES, PERSON_COLORS } from '../../utils/key-exchange-lab/engine/world.ts';
-import { MACH, TAMPER_DEFAULT } from '../../utils/key-exchange-lab/engine/machines.ts';
-import { NH, NW } from '../../utils/key-exchange-lab/engine/layout.ts';
-import { SCENARIOS, SCENARIO_LIST } from '../../utils/key-exchange-lab/scenarios/index.ts';
-import { DOC_TEXT } from '../../utils/key-exchange-lab/scenarios/sig.ts';
-import type { Device, DeviceType, MachineId, Result, Tone } from '../../utils/key-exchange-lab/engine/types.ts';
+import { KeyLab, DEVICE_TYPES, PERSON_COLORS } from '../../utils/key-exchange-simulator/engine/world.ts';
+import { MACH, TAMPER_DEFAULT } from '../../utils/key-exchange-simulator/engine/machines.ts';
+import { NH, NW } from '../../utils/key-exchange-simulator/engine/layout.ts';
+import { SCENARIOS, SCENARIO_LIST } from '../../utils/key-exchange-simulator/scenarios/index.ts';
+import { DOC_TEXT } from '../../utils/key-exchange-simulator/scenarios/sig.ts';
+import type { Device, DeviceType, MachineId, Result, Tone } from '../../utils/key-exchange-simulator/engine/types.ts';
 import { ICON, PCOL, esc, itemHTML } from './visuals.ts';
 
 type Src =
@@ -432,9 +432,9 @@ export function mountKeyExchangeLab(): void {
   $('#kx-btn-save').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(lab.toJSON(), null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = 'key-exchange-lab.json';
+    a.href = url; a.download = 'key-exchange-simulator.json';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    say('保存しました（key-exchange-lab.json）。', 'ok');
+    say('保存しました（key-exchange-simulator.json）。', 'ok');
   });
   const fileInput = $<HTMLInputElement>('#kx-file');
   $('#kx-btn-load').addEventListener('click', () => fileInput.click());

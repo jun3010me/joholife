@@ -1,7 +1,7 @@
 // 鍵交換シミュレータ：持ち物・アイコンの見た目（HTML文字列）
-import type { Item, ItemData } from '../../utils/key-exchange-lab/engine/types.ts';
-import { isSecret } from '../../utils/key-exchange-lab/engine/items.ts';
-import type { KeyLab } from '../../utils/key-exchange-lab/engine/world.ts';
+import type { Item, ItemData } from '../../utils/key-exchange-simulator/engine/types.ts';
+import { isSecret } from '../../utils/key-exchange-simulator/engine/items.ts';
+import type { KeyLab } from '../../utils/key-exchange-simulator/engine/world.ts';
 
 export const PCOL = '#2e8f88';
 const CERTC = '#8a6d1a', PRIVC = '#7a5a2a', PUBC = '#3b7fb3', CHC = '#8a6d1a', SIGC = '#5a63b8';
