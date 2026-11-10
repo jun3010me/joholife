@@ -19,6 +19,9 @@ import Layout from '../layouts/Layout.astro';
                     <input type="checkbox" id="trace-visibility-toggle" checked>
                     <span>🔍 変数トレースを表示</span>
                 </label>
+                <button type="button" id="editor-theme-toggle" class="code-visibility-toggle ratio-toggle" title="コードエディタの配色（ダーク／ライト）を切り替え（印刷にはライトがおすすめです）">
+                    <span id="editor-theme-label">🌙 ダークモード</span>
+                </button>
                 <button type="button" id="column-ratio-toggle" class="code-visibility-toggle ratio-toggle" title="コードエディタと右側の幅の比率を切り替え">
                     <span>↔️ 幅の比率 <span id="column-ratio-label">1:1</span></span>
                 </button>
@@ -186,6 +189,31 @@ import Layout from '../layouts/Layout.astro';
         // 見た目が壊れない範囲でできるだけ小さくしてある。
         const CODE_EDITOR_MIN_HEIGHT = 60;
 
+        // エディタの配色テーマ（既定はダーク。選択はlocalStorageに保存）
+        const EDITOR_THEMES = { dark: 'material-darker', light: 'default' };
+        function getSavedEditorTheme() {
+            try {
+                return localStorage.getItem('pythonPlaygroundEditorTheme') === 'light' ? 'light' : 'dark';
+            } catch (err) {
+                return 'dark';
+            }
+        }
+        let editorTheme = getSavedEditorTheme();
+
+        function applyEditorTheme(theme) {
+            editorTheme = theme === 'light' ? 'light' : 'dark';
+            if (codeEditor) codeEditor.setOption('theme', EDITOR_THEMES[editorTheme]);
+            const container = document.getElementById('code-editor-container');
+            if (container) container.classList.toggle('editor-theme-light', editorTheme === 'light');
+            const fallback = document.getElementById('fallback-editor');
+            if (fallback) container && container.classList.toggle('editor-theme-light', editorTheme === 'light');
+            const label = document.getElementById('editor-theme-label');
+            if (label) {
+                label.textContent = editorTheme === 'light' ? '☀️ ライトモード' : '🌙 ダークモード';
+            }
+            if (codeEditor) codeEditor.refresh();
+        }
+
         // CodeMirrorの読み込みと初期化
         async function initCodeEditor() {
             try {
@@ -201,7 +229,7 @@ import Layout from '../layouts/Layout.astro';
                 codeEditor = CodeMirror(editorElement, {
                     value: '',
                     mode: 'python',
-                    theme: 'material-darker',
+                    theme: EDITOR_THEMES[editorTheme],
                     lineNumbers: true,
                     indentUnit: 4,
                     indentWithTabs: false,
@@ -2022,6 +2050,14 @@ def __tracer__(frame, event, arg):
                 try { localStorage.setItem('pythonPlaygroundTraceVisible', String(e.target.checked)); } catch (err) {}
             });
 
+            // エディタの配色（ダーク／ライト）切り替え
+            applyEditorTheme(editorTheme);
+            document.getElementById('editor-theme-toggle').addEventListener('click', () => {
+                const next = editorTheme === 'dark' ? 'light' : 'dark';
+                applyEditorTheme(next);
+                try { localStorage.setItem('pythonPlaygroundEditorTheme', next); } catch (err) {}
+            });
+
             // コードエディタと右側の幅の比率を切り替え
             document.getElementById('column-ratio-toggle').addEventListener('click', () => {
                 cycleColumnRatio();
@@ -2398,6 +2434,36 @@ def __tracer__(frame, event, arg):
         .cm-s-material-darker .CodeMirror-line > span::selection,
         .cm-s-material-darker .CodeMirror-line > span > span::selection {
             background: rgba(128, 203, 196, 0.4) !important;
+        }
+
+        /* ライトモード（CodeMirror標準の default テーマ）用の調整 */
+        .CodeMirror.cm-s-default {
+            background: #ffffff;
+            color: #1e293b;
+        }
+        .cm-s-default .CodeMirror-gutters {
+            background: #f1f5f9;
+            border-right: 1px solid #e2e8f0;
+        }
+        .cm-s-default .CodeMirror-activeline-background {
+            background: #f1f5f9;
+        }
+        .CodeMirror.cm-s-default .CodeMirror-selected,
+        .cm-s-default .CodeMirror-selected,
+        .cm-s-default.CodeMirror-focused .CodeMirror-selected {
+            background: rgba(37, 99, 235, 0.25) !important;
+        }
+        .cm-s-default .CodeMirror-line::selection,
+        .cm-s-default .CodeMirror-line > span::selection,
+        .cm-s-default .CodeMirror-line > span > span::selection {
+            background: rgba(37, 99, 235, 0.25) !important;
+        }
+        .cm-s-default .active-trace-line {
+            background: rgba(37, 99, 235, 0.18) !important;
+        }
+        #code-editor-container.editor-theme-light #fallback-editor {
+            background: #ffffff;
+            color: #1e293b;
         }
 
         /* フォールバックエディタのスタイル */
