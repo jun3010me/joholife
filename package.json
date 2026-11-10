@@ -7,8 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --test \"src/utils/linux-terminal/__tests__/*.test.ts\"",
-    "lint": "tsc -p tsconfig.linux-terminal.json"
+    "test": "node --test \"src/utils/linux-terminal/__tests__/*.test.ts\" \"src/utils/key-exchange-lab/__tests__/*.test.ts\"",
+    "lint": "tsc -p tsconfig.linux-terminal.json && tsc -p tsconfig.key-exchange-lab.json"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.0",
