@@ -2111,15 +2111,24 @@ class QuizSession {
     
     // Download button event
     if (downloadBtn) {
-      downloadBtn.addEventListener('click', () => {
+      downloadBtn.addEventListener('click', async () => {
         const fileUrl = downloadBtn.getAttribute('data-file-url');
-        if (fileUrl) {
+        if (!fileUrl) return;
+        // 配布用JSONはCDN/ブラウザにキャッシュされ得るため、更新のたびに
+        // 確実に最新版がダウンロードされるようキャッシュバスティング用のクエリを付与する
+        const separator = fileUrl.includes('?') ? '&' : '?';
+        const url = `${fileUrl}${separator}v=${Date.now()}`;
+        const fileName = 'network-troubleshooting-problem.json';
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('Failed to fetch problem file');
+          // iOS（iPhone・iPad）は共有シート、PC・Androidは従来どおりダウンロード（共通処理：public/scripts/certificate-download.js）
+          await window.downloadFileShared(await res.blob(), fileName);
+        } catch (error) {
+          // 取得や共有でつまずいたときは、従来のリンクでダウンロードする
           const link = document.createElement('a');
-          // 配布用JSONはCDN/ブラウザにキャッシュされ得るため、更新のたびに
-          // 確実に最新版がダウンロードされるようキャッシュバスティング用のクエリを付与する
-          const separator = fileUrl.includes('?') ? '&' : '?';
-          link.href = `${fileUrl}${separator}v=${Date.now()}`;
-          link.download = 'network-troubleshooting-problem.json';
+          link.href = url;
+          link.download = fileName;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
