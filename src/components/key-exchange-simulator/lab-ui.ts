@@ -1,7 +1,7 @@
 // 鍵交換シミュレータ：画面の操作（試作の動きをそのまま移した）。ルールはすべてエンジン側にある。
 import { KeyLab, DEVICE_TYPES, PERSON_COLORS } from '../../utils/key-exchange-simulator/engine/world.ts';
 import { MACH, TAMPER_DEFAULT } from '../../utils/key-exchange-simulator/engine/machines.ts';
-import { NH, NW } from '../../utils/key-exchange-simulator/engine/layout.ts';
+import { NH, NW, TOP_RESERVE } from '../../utils/key-exchange-simulator/engine/layout.ts';
 import { SCENARIOS, SCENARIO_LIST } from '../../utils/key-exchange-simulator/scenarios/index.ts';
 import { DOC_TEXT } from '../../utils/key-exchange-simulator/scenarios/sig.ts';
 import type { Device, DeviceType, MachineId, Result, Tone } from '../../utils/key-exchange-simulator/engine/types.ts';
@@ -48,7 +48,9 @@ export function mountKeyExchangeLab(): void {
     lab.size = { w, h, s: scale };
   };
   const clampX = (x: number) => Math.max(0, Math.min(CW() - NW, x));
-  const clampY = (y: number) => Math.max(0, Math.min(CH() - NH, y));
+  // 縮小表示（スマホ）のときは、上端の案内ボックス・メッセージの下にだけデバイスを置ける
+  const minY = () => (scale < 1 ? Math.min(TOP_RESERVE / scale, CH() - NH) : 0);
+  const clampY = (y: number) => Math.max(minY(), Math.min(CH() - NH, y));
   const clampAll = () => lab.devices.forEach((d) => { d.x = clampX(d.x); d.y = clampY(d.y); });
   /** 重なっているデバイスを、近くの空いた場所へずらす（別の画面サイズで保存したデータを読み込んだとき用） */
   function separateOverlaps() {

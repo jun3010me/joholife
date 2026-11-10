@@ -2,6 +2,8 @@
 export const NW = 100;
 export const NH = 74;
 export const POPW = 260;
+/** 縮小表示（スマホ）のとき、画面上端の「タブ・案内ボックス・メッセージ」が占める高さ（画面上のpx） */
+export const TOP_RESERVE = 140;
 
 export interface Size {
   w: number;
@@ -19,9 +21,9 @@ export function pos(size: Size, k: number, y: number | 'b', maxk = 1): [number, 
   const sp = Math.min(POPW + 14, (size.w - NW - 24) / (2 * maxk));
   const cx = size.w / 2;
   // 狭い画面では、右上の案内ボックスと重ならないよう上の段を少し下げる
-  // 縮小表示（スマホ）のときは、上に重なる案内ボックス＋メッセージ（画面上で約140px）の下に上段を置く
+  // 縮小表示（スマホ）のときは、上に重なる案内ボックス＋メッセージの下に上段を置く
   const s = size.s ?? 1;
-  const yy = y === 'b' ? size.h - NH - 70 : s < 1 ? Math.max(y, 140 / s) : size.w < 760 ? y + 36 : y;
+  const yy = y === 'b' ? size.h - NH - 70 : s < 1 ? Math.max(y, TOP_RESERVE / s) : size.w < 760 ? y + 36 : y;
   return [
     Math.round(cx + k * sp - NW / 2),
     Math.round(Math.max(8, Math.min(yy, size.h - NH - 16))),
