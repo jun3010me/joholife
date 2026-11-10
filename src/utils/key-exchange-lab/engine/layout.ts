@@ -16,7 +16,8 @@ export interface Size {
 export function pos(size: Size, k: number, y: number | 'b', maxk = 1): [number, number] {
   const sp = Math.min(POPW + 14, (size.w - NW - 24) / (2 * maxk));
   const cx = size.w / 2;
-  const yy = y === 'b' ? size.h - NH - 70 : y;
+  // 狭い画面では、右上の案内ボックスと重ならないよう上の段を少し下げる
+  const yy = y === 'b' ? size.h - NH - 70 : size.w < 760 ? y + 36 : y;
   return [
     Math.round(cx + k * sp - NW / 2),
     Math.round(Math.max(8, Math.min(yy, size.h - NH - 16))),

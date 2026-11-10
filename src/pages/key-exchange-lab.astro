@@ -1,0 +1,55 @@
+---
+// key-exchange-lab.astro：鍵交換ラボ（鍵交換・パスキー・デジタル署名・デジタル証明書を体験するシミュレータ）
+import Layout from '../layouts/Layout.astro';
+import '../styles/key-exchange-lab.css';
+
+// パレット・ボタンバー・案内ボックスは、ネットワークシミュレータの既存CSSをそのまま使う。
+// public配下はキャッシュ無効化の仕組みが無いため、既存CSSを更新したらこの値も上げること。
+const ASSET_VERSION = '20260801-1';
+---
+
+<Layout title="鍵交換ラボ" description="盗み見される通信路での鍵の共有（ディフィー・ヘルマン鍵交換）、パスキー、デジタル署名、デジタル証明書を、操作して体験できるシミュレータです。">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover, shrink-to-fit=no">
+  <link rel="stylesheet" href={`/network-simulator/styles/main.css?v=${ASSET_VERSION}`}>
+  <link rel="stylesheet" href={`/network-simulator/styles/mobile.css?v=${ASSET_VERSION}`}>
+
+  <div class="app-container kx-page">
+    <!-- パレット：デバイス ｜ 鍵・文書 ｜ ゴミ箱 -->
+    <div class="device-palette">
+      <div class="palette-content" id="kx-palette"></div>
+    </div>
+
+    <div class="main-canvas">
+      <div class="canvas-container">
+        <div class="kx-stage" id="kx-stage">
+          <div class="kx-canvas" id="kx-canvas" data-drop="canvas">
+            <svg class="kx-wires" id="kx-wires" aria-hidden="true"></svg>
+            <div id="kx-nodes"></div>
+          </div>
+          <div class="kx-drawer" id="kx-drawer">
+            <div class="kx-dpanel" id="kx-dpanel"></div>
+            <button class="kx-dtab" type="button" id="kx-dtab" aria-controls="kx-dpanel">シナリオ</button>
+          </div>
+          <div class="status-panel kx-info" id="kx-info"></div>
+          <div class="kx-toast" id="kx-toast" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-panel kx-bar">
+      <button class="control-button" type="button" id="kx-btn-reset">クリア</button>
+      <div class="kx-seg" role="group" aria-label="モード">
+        <button type="button" data-mode="scenario">シナリオ</button>
+        <button type="button" data-mode="free">自由モード</button>
+      </div>
+      <button class="control-button" type="button" id="kx-btn-save">💾 保存</button>
+      <button class="control-button" type="button" id="kx-btn-load">📁 読込</button>
+    </div>
+    <input type="file" id="kx-file" accept=".json,application/json" style="display: none;">
+  </div>
+
+  <script>
+    import { mountKeyExchangeLab } from '../components/key-exchange-lab/lab-ui.ts';
+    mountKeyExchangeLab();
+  </script>
+</Layout>
