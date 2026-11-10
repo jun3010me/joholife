@@ -251,3 +251,10 @@ questionSets:
   difficulty: medium
   estimatedTime: 15
   category: 暗号・認証
+- id: key-exchange-three
+  title: 鍵交換課題⑥3人で共有鍵を作る
+  description: 自由モードで、アリス・ボブ・キャロルが同じ共有鍵を作る
+  icon: 👥
+  difficulty: hard
+  estimatedTime: 25
+  category: 暗号・認証
