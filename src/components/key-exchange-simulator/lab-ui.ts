@@ -32,11 +32,42 @@ export function mountKeyExchangeLab(): void {
   let tmpLine: number[] | null = null;
   const sameSrc = (a: Src | null, b: Src) => !!a && JSON.stringify(a) === JSON.stringify(b);
 
-  const CW = () => canvas.clientWidth, CH = () => canvas.clientHeight;
-  const syncSize = () => { lab.size = { w: CW(), h: CH() }; };
+  // 狭い画面では、デバイスと線の層（ワールド）を縮小して全体を画面幅に収める。
+  // 座標（デバイスの位置・保存データ）は縮小前の論理座標で持ち、吹き出しだけは等倍で別の層に出す。
+  const worldEl = $('#kx-world'), popsEl = $('#kx-pops');
+  const FIT_W = 640;       // 論理幅の下限（これより画面が狭いときに縮小する）
+  const MIN_SCALE = 0.5;   // 縮小しすぎて読めなくならないための下限
+  let scale = 1;
+  const CW = () => canvas.clientWidth / scale, CH = () => canvas.clientHeight / scale;
+  const syncSize = () => {
+    scale = Math.max(MIN_SCALE, Math.min(1, canvas.clientWidth / FIT_W));
+    const w = canvas.clientWidth / scale, h = canvas.clientHeight / scale;
+    worldEl.style.width = w + 'px'; worldEl.style.height = h + 'px';
+    worldEl.style.transform = scale < 1 ? `scale(${scale})` : '';
+    worldEl.style.setProperty('--kx-iscale', String(Math.min(1.6, 1 / scale)));
+    lab.size = { w, h, s: scale };
+  };
   const clampX = (x: number) => Math.max(0, Math.min(CW() - NW, x));
   const clampY = (y: number) => Math.max(0, Math.min(CH() - NH, y));
   const clampAll = () => lab.devices.forEach((d) => { d.x = clampX(d.x); d.y = clampY(d.y); });
+  /** 重なっているデバイスを、近くの空いた場所へずらす（別の画面サイズで保存したデータを読み込んだとき用） */
+  function separateOverlaps() {
+    const GAP = 10, placed: Device[] = [];
+    const hit = (x: number, y: number) => placed.some((o) => Math.abs(o.x - x) < NW + GAP && Math.abs(o.y - y) < NH + GAP);
+    for (const d of lab.devices) {
+      if (hit(d.x, d.y)) {
+        let found = false;
+        // 元の位置に近い順に、下・右・上・左へ広げながら空きを探す
+        for (let r = 1; r <= 12 && !found; r++) {
+          for (const [dx, dy] of [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+            const x = clampX(d.x + dx * r * (NW + GAP)), y = clampY(d.y + dy * r * (NH + GAP));
+            if (!hit(x, y)) { d.x = x; d.y = y; found = true; break; }
+          }
+        }
+      }
+      placed.push(d);
+    }
+  }
 
   function say(t: string, tone: Tone = 'info') {
     const el = $('#kx-toast');
@@ -137,7 +168,8 @@ export function mountKeyExchangeLab(): void {
       <span class="kx-ic">${ICON[d.type]}</span><span class="kx-nm">${esc(d.name)}</span>${devSub(d)}
       ${d.items.length && !ui.open.includes(d.id) ? `<span class="kx-cnt">${d.items.length}</span>` : ''}
       ${free ? `<span class="kx-handle" data-handle="${d.id}" title="ドラッグしてつなぐ"></span>` : ''}</div>`).join('');
-    nodesEl.innerHTML = nodes + ui.open.map((id, z) => { const d = lab.dev(id); return d ? popHTML(d, z) : ''; }).join('');
+    nodesEl.innerHTML = nodes;
+    popsEl.innerHTML = ui.open.map((id, z) => { const d = lab.dev(id); return d ? popHTML(d, z) : ''; }).join('');
     ui.open.forEach((id) => { const d = lab.dev(id); if (d) placePop(d); });
   }
   function popHTML(d: Device, z: number): string {
@@ -174,13 +206,17 @@ export function mountKeyExchangeLab(): void {
   function placePop(d: Device) {
     const el = document.querySelector(`[data-pop="${d.id}"]`) as HTMLElement | null;
     if (!el) return;
-    const W = CW(), H = CH(), pw = Math.min(260, W - 12);
-    el.style.left = Math.max(6, Math.min(W - pw - 6, d.x + NW / 2 - pw / 2)) + 'px';
-    const below = H - (d.y + NH + 8) - 8, above = d.y - 8 - 8;
+    // 吹き出しは縮小しない層にあるので、デバイスの位置は画面上の座標（論理座標×縮小率）に直して使う
+    const W = canvas.clientWidth, H = canvas.clientHeight, pw = Math.min(260, W - 12);
+    const dx = d.x * scale, dy = d.y * scale, nw = NW * scale, nh = NH * scale;
+    el.style.left = Math.max(6, Math.min(W - pw - 6, dx + nw / 2 - pw / 2)) + 'px';
+    // スマホでは、上に重なる案内ボックス・メッセージ（画面上で約130px）の下までしか上へ伸ばさない
+    const reserve = W < 640 ? 130 : 0;
+    const below = H - (dy + nh + 8) - 8, above = dy - 8 - 8 - reserve;
     if (below >= Math.min(280, above) || below >= 260) {
-      el.style.top = d.y + NH + 8 + 'px'; el.style.bottom = ''; el.style.maxHeight = Math.max(160, below) + 'px';
+      el.style.top = dy + nh + 8 + 'px'; el.style.bottom = ''; el.style.maxHeight = Math.max(160, below) + 'px';
     } else {
-      el.style.bottom = H - d.y + 8 + 'px'; el.style.top = ''; el.style.maxHeight = Math.max(160, above) + 'px';
+      el.style.bottom = H - dy + 8 + 'px'; el.style.top = ''; el.style.maxHeight = Math.max(160, above) + 'px';
     }
   }
   const center = (d: Device) => [d.x + NW / 2, d.y + NH / 2];
@@ -205,7 +241,7 @@ export function mountKeyExchangeLab(): void {
     if (ui.open.includes(id)) ui.open = ui.open.filter((x) => x !== id);
     else {
       ui.open.push(id); ui.justOpened = id;
-      if (window.innerWidth < 600 && ui.open.length > 2) ui.open.shift();
+      if (canvas.clientWidth < 640 && ui.open.length > 1) ui.open.shift(); // スマホでは吹き出しを1つだけ開く
     }
     render();
   }
@@ -216,7 +252,7 @@ export function mountKeyExchangeLab(): void {
   }
 
   // ---------- ドロップ ----------
-  const canvasPoint = (e: PointerEvent | MouseEvent): [number, number] => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const canvasPoint = (e: PointerEvent | MouseEvent): [number, number] => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / scale, (e.clientY - r.top) / scale]; };
   function srcOf(el: HTMLElement): Src {
     const d = el.dataset;
     if (d.drag === 'pdev') return { kind: 'pdev', type: d.type as DeviceType };
@@ -324,8 +360,9 @@ export function mountKeyExchangeLab(): void {
       return;
     }
     if (mv) {
-      const dx = e.clientX - mv.x0, dy = e.clientY - mv.y0;
-      if (!mv.moved && Math.hypot(dx, dy) < 5) return;
+      const px = e.clientX - mv.x0, py = e.clientY - mv.y0;
+      if (!mv.moved && Math.hypot(px, py) < 5) return;
+      const dx = px / scale, dy = py / scale; // 画面上の移動量 → 論理座標
       mv.moved = true;
       mv.d.x = clampX(mv.ox + dx); mv.d.y = clampY(mv.oy + dy);
       mv.el.style.left = mv.d.x + 'px'; mv.el.style.top = mv.d.y + 'px';
@@ -445,7 +482,7 @@ export function mountKeyExchangeLab(): void {
       try {
         syncSize();
         lab.load(JSON.parse(String(rd.result)));
-        clampAll(); ui.slots = {}; ui.pick = null; ui.open = [];
+        clampAll(); separateOverlaps(); ui.slots = {}; ui.pick = null; ui.open = [];
         stage.classList.toggle('kx-dopen', lab.mode === 'scenario' && ui.drawer);
         syncSize(); clampAll(); fresh.clear(); render();
         say('JSONを読み込みました。続きから操作できます。', 'ok');

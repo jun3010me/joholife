@@ -6,6 +6,8 @@ export const POPW = 260;
 export interface Size {
   w: number;
   h: number;
+  /** 画面の縮小率（1 = 等倍）。縮小表示のとき、論理サイズ w,h は画面サイズ÷s になる */
+  s?: number;
 }
 
 /**
@@ -17,7 +19,9 @@ export function pos(size: Size, k: number, y: number | 'b', maxk = 1): [number, 
   const sp = Math.min(POPW + 14, (size.w - NW - 24) / (2 * maxk));
   const cx = size.w / 2;
   // 狭い画面では、右上の案内ボックスと重ならないよう上の段を少し下げる
-  const yy = y === 'b' ? size.h - NH - 70 : size.w < 760 ? y + 36 : y;
+  // 縮小表示（スマホ）のときは、上に重なる案内ボックス＋メッセージ（画面上で約140px）の下に上段を置く
+  const s = size.s ?? 1;
+  const yy = y === 'b' ? size.h - NH - 70 : s < 1 ? Math.max(y, 140 / s) : size.w < 760 ? y + 36 : y;
   return [
     Math.round(cx + k * sp - NW / 2),
     Math.round(Math.max(8, Math.min(yy, size.h - NH - 16))),

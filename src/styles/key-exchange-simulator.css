@@ -33,6 +33,10 @@
 }
 .kx-canvas.kx-over { box-shadow: inset 0 0 0 3px var(--kx-primary); }
 @media (min-width: 760px) { .kx-stage.kx-dopen .kx-canvas { left: 290px; } }
+/* 縮小表示：ワールド層は論理サイズ（画面幅÷縮小率）で作り、transform: scale で画面に収める */
+.kx-world { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+.kx-pops { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.kx-pops > .kx-pop { pointer-events: auto; }
 .kx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .kx-wire { stroke: var(--kx-wire); stroke-width: 3; stroke-linecap: round; fill: none; }
 .kx-wire.kx-tap { stroke: var(--kx-tap); stroke-dasharray: 7 6; stroke-width: 2.5; }
@@ -58,7 +62,8 @@
 .kx-cnt { position: absolute; top: -8px; right: -8px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--kx-primary); color: #fff;
   font-size: 10.5px; font-weight: 700; display: grid; place-items: center; padding: 0 5px; }
 .kx-handle { position: absolute; right: -8px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--kx-primary);
-  border: 3px solid #fff; box-shadow: 0 0 0 1px var(--kx-primary); cursor: crosshair; touch-action: none; }
+  border: 3px solid #fff; box-shadow: 0 0 0 1px var(--kx-primary); cursor: crosshair; touch-action: none;
+  transform: scale(var(--kx-iscale, 1)); } /* 縮小表示中も、つなぐ丸がつまめる大きさを保つ */
 
 /* 持ち物の吹き出し */
 .kx-pop { position: absolute; width: 260px; max-width: calc(100% - 12px); background: #fff; border: 1px solid var(--kx-line); border-radius: 10px;
@@ -180,6 +185,12 @@
 
 /* 狭い画面：タブを横長にして左上へ。開いたときはパネルの上に重なる */
 @media (max-width: 759px) {
-  .kx-dtab { position: absolute; top: 8px; left: 8px; margin: 0; writing-mode: horizontal-tb; border-left: 1px solid var(--kx-line); border-radius: 8px; padding: 6px 10px; z-index: 2; }
+  .kx-dtab { position: absolute; top: 8px; left: 8px; margin: 0; writing-mode: horizontal-tb; white-space: nowrap; border-left: 1px solid var(--kx-line); border-radius: 8px; padding: 6px 10px; z-index: 2; }
   .kx-dpanel { padding-top: 48px; }
+}
+/* スマホ（縮小表示）：案内とメッセージを横いっぱいに広げ、タブの下に置く。上段のデバイスはその下に並ぶ */
+@media (max-width: 639px) {
+  .kx-topright { top: 46px; left: 8px; right: 8px; max-width: none; align-items: stretch; }
+  .kx-page .status-panel.kx-info { width: 100%; box-sizing: border-box; }
+  .kx-toast { box-sizing: border-box; }
 }
