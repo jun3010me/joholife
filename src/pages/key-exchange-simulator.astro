@@ -23,8 +23,12 @@ const ASSET_VERSION = '20260801-1';
       <div class="canvas-container">
         <div class="kx-stage" id="kx-stage">
           <div class="kx-canvas" id="kx-canvas" data-drop="canvas">
-            <svg class="kx-wires" id="kx-wires" aria-hidden="true"></svg>
-            <div id="kx-nodes"></div>
+            <!-- 画面が狭いときは、この層だけを縮小して全体を収める（吹き出しは等倍のまま別の層） -->
+            <div class="kx-world" id="kx-world">
+              <svg class="kx-wires" id="kx-wires" aria-hidden="true"></svg>
+              <div id="kx-nodes"></div>
+            </div>
+            <div class="kx-pops" id="kx-pops"></div>
           </div>
           <div class="kx-drawer" id="kx-drawer">
             <div class="kx-dpanel" id="kx-dpanel"></div>
