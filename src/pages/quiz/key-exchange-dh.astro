@@ -1,0 +1,18 @@
+---
+// 鍵交換課題（シナリオ「dh」）：保存したJSONを提出して、修了証を発行する
+import Layout from '../../layouts/Layout.astro';
+import { taskById } from '../../components/quiz/key-exchange-tasks.ts';
+
+const task = taskById('key-exchange-dh')!;
+---
+
+<Layout title={`${task.title} - じょうほうらいふ`}>
+  <div class="container mx-auto px-4 py-8">
+    <div id="ke-submit-app" data-task={task.id}></div>
+  </div>
+</Layout>
+
+<script>
+  import { mountKeyExchangeSubmit } from '../../components/quiz/key-exchange-submit.ts';
+  mountKeyExchangeSubmit();
+</script>
