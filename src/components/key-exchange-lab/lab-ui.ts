@@ -1,4 +1,4 @@
-// 鍵交換ラボ：画面の操作（試作の動きをそのまま移した）。ルールはすべてエンジン側にある。
+// 鍵交換シミュレータ：画面の操作（試作の動きをそのまま移した）。ルールはすべてエンジン側にある。
 import { KeyLab, DEVICE_TYPES, PERSON_COLORS } from '../../utils/key-exchange-lab/engine/world.ts';
 import { MACH, TAMPER_DEFAULT } from '../../utils/key-exchange-lab/engine/machines.ts';
 import { NH, NW } from '../../utils/key-exchange-lab/engine/layout.ts';
@@ -121,7 +121,7 @@ export function mountKeyExchangeLab(): void {
     if (lab.mode === 'scenario' && lab.scenario) {
       const sc = SCENARIOS[lab.scenario.id], st = lab.scenario, now = st.steps.findIndex((s) => !s.done), done = st.steps.filter((s) => s.done).length;
       h = `<b>${esc(sc.title)}（${done}/${sc.steps.length}）</b>${st.completed ? '完了しました！' : st.failed ? '失敗。クリアでやり直せます' : esc(sc.steps[now]?.text || '')}`;
-    } else h = '<b>鍵交換ラボ（自由モード）</b>デバイスを配置して、つないでください';
+    } else h = '<b>鍵交換シミュレータ（自由モード）</b>デバイスを配置して、つないでください';
     $('#kx-info').innerHTML = h;
   }
   function devSub(d: Device): string {

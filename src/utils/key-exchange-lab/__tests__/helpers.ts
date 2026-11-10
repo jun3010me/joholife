@@ -2,7 +2,7 @@ import { KeyLab } from '../engine/world.ts';
 import type { Item, ItemKind } from '../engine/types.ts';
 import { sameParts } from '../engine/items.ts';
 
-/** 乱数を固定したラボ（テストを毎回同じ結果にする） */
+/** 乱数を固定したシミュレータ（テストを毎回同じ結果にする） */
 export function newLab(): KeyLab {
   let n = 0;
   return new KeyLab({ size: { w: 1200, h: 640 }, rng: () => ((n = (n * 7 + 3) % 97) / 97), now: () => new Date('2026-11-10T02:30:00.000Z') });

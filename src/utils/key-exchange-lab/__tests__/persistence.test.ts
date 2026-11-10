@@ -51,8 +51,8 @@ test('完了済みの記録は読み込んでも残る。読込後に続きの�
 
 test('別のシミュレータのファイルは読み込まない', () => {
   const w = newLab();
-  assert.throws(() => w.load({ version: '1.0', devices: [], connections: [] }), /鍵交換ラボ/);
-  assert.throws(() => w.load({ simulator: 'network', version: '1.0', devices: [] }), /鍵交換ラボ/);
+  assert.throws(() => w.load({ version: '1.0', devices: [], connections: [] }), /鍵交換シミュレータ/);
+  assert.throws(() => w.load({ simulator: 'network', version: '1.0', devices: [] }), /鍵交換シミュレータ/);
   assert.throws(() => w.load(null));
 });
 

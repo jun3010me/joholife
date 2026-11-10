@@ -1,4 +1,4 @@
-// 鍵交換ラボ：持ち物・アイコンの見た目（HTML文字列）
+// 鍵交換シミュレータ：持ち物・アイコンの見た目（HTML文字列）
 import type { Item, ItemData } from '../../utils/key-exchange-lab/engine/types.ts';
 import { isSecret } from '../../utils/key-exchange-lab/engine/items.ts';
 import type { KeyLab } from '../../utils/key-exchange-lab/engine/world.ts';

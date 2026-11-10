@@ -1,5 +1,5 @@
 ---
-// key-exchange-lab.astro：鍵交換ラボ（鍵交換・パスキー・デジタル署名・デジタル証明書を体験するシミュレータ）
+// key-exchange-lab.astro：鍵交換シミュレータ（鍵交換・パスキー・デジタル署名・デジタル証明書を体験するシミュレータ）
 import Layout from '../layouts/Layout.astro';
 import '../styles/key-exchange-lab.css';
 
@@ -8,7 +8,7 @@ import '../styles/key-exchange-lab.css';
 const ASSET_VERSION = '20260801-1';
 ---
 
-<Layout title="鍵交換ラボ" description="盗み見される通信路での鍵の共有（ディフィー・ヘルマン鍵交換）、パスキー、デジタル署名、デジタル証明書を、操作して体験できるシミュレータです。">
+<Layout title="鍵交換シミュレータ" description="盗み見される通信路での鍵の共有（ディフィー・ヘルマン鍵交換）、パスキー、デジタル署名、デジタル証明書を、操作して体験できます。">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover, shrink-to-fit=no">
   <link rel="stylesheet" href={`/network-simulator/styles/main.css?v=${ASSET_VERSION}`}>
   <link rel="stylesheet" href={`/network-simulator/styles/mobile.css?v=${ASSET_VERSION}`}>

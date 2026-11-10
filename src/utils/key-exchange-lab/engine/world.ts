@@ -325,7 +325,7 @@ export class KeyLab {
 
   /** 保存データを読み込む。別のシミュレータのファイルは Error を投げる */
   load(data: any): void {
-    if (!data || data.simulator !== 'key-exchange') throw new Error('鍵交換ラボの保存ファイルではありません');
+    if (!data || data.simulator !== 'key-exchange') throw new Error('鍵交換シミュレータの保存ファイルではありません');
     if (!data.version || !Array.isArray(data.devices)) throw new Error('不正なファイル形式です');
     this.reset(data.mode === 'scenario' ? 'scenario' : 'free');
     this.flags = { ...(data.flags ?? {}) };

@@ -1,4 +1,4 @@
-// 鍵交換ラボ：型定義（UI非依存）
+// 鍵交換シミュレータ：型定義（UI非依存）
 
 export type Tone = 'info' | 'ok' | 'warn' | 'bad';
 
