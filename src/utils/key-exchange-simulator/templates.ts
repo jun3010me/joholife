@@ -30,7 +30,28 @@ export function buildThreePersonTemplate(): Record<string, unknown> {
   return JSON.parse(JSON.stringify(w.toJSON()));
 }
 
+/** 中間者攻撃を成功させる課題（key-exchange-mitm）の初期配置 */
+export function buildMitmTemplate(): Record<string, unknown> {
+  const w = new KeyLab({ size: { w: 1100, h: 520 } });
+  w.reset('free');
+  // 3列（アリス｜インターネット｜ボブ）。吹き出し（幅260）を全員ぶん開いても重ならない間隔にする
+  // イブは下の段。持ち物が多くなるので、吹き出しが上向きに開いたとき高さを確保できるよう、下寄りに置く
+  const X0 = 86, STEP = 266, TOP = 40, BOTTOM = 430;
+  const a = w.makeDevice('person', X0, TOP, { id: 'person-001', name: 'アリス', initial: 'A', color: PERSON_COLORS[0], machines: ['combine'] });
+  w.makeDevice('internet', X0 + STEP, TOP, { id: 'internet-001' });
+  const b = w.makeDevice('person', X0 + STEP * 2, TOP, { id: 'person-002', name: 'ボブ', initial: 'B', color: PERSON_COLORS[1], machines: ['combine'] });
+  // イブは「中間者」：通るものを横取りし、相手には届かない
+  const e = w.makeDevice('eve', X0 + STEP, BOTTOM, { id: 'eve-001', initial: 'E', machines: ['combine'], mitm: true });
+  for (const id of ['person-001', 'person-002', 'eve-001']) w.connect(id, 'internet-001', true);
+  w.give(a, { kind: 'block', parts: ['P'] });
+  w.give(a, { kind: 'block', parts: ['S:person-001'] });
+  w.give(b, { kind: 'block', parts: ['S:person-002'] });
+  w.give(e, { kind: 'block', parts: ['S:eve-001'] });
+  return JSON.parse(JSON.stringify(w.toJSON()));
+}
+
 /** 課題ごとのテンプレート（単元ID → 作る関数）。ファイル名もここで決める */
 export const FREE_TEMPLATES: Record<string, { fileName: string; build: () => Record<string, unknown> }> = {
   'key-exchange-three': { fileName: 'key-exchange-three-template.json', build: buildThreePersonTemplate },
+  'key-exchange-mitm': { fileName: 'key-exchange-mitm-template.json', build: buildMitmTemplate },
 };

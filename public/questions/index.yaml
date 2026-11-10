@@ -258,3 +258,10 @@ questionSets:
   difficulty: hard
   estimatedTime: 25
   category: 暗号・認証
+- id: key-exchange-mitm
+  title: 鍵交換課題⑦中間者攻撃を成功させる
+  description: 自由モードで、イブ（中間者）に鍵をすり替えさせる体験をする
+  icon: 🕵️
+  difficulty: hard
+  estimatedTime: 25
+  category: 暗号・認証
