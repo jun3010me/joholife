@@ -216,3 +216,38 @@ questionSets:
   difficulty: medium
   estimatedTime: 20
   category: 冬休み課題
+- id: key-exchange-dh
+  title: 鍵交換課題①ディフィー・ヘルマン鍵交換
+  description: 盗み見される通信路で、共有鍵を安全に作る
+  icon: 🔑
+  difficulty: medium
+  estimatedTime: 15
+  category: 暗号・認証
+- id: key-exchange-passkey
+  title: 鍵交換課題②パスキーで登録してログイン
+  description: 秘密鍵を端末から出さずに、Webサイトにログインする
+  icon: 📱
+  difficulty: medium
+  estimatedTime: 15
+  category: 暗号・認証
+- id: key-exchange-phish
+  title: 鍵交換課題③偽サイトにだまされない
+  description: パスキーが偽サイトには反応しないことを確かめる
+  icon: 🎣
+  difficulty: easy
+  estimatedTime: 10
+  category: 暗号・認証
+- id: key-exchange-sig
+  title: 鍵交換課題④デジタル署名で改ざんを見破る
+  description: 署名で「だれが書いたか」「書き換えられていないか」を確かめる
+  icon: ✍️
+  difficulty: medium
+  estimatedTime: 15
+  category: 暗号・認証
+- id: key-exchange-cert
+  title: 鍵交換課題⑤デジタル証明書でなりすましを防ぐ
+  description: 認証局の証明書で、公開鍵が本物かを確かめる
+  icon: 🔒
+  difficulty: medium
+  estimatedTime: 15
+  category: 暗号・認証
