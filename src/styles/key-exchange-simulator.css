@@ -128,8 +128,11 @@
 @keyframes kx-grow { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .kx-fresh, .kx-pop.kx-enter { animation: none; } }
 
-/* 右上の案内（既存の .status-panel を拡張） */
-.kx-page .status-panel.kx-info { z-index: 30; max-width: min(300px, calc(100% - 80px)); font-size: 11.5px; line-height: 1.5; padding: 8px 12px; }
+/* 右上の案内（既存の .status-panel を拡張）。メッセージ（トースト）は、その下に縦に並べる。
+   画面の縦が低いタブレット（768px）でも、下のボタンやパレットをふさがないため。 */
+.kx-topright { position: absolute; top: 10px; right: 10px; z-index: 35; display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  max-width: min(300px, calc(100% - 80px)); pointer-events: none; }
+.kx-page .status-panel.kx-info { position: static; max-width: 100%; font-size: 11.5px; line-height: 1.5; padding: 8px 12px; }
 .kx-info b { display: block; font-size: 12px; }
 
 /* シナリオのドロワー */
@@ -155,8 +158,9 @@
 .kx-result.kx-bad { background: var(--kx-bad-bg); color: var(--kx-bad); }
 
 /* トースト */
-.kx-toast { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 35; width: min(640px, calc(100% - 24px)); border-radius: 8px; padding: 8px 12px;
-  font-size: 12.5px; font-weight: 700; background: var(--kx-info-bg); color: var(--kx-info); box-shadow: 0 2px 8px rgba(0,0,0,.08); pointer-events: none; }
+.kx-toast { max-width: 100%; border-radius: 8px; padding: 8px 12px; line-height: 1.5;
+  font-size: 12px; font-weight: 700; background: var(--kx-info-bg); color: var(--kx-info); box-shadow: 0 2px 8px rgba(0,0,0,.08); pointer-events: none; }
+.kx-toast:empty { display: none; }
 .kx-toast.kx-t-ok { background: var(--kx-ok-bg); color: var(--kx-ok); }
 .kx-toast.kx-t-warn { background: var(--kx-warn-bg); color: var(--kx-warn); }
 .kx-toast.kx-t-bad { background: var(--kx-bad-bg); color: var(--kx-bad); }
@@ -171,7 +175,7 @@
 @media (max-width: 1024px) { .kx-page .main-canvas { top: calc(env(safe-area-inset-top, 0px) + 4rem + 110px); } }
 
 .kx-page .kx-bar .control-button { white-space: nowrap; padding: 8px 6px; margin: 0 2px; }
-@media (max-width: 480px) { .kx-page .status-panel.kx-info { max-width: 200px; font-size: 10.5px; padding: 6px 8px; } }
+@media (max-width: 480px) { .kx-topright { max-width: 220px; } .kx-page .status-panel.kx-info { font-size: 10.5px; padding: 6px 8px; } .kx-toast { font-size: 11.5px; padding: 6px 8px; } }
 
 /* 狭い画面：タブを横長にして左上へ。開いたときはパネルの上に重なる */
 @media (max-width: 759px) {
