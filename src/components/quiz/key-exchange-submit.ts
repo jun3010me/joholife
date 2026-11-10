@@ -75,7 +75,7 @@ class Session {
       <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1rem;">${esc(t.title)}</h2>
       <div style="color:var(--text-secondary);line-height:1.7;margin-bottom:1.5rem;">${md(t.body)}</div>
       <div style="text-align:center;margin-bottom:1.5rem;">
-        <a href="/key-exchange-simulator" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-block;text-decoration:none;">🔑 鍵交換シミュレータを開く</a>
+        <a href="/key-exchange-simulator" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display:inline-block;text-decoration:none;color:#fff !important;">🔑 鍵交換シミュレータを開く</a>
       </div>
       ${message ? `<div role="alert" style="background:#fef2f2;border:1px solid #ef4444;border-radius:var(--radius-md);padding:1rem 1.25rem;color:#991b1b;margin-bottom:1.5rem;line-height:1.6;"><strong>不合格です</strong><br>${esc(message)}</div>` : ''}
       <div id="ke-drop" tabindex="0" role="button" aria-label="JSONファイルを選ぶ" style="border:2px dashed var(--border);border-radius:var(--radius-md);padding:2rem;text-align:center;background:var(--surface);cursor:pointer;">
