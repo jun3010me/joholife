@@ -50,6 +50,24 @@ export function mountKeyExchangeLab(): void {
   const clampX = (x: number) => Math.max(0, Math.min(CW() - NW, x));
   const clampY = (y: number) => Math.max(0, Math.min(CH() - NH, y));
   const clampAll = () => lab.devices.forEach((d) => { d.x = clampX(d.x); d.y = clampY(d.y); });
+  /** 重なっているデバイスを、近くの空いた場所へずらす（別の画面サイズで保存したデータを読み込んだとき用） */
+  function separateOverlaps() {
+    const GAP = 10, placed: Device[] = [];
+    const hit = (x: number, y: number) => placed.some((o) => Math.abs(o.x - x) < NW + GAP && Math.abs(o.y - y) < NH + GAP);
+    for (const d of lab.devices) {
+      if (hit(d.x, d.y)) {
+        let found = false;
+        // 元の位置に近い順に、下・右・上・左へ広げながら空きを探す
+        for (let r = 1; r <= 12 && !found; r++) {
+          for (const [dx, dy] of [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+            const x = clampX(d.x + dx * r * (NW + GAP)), y = clampY(d.y + dy * r * (NH + GAP));
+            if (!hit(x, y)) { d.x = x; d.y = y; found = true; break; }
+          }
+        }
+      }
+      placed.push(d);
+    }
+  }
 
   function say(t: string, tone: Tone = 'info') {
     const el = $('#kx-toast');
@@ -192,7 +210,9 @@ export function mountKeyExchangeLab(): void {
     const W = canvas.clientWidth, H = canvas.clientHeight, pw = Math.min(260, W - 12);
     const dx = d.x * scale, dy = d.y * scale, nw = NW * scale, nh = NH * scale;
     el.style.left = Math.max(6, Math.min(W - pw - 6, dx + nw / 2 - pw / 2)) + 'px';
-    const below = H - (dy + nh + 8) - 8, above = dy - 8 - 8;
+    // スマホでは、上に重なる案内ボックス・メッセージ（画面上で約130px）の下までしか上へ伸ばさない
+    const reserve = W < 640 ? 130 : 0;
+    const below = H - (dy + nh + 8) - 8, above = dy - 8 - 8 - reserve;
     if (below >= Math.min(280, above) || below >= 260) {
       el.style.top = dy + nh + 8 + 'px'; el.style.bottom = ''; el.style.maxHeight = Math.max(160, below) + 'px';
     } else {
@@ -221,7 +241,7 @@ export function mountKeyExchangeLab(): void {
     if (ui.open.includes(id)) ui.open = ui.open.filter((x) => x !== id);
     else {
       ui.open.push(id); ui.justOpened = id;
-      if (window.innerWidth < 600 && ui.open.length > 2) ui.open.shift();
+      if (canvas.clientWidth < 640 && ui.open.length > 1) ui.open.shift(); // スマホでは吹き出しを1つだけ開く
     }
     render();
   }
@@ -462,7 +482,7 @@ export function mountKeyExchangeLab(): void {
       try {
         syncSize();
         lab.load(JSON.parse(String(rd.result)));
-        clampAll(); ui.slots = {}; ui.pick = null; ui.open = [];
+        clampAll(); separateOverlaps(); ui.slots = {}; ui.pick = null; ui.open = [];
         stage.classList.toggle('kx-dopen', lab.mode === 'scenario' && ui.drawer);
         syncSize(); clampAll(); fresh.clear(); render();
         say('JSONを読み込みました。続きから操作できます。', 'ok');
