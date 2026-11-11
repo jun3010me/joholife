@@ -289,8 +289,7 @@ export function mountKeyExchangeLab(): void {
     }
     if (ui.open.includes(id)) ui.open = ui.open.filter((x) => x !== id);
     else {
-      ui.open.push(id); ui.justOpened = id;
-      if (canvas.clientWidth < 640 && ui.open.length > 1) ui.open.shift(); // スマホでは吹き出しを1つだけ開く
+      ui.open.push(id); ui.justOpened = id; // 吹き出しは、スマホでも複数同時に開ける（拡大して見る）
     }
     render();
   }
