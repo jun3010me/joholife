@@ -37,19 +37,46 @@ export function mountKeyExchangeLab(): void {
   const worldEl = $('#kx-world'), popsEl = $('#kx-pops');
   const FIT_W = 640;       // 論理幅の下限（これより画面が狭いときに縮小する）
   const MIN_SCALE = 0.5;   // 縮小しすぎて読めなくならないための下限
-  let scale = 1;
-  const CW = () => canvas.clientWidth / scale, CH = () => canvas.clientHeight / scale;
+  // さらに、ピンチ・ホイール・ボタンで自由に拡大縮小できる（ズーム）。画面からはみ出してもよく、2本指やドラッグで表示位置を動かせる。
+  // 吹き出し（持ち物・作業台）も、同じ倍率で拡大縮小して連動させる。
+  const MIN_ZOOM = 0.25, MAX_ZOOM = 5;
+  let base = 1;             // 画面幅に合わせた基本の縮小率（デバイスの置ける範囲＝論理座標は、これで決まる）
+  let zoom = 1;             // 利用者のズーム倍率
+  let panX = 0, panY = 0;   // ズーム後の表示位置のずれ（画面上のpx）
+  let scale = 1;            // 論理座標 → 画面上の倍率（= base × zoom）
+  let popsRaf = 0;
+  const CW = () => canvas.clientWidth / base, CH = () => canvas.clientHeight / base;
   const syncSize = () => {
-    scale = Math.max(MIN_SCALE, Math.min(1, canvas.clientWidth / FIT_W));
-    const w = canvas.clientWidth / scale, h = canvas.clientHeight / scale;
+    base = Math.max(MIN_SCALE, Math.min(1, canvas.clientWidth / FIT_W));
+    const w = canvas.clientWidth / base, h = canvas.clientHeight / base;
     worldEl.style.width = w + 'px'; worldEl.style.height = h + 'px';
-    worldEl.style.transform = scale < 1 ? `scale(${scale})` : '';
-    worldEl.style.setProperty('--kx-iscale', String(Math.min(1.6, 1 / scale)));
-    lab.size = { w, h, s: scale };
+    lab.size = { w, h, s: base };
+    applyView();
   };
+  /** 拡大縮小・移動した結果を画面に反映する */
+  function applyView() {
+    scale = base * zoom;
+    // 表示位置は、キャンバスが完全に見えなくならない範囲に収める
+    const W = canvas.clientWidth, H = canvas.clientHeight, mx = Math.min(120, W / 3), my = Math.min(120, H / 3);
+    panX = Math.max(mx - W * zoom, Math.min(W - mx, panX));
+    panY = Math.max(my - H * zoom, Math.min(H - my, panY));
+    worldEl.style.transform = scale === 1 && !panX && !panY ? '' : `translate(${panX}px,${panY}px) scale(${scale})`;
+    worldEl.style.setProperty('--kx-iscale', String(scale < 1 ? Math.min(1.6, 1 / scale) : 1));
+    popsRaf ||= requestAnimationFrame(() => { popsRaf = 0; ui.open.forEach((id) => { const d = lab.dev(id); if (d) placePop(d); }); });
+  }
+  const resetView = () => { zoom = 1; panX = 0; panY = 0; applyView(); };
+  /** 画面上の点(clientX, clientY)を動かさないまま、倍率だけ変える */
+  function zoomAt(cx: number, cy: number, z: number) {
+    const r = canvas.getBoundingClientRect(), sx = cx - r.left, sy = cy - r.top;
+    const wx = (sx - panX) / scale, wy = (sy - panY) / scale;
+    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z));
+    scale = base * zoom;
+    panX = sx - wx * scale; panY = sy - wy * scale;
+    applyView();
+  }
   const clampX = (x: number) => Math.max(0, Math.min(CW() - NW, x));
   // 縮小表示（スマホ）のときは、上端の案内ボックス・メッセージの下にだけデバイスを置ける
-  const minY = () => (scale < 1 ? Math.min(TOP_RESERVE / scale, CH() - NH) : 0);
+  const minY = () => (base < 1 ? Math.min(TOP_RESERVE / base, CH() - NH) : 0);
   const clampY = (y: number) => Math.max(minY(), Math.min(CH() - NH, y));
   const clampAll = () => lab.devices.forEach((d) => { d.x = clampX(d.x); d.y = clampY(d.y); });
   /** 重なっているデバイスを、近くの空いた場所へずらす（別の画面サイズで保存したデータを読み込んだとき用） */
@@ -99,6 +126,7 @@ export function mountKeyExchangeLab(): void {
 
   // ---------- 開始 ----------
   function start(mode: 'scenario' | 'free', sid = 'dh') {
+    zoom = 1; panX = 0; panY = 0;
     syncSize();
     ui.slots = {}; ui.pick = null; ui.open = [];
     stage.classList.toggle('kx-dopen', mode === 'scenario' && ui.drawer);
@@ -208,17 +236,23 @@ export function mountKeyExchangeLab(): void {
   function placePop(d: Device) {
     const el = document.querySelector(`[data-pop="${d.id}"]`) as HTMLElement | null;
     if (!el) return;
-    // 吹き出しは縮小しない層にあるので、デバイスの位置は画面上の座標（論理座標×縮小率）に直して使う
-    const W = canvas.clientWidth, H = canvas.clientHeight, pw = Math.min(260, W - 12);
-    const dx = d.x * scale, dy = d.y * scale, nw = NW * scale, nh = NH * scale;
-    el.style.left = Math.max(6, Math.min(W - pw - 6, dx + nw / 2 - pw / 2)) + 'px';
+    // 吹き出しは縮小しない層にあるので、デバイスの位置は画面上の座標（論理座標×倍率＋表示位置のずれ）に直して使う。
+    // 吹き出し自身は、ズーム倍率ぶんだけ拡大縮小する（デバイスと連動）。基準点は、下向きなら左上、上向きなら左下。
+    const W = canvas.clientWidth, H = canvas.clientHeight, pw0 = Math.min(260, W - 12), pw = pw0 * zoom;
+    const dx = panX + d.x * scale, dy = panY + d.y * scale, nw = NW * scale, nh = NH * scale;
+    const cx = dx + nw / 2 - pw / 2;
+    // 吹き出しが画面幅に収まるときだけ、画面内に収める（拡大してはみ出すときは、デバイスに付いたままにする）
+    el.style.left = (pw <= W - 12 ? Math.max(6, Math.min(W - pw - 6, cx)) : cx) + 'px';
+    el.style.scale = String(zoom);
     // スマホでは、上に重なる案内ボックス・メッセージ（画面上で約130px）の下までしか上へ伸ばさない
     const reserve = W < 640 ? 130 : 0;
     const below = H - (dy + nh + 8) - 8, above = dy - 8 - 8 - reserve;
     if (below >= Math.min(280, above) || below >= 260) {
-      el.style.top = dy + nh + 8 + 'px'; el.style.bottom = ''; el.style.maxHeight = Math.max(160, below) + 'px';
+      el.style.transformOrigin = '0 0';
+      el.style.top = dy + nh + 8 + 'px'; el.style.bottom = ''; el.style.maxHeight = Math.max(160, below / zoom) + 'px';
     } else {
-      el.style.bottom = H - dy + 8 + 'px'; el.style.top = ''; el.style.maxHeight = Math.max(160, above) + 'px';
+      el.style.transformOrigin = '0 100%';
+      el.style.bottom = H - dy + 8 + 'px'; el.style.top = ''; el.style.maxHeight = Math.max(160, above / zoom) + 'px';
     }
     fitPop(el);
   }
@@ -266,7 +300,7 @@ export function mountKeyExchangeLab(): void {
   }
 
   // ---------- ドロップ ----------
-  const canvasPoint = (e: PointerEvent | MouseEvent): [number, number] => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) / scale, (e.clientY - r.top) / scale]; };
+  const canvasPoint = (e: PointerEvent | MouseEvent): [number, number] => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left - panX) / scale, (e.clientY - r.top - panY) / scale]; };
   function srcOf(el: HTMLElement): Src {
     const d = el.dataset;
     if (d.drag === 'pdev') return { kind: 'pdev', type: d.type as DeviceType };
@@ -340,8 +374,55 @@ export function mountKeyExchangeLab(): void {
   };
   const closest = (t: EventTarget | null, sel: string) => (t as HTMLElement | null)?.closest?.(sel) as HTMLElement | null;
 
+  // ---- ズーム操作：2本指のピンチ、空いた場所のドラッグ（表示位置の移動）、ホイール、ボタン ----
+  const touches = new Map<number, [number, number]>();
+  let pinch: { ids: number[]; dist0: number; zoom0: number; wx: number; wy: number } | null = null;
+  let panning: { id: number; x0: number; y0: number; px0: number; py0: number; moved: boolean } | null = null;
+  let muteClick = false;
+  const muteNextClick = () => { muteClick = true; setTimeout(() => { muteClick = false; }, 80); };
+  const pinchState = () => {
+    const [a, b] = (pinch as NonNullable<typeof pinch>).ids.map((id) => touches.get(id) as [number, number]);
+    return { cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, dist: Math.max(1, Math.hypot(a[0] - b[0], a[1] - b[1])) };
+  };
+  /** 2本目の指が置かれたら、それまでの1本指の操作（ドラッグ・線引き）をやめてピンチに切り替える */
+  function startPinch() {
+    if (pinch) return;
+    drag?.ghost?.remove(); drag?.el.classList.remove('kx-dragging');
+    if (mv?.moved) lab.addLog('move', { device: mv.d.id, x: Math.round(mv.d.x), y: Math.round(mv.d.y) });
+    drag = null; mv = null; link = null; panning = null;
+    if (tmpLine) { tmpLine = null; drawWires(); }
+    setOver(null);
+    pinch = { ids: [...touches.keys()].slice(0, 2), dist0: 1, zoom0: zoom, wx: 0, wy: 0 };
+    const s = pinchState(), r = canvas.getBoundingClientRect();
+    pinch.dist0 = s.dist; pinch.wx = (s.cx - r.left - panX) / scale; pinch.wy = (s.cy - r.top - panY) / scale;
+  }
+  function updatePinch() {
+    if (!pinch) return;
+    const s = pinchState(), r = canvas.getBoundingClientRect();
+    zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinch.zoom0 * s.dist / pinch.dist0));
+    scale = base * zoom;
+    // ピンチの中心にあった点が、指の中心に付いてくる（拡大縮小と移動が同時にできる）
+    panX = s.cx - r.left - pinch.wx * scale; panY = s.cy - r.top - pinch.wy * scale;
+    applyView();
+  }
+  canvas.addEventListener('wheel', (e) => {
+    if (closest(e.target, '.kx-pop') && !e.ctrlKey) return; // 吹き出しの中は、普通にスクロールさせる
+    e.preventDefault();
+    const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+    zoomAt(e.clientX, e.clientY, zoom * Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)));
+  }, { passive: false });
+  canvas.addEventListener('gesturestart', (e) => e.preventDefault()); // iOS Safari のページ拡大を止める
+  const zoomBy = (k: number) => { const r = canvas.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, zoom * k); };
+  $('#kx-zin').addEventListener('click', () => zoomBy(1.4));
+  $('#kx-zout').addEventListener('click', () => zoomBy(1 / 1.4));
+  $('#kx-zreset').addEventListener('click', resetView);
+
   document.addEventListener('pointerdown', (e) => {
     if (e.button > 0 || !closest(e.target, '.kx-page')) return;
+    if (e.pointerType === 'touch' && closest(e.target, '#kx-canvas')) {
+      touches.set(e.pointerId, [e.clientX, e.clientY]);
+      if (touches.size >= 2) { startPinch(); return; }
+    }
     const pv = closest(e.target, '[data-pop]'); if (pv) toFront(pv.dataset.pop as string);
     const h = closest(e.target, '[data-handle]'); if (h) { e.preventDefault(); link = { from: h.dataset.handle as string }; return; }
     const dg = closest(e.target, '[data-drag]');
@@ -353,9 +434,23 @@ export function mountKeyExchangeLab(): void {
       return;
     }
     const nd = closest(e.target, '[data-node]');
-    if (nd) { e.preventDefault(); const d = lab.dev(nd.dataset.node as string) as Device; mv = { d, el: nd, x0: e.clientX, y0: e.clientY, ox: d.x, oy: d.y, moved: false }; }
+    if (nd) { e.preventDefault(); const d = lab.dev(nd.dataset.node as string) as Device; mv = { d, el: nd, x0: e.clientX, y0: e.clientY, ox: d.x, oy: d.y, moved: false }; return; }
+    // 何もない場所をドラッグすると、表示位置が動く（ほとんど動かさずに離したときは、ふつうのタップ）
+    if (closest(e.target, '#kx-canvas') && !closest(e.target, '.kx-pop')) {
+      if (e.pointerType !== 'touch') e.preventDefault();
+      panning = { id: e.pointerId, x0: e.clientX, y0: e.clientY, px0: panX, py0: panY, moved: false };
+    }
   });
   document.addEventListener('pointermove', (e) => {
+    const tp = touches.get(e.pointerId);
+    if (tp) { tp[0] = e.clientX; tp[1] = e.clientY; }
+    if (pinch) { updatePinch(); return; }
+    if (panning && panning.id === e.pointerId) {
+      const px = e.clientX - panning.x0, py = e.clientY - panning.y0;
+      if (!panning.moved && Math.hypot(px, py) < 5) return;
+      panning.moved = true; panX = panning.px0 + px; panY = panning.py0 + py; applyView();
+      return;
+    }
     if (link) {
       const d = lab.dev(link.from) as Device, [x, y] = canvasPoint(e), [cx, cy] = center(d);
       tmpLine = [cx, cy, x, y]; drawWires();
@@ -385,6 +480,17 @@ export function mountKeyExchangeLab(): void {
   });
   document.addEventListener('pointerup', (e) => {
     setOver(null);
+    touches.delete(e.pointerId);
+    if (pinch) {
+      if (pinch.ids.includes(e.pointerId)) {
+        pinch = null; muteNextClick();
+        // 指が1本残っていれば、そのまま表示位置の移動に切り替える
+        const rest = [...touches.entries()][0];
+        if (rest) panning = { id: rest[0], x0: rest[1][0], y0: rest[1][1], px0: panX, py0: panY, moved: true };
+      }
+      return;
+    }
+    if (panning && panning.id === e.pointerId) { if (panning.moved) muteNextClick(); panning = null; return; }
     if (link) {
       const nd = closest(document.elementFromPoint(e.clientX, e.clientY), '[data-node]');
       const from = link.from; tmpLine = null; link = null;
@@ -414,13 +520,17 @@ export function mountKeyExchangeLab(): void {
       } else { lab.addLog('move', { device: m.d.id, x: Math.round(m.d.x), y: Math.round(m.d.y) }); act(() => undefined); }
     }
   });
-  document.addEventListener('pointercancel', () => {
+  document.addEventListener('pointercancel', (e) => {
+    touches.delete(e.pointerId);
+    if (pinch?.ids.includes(e.pointerId)) pinch = null;
+    if (panning?.id === e.pointerId) panning = null;
     if (!drag && !mv && !link) return;
     drag?.ghost?.remove(); drag = null; mv = null; link = null; tmpLine = null; setOver(null); render();
   });
 
   document.addEventListener('click', (e) => {
     if (!closest(e.target, '.kx-page')) return;
+    if (muteClick) { muteClick = false; return; } // 表示位置を動かした直後のクリックは、操作として扱わない
     const r = closest(e.target, '[data-run]');
     if (r) {
       ui.pick = null;
@@ -494,6 +604,7 @@ export function mountKeyExchangeLab(): void {
     const rd = new FileReader();
     rd.onload = () => {
       try {
+        zoom = 1; panX = 0; panY = 0;
         syncSize();
         lab.load(JSON.parse(String(rd.result)));
         clampAll(); separateOverlaps(); ui.slots = {}; ui.pick = null; ui.open = [];

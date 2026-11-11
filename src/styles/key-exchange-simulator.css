@@ -35,6 +35,11 @@
 @media (min-width: 760px) { .kx-stage.kx-dopen .kx-canvas { left: 290px; } }
 /* 縮小表示：ワールド層は論理サイズ（画面幅÷縮小率）で作り、transform: scale で画面に収める */
 .kx-world { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: 0 0; }
+/* 拡大縮小ボタン（ピンチやホイールが使えないときの代わり。「⤢」で表示をもどす） */
+.kx-zoombar { position: absolute; right: 12px; bottom: 12px; z-index: 6; display: flex; flex-direction: column; gap: 6px; }
+.kx-zoombar button { width: 40px; height: 40px; border: 1px solid var(--kx-line); border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12);
+  font-size: 18px; line-height: 1; cursor: pointer; color: var(--kx-ink); touch-action: manipulation; }
+.kx-zoombar button:hover { background: var(--kx-info-bg); }
 .kx-pops { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .kx-pops > .kx-pop { pointer-events: auto; }
 .kx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
