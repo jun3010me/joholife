@@ -180,7 +180,18 @@
 .kx-seg button { border: 0; background: #fff; color: var(--kx-primary); font-size: 12px; padding: 8px 12px; cursor: pointer; }
 .kx-seg button[aria-pressed="true"] { background: var(--kx-primary); color: #fff; }
 .kx-page .main-canvas { overflow: hidden; }
-@media (max-width: 1024px) { .kx-page .main-canvas { top: calc(env(safe-area-inset-top, 0px) + 4rem + 110px); } }
+/* スマホ・タブレット：パレットを従来（110px）の約半分（56px）にして、キャンバスを広く使う */
+@media (max-width: 1024px) {
+  .kx-page .main-canvas { top: calc(env(safe-area-inset-top, 0px) + 4rem + 56px); }
+  .kx-page .device-palette { height: 56px !important; padding-top: 4px !important; padding-bottom: 4px !important; }
+  .kx-page .palette-content { gap: 6px !important; padding-top: 0 !important; padding-bottom: 0 !important; align-items: center !important; }
+  .kx-page .device-item { width: 64px !important; height: 44px !important; min-height: 44px !important; padding: 3px 2px !important; margin-right: 0 !important; border-width: 1px !important; }
+  .kx-page .device-icon { margin-bottom: 1px !important; line-height: 1; }
+  .kx-page .kx-ti { width: 20px; height: 20px; border-radius: 5px; }
+  .kx-page .kx-ti svg { width: 13px; height: 13px; }
+  .kx-page .device-name { font-size: 9px !important; }
+  .kx-sep { height: 32px; }
+}
 
 .kx-page .kx-bar .control-button { white-space: nowrap; padding: 8px 6px; margin: 0 2px; }
 @media (max-width: 480px) { .kx-topright { max-width: 220px; } .kx-page .status-panel.kx-info { font-size: 10.5px; padding: 6px 8px; } .kx-toast { font-size: 11.5px; padding: 6px 8px; } }
