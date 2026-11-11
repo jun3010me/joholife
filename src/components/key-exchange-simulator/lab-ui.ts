@@ -241,8 +241,9 @@ export function mountKeyExchangeLab(): void {
     const W = canvas.clientWidth, H = canvas.clientHeight, pw0 = Math.min(260, W - 12), pw = pw0 * zoom;
     const dx = panX + d.x * scale, dy = panY + d.y * scale, nw = NW * scale, nh = NH * scale;
     const cx = dx + nw / 2 - pw / 2;
-    // 吹き出しが画面幅に収まるときだけ、画面内に収める（拡大してはみ出すときは、デバイスに付いたままにする）
-    el.style.left = (pw <= W - 12 ? Math.max(6, Math.min(W - pw - 6, cx)) : cx) + 'px';
+    // 何も操作していない最初の表示のときだけ、画面内に収める。拡大縮小・移動した後は、はみ出してもデバイスにそのまま付いていく
+    const untouched = zoom === 1 && !panX && !panY;
+    el.style.left = (untouched && pw <= W - 12 ? Math.max(6, Math.min(W - pw - 6, cx)) : cx) + 'px';
     el.style.scale = String(zoom);
     // スマホでは、上に重なる案内ボックス・メッセージ（画面上で約130px）の下までしか上へ伸ばさない
     const reserve = W < 640 ? 130 : 0;
