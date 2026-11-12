@@ -265,3 +265,24 @@ questionSets:
   difficulty: hard
   estimatedTime: 25
   category: 暗号・認証
+- id: key-exchange-three-min
+  title: 鍵交換課題⑧通信回数を節約して3人で鍵交換
+  description: 課題⑥を、できるだけ少ない送信回数でやりとげる
+  icon: 📉
+  difficulty: hard
+  estimatedTime: 25
+  category: 暗号・認証
+- id: key-exchange-replay
+  title: 鍵交換課題⑨盗み見た返事でログインしてみる
+  description: パスキーの返事を盗み見たイブが、それを使い回してログインできるか試す
+  icon: 🔁
+  difficulty: medium
+  estimatedTime: 20
+  category: 暗号・認証
+- id: key-exchange-swap
+  title: 鍵交換課題⑩公開鍵をすり替えて、偽の文書を信じさせる
+  description: 署名があっても、公開鍵がすり替えられると見破れないことを体験する
+  icon: 🎭
+  difficulty: hard
+  estimatedTime: 25
+  category: 暗号・認証

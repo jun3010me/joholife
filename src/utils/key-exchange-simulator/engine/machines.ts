@@ -107,16 +107,18 @@ export function executeMachine(
       const s = items.find((i) => i.kind === 'sig');
       if (!p || !s || p.kind !== 'pubkey' || s.kind !== 'sig') return res('検証台には、公開鍵と署名つき返事を1つずつ入れます。', 'warn');
       let r: [string, Result['tone']];
-      if (p.site !== d.config.site) r = ['このサイト用の公開鍵ではありません。', 'warn'];
-      else if (p.pair !== s.pair) r = ['登録された公開鍵と合わない署名です。ログインできません。', 'bad'];
-      else if (!d.state.issued.includes(s.cid)) r = ['このサイトが出したチャレンジへの返事ではありません。', 'bad'];
-      else if (d.state.used.includes(s.cid)) r = ['この返事はもう使われています。盗み見た返事を使い回しても、ログインはできません。', 'warn'];
+      // reason：失敗の理由（課題の判定用。success のときは付けない）
+      let reason: 'site' | 'pair' | 'unissued' | 'replay' | undefined;
+      if (p.site !== d.config.site) { r = ['このサイト用の公開鍵ではありません。', 'warn']; reason = 'site'; }
+      else if (p.pair !== s.pair) { r = ['登録された公開鍵と合わない署名です。ログインできません。', 'bad']; reason = 'pair'; }
+      else if (!d.state.issued.includes(s.cid)) { r = ['このサイトが出したチャレンジへの返事ではありません。', 'bad']; reason = 'unissued'; }
+      else if (d.state.used.includes(s.cid)) { r = ['この返事はもう使われています。盗み見た返事を使い回しても、ログインはできません。', 'warn']; reason = 'replay'; }
       else {
         d.state.used.push(s.cid);
         d.state.loggedIn = true;
         r = ['検証成功！ログインできました。パスワードも秘密鍵も、通信路には一度も流れていません。', 'ok'];
       }
-      ctx.log('verify', { device: d.id, result: r[1] === 'ok' ? 'success' : 'failure' });
+      ctx.log('verify', { device: d.id, result: r[1] === 'ok' ? 'success' : 'failure', cid: s.cid, ...(reason ? { reason } : {}) });
       return res(r[0], r[1], true);
     }
     case 'keymake': {
@@ -141,16 +143,21 @@ export function executeMachine(
       const doc = items.find((i) => i.kind === 'doc');
       if (!p || !doc || p.kind !== 'pubkey' || doc.kind !== 'doc') return res('公開鍵と文書を1つずつ入れてください。', 'warn');
       let r: [string, Result['tone']];
+      // 持ち主名を伏せる設定で、受け取った公開鍵なら「この公開鍵の持ち主」と言う（だれの鍵かは分からない）
+      const who = ctx.flags.hideKeyOwner && p.recv ? 'この公開鍵の持ち主' : p.site;
       if (!doc.sig) r = ['この文書には署名がありません。だれが書いたのか確かめられません。', 'warn'];
-      else if (doc.sig.pair !== p.pair) r = [`この署名は「${p.site}」のものではありません。${p.site}が書いた文書とは言えません。`, 'bad'];
+      else if (doc.sig.pair !== p.pair) r = [`この署名は「${who}」のものではありません。${who}が書いた文書とは言えません。`, 'bad'];
       else if (hash(doc.text) !== doc.sig.h) {
         ctx.flags.tamperDetected = true;
-        r = [`改ざんを見つけました！署名したときと中身が違います。「${doc.text}」は${p.site}が書いた内容ではありません。`, 'bad'];
+        r = [`改ざんを見つけました！署名したときと中身が違います。「${doc.text}」は${who}が書いた内容ではありません。`, 'bad'];
       } else {
         ctx.flags.docVerified = true;
-        r = [`本物です。${p.site}が書いた文書で、途中で書き換えられていません。`, 'ok'];
+        r = [`本物です。${who}が書いた文書で、途中で書き換えられていません。`, 'ok'];
       }
-      ctx.log('docverify', { device: d.id, result: r[1] === 'ok' ? 'valid' : 'invalid' });
+      ctx.log('docverify', {
+        device: d.id, result: r[1] === 'ok' ? 'valid' : 'invalid',
+        text: doc.text, keyPair: p.pair, ...(doc.sig ? { sigPair: doc.sig.pair } : {}),
+      });
       return res(r[0], r[1], true);
     }
     case 'tamper': {

@@ -47,10 +47,13 @@ function visual(lab: KeyLab, i: ItemData): string {
       return keyV(PRIVC, `<span class="kx-blk kx-secret" style="--c:${PRIVC}">秘</span>`) + `<span class="kx-cap">秘密鍵<br>${esc(i.site)}</span>`;
     case 'pubkey': {
       const c = i.root ? CERTC : PUBC;
-      return keyV(c, `<span class="kx-blk" style="--c:${c}">公</span>`) + `<span class="kx-cap">${i.root ? 'ルート証明書' : '公開鍵'}<br>${esc(i.site)}</span>`;
+      return keyV(c, `<span class="kx-blk" style="--c:${c}">公</span>`) + `<span class="kx-cap">${i.root ? 'ルート証明書' : '公開鍵'}<br>${lab.hidesOwner(i) ? '持ち主不明' : esc(i.site)}</span>`;
     }
-    case 'doc':
-      return `<span class="kx-paper">${esc(i.text)}${i.sig ? `<span class="kx-seal" title="${esc(i.sig.by)}の署名">署</span>` : ''}</span><span class="kx-cap">${i.sig ? esc(i.sig.by) + 'の署名つき' : '文書'}</span>`;
+    case 'doc': {
+      // 持ち主名を伏せる設定（課題⑩）では、受け取った文書の署名者名を出さない
+      const sigText = !i.sig ? '' : lab.hidesOwner(i) ? '署名つき' : `${esc(i.sig.by)}の署名つき`;
+      return `<span class="kx-paper">${esc(i.text)}${i.sig ? `<span class="kx-seal" title="${sigText}">署</span>` : ''}</span><span class="kx-cap">${i.sig ? sigText : '文書'}</span>`;
+    }
     case 'cert':
       return `<span class="kx-certc"><b>証明書</b><span>${esc(i.subject)}</span><i>発行：${esc(i.issuer)}</i></span><span class="kx-cap">証明書</span>`;
     case 'challenge':
