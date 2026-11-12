@@ -74,10 +74,15 @@ export function mountKeyExchangeLab(): void {
     panX = sx - wx * scale; panY = sy - wy * scale;
     applyView();
   }
-  const clampX = (x: number) => Math.max(0, Math.min(CW() - NW, x));
+  // デバイスを置ける範囲は「等倍のときの画面」と「いま見えている範囲」を合わせたもの。
+  // ピンチやホイールで縮小したときは、広がって見えている端まで動かせる（等倍の範囲は狭くならない）。
+  // 見えている範囲（論理座標）：画面上の点 = pan + 論理座標 × scale を逆にたどる
+  const viewX = () => [-panX / scale, (canvas.clientWidth - panX) / scale - NW];
+  const viewY = () => [((base < 1 ? TOP_RESERVE : 0) - panY) / scale, (canvas.clientHeight - panY) / scale - NH];
+  const clampX = (x: number) => { const [a, b] = viewX(); return Math.max(Math.min(0, a), Math.min(Math.max(CW() - NW, b), x)); };
   // 縮小表示（スマホ）のときは、上端の案内ボックス・メッセージの下にだけデバイスを置ける
   const minY = () => (base < 1 ? Math.min(TOP_RESERVE / base, CH() - NH) : 0);
-  const clampY = (y: number) => Math.max(minY(), Math.min(CH() - NH, y));
+  const clampY = (y: number) => { const [a, b] = viewY(); return Math.max(Math.min(minY(), a), Math.min(Math.max(CH() - NH, b), y)); };
   const clampAll = () => lab.devices.forEach((d) => { d.x = clampX(d.x); d.y = clampY(d.y); });
   /** 重なっているデバイスを、近くの空いた場所へずらす（別の画面サイズで保存したデータを読み込んだとき用） */
   function separateOverlaps() {

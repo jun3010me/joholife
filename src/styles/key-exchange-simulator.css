@@ -42,7 +42,7 @@
 .kx-zoombar button:hover { background: var(--kx-info-bg); }
 .kx-pops { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .kx-pops > .kx-pop { pointer-events: auto; }
-.kx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.kx-wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .kx-wire { stroke: var(--kx-wire); stroke-width: 3; stroke-linecap: round; fill: none; }
 .kx-wire.kx-tap { stroke: var(--kx-tap); stroke-dasharray: 7 6; stroke-width: 2.5; }
 .kx-wire.kx-mitm { stroke: var(--kx-tap); stroke-width: 4; }
