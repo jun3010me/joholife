@@ -204,6 +204,14 @@ export class KeyLab {
 
   private partName(p: string): string { return p === 'P' ? 'P' : (this.dev(p.slice(2))?.config.initial ?? '?'); }
 
+  /**
+   * 持ち主名を伏せて表示するか。hideKeyOwner が立っているときだけ、受け取った公開鍵と署名つき文書が対象。
+   * 鍵そのものには名前が書いていない（＝受け取った側は持ち主を確かめられない）ことを見せるため。
+   */
+  hidesOwner(i: ItemData | Item): boolean {
+    return !!this.flags.hideKeyOwner && !!(i as Item).recv && (i.kind === 'pubkey' ? !i.root : i.kind === 'doc' && !!i.sig);
+  }
+
   label(i: ItemData): string {
     switch (i.kind) {
       case 'block':
@@ -211,8 +219,12 @@ export class KeyLab {
         return `合成鍵（${i.parts.map((p) => this.partName(p)).join('＋')}）`;
       case 'challenge': return `チャレンジ #${i.nonce}（${i.site}）`;
       case 'privkey': return `秘密鍵（${i.site}）`;
-      case 'pubkey': return i.root ? `ルート証明書（${i.site}の公開鍵）` : `公開鍵（${i.site}）`;
-      case 'doc': return `文書「${i.text}」${i.sig ? `（${i.sig.by}の署名つき）` : ''}`;
+      case 'pubkey':
+        if (i.root) return `ルート証明書（${i.site}の公開鍵）`;
+        return this.hidesOwner(i) ? '公開鍵（持ち主不明）' : `公開鍵（${i.site}）`;
+      case 'doc':
+        if (!i.sig) return `文書「${i.text}」`;
+        return `文書「${i.text}」${this.hidesOwner(i) ? '（署名つき）' : `（${i.sig.by}の署名つき）`}`;
       case 'cert': return `証明書（${i.subject}／発行：${i.issuer}）`;
       case 'sig': return `署名つき返事 #${i.nonce}`;
     }

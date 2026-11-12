@@ -78,6 +78,8 @@ export type Flags = Partial<{
   tamperDetected: boolean;
   docVerified: boolean;
   fakeCertRejected: boolean;
+  /** 受け取った公開鍵・署名つき文書の持ち主名を伏せる（課題⑩のテンプレートだけが立てる。進み具合の印ではない） */
+  hideKeyOwner: boolean;
 }>;
 
 export type LogAction =

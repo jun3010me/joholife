@@ -3,7 +3,7 @@
 import { isSecret, sameParts } from './engine/items.ts';
 import type { ItemData, LogEntry } from './engine/types.ts';
 import { KeyLab } from './engine/world.ts';
-import { buildMitmTemplate, buildThreePersonTemplate } from './templates.ts';
+import { buildMitmTemplate, buildReplayTemplate, buildSwapTemplate, buildThreePersonTemplate, SWAP_DOC_TEXT } from './templates.ts';
 import type { SubmissionResult } from './submission.ts';
 
 interface FreeTaskSpec {
@@ -111,7 +111,114 @@ function judgeMitm(lab: KeyLab, log: LogEntry[]): SubmissionResult | null {
   return null;
 }
 
+// ---------- 課題⑧ 通信回数を節約して3人で鍵交換 ----------
+/** 送信回数の上限。3人の場合の理論上の最小回数（総当たりで確認ずみ）。テストでも、この回数でできることを確かめている */
+export const THREE_MIN_SENDS = 7;
+
+function judgeThreeMin(lab: KeyLab, log: LogEntry[]): SubmissionResult | null {
+  const base = judgeThree(lab, log);
+  if (base) return base;
+  // 「送る」操作はすべて数える（同じものを何度も送った分も含む）
+  const sends = log.filter((e) => e.action === 'send').length;
+  if (sends > THREE_MIN_SENDS) {
+    return bad(`3人とも共有鍵を作れていますが、送信が${sends}回あります。${THREE_MIN_SENDS}回以内で作れるように、誰が何を誰に送るかを見直しましょう。`);
+  }
+  return null;
+}
+
+// ---------- 課題⑨ 盗み見た返事でログインしてみる（リプレイ攻撃） ----------
+const PHONE = 'phone-001', SITE = 'server-001', EVE = 'eve-001';
+
+function judgeReplay(_lab: KeyLab, log: LogEntry[]): SubmissionResult | null {
+  const sent = log.filter((e) => (e.action === 'send' || e.action === 'intercept') && e.item);
+  if (sent.some((e) => isSecret(e.item as ItemData))) {
+    return bad('スマホの秘密鍵を、通信路に流してしまっています。テンプレートを読み込み直して、やり直しましょう。');
+  }
+  const sigSend = (from: string) => (e: LogEntry) =>
+    e.action === 'send' && e.from === from && e.to === SITE && (e.item as ItemData)?.kind === 'sig';
+  const cidOf = (e: LogEntry) => (e.item as Extract<ItemData, { kind: 'sig' }>).cid;
+  const okVerify = (cid: unknown) => log.find((v) => v.action === 'verify' && v.device === SITE && v.result === 'success' && v.cid === cid);
+
+  // 対象外の操作：サイトが確かめる前に、イブが返事を送った（先回り）
+  for (const e of log.filter(sigSend(EVE))) {
+    const v = okVerify(cidOf(e));
+    if (!v || v.step > e.step) {
+      return bad('イブが、サイトが確かめる前に返事を送っています。この課題では、スマホで正しくログインしたあとで、イブが盗み見た返事を使い回してください。テンプレートを読み込み直して、やり直しましょう。');
+    }
+  }
+  // スマホからの返事で、正しくログインした記録
+  const legit = log.find((v) => v.action === 'verify' && v.device === SITE && v.result === 'success' &&
+    log.some((e) => sigSend(PHONE)(e) && cidOf(e) === v.cid && e.step < v.step));
+  if (!legit) return bad('スマホが送った返事で、Webサイトにログインした記録がありません。まずは、スマホで正しくログインしましょう。');
+  // イブがその返事のコピーを持っていた（盗み見た）
+  if (!log.some((e) => e.action === 'send' && e.from === PHONE && Array.isArray(e.tappedBy) && (e.tappedBy as string[]).length > 0 &&
+    (e.item as ItemData)?.kind === 'sig' && cidOf(e) === legit.cid)) {
+    return bad('スマホの返事が、イブに盗み見された記録がありません。');
+  }
+  // イブが使い回しを試し、サイトが拒否した
+  const replaySend = log.find((e) => sigSend(EVE)(e) && cidOf(e) === legit.cid);
+  if (!replaySend) return bad('イブが、盗み見た返事をWebサイトに送った記録がありません。イブとしてログインを試してみましょう。');
+  const refused = log.some((v) => v.action === 'verify' && v.device === SITE && v.result === 'failure' &&
+    v.reason === 'replay' && v.cid === legit.cid && v.step > replaySend.step);
+  if (!refused) return bad('イブが送った返事を、Webサイトの検証台で確かめた記録がありません。届いた返事でログインできるか、確かめてみましょう。');
+  return null;
+}
+
+// ---------- 課題⑩ 公開鍵をすり替えて、偽の文書を本物と信じさせる ----------
+const ALICE = 'person-001', BOB = 'person-002';
+const ALICE_PAIR = 'pk-alice';
+
+function judgeSwap(lab: KeyLab, log: LogEntry[]): SubmissionResult | null {
+  if (!lab.flags.hideKeyOwner) {
+    return bad('このファイルは、課題のテンプレートの設定（受け取った鍵の持ち主名を伏せる）が外れています。テンプレートを読み込み直して、やり直しましょう。');
+  }
+  const sent = log.filter((e) => (e.action === 'send' || e.action === 'intercept') && e.item);
+  if (sent.some((e) => isSecret(e.item as ItemData))) {
+    return bad('秘密鍵を、通信路に流してしまっています。秘密鍵は持ち主の手元から出さずに、やり直しましょう。');
+  }
+  // アリスが署名して送り、イブが横取りした
+  if (!log.some((e) => e.action === 'docsign' && e.device === ALICE)) {
+    return bad('アリスが文書に署名した記録がありません。');
+  }
+  const stole = (kind: ItemData['kind']) => log.some((e) => e.action === 'intercept' && e.from === ALICE && e.by === EVE && (e.item as ItemData)?.kind === kind);
+  if (!stole('pubkey') || !stole('doc')) {
+    return bad('イブが、アリスの送った公開鍵と文書の両方を横取りした記録がありません。アリスからボブへ、公開鍵と署名つきの文書を送りましょう。');
+  }
+  // ボブは本物のアリスの公開鍵を持っていてはいけない（素通しでは攻撃になっていない）
+  if ((lab.dev(BOB)?.items ?? []).some((i) => i.kind === 'pubkey' && i.pair === ALICE_PAIR)) {
+    return bad('ボブが、本物のアリスの公開鍵を持っています。これでは、イブは公開鍵をすり替えられていません。');
+  }
+  // イブ自身の鍵ペア
+  const eveMade = log.filter((e) => e.action === 'keymake' && e.device === EVE).map((e) => e.pair);
+  if (!eveMade.length) return bad('イブが、自分の鍵ペアを作った記録がありません。');
+  // ボブの検証で、書き換えた文書が「本物」と判定された
+  const fooled = log.some((e) => e.action === 'docverify' && e.device === BOB && e.result === 'valid' &&
+    e.text !== SWAP_DOC_TEXT && eveMade.includes(e.keyPair) && e.sigPair === e.keyPair);
+  if (!fooled) {
+    return bad('ボブが、書き換えられた文書を「本物です」と確かめた記録がありません。ボブの手元にある公開鍵で確かめると、どうなるでしょう。');
+  }
+  return null;
+}
+
 const FREE_TASKS: Record<string, FreeTaskSpec> = {
+  'key-exchange-three-min': {
+    title: '鍵交換課題⑧通信回数を節約して3人で鍵交換',
+    okMessage: `「鍵交換課題⑧通信回数を節約して3人で鍵交換」：${THREE_MIN_SENDS}回以内の送信で、3人が同じ共有鍵を作れています。`,
+    template: buildThreePersonTemplate,
+    judge: judgeThreeMin,
+  },
+  'key-exchange-replay': {
+    title: '鍵交換課題⑨盗み見た返事でログインしてみる',
+    okMessage: '「鍵交換課題⑨盗み見た返事でログインしてみる」：スマホは正しくログインでき、イブの使い回しは拒否されています。',
+    template: buildReplayTemplate,
+    judge: judgeReplay,
+  },
+  'key-exchange-swap': {
+    title: '鍵交換課題⑩公開鍵をすり替えて、偽の文書を信じさせる',
+    okMessage: '「鍵交換課題⑩公開鍵をすり替えて、偽の文書を信じさせる」：ボブは、イブが書き換えた文書を本物だと信じてしまいました。',
+    template: buildSwapTemplate,
+    judge: judgeSwap,
+  },
   'key-exchange-three': {
     title: '鍵交換課題⑥3人で共有鍵を作る',
     okMessage: '「鍵交換課題⑥3人で共有鍵を作る」：3人が同じ共有鍵を作り、イブには作れない状態になっています。',

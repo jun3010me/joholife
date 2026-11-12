@@ -50,8 +50,49 @@ export function buildMitmTemplate(): Record<string, unknown> {
   return JSON.parse(JSON.stringify(w.toJSON()));
 }
 
+/** 盗み見た返事を使い回す課題（key-exchange-replay）の初期配置。スマホは yamazon.com にパスキー登録ずみ */
+export function buildReplayTemplate(): Record<string, unknown> {
+  const w = new KeyLab({ size: { w: 1100, h: 520 } });
+  w.reset('free');
+  // 3列（スマホ｜インターネット｜Webサイト）、イブは下の段。イブは「盗み見」だけ（中間者ではない）
+  const X0 = 86, STEP = 266, TOP = 40, BOTTOM = 376;
+  const ph = w.makeDevice('phone', X0, TOP, { id: 'phone-001', name: 'スマホ' });
+  w.makeDevice('internet', X0 + STEP, TOP, { id: 'internet-001' });
+  const sv = w.makeDevice('server', X0 + STEP * 2, TOP, { id: 'server-001', name: 'Webサイト', site: 'yamazon.com', machines: ['challenge', 'verify'] });
+  w.makeDevice('eve', X0 + STEP, BOTTOM, { id: 'eve-001', machines: [], mitm: false });
+  for (const id of ['phone-001', 'server-001', 'eve-001']) w.connect(id, 'internet-001', true);
+  w.give(ph, { kind: 'privkey', pair: 'pk-reg', site: 'yamazon.com', owner: 'phone-001' });
+  w.give(sv, { kind: 'pubkey', pair: 'pk-reg', site: 'yamazon.com' }, true);
+  return JSON.parse(JSON.stringify(w.toJSON()));
+}
+
+/** 課題⑩の元の文書（アリスがボブに送る） */
+export const SWAP_DOC_TEXT = 'ボブに1,000円払います';
+
+/** 公開鍵をすり替える課題（key-exchange-swap）の初期配置。受け取った鍵の持ち主名は伏せる */
+export function buildSwapTemplate(): Record<string, unknown> {
+  const w = new KeyLab({ size: { w: 1100, h: 520 } });
+  w.reset('free');
+  // ⑦と同じ並び。イブは中間者で、鍵ペア作成・書き換え・署名ができる。持ち物が多くなるので下寄りに置く
+  const X0 = 86, STEP = 266, TOP = 40, BOTTOM = 430;
+  const a = w.makeDevice('person', X0, TOP, { id: 'person-001', name: 'アリス', initial: 'A', color: PERSON_COLORS[0], machines: ['docsign'] });
+  w.makeDevice('internet', X0 + STEP, TOP, { id: 'internet-001' });
+  w.makeDevice('person', X0 + STEP * 2, TOP, { id: 'person-002', name: 'ボブ', initial: 'B', color: PERSON_COLORS[1], machines: ['docverify'] });
+  w.makeDevice('eve', X0 + STEP, BOTTOM, { id: 'eve-001', initial: 'E', machines: ['keymake', 'tamper', 'docsign'], mitm: true });
+  for (const id of ['person-001', 'person-002', 'eve-001']) w.connect(id, 'internet-001', true);
+  w.give(a, { kind: 'privkey', pair: 'pk-alice', site: 'アリス', owner: 'person-001' });
+  w.give(a, { kind: 'pubkey', pair: 'pk-alice', site: 'アリス' });
+  w.give(a, { kind: 'doc', text: SWAP_DOC_TEXT });
+  w.flags.hideKeyOwner = true;
+  return JSON.parse(JSON.stringify(w.toJSON()));
+}
+
 /** 課題ごとのテンプレート（単元ID → 作る関数）。ファイル名もここで決める */
 export const FREE_TEMPLATES: Record<string, { fileName: string; build: () => Record<string, unknown> }> = {
   'key-exchange-three': { fileName: 'key-exchange-three-template.json', build: buildThreePersonTemplate },
   'key-exchange-mitm': { fileName: 'key-exchange-mitm-template.json', build: buildMitmTemplate },
+  // ⑧は⑥と同じ初期配置（条件だけが違う）
+  'key-exchange-three-min': { fileName: 'key-exchange-three-min-template.json', build: buildThreePersonTemplate },
+  'key-exchange-replay': { fileName: 'key-exchange-replay-template.json', build: buildReplayTemplate },
+  'key-exchange-swap': { fileName: 'key-exchange-swap-template.json', build: buildSwapTemplate },
 };
