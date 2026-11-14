@@ -23,7 +23,7 @@ export function itemKey(i: ItemData): string {
     case 'doc': return 'd:' + i.text + ':' + (i.sig ? i.sig.pair + i.sig.h : '');
     case 'cert': return 'z:' + i.subject + ':' + i.pair + ':' + i.caPair;
     case 'symkey': return 'y:' + i.kid;
-    case 'cipher': return 'x:' + i.lock.type + ':' + (i.lock.type === 'sym' ? i.lock.kid : i.lock.pair) + ':' + i.text;
+    case 'cipher': return 'x:' + i.lock.type + ':' + (i.lock.type === 'sym' ? i.lock.kid : i.lock.pair) + ':' + (i.key ? 'key:' + i.key : i.text);
   }
 }
 

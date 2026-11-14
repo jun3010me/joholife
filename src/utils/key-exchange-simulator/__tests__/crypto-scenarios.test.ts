@@ -9,8 +9,8 @@ import { validateSubmission } from '../submission.ts';
 const A = 'person-001', B = 'person-002', EVE = 'eve-001';
 const dump = (w: ReturnType<typeof newLab>) => JSON.parse(JSON.stringify(w.toJSON()));
 
-test('シナリオの並び：共通鍵 → 公開鍵 → ディフィー・ヘルマンの順で始まる', () => {
-  assert.deepEqual(SCENARIO_LIST.slice(0, 3).map((s) => s.id), ['sym', 'pk', 'dh']);
+test('シナリオの並び：共通鍵 → 公開鍵 → SSL/TLS → ディフィー・ヘルマンの順で始まる', () => {
+  assert.deepEqual(SCENARIO_LIST.slice(0, 4).map((s) => s.id), ['sym', 'pk', 'hybrid', 'dh']);
 });
 
 test('sym: 暗号文だけ盗み見ても、イブは復号台を動かせない（鍵がない）', () => {
@@ -88,4 +88,47 @@ test('保存して読み込んでも、暗号文と共通鍵がそのまま残�
   r.load(dump(w));
   assert.ok(has(r, B, 'cipher') && has(r, B, 'symkey'));
   assert.equal(r.scenario?.completed, true);
+});
+
+const PC = 'pc-001', SV = 'server-001';
+
+test('hybrid: 最後まで進めると完了。イブは公開鍵では共通鍵を取り出せない', () => {
+  const w = solve('hybrid');
+  assert.equal(w.scenario?.completed, true);
+  assert.equal(w.scenario?.failed, false);
+  assert.ok(has(w, EVE, 'cipher', (c) => !!c.key), 'イブは暗号化された共通鍵を盗み見ている');
+  assert.ok(!has(w, EVE, 'symkey') && !has(w, EVE, 'doc'));
+  assert.equal(validateSubmission(dump(w), 'hybrid').valid, true);
+});
+
+test('hybrid: 共通鍵をそのまま送ると失敗', () => {
+  const w = newLab();
+  w.startScenario('hybrid');
+  w.runMachine(PC, 'symmake', []);
+  const r = w.send(PC, find(w, PC, 'symkey').uid, SV);
+  assert.equal(r.tone, 'bad');
+  assert.equal(w.scenario?.failed, true);
+});
+
+test('hybrid: 注文を暗号化せずに送ると失敗', () => {
+  const w = newLab();
+  w.startScenario('hybrid');
+  w.send(PC, find(w, PC, 'doc').uid, SV);
+  assert.equal(w.scenario?.failed, true);
+});
+
+test('hybrid: 暗号化した共通鍵を復号すると、同じ共通鍵が取り出せる。保存→読込しても鍵の番号が重ならない', () => {
+  const w = newLab();
+  w.startScenario('hybrid');
+  w.send(SV, find(w, SV, 'pubkey').uid, PC);
+  w.runMachine(PC, 'symmake', []);
+  const kid = (find(w, PC, 'symkey') as any).kid;
+  w.runMachine(PC, 'pkencrypt', [find(w, PC, 'pubkey').uid, find(w, PC, 'symkey').uid]);
+  w.send(PC, find(w, PC, 'cipher').uid, SV);
+  const r = w.runMachine(SV, 'decrypt', [find(w, SV, 'privkey').uid, find(w, SV, 'cipher').uid]);
+  assert.equal(r.tone, 'ok');
+  assert.equal((find(w, SV, 'symkey') as any).kid, kid);
+  const re = newLab();
+  re.load(dump(w));
+  assert.ok(re.seqCounter >= Number(kid.slice(3)));
 });

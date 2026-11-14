@@ -30,8 +30,10 @@ export const MACH: Record<MachineId, MachineDef> = {
     hint: '横取りした文書の中身を書き換えます。' },
   encrypt: { title: '暗号化（共通鍵）', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'doc', btn: '暗号化',
     hint: '共通鍵と文書を入れると、同じ共通鍵がないと読めない暗号文になります。' },
-  pkencrypt: { title: '公開鍵で暗号化', slots: 2, accept: (i) => (i.kind === 'pubkey' && !i.root) || i.kind === 'doc', btn: '暗号化',
-    hint: '相手の公開鍵と文書を入れると、その相手の秘密鍵でしか開けない暗号文になります。' },
+  pkencrypt: { title: '公開鍵で暗号化', slots: 2, accept: (i) => (i.kind === 'pubkey' && !i.root) || i.kind === 'doc' || i.kind === 'symkey', btn: '暗号化',
+    hint: '相手の公開鍵と、文書か共通鍵を入れると、その相手の秘密鍵でしか開けない暗号文になります。' },
+  symmake: { title: '共通鍵を作る', slots: 0, btn: '作る',
+    hint: 'この通信だけで使う共通鍵（セッション鍵）を、その場で作ります。' },
   decrypt: { title: '復号台', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'privkey' || i.kind === 'pubkey' || i.kind === 'cipher', btn: '復号',
     hint: '暗号文と鍵を入れます。合う鍵なら、元の文に戻ります。' },
   issue: { title: '証明書発行', slots: 1, accept: (i) => i.kind === 'pubkey', btn: '発行',
@@ -177,22 +179,28 @@ export function executeMachine(
     }
     case 'encrypt':
     case 'pkencrypt': {
-      const k = items.find((i) => i.kind !== 'doc');
-      const doc = items.find((i) => i.kind === 'doc');
-      if (!k || !doc || doc.kind !== 'doc') return res('鍵と文書を1つずつ入れてください。', 'warn');
+      // 共通鍵で暗号化：鍵＝共通鍵、中身＝文書。公開鍵で暗号化：鍵＝公開鍵、中身＝文書か共通鍵
+      const k = m === 'encrypt' ? items.find((i) => i.kind === 'symkey') : items.find((i) => i.kind === 'pubkey');
+      const body = items.find((i) => i !== k && (i.kind === 'doc' || (m === 'pkencrypt' && i.kind === 'symkey')));
+      if (!k || !body) return res(m === 'encrypt' ? '共通鍵と文書を1つずつ入れてください。' : '相手の公開鍵と、文書か共通鍵を1つずつ入れてください。', 'warn');
       let lock: CipherLock;
-      if (m === 'encrypt') {
-        if (k.kind !== 'symkey') return res('共通鍵と文書を1つずつ入れてください。', 'warn');
-        lock = { type: 'sym', kid: k.kid };
-      } else {
-        if (k.kind !== 'pubkey' || k.root) return res('相手の公開鍵と文書を1つずつ入れてください。', 'warn');
-        lock = { type: 'pk', pair: k.pair, to: k.site };
-      }
-      ctx.give(d, { kind: 'cipher', text: doc.text, lock }, false);
-      ctx.log('encrypt', { device: d.id, lock });
+      if (k.kind === 'symkey') lock = { type: 'sym', kid: k.kid };
+      else if (k.kind === 'pubkey' && !k.root) lock = { type: 'pk', pair: k.pair, to: k.site };
+      else return res('相手の公開鍵を入れてください。', 'warn');
+      const isKey = body.kind === 'symkey';
+      ctx.give(d, { kind: 'cipher', text: body.kind === 'doc' ? body.text : '', lock, ...(body.kind === 'symkey' ? { key: body.kid } : {}) }, false);
+      ctx.log('encrypt', { device: d.id, lock, content: isKey ? 'key' : 'text' });
+      const what = isKey ? '共通鍵' : '文書';
       return res(lock.type === 'sym'
         ? `${d.name}が共通鍵で文書を暗号化しました。同じ共通鍵を持っている人だけが、元に戻せます。`
-        : `${d.name}が${lock.to}の公開鍵で文書を暗号化しました。開けられるのは${lock.to}の秘密鍵だけ。暗号化した${d.name}本人にも、もう開けられません。`, 'ok', true);
+        : `${d.name}が${lock.to}の公開鍵で${what}を暗号化しました。開けられるのは${lock.to}の秘密鍵だけ。${isKey ? 'これなら共通鍵を通信路に流しても、中身は盗まれません。' : `暗号化した${d.name}本人にも、もう開けられません。`}`, 'ok', true);
+    }
+    case 'symmake': {
+      if (d.items.some((i) => i.kind === 'symkey')) return res(`${d.name}はもう共通鍵を持っています。`, 'warn');
+      const kid = 'sk-' + ctx.seq();
+      ctx.give(d, { kind: 'symkey', kid }, false);
+      ctx.log('symmake', { device: d.id, kid });
+      return res(`${d.name}が、この通信だけで使う共通鍵（セッション鍵）を作りました。そのまま送ると盗み見されてしまいます。`, 'ok');
     }
     case 'decrypt': {
       const c = items.find((i) => i.kind === 'cipher');
@@ -209,7 +217,13 @@ export function executeMachine(
         if (eve) ctx.flags.pubDecFail = true;
         r = ['開けません！公開鍵は「閉める」ための鍵で、開けられるのはペアの秘密鍵だけです。公開鍵を盗み見ても、暗号文は読めません。', 'warn'];
       } else r = ['この鍵では開けません。この暗号文は、別の人の公開鍵で暗号化されています。', 'warn'];
-      if (ok) {
+      if (ok && c.key) {
+        // 中身が共通鍵のとき：共通鍵を取り出す
+        ctx.give(d, { kind: 'symkey', kid: c.key }, false);
+        if (!eve) ctx.flags.pkRead = true;
+        r = !eve ? ['共通鍵を取り出せました！これで、相手と同じ共通鍵を持てました。ここからは速い共通鍵暗号でやりとりできます。', 'ok']
+          : [`${d.name}に共通鍵を取り出されてしまいました…秘密鍵が漏れています。`, 'bad'];
+      } else if (ok) {
         ctx.give(d, { kind: 'doc', text: c.text }, false);
         if (c.lock.type === 'sym') ctx.flags[eve ? 'symEveRead' : 'symRead'] = true;
         else if (!eve) ctx.flags.pkRead = true;
@@ -218,7 +232,7 @@ export function executeMachine(
             ? [`${d.name}にも読めてしまいました！「${c.text}」。共通鍵を通信路で送ったので、${d.name}も同じ鍵を持っています。これが「鍵配送問題」です。`, 'bad']
             : [`${d.name}に読まれてしまいました…「${c.text}」。秘密鍵が漏れています。`, 'bad'];
       }
-      ctx.log('decrypt', { device: d.id, lock: c.lock.type, result: ok ? 'success' : 'failure' });
+      ctx.log('decrypt', { device: d.id, lock: c.lock.type, content: c.key ? 'key' : 'text', result: ok ? 'success' : 'failure' });
       return res(r[0], r[1], true);
     }
     case 'issue': {
