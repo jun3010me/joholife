@@ -20,8 +20,11 @@ export type ItemData =
   | { kind: 'doc'; text: string; sig?: { pair: string; by: string; h: number } }
   | { kind: 'cert'; subject: string; pair: string; issuer: string; caPair: string }
   | { kind: 'symkey'; kid: string }
-  /** 暗号文。text は元の文（合う鍵で復号したときだけ見せる）。lock は閉めた鍵 */
-  | { kind: 'cipher'; text: string; lock: CipherLock };
+  /**
+   * 暗号文。text は元の文（合う鍵で復号したときだけ見せる）。lock は閉めた鍵。
+   * key があるときは、中身が文ではなく共通鍵（kid＝key）。text は空文字
+   */
+  | { kind: 'cipher'; text: string; lock: CipherLock; key?: string };
 
 /** 暗号文を閉めた鍵：共通鍵（kid）か、だれかの公開鍵（pair・to＝持ち主名） */
 export type CipherLock = { type: 'sym'; kid: string } | { type: 'pk'; pair: string; to: string };
@@ -36,7 +39,7 @@ export type DeviceType = 'person' | 'phone' | 'server' | 'pc' | 'ca' | 'internet
 export type MachineId =
   | 'combine' | 'challenge' | 'keygen' | 'sign' | 'verify'
   | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck'
-  | 'encrypt' | 'pkencrypt' | 'decrypt';
+  | 'encrypt' | 'pkencrypt' | 'decrypt' | 'symmake';
 
 export interface DeviceConfig {
   machines: MachineId[];
@@ -99,7 +102,7 @@ export type Flags = Partial<{
 export type LogAction =
   | 'send' | 'intercept' | 'combine' | 'challenge' | 'keygen' | 'sign' | 'sign-refused'
   | 'verify' | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck'
-  | 'encrypt' | 'decrypt'
+  | 'encrypt' | 'decrypt' | 'symmake'
   | 'connect' | 'disconnect' | 'add-device' | 'remove-device' | 'add-item' | 'edit' | 'move';
 
 export interface LogEntry {

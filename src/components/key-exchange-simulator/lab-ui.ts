@@ -269,6 +269,9 @@ export function mountKeyExchangeLab(): void {
     if (!inv || !pb) return;
     let z = 1;
     inv.style.setProperty('--kx-z', '1');
+    // 装置だけで吹き出しからはみ出すときは、持ち物を一番小さくしても収まらない。等倍のままにして、装置へはスクロールしてもらう
+    const invOver = inv.scrollHeight > inv.clientHeight + 1;
+    if (!invOver && pb.scrollHeight - inv.offsetHeight * (1 - 0.55) > pb.clientHeight + 1) return;
     while (z > 0.55 && (pb.scrollHeight > pb.clientHeight + 1 || inv.scrollHeight > inv.clientHeight + 1)) {
       z = Math.round((z - 0.05) * 100) / 100;
       inv.style.setProperty('--kx-z', String(z));

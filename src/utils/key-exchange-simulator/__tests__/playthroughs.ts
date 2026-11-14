@@ -19,6 +19,18 @@ const SOLVERS: Record<string, (w: KeyLab) => void> = {
     w.runMachine(B, 'decrypt', [find(w, B, 'symkey').uid, find(w, B, 'cipher').uid]);
     w.runMachine(EVE, 'decrypt', [find(w, EVE, 'symkey').uid, find(w, EVE, 'cipher').uid]);
   },
+  hybrid(w) {
+    const PC = 'pc-001', SV = 'server-001';
+    w.send(SV, find(w, SV, 'pubkey').uid, PC);
+    w.runMachine(PC, 'symmake', []);
+    w.runMachine(PC, 'pkencrypt', [find(w, PC, 'pubkey').uid, find(w, PC, 'symkey').uid]);
+    w.send(PC, find(w, PC, 'cipher', (c) => !!c.key).uid, SV);
+    w.runMachine(SV, 'decrypt', [find(w, SV, 'privkey').uid, find(w, SV, 'cipher').uid]);
+    w.runMachine(PC, 'encrypt', [find(w, PC, 'symkey').uid, find(w, PC, 'doc').uid]);
+    w.send(PC, find(w, PC, 'cipher', (c) => c.lock.type === 'sym').uid, SV);
+    w.runMachine(SV, 'decrypt', [find(w, SV, 'symkey').uid, find(w, SV, 'cipher', (c) => c.lock.type === 'sym').uid]);
+    w.runMachine(EVE, 'decrypt', [find(w, EVE, 'pubkey').uid, find(w, EVE, 'cipher', (c) => !!c.key).uid]);
+  },
   pk(w) {
     w.runMachine(B, 'keymake', []);
     w.send(B, find(w, B, 'pubkey').uid, A);

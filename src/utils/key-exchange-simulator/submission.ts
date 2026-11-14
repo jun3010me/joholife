@@ -21,6 +21,13 @@ const EVIDENCE: Record<string, (log: LogEntry[]) => string | null> = {
     count(log, 'decrypt', (e) => e.result === 'success' && e.device !== 'eve-001') < 1 ||
     count(log, 'decrypt', (e) => e.result === 'success' && e.device === 'eve-001') < 1
       ? '暗号化と、ボブ・イブそれぞれの復号の操作ログが足りません。' : null,
+  hybrid: (log) =>
+    count(log, 'symmake') < 1 ||
+    count(log, 'encrypt', (e) => e.content === 'key') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'success' && e.device === 'server-001' && e.content === 'key') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'success' && e.device === 'server-001' && e.content === 'text') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'failure' && e.device === 'eve-001') < 1
+      ? '共通鍵の作成・受け渡し・注文の復号と、イブの失敗の操作ログが足りません。' : null,
   pk: (log) =>
     count(log, 'keymake') < 1 || count(log, 'encrypt', (e) => (e.lock as { type?: string })?.type === 'pk') < 1 ||
     count(log, 'decrypt', (e) => e.result === 'success' && e.device !== 'eve-001') < 1 ||

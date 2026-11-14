@@ -14,8 +14,8 @@ export const PERSONS: [string, string][] = [['アリス', 'A'], ['ボブ', 'B'],
 export const DEVICE_TYPES: Record<DeviceType, { label: string; machines: MachineId[]; nics: number; color: string | null }> = {
   person: { label: '人物', machines: ['combine', 'encrypt', 'keymake', 'pkencrypt', 'decrypt', 'docsign', 'docverify'], nics: 1, color: null },
   phone: { label: 'スマホ', machines: ['keygen', 'sign'], nics: 1, color: '#2f7f73' },
-  server: { label: 'Webサイト', machines: ['keymake', 'challenge', 'verify'], nics: 1, color: '#4d5b68' },
-  pc: { label: 'ブラウザ', machines: ['certcheck'], nics: 1, color: '#3a6fa8' },
+  server: { label: 'Webサイト', machines: ['keymake', 'challenge', 'verify', 'decrypt'], nics: 1, color: '#4d5b68' },
+  pc: { label: 'ブラウザ', machines: ['certcheck', 'symmake', 'pkencrypt', 'encrypt'], nics: 1, color: '#3a6fa8' },
   ca: { label: '認証局', machines: ['issue'], nics: 1, color: '#8a6d1a' },
   internet: { label: 'インターネット', machines: [], nics: 6, color: '#8896a2' },
   eve: { label: '盗聴者', machines: ['combine', 'decrypt', 'tamper'], nics: 1, color: '#a8463c' },
@@ -228,7 +228,10 @@ export class KeyLab {
       case 'cert': return `証明書（${i.subject}／発行：${i.issuer}）`;
       case 'sig': return `署名つき返事 #${i.nonce}`;
       case 'symkey': return '共通鍵';
-      case 'cipher': return i.lock.type === 'pk' ? `暗号文（${i.lock.to}の公開鍵で暗号化）` : '暗号文（共通鍵で暗号化）';
+      case 'cipher': {
+        const what = i.key ? '暗号化された共通鍵' : '暗号文';
+        return i.lock.type === 'pk' ? `${what}（${i.lock.to}の公開鍵で暗号化）` : `${what}（共通鍵で暗号化）`;
+      }
     }
   }
 
@@ -357,8 +360,8 @@ export class KeyLab {
       };
       for (const it of dd.items ?? []) {
         d.items.push({ ...it, uid: this.nextUid(), recv: !!it.recv } as Item);
-        for (const v of [it.cid, it.pair]) {
-          const m = typeof v === 'string' && /^(?:ch|pk)-(\d+)$/.exec(v);
+        for (const v of [it.cid, it.pair, it.kid, it.key, it.lock?.pair, it.lock?.kid]) {
+          const m = typeof v === 'string' && /^(?:ch|pk|sk)-(\d+)$/.exec(v);
           if (m) maxSeq = Math.max(maxSeq, Number(m[1]));
         }
       }

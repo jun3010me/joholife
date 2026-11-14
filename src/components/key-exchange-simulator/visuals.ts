@@ -62,7 +62,7 @@ function visual(lab: KeyLab, i: ItemData): string {
       return keyV(SYMC, `<span class="kx-blk kx-secret" style="--c:${SYMC}">共</span>`) + '<span class="kx-cap">共通鍵</span>';
     case 'cipher':
       // 中身は見せない：元の文から決まる記号の並びだけを出す
-      return `<span class="kx-paper kx-cipher">🔒<br>${esc(garble(i.text))}</span><span class="kx-cap">暗号文</span>`;
+      return `<span class="kx-paper kx-cipher">🔒${i.key ? '🔑' : ''}<br>${esc(garble(i.key ? 'key:' + i.key : i.text))}</span><span class="kx-cap">${i.key ? '暗号化した<br>共通鍵' : '暗号文'}</span>`;
     case 'sig':
       return `<span class="kx-ticket" style="--c:${SIGC}"><b>署名つき返事</b><span>#${i.nonce}</span></span><span class="kx-cap">${esc(i.site)}</span>`;
   }
