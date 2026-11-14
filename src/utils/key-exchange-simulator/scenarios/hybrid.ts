@@ -10,7 +10,7 @@ export const hybrid: Scenario = {
   title: 'SSL/TLSで安全に注文する（ハイブリッド暗号方式）',
   desc: '公開鍵暗号で共通鍵を届け、あとは共通鍵暗号でやりとりする「ハイブリッド暗号方式」です。Webサイトの通信を守るSSL/TLSの基本の流れを体験します。',
   build(w) {
-    const pc = w.makeDevice('pc', ...w.pos(-1, 40), { id: PC, name: 'ブラウザ', visit: 'yamazon.com', machines: ['symmake', 'pkencrypt', 'encrypt'] });
+    const pc = w.makeDevice('pc', ...w.pos(-1, 40), { id: PC, name: 'ブラウザ', visit: 'yamazon.com', machines: ['symmake', 'encrypt'] });
     w.makeDevice('internet', ...w.pos(0, 40), { id: 'internet-001' });
     const sv = w.makeDevice('server', ...w.pos(1, 40), { id: SITE, name: 'Webサイト', site: 'yamazon.com', machines: ['decrypt'] });
     w.makeDevice('eve', ...w.pos(0, 'b'), { id: EVE, machines: ['decrypt'] });
@@ -28,11 +28,11 @@ export const hybrid: Scenario = {
       check: (w) => hasKind(w, PC, 'pubkey') },
     { text: 'ブラウザが共通鍵（セッション鍵）を作る', hint: 'ブラウザをタップし、「共通鍵を作る」で「作る」。',
       check: (w) => hasKind(w, PC, 'symkey') },
-    { text: '共通鍵を公開鍵で暗号化して、Webサイトに送る', hint: 'ブラウザの「公開鍵で暗号化」に、公開鍵と共通鍵を入れて「暗号化」。できたものをWebサイトへ送ります。',
+    { text: '共通鍵を公開鍵で暗号化して、Webサイトに送る', hint: 'ブラウザの「暗号化台」に、公開鍵と共通鍵を入れて「暗号化」。できたものをWebサイトへ送ります。',
       check: (w) => hasKind(w, SITE, 'cipher', (c) => !!c.key) },
     { text: 'Webサイトが秘密鍵で復号して、共通鍵を取り出す', hint: 'Webサイトの「復号台」に、秘密鍵と暗号化された共通鍵を入れて「復号」。',
       check: (w) => hasKind(w, SITE, 'symkey') },
-    { text: 'ブラウザが注文を共通鍵で暗号化して、Webサイトに送る', hint: 'ブラウザの「暗号化（共通鍵）」に、共通鍵と注文を入れて「暗号化」。できた暗号文をWebサイトへ送ります。',
+    { text: 'ブラウザが注文を共通鍵で暗号化して、Webサイトに送る', hint: 'ブラウザの「暗号化台」に、共通鍵と注文を入れて「暗号化」。できた暗号文をWebサイトへ送ります。',
       check: (w) => hasKind(w, SITE, 'cipher', (c) => c.lock.type === 'sym') },
     { text: 'Webサイトが共通鍵で復号して、注文を読む', hint: 'Webサイトの「復号台」に、共通鍵と注文の暗号文を入れて「復号」。',
       check: (w) => hasKind(w, SITE, 'doc', (d) => d.text === ORDER_TEXT) },

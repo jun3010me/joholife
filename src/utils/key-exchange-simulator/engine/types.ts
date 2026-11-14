@@ -39,7 +39,7 @@ export type DeviceType = 'person' | 'phone' | 'server' | 'pc' | 'ca' | 'internet
 export type MachineId =
   | 'combine' | 'challenge' | 'keygen' | 'sign' | 'verify'
   | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck'
-  | 'encrypt' | 'pkencrypt' | 'decrypt' | 'symmake';
+  | 'encrypt' | 'decrypt' | 'symmake';
 
 export interface DeviceConfig {
   machines: MachineId[];
