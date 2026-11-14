@@ -12,10 +12,10 @@ export { PERSON_COLORS };
 export const PERSONS: [string, string][] = [['アリス', 'A'], ['ボブ', 'B'], ['キャロル', 'C'], ['デイブ', 'D'], ['エレン', 'E']];
 
 export const DEVICE_TYPES: Record<DeviceType, { label: string; machines: MachineId[]; nics: number; color: string | null }> = {
-  person: { label: '人物', machines: ['combine', 'encrypt', 'keymake', 'pkencrypt', 'decrypt', 'docsign', 'docverify'], nics: 1, color: null },
+  person: { label: '人物', machines: ['combine', 'keymake', 'encrypt', 'decrypt', 'docsign', 'docverify'], nics: 1, color: null },
   phone: { label: 'スマホ', machines: ['keygen', 'sign'], nics: 1, color: '#2f7f73' },
   server: { label: 'Webサイト', machines: ['keymake', 'challenge', 'verify', 'decrypt'], nics: 1, color: '#4d5b68' },
-  pc: { label: 'ブラウザ', machines: ['certcheck', 'symmake', 'pkencrypt', 'encrypt'], nics: 1, color: '#3a6fa8' },
+  pc: { label: 'ブラウザ', machines: ['certcheck', 'symmake', 'encrypt'], nics: 1, color: '#3a6fa8' },
   ca: { label: '認証局', machines: ['issue'], nics: 1, color: '#8a6d1a' },
   internet: { label: 'インターネット', machines: [], nics: 6, color: '#8896a2' },
   eve: { label: '盗聴者', machines: ['combine', 'decrypt', 'tamper'], nics: 1, color: '#a8463c' },
@@ -354,7 +354,8 @@ export class KeyLab {
     for (const dd of data.devices) {
       const d: Device = {
         id: dd.id, type: dd.type, name: dd.name, x: dd.x, y: dd.y, width: dd.width ?? NW, height: dd.height ?? NH,
-        config: dd.config, items: [],
+        // 以前の「公開鍵で暗号化（pkencrypt）」は「暗号化台（encrypt）」にまとめた。古い保存ファイルも読めるよう置き換える
+        config: { ...dd.config, machines: [...new Set((dd.config?.machines ?? []).map((m: string) => (m === 'pkencrypt' ? 'encrypt' : m)))] }, items: [],
         state: { loggedIn: false, secure: false, issued: [], used: [], ...(dd.state ?? {}) },
         ports: dd.ports ?? { nics: [] },
       };

@@ -52,7 +52,7 @@ test('pk: 公開鍵では開けられず、ペアの秘密鍵でだけ開ける'
   w.runMachine(B, 'keymake', []);
   const s = w.send(B, find(w, B, 'pubkey').uid, A);
   assert.equal(s.tone, 'info', '公開鍵は送ってよい');
-  w.runMachine(A, 'pkencrypt', [find(w, A, 'pubkey').uid, find(w, A, 'doc').uid]);
+  w.runMachine(A, 'encrypt', [find(w, A, 'pubkey').uid, find(w, A, 'doc').uid]);
   // アリス本人も開けられない（秘密鍵がない）
   assert.ok(!has(w, A, 'privkey'));
   w.send(A, find(w, A, 'cipher').uid, B);
@@ -123,7 +123,7 @@ test('hybrid: 暗号化した共通鍵を復号すると、同じ共通鍵が取
   w.send(SV, find(w, SV, 'pubkey').uid, PC);
   w.runMachine(PC, 'symmake', []);
   const kid = (find(w, PC, 'symkey') as any).kid;
-  w.runMachine(PC, 'pkencrypt', [find(w, PC, 'pubkey').uid, find(w, PC, 'symkey').uid]);
+  w.runMachine(PC, 'encrypt', [find(w, PC, 'pubkey').uid, find(w, PC, 'symkey').uid]);
   w.send(PC, find(w, PC, 'cipher').uid, SV);
   const r = w.runMachine(SV, 'decrypt', [find(w, SV, 'privkey').uid, find(w, SV, 'cipher').uid]);
   assert.equal(r.tone, 'ok');
@@ -131,4 +131,29 @@ test('hybrid: 暗号化した共通鍵を復号すると、同じ共通鍵が取
   const re = newLab();
   re.load(dump(w));
   assert.ok(re.seqCounter >= Number(kid.slice(3)));
+});
+
+test('暗号化台：鍵の種類で暗号のかけ方が切り替わる', () => {
+  const w = newLab();
+  w.startScenario('hybrid');
+  w.send(SV, find(w, SV, 'pubkey').uid, PC);
+  w.runMachine(PC, 'symmake', []);
+  // 文書だけ（鍵なし）は動かない
+  assert.equal(w.runMachine(PC, 'encrypt', [find(w, PC, 'doc').uid, find(w, PC, 'doc').uid]).tone, 'warn');
+  // 公開鍵＋共通鍵 → 公開鍵で閉めた「暗号化した共通鍵」（入れる順番は関係ない）
+  w.runMachine(PC, 'encrypt', [find(w, PC, 'symkey').uid, find(w, PC, 'pubkey').uid]);
+  assert.ok(has(w, PC, 'cipher', (c) => c.lock.type === 'pk' && !!c.key));
+  // 共通鍵＋文書 → 共通鍵で閉めた暗号文
+  w.runMachine(PC, 'encrypt', [find(w, PC, 'doc').uid, find(w, PC, 'symkey').uid]);
+  assert.ok(has(w, PC, 'cipher', (c) => c.lock.type === 'sym' && !c.key));
+});
+
+test('古い保存ファイルの「公開鍵で暗号化（pkencrypt）」は暗号化台として読み込む', () => {
+  const w = newLab();
+  w.startScenario('pk');
+  const data = dump(w);
+  data.devices.find((d: any) => d.id === A).config.machines = ['pkencrypt'];
+  const r = newLab();
+  r.load(data);
+  assert.deepEqual(r.dev(A)!.config.machines, ['encrypt']);
 });

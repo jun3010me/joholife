@@ -28,10 +28,8 @@ export const MACH: Record<MachineId, MachineDef> = {
     hint: '書いた人の公開鍵で、署名と中身が合っているかを確かめます。' },
   tamper: { title: '書き換え台', slots: 1, accept: (i) => i.kind === 'doc', btn: '書き換え',
     hint: '横取りした文書の中身を書き換えます。' },
-  encrypt: { title: '暗号化（共通鍵）', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'doc', btn: '暗号化',
-    hint: '共通鍵と文書を入れると、同じ共通鍵がないと読めない暗号文になります。' },
-  pkencrypt: { title: '公開鍵で暗号化', slots: 2, accept: (i) => (i.kind === 'pubkey' && !i.root) || i.kind === 'doc' || i.kind === 'symkey', btn: '暗号化',
-    hint: '相手の公開鍵と、文書か共通鍵を入れると、その相手の秘密鍵でしか開けない暗号文になります。' },
+  encrypt: { title: '暗号化台', slots: 2, accept: (i) => i.kind === 'symkey' || (i.kind === 'pubkey' && !i.root) || i.kind === 'doc', btn: '暗号化',
+    hint: '鍵と、暗号化したいもの（文書・共通鍵）を入れます。共通鍵で閉めたら同じ共通鍵で、公開鍵で閉めたらペアの秘密鍵で開けられます。' },
   symmake: { title: '共通鍵を作る', slots: 0, btn: '作る',
     hint: 'この通信だけで使う共通鍵（セッション鍵）を、その場で作ります。' },
   decrypt: { title: '復号台', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'privkey' || i.kind === 'pubkey' || i.kind === 'cipher', btn: '復号',
@@ -177,12 +175,15 @@ export function executeMachine(
       ctx.log('tamper', { device: d.id, from: doc.text, to: t });
       return res(`${d.name}が文書を「${t}」に書き換えました。署名はそのまま付いています。これを相手に送るとどうなるでしょう。`, 'warn', true);
     }
-    case 'encrypt':
-    case 'pkencrypt': {
-      // 共通鍵で暗号化：鍵＝共通鍵、中身＝文書。公開鍵で暗号化：鍵＝公開鍵、中身＝文書か共通鍵
-      const k = m === 'encrypt' ? items.find((i) => i.kind === 'symkey') : items.find((i) => i.kind === 'pubkey');
-      const body = items.find((i) => i !== k && (i.kind === 'doc' || (m === 'pkencrypt' && i.kind === 'symkey')));
-      if (!k || !body) return res(m === 'encrypt' ? '共通鍵と文書を1つずつ入れてください。' : '相手の公開鍵と、文書か共通鍵を1つずつ入れてください。', 'warn');
+    case 'encrypt': {
+      // 入れた鍵の種類で暗号のかけ方が決まる。公開鍵があれば公開鍵で閉める（中身は文書か共通鍵）。なければ共通鍵で文書を閉める
+      const k = items.find((i) => i.kind === 'pubkey') ?? items.find((i) => i.kind === 'symkey');
+      const body = items.find((i) => i !== k && (i.kind === 'doc' || (k?.kind === 'pubkey' && i.kind === 'symkey')));
+      if (!k || !body) {
+        return res(items.every((i) => i.kind === 'doc')
+          ? '鍵が入っていません。共通鍵か公開鍵と、暗号化したいものを1つずつ入れてください。'
+          : '暗号化したいもの（文書、または公開鍵で閉めるなら共通鍵）と、鍵を1つずつ入れてください。', 'warn');
+      }
       let lock: CipherLock;
       if (k.kind === 'symkey') lock = { type: 'sym', kid: k.kid };
       else if (k.kind === 'pubkey' && !k.root) lock = { type: 'pk', pair: k.pair, to: k.site };

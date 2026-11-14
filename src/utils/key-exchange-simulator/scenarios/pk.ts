@@ -8,7 +8,7 @@ export const pk: Scenario = {
   title: '公開鍵暗号方式で手紙を送る',
   desc: '閉める鍵（公開鍵）と開ける鍵（秘密鍵）が別々の暗号です。共通鍵暗号の「鍵配送問題」を解決できるか試します。',
   build(w) {
-    const a = w.makeDevice('person', ...w.pos(-1, 40), { id: 'person-001', name: 'アリス', initial: 'A', color: PERSON_COLORS[0], machines: ['pkencrypt'] });
+    const a = w.makeDevice('person', ...w.pos(-1, 40), { id: 'person-001', name: 'アリス', initial: 'A', color: PERSON_COLORS[0], machines: ['encrypt'] });
     w.makeDevice('person', ...w.pos(1, 40), { id: 'person-002', name: 'ボブ', initial: 'B', color: PERSON_COLORS[1], machines: ['keymake', 'decrypt'] });
     w.makeDevice('internet', ...w.pos(0, 40), { id: 'internet-001' });
     w.makeDevice('eve', ...w.pos(0, 'b'), { id: 'eve-001', machines: ['decrypt'] });
@@ -24,7 +24,7 @@ export const pk: Scenario = {
       check: (w) => hasKind(w, 'person-002', 'privkey') },
     { text: 'ボブの公開鍵をアリスに送る（イブに見られてもOK）', hint: 'ボブの公開鍵をアリスへドラッグします。秘密鍵は送りません。',
       check: (w) => hasKind(w, 'person-001', 'pubkey') },
-    { text: 'アリスがボブの公開鍵で手紙を暗号化する', hint: 'アリスの「公開鍵で暗号化」に、ボブの公開鍵と手紙を入れて「暗号化」。',
+    { text: 'アリスがボブの公開鍵で手紙を暗号化する', hint: 'アリスの「暗号化台」に、ボブの公開鍵と手紙を入れて「暗号化」。',
       check: (w) => hasKind(w, 'person-001', 'cipher', (c) => c.lock.type === 'pk') },
     { text: '暗号文をボブに送る', hint: '暗号文をボブへドラッグします。',
       check: (w) => hasKind(w, 'person-002', 'cipher') },
