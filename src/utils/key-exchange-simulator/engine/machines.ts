@@ -1,5 +1,5 @@
 import { hash } from './items.ts';
-import type { Device, Flags, Item, ItemData, LogAction, MachineId, Result } from './types.ts';
+import type { CipherLock, Device, Flags, Item, ItemData, LogAction, MachineId, Result } from './types.ts';
 
 export interface MachineDef {
   title: string;
@@ -28,6 +28,12 @@ export const MACH: Record<MachineId, MachineDef> = {
     hint: '書いた人の公開鍵で、署名と中身が合っているかを確かめます。' },
   tamper: { title: '書き換え台', slots: 1, accept: (i) => i.kind === 'doc', btn: '書き換え',
     hint: '横取りした文書の中身を書き換えます。' },
+  encrypt: { title: '暗号化（共通鍵）', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'doc', btn: '暗号化',
+    hint: '共通鍵と文書を入れると、同じ共通鍵がないと読めない暗号文になります。' },
+  pkencrypt: { title: '公開鍵で暗号化', slots: 2, accept: (i) => (i.kind === 'pubkey' && !i.root) || i.kind === 'doc', btn: '暗号化',
+    hint: '相手の公開鍵と文書を入れると、その相手の秘密鍵でしか開けない暗号文になります。' },
+  decrypt: { title: '復号台', slots: 2, accept: (i) => i.kind === 'symkey' || i.kind === 'privkey' || i.kind === 'pubkey' || i.kind === 'cipher', btn: '復号',
+    hint: '暗号文と鍵を入れます。合う鍵なら、元の文に戻ります。' },
   issue: { title: '証明書発行', slots: 1, accept: (i) => i.kind === 'pubkey', btn: '発行',
     hint: '届いた公開鍵が本当にその持ち主のものか確認して、認証局の署名つき証明書を作ります。' },
   certcheck: { title: '証明書チェック', slots: 1, accept: (i) => i.kind === 'cert', btn: '確認',
@@ -168,6 +174,52 @@ export function executeMachine(
       ctx.give(d, { kind: 'doc', text: t, ...(doc.sig ? { sig: doc.sig } : {}) }, false);
       ctx.log('tamper', { device: d.id, from: doc.text, to: t });
       return res(`${d.name}が文書を「${t}」に書き換えました。署名はそのまま付いています。これを相手に送るとどうなるでしょう。`, 'warn', true);
+    }
+    case 'encrypt':
+    case 'pkencrypt': {
+      const k = items.find((i) => i.kind !== 'doc');
+      const doc = items.find((i) => i.kind === 'doc');
+      if (!k || !doc || doc.kind !== 'doc') return res('鍵と文書を1つずつ入れてください。', 'warn');
+      let lock: CipherLock;
+      if (m === 'encrypt') {
+        if (k.kind !== 'symkey') return res('共通鍵と文書を1つずつ入れてください。', 'warn');
+        lock = { type: 'sym', kid: k.kid };
+      } else {
+        if (k.kind !== 'pubkey' || k.root) return res('相手の公開鍵と文書を1つずつ入れてください。', 'warn');
+        lock = { type: 'pk', pair: k.pair, to: k.site };
+      }
+      ctx.give(d, { kind: 'cipher', text: doc.text, lock }, false);
+      ctx.log('encrypt', { device: d.id, lock });
+      return res(lock.type === 'sym'
+        ? `${d.name}が共通鍵で文書を暗号化しました。同じ共通鍵を持っている人だけが、元に戻せます。`
+        : `${d.name}が${lock.to}の公開鍵で文書を暗号化しました。開けられるのは${lock.to}の秘密鍵だけ。暗号化した${d.name}本人にも、もう開けられません。`, 'ok', true);
+    }
+    case 'decrypt': {
+      const c = items.find((i) => i.kind === 'cipher');
+      const k = items.find((i) => i.kind !== 'cipher');
+      if (!c || !k || c.kind !== 'cipher') return res('復号台には、暗号文と鍵を1つずつ入れます。', 'warn');
+      const eve = d.type === 'eve';
+      let ok = false;
+      let r: [string, Result['tone']] = ['この鍵では開けません。', 'warn'];
+      if (c.lock.type === 'sym') {
+        if (k.kind === 'symkey' && k.kid === c.lock.kid) ok = true;
+        else r = ['この鍵では開けません。暗号化したときと同じ共通鍵が必要です。', 'warn'];
+      } else if (k.kind === 'privkey' && k.pair === c.lock.pair) ok = true;
+      else if (k.kind === 'pubkey' && k.pair === c.lock.pair) {
+        if (eve) ctx.flags.pubDecFail = true;
+        r = ['開けません！公開鍵は「閉める」ための鍵で、開けられるのはペアの秘密鍵だけです。公開鍵を盗み見ても、暗号文は読めません。', 'warn'];
+      } else r = ['この鍵では開けません。この暗号文は、別の人の公開鍵で暗号化されています。', 'warn'];
+      if (ok) {
+        ctx.give(d, { kind: 'doc', text: c.text }, false);
+        if (c.lock.type === 'sym') ctx.flags[eve ? 'symEveRead' : 'symRead'] = true;
+        else if (!eve) ctx.flags.pkRead = true;
+        r = !eve ? [`復号できました！元の文は「${c.text}」です。`, 'ok']
+          : c.lock.type === 'sym'
+            ? [`${d.name}にも読めてしまいました！「${c.text}」。共通鍵を通信路で送ったので、${d.name}も同じ鍵を持っています。これが「鍵配送問題」です。`, 'bad']
+            : [`${d.name}に読まれてしまいました…「${c.text}」。秘密鍵が漏れています。`, 'bad'];
+      }
+      ctx.log('decrypt', { device: d.id, lock: c.lock.type, result: ok ? 'success' : 'failure' });
+      return res(r[0], r[1], true);
     }
     case 'issue': {
       const p = items[0];

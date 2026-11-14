@@ -1,4 +1,4 @@
-// 5シナリオを最後まで操作して完了させる（提出判定のテスト用）
+// すべてのシナリオを最後まで操作して完了させる（提出判定のテスト用）
 import { block, find, newLab } from './helpers.ts';
 import type { KeyLab } from '../engine/world.ts';
 
@@ -12,6 +12,21 @@ export function solve(id: string): KeyLab {
 }
 
 const SOLVERS: Record<string, (w: KeyLab) => void> = {
+  sym(w) {
+    w.runMachine(A, 'encrypt', [find(w, A, 'symkey').uid, find(w, A, 'doc').uid]);
+    w.send(A, find(w, A, 'cipher').uid, B);
+    w.send(A, find(w, A, 'symkey').uid, B);
+    w.runMachine(B, 'decrypt', [find(w, B, 'symkey').uid, find(w, B, 'cipher').uid]);
+    w.runMachine(EVE, 'decrypt', [find(w, EVE, 'symkey').uid, find(w, EVE, 'cipher').uid]);
+  },
+  pk(w) {
+    w.runMachine(B, 'keymake', []);
+    w.send(B, find(w, B, 'pubkey').uid, A);
+    w.runMachine(A, 'pkencrypt', [find(w, A, 'pubkey').uid, find(w, A, 'doc').uid]);
+    w.send(A, find(w, A, 'cipher').uid, B);
+    w.runMachine(B, 'decrypt', [find(w, B, 'privkey').uid, find(w, B, 'cipher').uid]);
+    w.runMachine(EVE, 'decrypt', [find(w, EVE, 'pubkey').uid, find(w, EVE, 'cipher').uid]);
+  },
   dh(w) {
     w.send(A, block(w, A, ['P']).uid, B);
     w.runMachine(A, 'combine', [block(w, A, ['P']).uid, block(w, A, ['S:person-001']).uid]);

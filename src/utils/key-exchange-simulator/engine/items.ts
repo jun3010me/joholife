@@ -4,6 +4,14 @@ import type { Device, Item, ItemData } from './types.ts';
 export const hash = (s: string): number =>
   [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 
+/** 暗号文の見た目用：元の文から決まる、読めない記号の並び（同じ文なら毎回同じ） */
+export function garble(s: string, len = 10): string {
+  const chars = '#%@*?$+=~§';
+  let h = hash(s), o = '';
+  for (let k = 0; k < len; k++) { h = (Math.imul(h, 1103515245) + 12345) >>> 0; o += chars[(h >>> 16) % chars.length]; }
+  return o;
+}
+
 /** 同じ中身かどうかの判定キー（重複を1つにまとめる） */
 export function itemKey(i: ItemData): string {
   switch (i.kind) {
@@ -14,6 +22,8 @@ export function itemKey(i: ItemData): string {
     case 'sig': return 's:' + i.pair + ':' + i.cid;
     case 'doc': return 'd:' + i.text + ':' + (i.sig ? i.sig.pair + i.sig.h : '');
     case 'cert': return 'z:' + i.subject + ':' + i.pair + ':' + i.caPair;
+    case 'symkey': return 'y:' + i.kid;
+    case 'cipher': return 'x:' + i.lock.type + ':' + (i.lock.type === 'sym' ? i.lock.kid : i.lock.pair) + ':' + i.text;
   }
 }
 
@@ -23,9 +33,9 @@ export function payload(i: Item): ItemData {
   return JSON.parse(JSON.stringify(rest)) as ItemData;
 }
 
-/** 送ってはいけないもの：秘密鍵、または P を含まない（秘密素材だけの）block */
+/** 送ってはいけないもの：秘密鍵・共通鍵、または P を含まない（秘密素材だけの）block */
 export const isSecret = (i: ItemData): boolean =>
-  i.kind === 'privkey' || (i.kind === 'block' && i.parts.some((p) => p !== 'P') && !i.parts.includes('P'));
+  i.kind === 'privkey' || i.kind === 'symkey' || (i.kind === 'block' && i.parts.some((p) => p !== 'P') && !i.parts.includes('P'));
 
 export const sameParts = (a: string[], b: string[]): boolean =>
   [...a].sort().join('|') === [...b].sort().join('|');
