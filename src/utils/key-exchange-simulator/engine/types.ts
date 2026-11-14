@@ -18,7 +18,13 @@ export type ItemData =
   | { kind: 'pubkey'; pair: string; site: string; root?: boolean }
   | { kind: 'sig'; pair: string; cid: string; nonce: string; site: string }
   | { kind: 'doc'; text: string; sig?: { pair: string; by: string; h: number } }
-  | { kind: 'cert'; subject: string; pair: string; issuer: string; caPair: string };
+  | { kind: 'cert'; subject: string; pair: string; issuer: string; caPair: string }
+  | { kind: 'symkey'; kid: string }
+  /** 暗号文。text は元の文（合う鍵で復号したときだけ見せる）。lock は閉めた鍵 */
+  | { kind: 'cipher'; text: string; lock: CipherLock };
+
+/** 暗号文を閉めた鍵：共通鍵（kid）か、だれかの公開鍵（pair・to＝持ち主名） */
+export type CipherLock = { type: 'sym'; kid: string } | { type: 'pk'; pair: string; to: string };
 
 export type ItemKind = ItemData['kind'];
 
@@ -29,7 +35,8 @@ export type DeviceType = 'person' | 'phone' | 'server' | 'pc' | 'ca' | 'internet
 
 export type MachineId =
   | 'combine' | 'challenge' | 'keygen' | 'sign' | 'verify'
-  | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck';
+  | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck'
+  | 'encrypt' | 'pkencrypt' | 'decrypt';
 
 export interface DeviceConfig {
   machines: MachineId[];
@@ -78,6 +85,13 @@ export type Flags = Partial<{
   tamperDetected: boolean;
   docVerified: boolean;
   fakeCertRejected: boolean;
+  /** 共通鍵で正しく復号できた（イブ以外／イブ） */
+  symRead: boolean;
+  symEveRead: boolean;
+  /** 秘密鍵で正しく復号できた（イブ以外） */
+  pkRead: boolean;
+  /** イブが公開鍵で暗号文を開けようとして、開けられなかった */
+  pubDecFail: boolean;
   /** 受け取った公開鍵・署名つき文書の持ち主名を伏せる（課題⑩のテンプレートだけが立てる。進み具合の印ではない） */
   hideKeyOwner: boolean;
 }>;
@@ -85,6 +99,7 @@ export type Flags = Partial<{
 export type LogAction =
   | 'send' | 'intercept' | 'combine' | 'challenge' | 'keygen' | 'sign' | 'sign-refused'
   | 'verify' | 'keymake' | 'docsign' | 'docverify' | 'tamper' | 'issue' | 'certcheck'
+  | 'encrypt' | 'decrypt'
   | 'connect' | 'disconnect' | 'add-device' | 'remove-device' | 'add-item' | 'edit' | 'move';
 
 export interface LogEntry {

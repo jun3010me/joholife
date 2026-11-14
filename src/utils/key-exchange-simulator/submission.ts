@@ -16,6 +16,16 @@ const count = (log: LogEntry[], action: string, f: (e: LogEntry) => boolean = ()
 
 /** シナリオごとに、操作ログにあるべき証拠。足りなければ理由を返す */
 const EVIDENCE: Record<string, (log: LogEntry[]) => string | null> = {
+  sym: (log) =>
+    count(log, 'encrypt', (e) => (e.lock as { type?: string })?.type === 'sym') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'success' && e.device !== 'eve-001') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'success' && e.device === 'eve-001') < 1
+      ? '暗号化と、ボブ・イブそれぞれの復号の操作ログが足りません。' : null,
+  pk: (log) =>
+    count(log, 'keymake') < 1 || count(log, 'encrypt', (e) => (e.lock as { type?: string })?.type === 'pk') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'success' && e.device !== 'eve-001') < 1 ||
+    count(log, 'decrypt', (e) => e.result === 'failure' && e.device === 'eve-001') < 1
+      ? '鍵ペア作成・暗号化・復号（ボブの成功とイブの失敗）の操作ログが足りません。' : null,
   dh: (log) =>
     count(log, 'combine') < 5 || count(log, 'combine', (e) => e.device === 'eve-001') < 1
       ? '合成の操作ログが足りません。自分の操作で最後まで進めたファイルを提出してください。' : null,

@@ -12,13 +12,13 @@ export { PERSON_COLORS };
 export const PERSONS: [string, string][] = [['アリス', 'A'], ['ボブ', 'B'], ['キャロル', 'C'], ['デイブ', 'D'], ['エレン', 'E']];
 
 export const DEVICE_TYPES: Record<DeviceType, { label: string; machines: MachineId[]; nics: number; color: string | null }> = {
-  person: { label: '人物', machines: ['combine', 'keymake', 'docsign', 'docverify'], nics: 1, color: null },
+  person: { label: '人物', machines: ['combine', 'encrypt', 'keymake', 'pkencrypt', 'decrypt', 'docsign', 'docverify'], nics: 1, color: null },
   phone: { label: 'スマホ', machines: ['keygen', 'sign'], nics: 1, color: '#2f7f73' },
   server: { label: 'Webサイト', machines: ['keymake', 'challenge', 'verify'], nics: 1, color: '#4d5b68' },
   pc: { label: 'ブラウザ', machines: ['certcheck'], nics: 1, color: '#3a6fa8' },
   ca: { label: '認証局', machines: ['issue'], nics: 1, color: '#8a6d1a' },
   internet: { label: 'インターネット', machines: [], nics: 6, color: '#8896a2' },
-  eve: { label: '盗聴者', machines: ['combine', 'tamper'], nics: 1, color: '#a8463c' },
+  eve: { label: '盗聴者', machines: ['combine', 'decrypt', 'tamper'], nics: 1, color: '#a8463c' },
 };
 
 export interface MakeDeviceOpts {
@@ -227,6 +227,8 @@ export class KeyLab {
         return `文書「${i.text}」${this.hidesOwner(i) ? '（署名つき）' : `（${i.sig.by}の署名つき）`}`;
       case 'cert': return `証明書（${i.subject}／発行：${i.issuer}）`;
       case 'sig': return `署名つき返事 #${i.nonce}`;
+      case 'symkey': return '共通鍵';
+      case 'cipher': return i.lock.type === 'pk' ? `暗号文（${i.lock.to}の公開鍵で暗号化）` : '暗号文（共通鍵で暗号化）';
     }
   }
 
@@ -263,11 +265,13 @@ export class KeyLab {
     this.addLog('send', { from: from.id, to: to.id, item: data, tappedBy: [...taps] });
     const tapText = taps.size ? `同じものが${[...taps].join('・')}にもコピーされました。` : '途中で盗み見している人はいませんでした。';
     let r: Msg;
-    if (secret) {
+    if (data.kind === 'symkey' && taps.size) {
+      r = { text: `${to.name}に共通鍵が届きました。でも、${tapText}これでは${[...taps].join('・')}も暗号文を開けてしまいます。`, tone: 'bad' };
+    } else if (secret) {
       r = taps.size
         ? { text: `しまった！「${this.label(data)}」は送ってはいけないものです。${tapText}`, tone: 'bad' }
         : { text: `「${this.label(data)}」は本来送ってはいけないものです。今回は盗み見されませんでしたが、気をつけましょう。`, tone: 'warn' };
-    } else r = { text: `${from.name}が「${this.label(data)}」を${to.name}に送りました。${tapText}`, tone: 'info' };
+    } else r = { text: `${from.name}が「${this.label(data)}」を${to.name}に送りました。${tapText}${data.kind === 'cipher' && taps.size ? 'でも中身は暗号文なので、合う鍵がなければ読めません。' : ''}`, tone: 'info' };
     return this.done(r, path);
   }
 

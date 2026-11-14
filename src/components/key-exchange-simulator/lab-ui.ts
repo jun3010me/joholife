@@ -130,7 +130,7 @@ export function mountKeyExchangeLab(): void {
   };
 
   // ---------- 開始 ----------
-  function start(mode: 'scenario' | 'free', sid = 'dh') {
+  function start(mode: 'scenario' | 'free', sid = 'sym') {
     zoom = 1; panX = 0; panY = 0;
     syncSize();
     ui.slots = {}; ui.pick = null; ui.open = [];
@@ -164,6 +164,7 @@ export function mountKeyExchangeLab(): void {
     const items =
       tool(free ? 'data-drag="pitem" data-item="P"' : dis, PCOL, ICON.key, '公開鍵P', off + sel('pitem', 'P')) +
       tool(free ? 'data-drag="pitem" data-item="S"' : dis, '#7d8790', ICON.key, '秘密鍵S', off + sel('pitem', 'S')) +
+      tool(free ? 'data-drag="pitem" data-item="K"' : dis, '#2f7f9e', ICON.key, '共通鍵K', off + sel('pitem', 'K')) +
       tool(free ? 'data-drag="pitem" data-item="D"' : dis, '#6b7a86', ICON.doc, '文書', off + sel('pitem', 'D'));
     $('#kx-palette').innerHTML = devs + '<span class="kx-sep" aria-hidden="true"></span>' + items + '<span class="kx-sep" aria-hidden="true"></span>' +
       `<div class="device-item kx-trash" data-drop="trash" title="持ち物をここへドラッグすると消えます"><div class="device-icon"><span class="kx-ti" style="background:#9aa3ab">${ICON.trash}</span></div><div class="device-name">ゴミ箱</div></div>`;
@@ -329,6 +330,11 @@ export function mountKeyExchangeLab(): void {
     if (src.kind === 'pitem') {
       const d = t.kind === 'device' || t.kind === 'inv' ? lab.dev(t.dev as string) : undefined;
       if (!d) return { text: '人物などのデバイスの上に置いてください。', tone: 'warn' };
+      if (src.item === 'K') {
+        if (d.type !== 'person' && d.type !== 'eve') return { text: '共通鍵は人物に持たせてください。', tone: 'warn' };
+        lab.addItem(d, { kind: 'symkey', kid: 'K1' });
+        return { text: `${d.name}が共通鍵を手に入れました。パレットの共通鍵は、だれに置いても同じ鍵です。`, tone: 'info' };
+      }
       if (src.item === 'D') {
         if (d.type !== 'person' && d.type !== 'eve') return { text: '文書は人物に持たせてください。', tone: 'warn' };
         lab.addItem(d, { kind: 'doc', text: DOC_TEXT });
@@ -594,7 +600,7 @@ export function mountKeyExchangeLab(): void {
   window.addEventListener('resize', () => { syncSize(); clampAll(); renderNodes(); drawWires(); });
 
   // ---------- ボタンバー ----------
-  $('#kx-btn-reset').addEventListener('click', () => start(lab.mode, lab.scenario?.id || 'dh'));
+  $('#kx-btn-reset').addEventListener('click', () => start(lab.mode, lab.scenario?.id || 'sym'));
   $('#kx-btn-save').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(lab.toJSON(), null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob), a = document.createElement('a');
@@ -624,5 +630,5 @@ export function mountKeyExchangeLab(): void {
     rd.readAsText(f);
   });
 
-  requestAnimationFrame(() => start('scenario', 'dh'));
+  requestAnimationFrame(() => start('scenario', 'sym'));
 }

@@ -1,10 +1,10 @@
 // 鍵交換シミュレータ：持ち物・アイコンの見た目（HTML文字列）
 import type { Item, ItemData } from '../../utils/key-exchange-simulator/engine/types.ts';
-import { isSecret } from '../../utils/key-exchange-simulator/engine/items.ts';
+import { garble, isSecret } from '../../utils/key-exchange-simulator/engine/items.ts';
 import type { KeyLab } from '../../utils/key-exchange-simulator/engine/world.ts';
 
 export const PCOL = '#2e8f88';
-const CERTC = '#8a6d1a', PRIVC = '#7a5a2a', PUBC = '#3b7fb3', CHC = '#8a6d1a', SIGC = '#5a63b8';
+const CERTC = '#8a6d1a', PRIVC = '#7a5a2a', PUBC = '#3b7fb3', CHC = '#8a6d1a', SIGC = '#5a63b8', SYMC = '#2f7f9e';
 
 const svg = (inner: string, extra = 'stroke-linecap="round"') =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ${extra} aria-hidden="true">${inner}</svg>`;
@@ -58,6 +58,11 @@ function visual(lab: KeyLab, i: ItemData): string {
       return `<span class="kx-certc"><b>証明書</b><span>${esc(i.subject)}</span><i>発行：${esc(i.issuer)}</i></span><span class="kx-cap">証明書</span>`;
     case 'challenge':
       return `<span class="kx-ticket" style="--c:${CHC}"><b>チャレンジ</b><span>#${i.nonce}</span></span><span class="kx-cap">${esc(i.site)}</span>`;
+    case 'symkey':
+      return keyV(SYMC, `<span class="kx-blk kx-secret" style="--c:${SYMC}">共</span>`) + '<span class="kx-cap">共通鍵</span>';
+    case 'cipher':
+      // 中身は見せない：元の文から決まる記号の並びだけを出す
+      return `<span class="kx-paper kx-cipher">🔒<br>${esc(garble(i.text))}</span><span class="kx-cap">暗号文</span>`;
     case 'sig':
       return `<span class="kx-ticket" style="--c:${SIGC}"><b>署名つき返事</b><span>#${i.nonce}</span></span><span class="kx-cap">${esc(i.site)}</span>`;
   }
