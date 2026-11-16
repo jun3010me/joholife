@@ -73,6 +73,8 @@ function verify3(p: Problem3): Verdict {
   }
   if (new Set(p.flipped.map((c) => c.join(','))).size !== p.flipped.length) return fail('反転したマスの記録が正しくありません。');
   if (!Array.isArray(p.steps)) return fail('操作の記録がありません。');
+  // ノイズ1枚以外の問題は、クリアに数えない（手順の再計算もしない）
+  if (p.flipped.length !== 1) return p.cleared ? fail('ノイズ1枚の問題ではないのに、クリアと記録されています。') : { cleared: false };
   const received = applyFlips2D(p.sent, p.flipped);
   const rows = oddRows(received), cols = oddCols(received);
 

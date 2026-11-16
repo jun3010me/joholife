@@ -77,3 +77,22 @@
 .pc-why-body { padding: 0 1rem 1rem; }
 .pc-why-body p, .pc-why-body ul { margin: .5rem 0; }
 .pc-why-body ul { padding-left: 1.4rem; list-style: disc; }
+
+/* ステージ3：見出し付きの6×6マス。幅380pxでも横スクロールしない */
+.pc-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; max-width: calc(6 * 84px + 5 * 6px); margin: .25rem 0 .5rem; }
+@media (min-width: 640px) { .pc-grid { gap: 6px; } }
+.pc-gridrow { display: contents; }
+.pc-grid .pc-card { aspect-ratio: 1 / 1; }
+.pc-grid .pc-face { font-size: clamp(1.1rem, 4.5vw, 2.2rem); border-width: 2px; }
+.pc-corner { min-height: 40px; }
+.pc-hlabel, .pc-hbtn { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 40px; padding: 0 2px; font-size: clamp(.65rem, 2.8vw, .95rem); font-weight: 700; line-height: 1.2; color: #374151; }
+.pc-hpar { color: #c2410c; }
+.pc-hbtn { border: 2px solid #374151; border-radius: 8px; background: #fff; cursor: pointer; }
+.pc-hbtn:hover:not(:disabled) { background: #f3f4f6; }
+.pc-hbtn:disabled { cursor: default; }
+.pc-hbtn.pc-hdone { background: #fef2f2; border-color: var(--pc-ng); color: #7f1d1d; }
+.pc-check { list-style: none; padding: 0; margin: .25rem 0 .5rem; display: flex; flex-wrap: wrap; gap: .25rem .9rem; font-weight: 700; }
+.pc-check .pc-done { color: var(--pc-ok); }
+.pc-msg-ok { color: var(--pc-ok); }
+.pc-hintbox { display: flex; align-items: center; gap: .4rem; min-height: 44px; margin-top: .5rem; }
+.pc-hintbox input { width: 22px; height: 22px; }

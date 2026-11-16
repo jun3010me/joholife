@@ -3,12 +3,14 @@ import { buildSave, clearProblems, loadProblems, saveProblems, type Problem } fr
 import { STAGES } from '../../utils/parity-check/stages.ts';
 import { LogContext, type LogApi } from './context.tsx';
 import Stage12 from './Stage12.tsx';
-import { WhyStage1, WhyStage2 } from './Why.tsx';
+import Stage3 from './Stage3.tsx';
+import { WhyStage1, WhyStage2, WhyStage3 } from './Why.tsx';
 
 /** ステージ番号 → 画面。ステージ4・5は、stages.ts に足して、ここに部品を足す */
 const STAGE_VIEWS: Record<number, () => ReactNode> = {
   1: () => <><Stage12 stage={1} mode="even" /><WhyStage1 /></>,
   2: () => <><Stage12 stage={2} mode="odd" /><WhyStage2 /></>,
+  3: () => <><Stage3 /><WhyStage3 /></>,
 };
 
 const ACTIVE = STAGES.filter((s) => STAGE_VIEWS[s.id]);
