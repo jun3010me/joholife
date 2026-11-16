@@ -1,0 +1,79 @@
+/* パリティチェック体験ページ専用のCSS。クラス名は pc- で始めて、既存のCSSと衝突させない。 */
+.pc-page {
+  --pc-on-bg: #111827; --pc-on-fg: #ffffff;
+  --pc-off-bg: #ffffff; --pc-off-fg: #9ca3af; --pc-off-border: #6b7280;
+  --pc-parity: #f97316; --pc-ng: #dc2626; --pc-ok: #047857;
+  --pc-card-w: clamp(40px, 10vw, 84px);
+  max-width: 920px; margin: 0 auto; color: #111827; line-height: 1.7;
+}
+.pc-page * { box-sizing: border-box; }
+.pc-head h1 { font-size: clamp(1.4rem, 5vw, 2rem); font-weight: 800; margin-bottom: .25rem; }
+.pc-toc { display: grid; gap: .5rem; margin: 1rem 0; }
+@media (min-width: 640px) { .pc-toc { grid-template-columns: repeat(3, 1fr); } }
+.pc-toc a { display: flex; flex-direction: column; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: 10px; background: #fff; text-decoration: none; color: #111827; min-height: 44px; }
+.pc-toc a span { font-size: .8rem; color: #4b5563; }
+.pc-toc a:hover, .pc-toc a:focus-visible { border-color: var(--pc-parity); outline: 2px solid transparent; box-shadow: 0 0 0 3px #fed7aa; }
+.pc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin: .5rem 0; }
+.pc-note { font-size: .85rem; color: #4b5563; margin: .25rem 0; }
+.pc-confirm { border: 2px solid var(--pc-ng); border-radius: 10px; padding: .75rem 1rem; background: #fef2f2; margin: .5rem 0; }
+
+.pc-stage { margin: 2rem 0 .75rem; scroll-margin-top: 1rem; }
+.pc-h2 { font-size: clamp(1.2rem, 4.5vw, 1.6rem); font-weight: 800; border-left: 6px solid var(--pc-parity); padding-left: .6rem; margin-bottom: .5rem; }
+.pc-h3 { font-size: 1rem; font-weight: 700; margin: 0 0 .4rem; }
+.pc-lead { margin-bottom: .75rem; }
+.pc-block { margin: .75rem 0; }
+@media (min-width: 480px) { .pc-block { padding: .75rem; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; } }
+
+/* ボタン */
+.pc-btn { min-height: 44px; min-width: 44px; padding: .45rem 1rem; border-radius: 10px; border: 2px solid #374151; background: #fff; color: #111827; font-weight: 700; cursor: pointer; font-size: 1rem; }
+.pc-btn:hover:not(:disabled) { background: #f3f4f6; }
+.pc-btn:focus-visible, .pc-card:focus-visible, .pc-hbtn:focus-visible, .pc-noise input:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.pc-btn:disabled { opacity: .45; cursor: not-allowed; }
+.pc-btn-main { background: #111827; color: #fff; border-color: #111827; }
+.pc-btn-main:hover:not(:disabled) { background: #1f2937; }
+.pc-btn-sub { border-color: #9ca3af; color: #374151; font-weight: 600; }
+.pc-btn-danger { background: var(--pc-ng); border-color: var(--pc-ng); color: #fff; }
+.pc-inline { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.pc-actions { margin-top: .75rem; }
+
+/* カード：表(1)＝黒地に白、裏(0)＝白地に薄い文字。めくる動き 0.25秒 */
+.pc-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; max-width: calc(8 * 84px + 7 * 6px); margin: .25rem 0; }
+@media (min-width: 640px) { .pc-row { gap: 6px; } }
+.pc-card { position: relative; width: 100%; aspect-ratio: 3 / 4; min-width: 40px; min-height: 40px; padding: 0; border: 0; background: transparent; perspective: 600px; cursor: pointer; }
+.pc-card.pc-static { cursor: default; }
+.pc-card-inner { position: absolute; inset: 0; transition: transform .25s; transform-style: preserve-3d; }
+.pc-card[data-v="1"] .pc-card-inner { transform: rotateY(180deg); }
+.pc-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 3px solid var(--pc-off-border); font-weight: 800; font-size: clamp(1.2rem, 5vw, 2.6rem); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.pc-face-0 { background: var(--pc-off-bg); color: var(--pc-off-fg); }
+.pc-face-1 { background: var(--pc-on-bg); color: var(--pc-on-fg); border-color: var(--pc-on-bg); transform: rotateY(180deg); }
+.pc-parity .pc-face { border-color: var(--pc-parity); border-width: 4px; }
+.pc-parity .pc-face-1 { background: var(--pc-on-bg); }
+/* 反転したカードは、色に加えて、赤い点線の枠でも示す */
+.pc-flipped::after { content: ''; position: absolute; inset: -4px; border: 3px dashed var(--pc-ng); border-radius: 12px; pointer-events: none; }
+.pc-selected .pc-face { box-shadow: 0 0 0 3px #2563eb; }
+.pc-flying .pc-card { animation: pc-fly .7s ease-in forwards; }
+@keyframes pc-fly { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(40%) scale(.7); opacity: .1; } }
+@media (prefers-reduced-motion: reduce) {
+  .pc-card-inner { transition: none; }
+  .pc-flying .pc-card { animation: none; opacity: .4; }
+}
+
+.pc-count { font-weight: 700; margin: .4rem 0; }
+.pc-noise { display: flex; flex-wrap: wrap; gap: .4rem; border: 0; padding: 0; margin: .5rem 0; }
+.pc-noise legend { font-weight: 700; margin-bottom: .25rem; }
+.pc-noise label { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; padding: 0 .75rem; border: 2px solid #9ca3af; border-radius: 10px; background: #fff; cursor: pointer; }
+.pc-noise label.pc-on { border-color: #111827; background: #f3f4f6; font-weight: 700; }
+.pc-channel { text-align: center; font-weight: 700; padding: .75rem; color: #374151; }
+.pc-ask { margin: .75rem 0; }
+.pc-ask input[type="number"] { width: 6rem; min-height: 44px; padding: 0 .5rem; border: 2px solid #374151; border-radius: 10px; font-size: 1.1rem; background: #fff; color: #111827; }
+.pc-msg { min-height: 1.5rem; color: #9a3412; font-weight: 600; margin: .4rem 0; }
+.pc-result { padding: .6rem .9rem; border-radius: 10px; border: 2px solid; margin: .5rem 0; font-weight: 600; }
+.pc-result-ok { border-color: var(--pc-ok); background: #ecfdf5; color: #064e3b; }
+.pc-result-ng { border-color: var(--pc-ng); background: #fef2f2; color: #7f1d1d; }
+.pc-reveal { margin: .4rem 0; font-weight: 600; }
+
+.pc-why { margin: .75rem 0 2rem; border: 1px solid #d1d5db; border-radius: 10px; background: #fffbeb; }
+.pc-why summary { cursor: pointer; padding: .7rem 1rem; font-weight: 700; min-height: 44px; }
+.pc-why-body { padding: 0 1rem 1rem; }
+.pc-why-body p, .pc-why-body ul { margin: .5rem 0; }
+.pc-why-body ul { padding-left: 1.4rem; list-style: disc; }

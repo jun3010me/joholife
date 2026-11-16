@@ -1,0 +1,14 @@
+---
+// parity-check.astro：パリティチェック体験（偶数・奇数パリティ、2次元パリティ）
+import Layout from '../layouts/Layout.astro';
+import ParityApp from '../components/parity-check/ParityApp.tsx';
+import '../styles/parity-check.css';
+---
+
+<Layout title="パリティチェック体験" description="カードを送って、通信中のデータの誤りに気づく方法（偶数・奇数パリティ、2次元パリティ）を、操作して体験できます。">
+  <div class="container mx-auto px-4 py-6">
+    <ParityApp client:only="react" />
+  </div>
+</Layout>
+
+<script is:inline src="/scripts/certificate-download.js"></script>
