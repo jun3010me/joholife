@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "node --test \"src/utils/linux-terminal/__tests__/*.test.ts\" \"src/utils/key-exchange-simulator/__tests__/*.test.ts\"",
+    "test": "node --test \"src/utils/linux-terminal/__tests__/*.test.ts\" \"src/utils/key-exchange-simulator/__tests__/*.test.ts\" \"src/utils/parity-check/__tests__/*.test.ts\"",
     "lint": "tsc -p tsconfig.linux-terminal.json && tsc -p tsconfig.key-exchange-simulator.json"
   },
   "dependencies": {
