@@ -1,0 +1,68 @@
+---
+// ビルド時に、最新コミット（＝最後にマージされたプルリク）の日時と番号を取得して表示する。
+// GitHub Actions でのビルドは UTC で動くため、表示は日本時間に変換する。
+// git が使えない環境では、ビルドした時刻を代わりに表示する（ビルドは失敗させない）。
+import { execSync } from 'node:child_process';
+
+const REPO_URL = 'https://github.com/jun3010me/joholife';
+
+let updatedAt = new Date();
+let prNumber: string | null = null;
+
+try {
+    const [isoDate, subject = ''] = execSync('git log -1 --format=%cI%n%s', {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'], // git がない環境でもビルドログを汚さない
+    })
+        .trim()
+        .split('\n');
+    const parsed = new Date(isoDate);
+    if (!Number.isNaN(parsed.getTime())) updatedAt = parsed;
+    // "Merge pull request #254 from ..."（マージコミット）と "タイトル (#254)"（Squash）の両方に対応
+    prNumber = subject.match(/#(\d+)/)?.[1] ?? null;
+} catch {
+    // git がない環境ではビルド時刻のまま
+}
+
+const displayDate = new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+}).format(updatedAt);
+---
+
+<p class="last-updated">
+    <span aria-hidden="true">🕒</span>
+    最終更新：<time datetime={updatedAt.toISOString()}>{displayDate}</time>
+    {prNumber && (
+        <>
+            （<a
+                href={`${REPO_URL}/pull/${prNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="last-updated-link"
+            >#{prNumber}</a>）
+        </>
+    )}
+</p>
+
+<style>
+    .last-updated {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .last-updated-link {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .last-updated-link:hover {
+        opacity: 0.75;
+    }
+</style>
