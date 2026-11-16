@@ -1,0 +1,19 @@
+---
+// パリティ課題②2次元パリティ：保存したJSONを提出して、修了証を発行する
+import Layout from '../../layouts/Layout.astro';
+import { parityTaskById } from '../../components/quiz/parity-tasks.ts';
+
+const task = parityTaskById('parity-2')!;
+---
+
+<Layout title={`${task.title} - じょうほうらいふ`}>
+  <div class="container mx-auto px-4 py-8">
+    <div id="pc-submit-app" data-task={task.id}></div>
+  </div>
+</Layout>
+
+<script is:inline src="/scripts/certificate-download.js"></script>
+<script>
+  import { mountParitySubmit } from '../../components/quiz/parity-submit.ts';
+  mountParitySubmit();
+</script>
