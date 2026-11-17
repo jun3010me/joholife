@@ -188,7 +188,11 @@ export function mountKeyExchangeLab(): void {
     if (lab.mode === 'scenario' && lab.scenario) {
       const sc = SCENARIOS[lab.scenario.id], st = lab.scenario, now = st.steps.findIndex((s) => !s.done), done = st.steps.filter((s) => s.done).length;
       h = `<b>${esc(sc.title)}（${done}/${sc.steps.length}）</b>${st.completed ? '完了しました！' : st.failed ? '失敗。クリアでやり直せます' : esc(sc.steps[now]?.text || '')}`;
-    } else h = '<b>鍵交換シミュレータ（自由モード）</b>デバイスを配置して、つないでください';
+    } else {
+      // 送信回数：課題⑧の判定と同じくログの send を数える。中間者に横取りされた送信（intercept）も、送る操作として数える
+      const sends = lab.log.filter((e) => e.action === 'send' || e.action === 'intercept').length;
+      h = `<b>鍵交換シミュレータ（自由モード）</b>デバイスを配置して、つないでください<span class="kx-sendcount">送信 ${sends}回</span>`;
+    }
     $('#kx-info').innerHTML = h;
   }
   function devSub(d: Device): string {
