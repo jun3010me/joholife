@@ -82,8 +82,15 @@ test('pickFlip1：パリティ指定ならパリティのマス、データ指�
     assert.ok(isParityCell(pickFlip1('parity', rng)));
     assert.ok(!isParityCell(pickFlip1('data', rng)));
   }
-  const two = pickFlip2(lcg(9)) as Cell[];
-  assert.notDeepEqual(two[0], two[1]);
+  const rng2 = lcg(9);
+  for (let n = 0; n < 500; n++) {
+    const two = pickFlip2(rng2) as Cell[];
+    assert.notEqual(two[0][0], two[1][0], '行がちがう');
+    assert.notEqual(two[0][1], two[1][1], '列がちがう');
+    const g = applyFlips2D(encode2D(randomData4(rng2)), two);
+    assert.equal(oddRows(g).length, 2);
+    assert.equal(oddCols(g).length, 2);
+  }
 });
 test('flipKindFor：3問のうち1問は、必ずパリティのマスが反転する', () => {
   assert.equal(flipKindFor([]), 'any');

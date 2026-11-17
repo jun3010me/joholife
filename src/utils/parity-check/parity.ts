@@ -101,9 +101,12 @@ export function pickFlip1(kind: 'any' | 'parity' | 'data', rng: Rng = Math.rando
   return pool[pick(pool.length, rng)];
 }
 
-/** 2枚反転する位置（異なる2マス） */
+/** 2枚反転する位置。行も列もちがう2マス（おかしい行・列が2本ずつ見える状態にする） */
 export function pickFlip2(rng: Rng = Math.random): Cell[] {
-  return pickDistinct(GRID * GRID, 2, rng).map((i) => [Math.floor(i / GRID), i % GRID] as Cell);
+  const first = pickFlip1('any', rng);
+  const pool: Cell[] = [];
+  for (let r = 0; r < GRID; r++) for (let c = 0; c < GRID; c++) if (r !== first[0] && c !== first[1]) pool.push([r, c]);
+  return [first, pool[pick(pool.length, rng)]];
 }
 
 /**
