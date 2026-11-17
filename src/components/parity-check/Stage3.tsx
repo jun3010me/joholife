@@ -30,6 +30,8 @@ export default function Stage3() {
   const [col, setCol] = useState<number | null>(null);
   const [fixed, setFixed] = useState(false);
   const [shown, setShown] = useState(false);
+  // 送信後は送信側を隠す。「答えを見る」か、訂正を終えたら再表示する
+  const [peek, setPeek] = useState(false);
   const [hint, setHint] = useState(false);
   const [msg, setMsg] = useState('');
   const timer = useRef<number | null>(null);
@@ -47,7 +49,7 @@ export default function Stage3() {
     const received = applyFlips2D(sent, flipped);
     const idx = add({ stage: 3, sent, flipped, steps: [], hintUsed: hint, answerShown: false, cleared: false });
     setProb({ idx, received, flipped, noise }); setGrid(received);
-    setRow(null); setCol(null); setFixed(false); setShown(false); setMsg('');
+    setRow(null); setCol(null); setFixed(false); setShown(false); setPeek(false); setMsg('');
     setPhase('sending');
     const reduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     timer.current = window.setTimeout(() => setPhase('work'), reduced ? 50 : 750);
@@ -84,16 +86,17 @@ export default function Stage3() {
     log({ step: 'fix', cell: [r, c], ok: hit });
     if (!hit) { setMsg('ノイズが2枚だと、場所を決められないことも……'); return; }
     setGrid(grid.map((g, i) => g.map((b, k) => (i === r && k === c ? ((1 - b) as Bit) : b))));
-    setFixed(true);
+    setFixed(true); setPeek(true);
     if (prob.noise === 1) { update((p) => ({ ...p, cleared: !p.answerShown })); setMsg('訂正成功！'); }
     else setMsg('1枚は直せました。ノイズが2枚だと、残りの1枚の場所は決められないこともあります。');
   };
   const showAnswer = () => {
-    setShown(true);
+    setShown(true); setPeek(true);
     update((p) => ({ ...p, answerShown: true, cleared: false }));
   };
   const next = () => { setProb(null); setGrid(null); setPhase('edit'); setMsg(''); setShown(false); setFixed(false); };
 
+  const senderHidden = !!prob && phase === 'work' && !peek;
   const oneNoise = prob?.noise === 1;
   const done = fixed;
   const rowHead = (r: number) => hint && prob && grid ? `${rowShort(r)}（${countOnes(grid[r])}）` : rowShort(r);
@@ -136,7 +139,13 @@ export default function Stage3() {
       <h2 id="pc-h3x" className="pc-h2">ステージ3　2次元パリティ</h2>
       <p className="pc-lead">データ4×4に、縦と横の<strong>偶数パリティ</strong>（オレンジの枠）を付けて送ります。受信側で、誤りの場所を見つけて直そう。</p>
 
-      <div className="pc-block">
+      {senderHidden && (
+        <div className="pc-block pc-hidden-sender" role="status">
+          <h3 className="pc-h3">送信側</h3>
+          <p>🙈 送ったマスは隠しました。受信したマスだけを見て、考えよう。（「答えを見る」か、直し終わると、また見られます）</p>
+        </div>
+      )}
+      <div className="pc-block" hidden={senderHidden}>
         <h3 className="pc-h3">送信側</h3>
         <div className={phase === 'sending' ? 'pc-flying' : ''}>{board(sent, 'edit')}</div>
         {phase === 'edit' && (

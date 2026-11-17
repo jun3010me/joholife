@@ -26,6 +26,8 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
   const [msg, setMsg] = useState('');
   const [reveal, setReveal] = useState(false);
   const [shown, setShown] = useState(false);
+  // 送信後は、送信側を隠して受信側だけで考えさせる。「確かめる」「答えを見る」で再表示する
+  const [peek, setPeek] = useState(false);
   const timer = useRef<number | null>(null);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
 
@@ -33,6 +35,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
   const dataOnes = countOnes(data);
   const total = countOnes(sent);
   const noOnes = total === 0;
+  const senderHidden = !!recv && (phase === 'count' || phase === 'judge' || phase === 'done') && !peek;
   const parityLabel = mode === 'even' ? '偶数' : '奇数';
 
   const update = (f: (p: Problem12) => Problem12) => recv && patch(recv.idx, (p) => f(p as Problem12));
@@ -42,7 +45,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
     const { received, flipped } = applyNoise(sent, noise);
     const idx = add({ stage, mode, noise, sent, flipped, steps: [], answerShown: false, cleared: false });
     setRecv({ received, flipped, idx, noise });
-    setInput(''); setMsg(''); setReveal(false); setShown(false);
+    setInput(''); setMsg(''); setReveal(false); setShown(false); setPeek(false);
     setPhase('sending');
     const reduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     timer.current = window.setTimeout(() => setPhase('count'), reduced ? 50 : 750);
@@ -50,6 +53,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
 
   const checkCount = () => {
     if (!recv || input.trim() === '') return;
+    setPeek(true);
     const v = Number(input);
     const ok = Number.isInteger(v) && v === countOnes(recv.received);
     update((p) => ({ ...p, steps: [...p.steps, { step: 'count', value: Number.isFinite(v) ? v : -1, ok }] }));
@@ -66,7 +70,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
   };
 
   const showAnswer = () => {
-    setReveal(true); setShown(true);
+    setReveal(true); setShown(true); setPeek(true);
     update((p) => ({ ...p, answerShown: true, cleared: false }));
   };
 
@@ -84,7 +88,13 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
         データ7枚をめくって、最後の1枚（オレンジの枠）で<strong>{RULE[mode]}</strong>にそろえて送ります。
       </p>
 
-      <div className="pc-block">
+      {senderHidden && (
+        <div className="pc-block pc-hidden-sender" role="status">
+          <h3 className="pc-h3">送信側</h3>
+          <p>🙈 送ったカードは隠しました。受信したカードだけを見て、考えよう。（「確かめる」か「答えを見る」で、また見られます）</p>
+        </div>
+      )}
+      <div className="pc-block" hidden={senderHidden}>
         <h3 className="pc-h3">送信側</h3>
         <div className={`pc-row ${phase === 'sending' ? 'pc-flying' : ''}`}>
           {data.map((b, i) => (
