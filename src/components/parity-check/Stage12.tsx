@@ -74,7 +74,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
 
   const truth = recv ? judge(recv.received, mode) : null;
   const resultText = recv && truth
-    ? `1の数は${countOnes(recv.received)}枚 → ${truth === 'ok' ? '正しく届いたと判定' : '誤りあり！'}`
+    ? `1の数は${countOnes(recv.received)}枚 → ${truth === 'ok' ? '「正しく届いた」と判定するのが正解' : '「誤りあり」と気づけました'}`
     : '';
 
   return (
@@ -150,8 +150,9 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
           <p className="pc-msg" role="status" aria-live="polite">{msg}</p>
 
           {phase === 'done' && truth && (
-            <div className={`pc-result ${truth === 'ok' ? 'pc-result-ok' : 'pc-result-ng'}`} role="status" aria-live="polite">
-              <strong>{truth === 'ok' ? '✔ 正常' : '⚠ 誤りあり'}</strong>　{resultText}
+            // 色は「正解かどうか」で決める（「誤りあり」と判定して正解したときも緑）
+            <div className={`pc-result ${shown ? 'pc-result-neutral' : 'pc-result-ok'}`} role="status" aria-live="polite">
+              <strong>{shown ? '答えを見た問題' : '✔ 正解！'}</strong>　{resultText}
               {!shown && <span className="pc-cleared">　🎉 クリア</span>}
             </div>
           )}
