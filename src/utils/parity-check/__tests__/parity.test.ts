@@ -92,11 +92,17 @@ test('pickFlip1：パリティ指定ならパリティのマス、データ指�
     assert.equal(oddCols(g).length, 2);
   }
 });
-test('flipKindFor：3問のうち1問は、必ずパリティのマスが反転する', () => {
+test('flipKindFor：パリティのマスの問題をクリアするまで、必ずパリティのマスが出る', () => {
+  const h = (parity: boolean, cleared = true) => ({ parity, cleared });
   assert.equal(flipKindFor([]), 'any');
-  assert.equal(flipKindFor([false]), 'any');
-  assert.equal(flipKindFor([false, false]), 'parity');
-  assert.equal(flipKindFor([true, false]), 'any');
-  assert.equal(flipKindFor([false, false, false]), 'any');
-  assert.equal(flipKindFor([false, false, true, false, false]), 'parity');
+  assert.equal(flipKindFor([h(false)]), 'any');
+  assert.equal(flipKindFor([h(false), h(false)]), 'parity');
+  assert.equal(flipKindFor([h(true, false), h(false)]), 'any');
+  // 直前のパリティの問題を、答えを見るなどでクリアしなかった：もう一度パリティ
+  assert.equal(flipKindFor([h(false), h(false), h(true, false)]), 'parity');
+  // 答えを見て飛ばした問題が続いても、パリティのクリアがなければ、いつかは必ず出る
+  assert.equal(flipKindFor([h(false), h(false), h(true, false), h(true, false)]), 'parity');
+  assert.equal(flipKindFor([h(false), h(false), h(true, false), h(false, false), h(false)]), 'parity');
+  // パリティをクリアしたあとは、ランダム
+  assert.equal(flipKindFor([h(false), h(false), h(true, true), h(false), h(false)]), 'any');
 });
