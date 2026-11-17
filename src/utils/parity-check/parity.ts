@@ -109,12 +109,17 @@ export function pickFlip2(rng: Rng = Math.random): Cell[] {
   return [first, pool[pick(pool.length, rng)]];
 }
 
+/** これまでのノイズ1枚の問題（古い順）：パリティのマスが反転した問題か、クリアしたか */
+export interface FlipHistory { parity: boolean; cleared: boolean }
+
 /**
  * ノイズ1枚の問題で、パリティのマスが反転する問題が必ず出るようにする。
- * これまでのノイズ1枚の問題（古い順）を3問ずつの組に分け、組の3問目までにパリティが出ていなければ、3問目をパリティにする。
+ * パリティのマスの問題を「クリア」するまでは、①直前がパリティの問題で、クリアしなかった（答えを見たなど）ときと、
+ * ②パリティでない問題が2問続いたときに、パリティのマスにする。クリアしたあとは、ランダム。
  */
-export function flipKindFor(history: readonly boolean[]): 'any' | 'parity' {
-  const pos = history.length % 3;
-  if (pos === 2 && !history.slice(-2).some(Boolean)) return 'parity';
-  return 'any';
+export function flipKindFor(history: readonly FlipHistory[]): 'any' | 'parity' {
+  if (history.some((h) => h.parity && h.cleared)) return 'any';
+  const last = history[history.length - 1];
+  if (last && last.parity) return 'parity';
+  return history.length >= 2 && !history.slice(-2).some((h) => h.parity) ? 'parity' : 'any';
 }

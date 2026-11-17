@@ -44,8 +44,8 @@ export default function Stage3() {
 
   const send = () => {
     const flipped: Cell[] = noise === 1
-      // 過去のノイズ1枚の問題から、パリティのマスが3問に1問は必ず出るようにする
-      ? [pickFlip1(flipKindFor(problems.filter((p): p is Problem3 => p.stage === 3 && p.flipped.length === 1).map((p) => isParityCell(p.flipped[0]))))]
+      // パリティのマスの問題をクリアするまでは、必ずパリティのマスが反転する問題を出す
+      ? [pickFlip1(flipKindFor(problems.filter((p): p is Problem3 => p.stage === 3 && p.flipped.length === 1).map((p) => ({ parity: isParityCell(p.flipped[0]), cleared: p.cleared }))))]
       : pickFlip2();
     const received = applyFlips2D(sent, flipped);
     const idx = add({ stage: 3, sent, flipped, steps: [], hintUsed: hint, answerShown: false, cleared: false });
