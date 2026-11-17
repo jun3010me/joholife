@@ -69,7 +69,7 @@
 .pc-msg { min-height: 1.5rem; color: #9a3412; font-weight: 600; margin: .4rem 0; }
 .pc-result { padding: .6rem .9rem; border-radius: 10px; border: 2px solid; margin: .5rem 0; font-weight: 600; }
 .pc-result-ok { border-color: var(--pc-ok); background: #ecfdf5; color: #064e3b; }
-.pc-result-ng { border-color: var(--pc-ng); background: #fef2f2; color: #7f1d1d; }
+.pc-result-neutral { border-color: #6b7280; background: #f3f4f6; color: #111827; }
 .pc-reveal { margin: .4rem 0; font-weight: 600; }
 
 .pc-why { margin: .75rem 0 2rem; border: 1px solid #d1d5db; border-radius: 10px; background: #fffbeb; }
