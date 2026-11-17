@@ -96,3 +96,7 @@
 .pc-msg-ok { color: var(--pc-ok); }
 .pc-hintbox { display: flex; align-items: center; gap: .4rem; min-height: 44px; margin-top: .5rem; }
 .pc-hintbox input { width: 22px; height: 22px; }
+
+/* 送信後、送信側を隠しているときの表示 */
+.pc-hidden-sender { background: #f3f4f6; border: 2px dashed #9ca3af; border-radius: 12px; padding: .75rem 1rem; }
+.pc-page [hidden] { display: none !important; }
