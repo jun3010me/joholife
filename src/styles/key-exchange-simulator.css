@@ -148,6 +148,7 @@
   max-width: min(300px, calc(100% - 80px)); pointer-events: none; }
 .kx-page .status-panel.kx-info { position: static; max-width: 100%; font-size: 11.5px; line-height: 1.5; padding: 8px 12px; }
 .kx-info b { display: block; font-size: 12px; }
+.kx-info .kx-sendcount { display: block; margin-top: 2px; font-size: 10.5px; color: var(--kx-muted); text-align: right; }
 
 /* シナリオのドロワー */
 .kx-drawer { position: absolute; top: 0; bottom: 0; left: 0; z-index: 40; display: flex; pointer-events: none; }
