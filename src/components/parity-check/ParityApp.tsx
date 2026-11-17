@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildSave, clearProblems, loadProblems, saveProblems, type Problem } from '../../utils/parity-check/log.ts';
+import { progressOf } from '../../utils/parity-check/submission.ts';
 import { STAGES } from '../../utils/parity-check/stages.ts';
 import { LogContext, type LogApi } from './context.tsx';
 import Stage12 from './Stage12.tsx';
@@ -33,6 +34,7 @@ export default function ParityApp() {
   }), [problems, commit]);
 
   const cleared = problems.filter((p) => p.cleared).length;
+  const prog = useMemo(() => progressOf(problems), [problems]);
 
   const save = () => {
     const blob = new Blob([JSON.stringify(buildSave(problems), null, 2)], { type: 'application/json' });
@@ -61,6 +63,22 @@ export default function ParityApp() {
             <span aria-live="polite">クリアした問題：{ready ? cleared : '…'}問</span>
             <button type="button" className="pc-btn" onClick={save} disabled={problems.length === 0}>💾 保存</button>
             <button type="button" className="pc-btn pc-btn-sub" onClick={() => { setConfirming(true); setNotice(''); }} disabled={problems.length === 0}>記録を消す</button>
+          </div>
+          <div className="pc-progress" aria-label="課題の進み具合">
+            <div className={prog.task1Done ? 'pc-prog-done' : ''}>
+              <strong>課題① 偶数・奇数パリティ（ステージ1・2）　{prog.task1.filter((x) => x.done).length}/6　{prog.task1Done ? '✔ 提出できます' : 'あと' + prog.task1.filter((x) => !x.done).length + '種類'}</strong>
+              <ul>
+                {prog.task1.map((x) => <li key={x.label} className={x.done ? 'pc-ok' : ''}>{x.done ? '✔' : '□'} {x.label}</li>)}
+              </ul>
+            </div>
+            <div className={prog.task2Done ? 'pc-prog-done' : ''}>
+              <strong>課題② 2次元パリティ（ステージ3）　{prog.task2Done ? '✔ 提出できます' : `ノイズ1枚 ${Math.min(prog.task2.cleared, 3)}/3問`}</strong>
+              <ul>
+                <li className={prog.task2.cleared >= 3 ? 'pc-ok' : ''}>{prog.task2.cleared >= 3 ? '✔' : '□'} ノイズ1枚を3問クリア（今は{prog.task2.cleared}問）</li>
+                <li className={prog.task2.parityDone ? 'pc-ok' : ''}>{prog.task2.parityDone ? '✔' : '□'} パリティのマス（右端の列・下端の行）が反転した問題をクリア</li>
+              </ul>
+            </div>
+            <p className="pc-note">「答えを見る」を押した問題は数えません。この記録のファイルは、両方の課題にそのまま提出できます。</p>
           </div>
           {confirming && (
             <div className="pc-confirm" role="alertdialog" aria-label="記録を消す確認">
