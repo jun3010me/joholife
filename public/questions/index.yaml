@@ -286,3 +286,17 @@ questionSets:
   difficulty: hard
   estimatedTime: 25
   category: 暗号・認証
+- id: parity-1
+  title: パリティ課題①偶数・奇数パリティ
+  description: カードを送って、ノイズに気づけるかを偶数・奇数の両方で確かめる
+  icon: 🃏
+  difficulty: easy
+  estimatedTime: 15
+  category: 通信の誤り検出
+- id: parity-2
+  title: パリティ課題②2次元パリティ
+  description: 誤りの行と列を見つけて、反転したカードを直す
+  icon: 🔲
+  difficulty: medium
+  estimatedTime: 15
+  category: 通信の誤り検出
