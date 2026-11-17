@@ -26,7 +26,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
   const [msg, setMsg] = useState('');
   const [reveal, setReveal] = useState(false);
   const [shown, setShown] = useState(false);
-  // 送信後は、送信側を隠して受信側だけで考えさせる。「確かめる」「答えを見る」で再表示する
+  // 送信後は、送信側を隠して受信側だけで考えさせる。「正しく届いた」「誤りあり」「答えを見る」で再表示する
   const [peek, setPeek] = useState(false);
   const timer = useRef<number | null>(null);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
@@ -53,7 +53,6 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
 
   const checkCount = () => {
     if (!recv || input.trim() === '') return;
-    setPeek(true);
     const v = Number(input);
     const ok = Number.isInteger(v) && v === countOnes(recv.received);
     update((p) => ({ ...p, steps: [...p.steps, { step: 'count', value: Number.isFinite(v) ? v : -1, ok }] }));
@@ -62,6 +61,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
 
   const choose = (pick: 'ok' | 'error') => {
     if (!recv) return;
+    setPeek(true);
     const truth = judge(recv.received, mode);
     const ok = pick === truth;
     update((p) => ({ ...p, steps: [...p.steps, { step: 'judge', pick, ok }], cleared: ok && !p.answerShown }));
@@ -91,7 +91,7 @@ export default function Stage12({ stage, mode }: { stage: 1 | 2; mode: Mode }) {
       {senderHidden && (
         <div className="pc-block pc-hidden-sender" role="status">
           <h3 className="pc-h3">送信側</h3>
-          <p>🙈 送ったカードは隠しました。受信したカードだけを見て、考えよう。（「確かめる」か「答えを見る」で、また見られます）</p>
+          <p>🙈 送ったカードは隠しました。受信したカードだけを見て、考えよう。（「正しく届いた」「誤りあり」を押すか「答えを見る」で、また見られます）</p>
         </div>
       )}
       <div className="pc-block" hidden={senderHidden}>
