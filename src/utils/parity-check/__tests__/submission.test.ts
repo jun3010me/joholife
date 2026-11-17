@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyFlips, applyFlips2D, countOnes, encode, encode2D, judge, oddCols, oddRows, type Bit, type Cell, type Mode, type Noise } from '../parity.ts';
 import { buildSave, clearProblems, loadProblems, saveProblems, STORAGE_KEY, type Problem, type Problem12, type Problem3 } from '../log.ts';
-import { validateParity1, validateParity2 } from '../submission.ts';
+import { progressOf, validateParity1, validateParity2 } from '../submission.ts';
 
 const DATA: Bit[] = [1, 0, 1, 1, 0, 1, 0];
 const FLIPS: Record<Noise, number[]> = { none: [], one: [2], two: [1, 5], zero: [] };
@@ -121,4 +121,22 @@ test('保存・読込：localStorageに保存して読み直せる。壊れた�
   saveProblems(ps, store); clearProblems(store);
   assert.deepEqual(loadProblems(store), []);
   assert.deepEqual(loadProblems(null), []);
+});
+
+test('進捗：できた種類・足りない種類が分かり、提出判定と同じ結果になる', () => {
+  const ps = all6().filter((p) => !(p.mode === 'odd' && p.noise === 'zero'));
+  const g = progressOf(ps);
+  assert.equal(g.task1.filter((x) => x.done).length, 5);
+  assert.equal(g.task1.find((x) => !x.done)?.label, '奇数パリティの全部0');
+  assert.equal(g.task1Done, false);
+  assert.equal(progressOf(all6()).task1Done, true);
+
+  const p3 = [make3([0, 1]), make3([2, 3])];
+  assert.deepEqual(progressOf(p3).task2, { cleared: 2, parityDone: false });
+  const done = progressOf([...p3, make3([4, 2])]);
+  assert.equal(done.task2Done, true);
+  // 答えを見た問題は数えない
+  assert.equal(progressOf([make3([4, 2], { answerShown: true, cleared: false })]).task2.cleared, 0);
+  // 判定と進捗は一致する
+  assert.equal(validateParity2(file([...p3, make3([4, 2])])).valid, done.task2Done);
 });

@@ -103,6 +103,11 @@ function verify3(p: Problem3): Verdict {
   return { cleared };
 }
 
+const verifyOne = (p: Problem): Verdict =>
+  p && p.stage === 3 ? verify3(p as Problem3)
+    : p && (p.stage === 1 || p.stage === 2) ? verify12(p as Problem12)
+    : { error: 'ステージが正しくありません。', cleared: false };
+
 /** 保存JSONを読み、問題ごとの再計算結果を返す */
 function verifyAll(data: unknown): { error?: string; problems: { p: Problem; cleared: boolean }[] } {
   const d = data as { simulator?: unknown; version?: unknown; problems?: unknown } | null;
@@ -114,7 +119,7 @@ function verifyAll(data: unknown): { error?: string; problems: { p: Problem; cle
   const out: { p: Problem; cleared: boolean }[] = [];
   for (const [i, raw] of (d.problems as Problem[]).entries()) {
     const p = raw as Problem;
-    const v = p && p.stage === 3 ? verify3(p as Problem3) : p && (p.stage === 1 || p.stage === 2) ? verify12(p as Problem12) : { error: 'ステージが正しくありません。', cleared: false };
+    const v = verifyOne(p);
     if (v.error) return { error: `${i + 1}番目の問題：${v.error}`, problems: [] };
     out.push({ p, cleared: v.cleared });
   }
@@ -151,4 +156,27 @@ export function validateParity2(data: unknown): SubmissionResult {
   if (cleared.length < 3) return bad(`ノイズ1枚の問題のクリアが、あと${3 - cleared.length}問足りません。（今は${cleared.length}問）`);
   if (parity < 1) return bad('パリティのマスが反転した問題のクリアが、まだありません。右端の列か下端の行のマスが反転した問題を解いてください。');
   return finish(cleared, '2次元パリティで、ノイズ1枚の問題を3問クリアしました。');
+}
+
+// ---------- 画面に出す進捗（提出判定と同じ再計算を使う） ----------
+
+export interface Progress {
+  /** 課題①の6種類：できたか */
+  task1: { mode: Mode; noise: Noise; label: string; done: boolean }[];
+  /** 課題②：ノイズ1枚でクリアした問題数、パリティのマスの問題をクリアしたか */
+  task2: { cleared: number; parityDone: boolean };
+  task1Done: boolean;
+  task2Done: boolean;
+}
+
+export function progressOf(problems: readonly Problem[]): Progress {
+  const ok = problems.map((p) => ({ p, v: verifyOne(p) })).filter((x) => !x.v.error && x.v.cleared).map((x) => x.p);
+  const c12 = ok.filter((p): p is Problem12 => p.stage !== 3);
+  const c3 = ok.filter((p): p is Problem3 => p.stage === 3);
+  const task1 = (['even', 'odd'] as Mode[]).flatMap((mode) => (['one', 'two', 'zero'] as Noise[]).map((noise) => ({
+    mode, noise, label: `${MODE_NAME[mode]}の${NOISE_NAME[noise]}`,
+    done: c12.some((p) => p.mode === mode && p.noise === noise && (noise !== 'zero' || p.flipped.length > 0)),
+  })));
+  const task2 = { cleared: c3.length, parityDone: c3.some((p) => isParityCell(p.flipped[0])) };
+  return { task1, task2, task1Done: task1.every((x) => x.done), task2Done: task2.cleared >= 3 && task2.parityDone };
 }
