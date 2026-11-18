@@ -11,7 +11,7 @@ const NOISES: { id: Noise; label: string }[] = [
   { id: 'zero', label: '全部0が届く' },
 ];
 type Phase = 'edit' | 'sending' | 'count' | 'judge' | 'done';
-interface Recv { received: Bit[]; flipped: number[]; idx: number; noise: Noise }
+interface Recv { received: Bit[]; flipped: number[]; idx: string; noise: Noise }
 
 const RULE: Record<Mode, string> = { even: '1の数が偶数', odd: '1の数が奇数' };
 
