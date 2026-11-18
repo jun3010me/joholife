@@ -8,7 +8,7 @@ import Card from './Card.tsx';
 import { useLog } from './context.tsx';
 
 type Phase = 'edit' | 'sending' | 'work';
-interface Prob { idx: number; received: Grid; flipped: Cell[]; noise: 1 | 2 }
+interface Prob { idx: string; received: Grid; flipped: Cell[]; noise: 1 | 2 }
 
 // 読み上げやメッセージでは「行P」「列P」、見出しの表示は「P」
 const rowName = (r: number) => (r === GRID - 1 ? '行P' : `行${r + 1}`);

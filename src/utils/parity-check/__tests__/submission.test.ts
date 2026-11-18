@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyFlips, applyFlips2D, countOnes, encode, encode2D, judge, oddCols, oddRows, type Bit, type Cell, type Mode, type Noise } from '../parity.ts';
-import { buildSave, clearProblems, loadProblems, saveProblems, STORAGE_KEY, type Problem, type Problem12, type Problem3 } from '../log.ts';
+import { buildSave, clearProblems, loadProblems, mergeProblems, saveProblems, STORAGE_KEY, type Problem, type Problem12, type Problem3 } from '../log.ts';
 import { progressOf, validateParity1, validateParity2 } from '../submission.ts';
 
 const DATA: Bit[] = [1, 0, 1, 1, 0, 1, 0];
@@ -115,7 +115,7 @@ test('保存・読込：localStorageに保存して読み直せる。壊れた�
   assert.deepEqual(loadProblems(store), []);
   const ps = [make12('even', 'one')];
   saveProblems(ps, store);
-  assert.deepEqual(loadProblems(store), ps);
+  assert.deepEqual(loadProblems(store), ps.map((p, i) => ({ ...p, id: `legacy-${i}` })));
   mem.set(STORAGE_KEY, '{broken');
   assert.deepEqual(loadProblems(store), []);
   saveProblems(ps, store); clearProblems(store);
@@ -139,4 +139,25 @@ test('進捗：できた種類・足りない種類が分かり、提出判定�
   assert.equal(progressOf([make3([4, 2], { answerShown: true, cleared: false })]).task2.cleared, 0);
   // 判定と進捗は一致する
   assert.equal(validateParity2(file([...p3, make3([4, 2])])).valid, done.task2Done);
+});
+
+test('複数のタブ：記録を合わせても、どちらの問題も消えない', () => {
+  const a1 = { ...make3([0, 1]), id: 'a1' }, a2 = { ...make3([2, 3]), id: 'a2' }, b1 = { ...make3([4, 2]), id: 'b1' };
+  // タブAは a1, a2 を持ち、タブBが先に b1 を保存していた
+  const merged = mergeProblems([a1, a2], [b1], new Set(['a1', 'a2']));
+  assert.deepEqual(merged.map((p) => p.id), ['a1', 'a2', 'b1']);
+  // タブBの問題が更新されたときは、保存データの内容を使う。自分の問題は自分の内容を使う
+  const b1new = { ...b1, answerShown: true, cleared: false };
+  const a1old = { ...a1, cleared: false };
+  const m2 = mergeProblems([a1, b1], [a1old, b1new], new Set(['a1']));
+  assert.equal(m2.find((p) => p.id === 'b1')?.cleared, false);
+  assert.equal(m2.find((p) => p.id === 'a1')?.cleared, true);
+  // 判定は、idがあっても変わらない
+  assert.equal(validateParity2(file([a1, a2, b1])).valid, true);
+});
+test('識別子のない古い記録にも、読み込み時に識別子が付く', () => {
+  const mem = new Map<string, string>();
+  const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v), removeItem: (k: string) => void mem.delete(k) };
+  mem.set(STORAGE_KEY, JSON.stringify(buildSave([make3([0, 1]), make3([2, 3])])));
+  assert.deepEqual(loadProblems(store).map((p) => p.id), ['legacy-0', 'legacy-1']);
 });

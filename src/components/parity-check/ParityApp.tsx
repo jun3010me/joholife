@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { buildSave, clearProblems, loadProblems, saveProblems, type Problem } from '../../utils/parity-check/log.ts';
+import { buildSave, clearProblems, loadProblems, mergeProblems, newProblemId, saveProblems, STORAGE_KEY, type Problem } from '../../utils/parity-check/log.ts';
 import { progressOf } from '../../utils/parity-check/submission.ts';
 import { STAGES } from '../../utils/parity-check/stages.ts';
 import { LogContext, type LogApi } from './context.tsx';
@@ -19,18 +19,34 @@ const ACTIVE = STAGES.filter((s) => STAGE_VIEWS[s.id]);
 export default function ParityApp() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const ref = useRef<Problem[]>([]);
+  /** このタブで作った問題の識別子 */
+  const own = useRef<Set<string>>(new Set());
   const [ready, setReady] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState('');
 
-  // 続きからできるよう、端末（localStorage）から読む
-  useEffect(() => { ref.current = loadProblems(); setProblems(ref.current); setReady(true); }, []);
+  // 続きからできるよう、端末（localStorage）から読む。ほかのタブで記録が変わったときも、取り込む
+  useEffect(() => {
+    ref.current = loadProblems(); setProblems(ref.current); setReady(true);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== null && e.key !== STORAGE_KEY) return;
+      if (e.newValue === null) { ref.current = []; own.current.clear(); setProblems([]); return; } // ほかのタブで記録を消した
+      ref.current = mergeProblems(ref.current, loadProblems(), own.current);
+      setProblems(ref.current);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
-  const commit = useCallback((next: Problem[]) => { ref.current = next; setProblems(next); saveProblems(next); }, []);
+  // 保存の前に、ほかのタブが保存した分と合わせる（後から保存したタブが、先の記録を消してしまわないように）
+  const commit = useCallback((next: Problem[]) => {
+    const merged = mergeProblems(next, loadProblems(), own.current);
+    ref.current = merged; setProblems(merged); saveProblems(merged);
+  }, []);
   const api = useMemo<LogApi>(() => ({
     problems,
-    add: (p) => { const i = ref.current.length; commit([...ref.current, p]); return i; },
-    patch: (i, f) => commit(ref.current.map((p, k) => (k === i ? f(p) : p))),
+    add: (p) => { const id = newProblemId(); own.current.add(id); commit([...ref.current, { ...p, id }]); return id; },
+    patch: (id, f) => commit(ref.current.map((p) => (p.id === id ? f(p) : p))),
   }), [problems, commit]);
 
   const cleared = problems.filter((p) => p.cleared).length;
@@ -46,7 +62,7 @@ export default function ParityApp() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
-  const erase = () => { clearProblems(); ref.current = []; setProblems([]); setConfirming(false); setNotice('記録を消しました。'); };
+  const erase = () => { clearProblems(); ref.current = []; own.current.clear(); setProblems([]); setConfirming(false); setNotice('記録を消しました。'); };
 
   return (
     <LogContext.Provider value={api}>
